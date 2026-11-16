@@ -1,0 +1,228 @@
+[
+  {
+    "sample_id": "pr-628-096c166e5ce6",
+    "labels_sha256": "7c2f502e81c1c5753bac3d52740da25becec7c36f4e1852b112c09067fbfb624",
+    "issues": [
+      {
+        "id": "pr-628-096c166e5ce6:issue-3577128689",
+        "original_label_id": "3577128689",
+        "category": "guideline",
+        "description": "Complete signature and ensures mutate tracked MetaRegionOwners/LinkedListOwner and transfer frame permissions. name-proof-roles specifically requires tracked_ for resource-transform helpers, not lemma_ factual-proof prefix. Reviewer premise of missing role prefix is supported; preserve correction distinction.",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/specs/mm/embedding/list_store.rs",
+            "start_line": 534,
+            "end_line": 534
+          },
+          {
+            "version": "after",
+            "path": "ostd/specs/mm/embedding/list_store.rs",
+            "start_line": 453,
+            "end_line": 453
+          },
+          {
+            "version": "after",
+            "path": "ostd/specs/mm/embedding/list_store.rs",
+            "start_line": 382,
+            "end_line": 382
+          }
+        ],
+        "rationale": "Complete signature and ensures mutate tracked MetaRegionOwners/LinkedListOwner and transfer frame permissions. name-proof-roles specifically requires tracked_ for resource-transform helpers, not lemma_ factual-proof prefix. Reviewer premise of missing role prefix is supported; preserve correction distinction.",
+        "source_evidence": "531: /// (verified) [`crate::mm::frame::LinkedList::pop_back`]. Identical to\n532: /// [`pop_front_embedded`] except the *last* link is popped (touching the\n533: /// back neighbour at `slot_index_at(len - 2)`).\n534: pub proof fn pop_back_embedded<M: AnyFrameMeta + Repr<MetaSlotSmall>>(\n535:     tracked regions: &mut MetaRegionOwners,\n536:     tracked owner: &mut LinkedListOwner<M>,\n537: ) -> (tracked frame_own: UniqueFrameOwner<Link<M>>)\n538:     requires\n539:         old(regions).inv(),\n540:         old(owner).inv(),\n541:         old(owner).relate_region(*old(regions)),",
+        "rule_ids": [
+          "name-proof-roles"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/628#discussion_r3577128689",
+        "related_comment_ids": [
+          "3577128689",
+          "3577127687",
+          "3577124237"
+        ],
+        "verification": "source-only; historical Verus not executed"
+      }
+    ]
+  },
+  {
+    "sample_id": "pr-632-1be8099780ff",
+    "labels_sha256": "3ee58ccc0991cb450f18fc24ccffc6d3d313f3b6eafc3f5bc3e5c558f141c6c1",
+    "issues": [
+      {
+        "id": "pr-632-1be8099780ff:issue-3594255389",
+        "original_label_id": "3594255389",
+        "category": "semantic",
+        "description": "@DID-Lab-SZU @hiroki-chen @Marsman1996. I find this modification is unsound. `frame_obligations` is used to track the `DropObligations` (which is also tracked) that are given to frames. If we change this field to ghost, then `MetaRegionOwners` will lose this track because it can be arbitrarily modified.",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/specs/mm/frame/meta_region_owners.rs",
+            "start_line": 57,
+            "end_line": 57
+          }
+        ],
+        "rationale": "Public ghost frame_obligations:Multiset is freely mutable without consuming outstanding DropObligation tokens. inv() does not constrain the ledger; clean_inv only checks it is empty. A caller can empty the ghost ledger while retaining linear tokens, defeating the claimed clean-boundary accounting. Source even marks machinery unsound at274. This is accounting-model unsoundness, not a claim of SMT logical inconsistency.",
+        "source_evidence": "53:     /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n54:     /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).\n55:     /// Multiset semantics — multiple outstanding obligations at the same slot\n56:     /// are counted individually.\n57:     pub ghost frame_obligations: vstd::multiset::Multiset<usize>,\n58: }\n59: \n60: pub ghost struct MetaRegionModel {\n61:     pub slots: Map<usize, MetaSlotModel>,\n62: }",
+        "rule_ids": [
+          "linear-resource-model-soundness"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/632#discussion_r3594255389",
+        "related_comment_ids": [
+          "3594255389"
+        ],
+        "verification": "source-only; historical Verus not executed"
+      }
+    ]
+  },
+  {
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "labels_sha256": "b8e83bdf9e759d07c5ba7f3e8c7b3ee3f279c83147f6db485ea56b3c56462011",
+    "issues": [
+      {
+        "id": "pr-770-28ec70b8e3f2:issue-4042976752",
+        "original_label_id": "4042976752",
+        "category": "guideline",
+        "description": "Independent source and rule inspection confirms: Bounded forall checks every sequence element equal zero; Seq::all expresses same predicate without exposing indices.",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/src/cpu/set.rs",
+            "start_line": 285,
+            "end_line": 285
+          }
+        ],
+        "rationale": "Independent source and rule inspection confirms: Bounded forall checks every sequence element equal zero; Seq::all expresses same predicate without exposing indices.",
+        "source_evidence": "282: proof fn lemma_empty_bits_imply_empty_set(set: &CpuSet)\n283:     requires\n284:         forall|i: int|\n285:             0 <= i < smallvec_view(&set.bits).len() ==> smallvec_view(&set.bits)[i] == 0u64,\n286:     ensures\n287:         set@ == Set::empty(),\n288: {\n289:     let seq = smallvec_view(&set.bits);\n290:     assert forall|j: int| !set@.contains(j) by {\n291:         if 0 <= j < cpu_count() && j < 64 * seq.len() {\n292:             lemma_bit_at_uniform(seq, 0u64, j);",
+        "rule_ids": [
+          "quantifiers-and-triggers"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/770#discussion_r4042976752",
+        "related_comment_ids": [
+          "4042976752"
+        ],
+        "verification": "source-only; historical Verus not executed"
+      },
+      {
+        "id": "pr-770-28ec70b8e3f2:issue-4042969977",
+        "original_label_id": "4042969977",
+        "category": "guideline",
+        "description": "Independent source and rule inspection confirms: Private lemma_cpucount_fits and related representation/bounds helpers interrupt the public CpuSet model and APIs; move auxiliary section to trailing block.",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/src/cpu/set.rs",
+            "start_line": 244,
+            "end_line": 244
+          }
+        ],
+        "rationale": "Independent source and rule inspection confirms: Private lemma_cpucount_fits and related representation/bounds helpers interrupt the public CpuSet model and APIs; move auxiliary section to trailing block.",
+        "source_evidence": "241:     }\n242: }\n243: \n244: proof fn lemma_cpucount_fits()\n245:     ensures\n246:         2 * (parts_for_cpus_spec(cpu_count() as usize) as int) * (size_of::<u64>() as int)\n247:             <= isize::MAX as int,\n248: {\n249:     if cpu_count() > 0 {\n250:         assert(parts_for_cpus_spec(cpu_count() as usize) as int == (cpu_count() + 63) / 64) by {\n251:             reveal(parts_for_cpus_spec)",
+        "rule_ids": [
+          "defer-auxiliary-proof-functions"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/770#discussion_r4042969977",
+        "related_comment_ids": [
+          "4042969977"
+        ],
+        "verification": "source-only; historical Verus not executed"
+      }
+    ]
+  },
+  {
+    "sample_id": "pr-856-619ad58877f8",
+    "labels_sha256": "935e91f6c8f884a866c7a1826367d164fa352184ab6667e4077225614a817ea8",
+    "issues": [
+      {
+        "id": "pr-856-619ad58877f8:issue-4367306309",
+        "original_label_id": "4367306309",
+        "category": "guideline",
+        "description": "use \n```rust\nvstd::{arithmetic::mul::lemma_mul_inequality, prelude::*}\n```\naccording to the guideline",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/src/mm/dma/dma_coherent.rs",
+            "start_line": 2,
+            "end_line": 2
+          }
+        ],
+        "rationale": "Independent header check: unconditional vstd arithmetic and prelude imports split on2-3; group them. cfg(irc11) Objective import remains separate to preserve conditionality.",
+        "source_evidence": "1: // SPDX-License-Identifier: MPL-2.0\n2: use vstd::arithmetic::mul::lemma_mul_inequality;\n3: use vstd::prelude::*;\n4: #[cfg(feature = \"irc11\")]\n5: use vstd::thread_view::Objective;\n6: use vstd_extra::{\n7:     atomic_data::AtomicDataWithOwner,\n8:     ownership::{Inv, OwnerOf},\n9:     resource_invariant::SimpleResourceInvariant,\n10: };",
+        "rule_ids": [
+          "group-imports-by-crate"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/856#discussion_r4367306309",
+        "related_comment_ids": [
+          "4367306309"
+        ],
+        "verification": "source-only; historical Verus not executed"
+      }
+    ]
+  },
+  {
+    "sample_id": "pr-886-fe5eb7f3e6aa",
+    "labels_sha256": "3a9595fbb86a1f9f1f4e0f29a52b9943499ddf232a7e853b0f517161a08b1a07",
+    "issues": [
+      {
+        "id": "pr-886-fe5eb7f3e6aa:issue-4451380859",
+        "original_label_id": "4451380859",
+        "category": "guideline",
+        "description": "The None equivalence repeats a direction already implied by the Some contract.",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/src/arch/x86/ex_table.rs",
+            "start_line": 88,
+            "end_line": 88
+          }
+        ],
+        "rationale": "Some postcondition implies existence of a matching table entry. Contrapositive gives no-match => not-Some => None. Thus right-to-left direction of None equivalence is redundant; retain None => no-match and all Some first-match facts.",
+        "source_evidence": "85:                 && recovery == table_model()[i].1\n86:                 && forall|j: int| 0 <= j < i\n87:                     ==> #[trigger] table_model()[j].0 != inst_addr,\n88:             r is None <==> forall|i: int| 0 <= i < table_model().len()\n89:                 ==> #[trigger] table_model()[i].0 != inst_addr,\n90:     )]\n91:     pub fn find_recovery_inst_addr(inst_addr: Vaddr) -> Option<Vaddr> {\n92:         /* `read_table` isolates linker-symbol casts unsupported by Verus.\n93:          * Origin Rust:\n94:          * let table_size =\n95:          *     (__ex_table_end as usize - __ex_table as usize) / core::mem::size_of::<ExTableItem>();",
+        "rule_ids": [
+          "match-enum-results"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/886#discussion_r4451380859",
+        "related_comment_ids": [
+          "4451380859"
+        ],
+        "verification": "source-only; historical Verus not executed"
+      }
+    ]
+  },
+  {
+    "sample_id": "pr-931-79810bc1eeb5",
+    "labels_sha256": "c622ae4329d2f3201e7f60d3c85342b98d987c089d28ce0ece7008953d31357d",
+    "issues": [
+      {
+        "id": "pr-931-79810bc1eeb5:review-comment-4582797497",
+        "original_label_id": null,
+        "category": "guideline",
+        "description": "The verification change rewrites an existing to_flat_binary comment instead of preserving the original source documentation.",
+        "locations": [
+          {
+            "version": "after",
+            "path": "ostd/libs/linux-bzimage/builder/src/lib.rs",
+            "start_line": 121,
+            "end_line": 122
+          }
+        ],
+        "rationale": "The base contains the original two-line comment about mem_size exceeding file_size and zero filling. The selected head replaces it with an explanation about overlapping segments while leaving the adjacent executable resize/copy logic unchanged. The preserve-exec-code guideline at this same head requires existing comments and rustdoc to be preserved verbatim during proof work, with apparent documentation corrections handled separately. Review comment 4582797497 explicitly requests preserving the comment. Subsequent commit d30c271708585a0ae89b5eafd1dd795bc98281a9 restores the original wording. This label concerns the scope and preservation rule, not a claim that the replacement comment is semantically false.",
+        "source_evidence": "before/ostd/libs/linux-bzimage/builder/src/lib.rs\n98:                 program.virtual_addr() as usize,\n99:             )));\n100: \n101:             // Note that `mem_size` can be greater than `file_size`. The remaining part must be\n102:             // filled with zeros.\n103:             let mem_length = program.mem_size() as usize;\n104:             if bin.len() < dst_file_offset + mem_length {\n105:                 bin.resize(dst_file_offset + mem_length, 0);\n106:             }\n107: \n108:             // Copy the bytes in the `file_size` part.\n\nafter/ostd/libs/linux-bzimage/builder/src/lib.rs\n118:                 program.virtual_addr() as usize,\n119:             )));\n120: \n121:             // `mem_size` can exceed `file_size`. Only newly appended bytes are zeroed;\n122:             // an overlapping segment's memory-only tail keeps existing bytes.\n123:             let mem_length = program.mem_size() as usize;\n124:             if bin.len() < dst_file_offset + mem_length {\n125:                 bin.resize(dst_file_offset + mem_length, 0);\n126:             }\n127: \n128:             // Copy the bytes in the `file_size` part.",
+        "rule_ids": [
+          "preserve-exec-code"
+        ],
+        "review_url": "https://github.com/asterinas/vostd/pull/931#discussion_r4582797497",
+        "related_comment_ids": [
+          "4582797497"
+        ],
+        "sources": [
+          {
+            "kind": "review-comment",
+            "id": "4582797497",
+            "url": "https://github.com/asterinas/vostd/pull/931#discussion_r4582797497",
+            "commit_id": "79810bc1eeb5a65acb4ec81370d0671253ab48c9"
+          }
+        ],
+        "verification": "source-only; historical Verus not executed. Compared base/head code, pinned preserve-exec-code guideline, full PR discussion, and subsequent restoration commit d30c271708585a0ae89b5eafd1dd795bc98281a9."
+      }
+    ]
+  }
+]

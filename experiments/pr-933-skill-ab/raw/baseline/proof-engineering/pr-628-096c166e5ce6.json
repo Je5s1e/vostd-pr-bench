@@ -1,0 +1,101 @@
+{
+  "Findings": [
+    {
+      "id": "628-proof-engineering-1",
+      "severity": "high",
+      "guideline": "complete-external-contracts",
+      "location": "ostd/specs/mm/embedding/list_store.rs:623",
+      "quoted_evidence": "used_ids: Set<u64>,\nold(owner).list_id == 0 ==> !used_ids.contains(final(owner).list_id),",
+      "problem": "The trusted insertion promises a u64 outside an arbitrary caller-supplied set, without any availability or allocator-state premise. Choosing all u64 values makes that postcondition impossible for a fresh empty owner; the executable allocator can instead fail when exhausted, so its behavior does not justify this total proof axiom.",
+      "key_premise": "The requires at lines 608-615 do not constrain used_ids, while the empty owner constructor at 234-242 supplies list_id == 0; the axiom returns normally and requires a resulting u64 outside used_ids. This is a static contract inconsistency conditional on otherwise valid insertion resources, not a verified claim that those resource premises are inhabitable.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Replace the fresh-ID assumption with an explicit allocator resource and a checked allocation transition that accounts for exhaustion, or require a justified freshness/availability witness and bind the resulting ID to it. Propagate the corrected premise through push and cursor wrappers."
+    },
+    {
+      "id": "628-proof-engineering-2",
+      "severity": "low",
+      "guideline": "implement-inv-for-models",
+      "location": "ostd/specs/mm/embedding/list_store.rs:136",
+      "quoted_evidence": "impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.\n    pub open spec fn inv(self) -> bool {",
+      "problem": "ListStore defines its intrinsic validity as an inherent method rather than implementing the shared Inv trait. Its many operation contracts already thread this predicate, so the missing trait implementation prevents using the standard invariant abstraction.",
+      "key_premise": "The only ListStore invariant definition is in an inherent impl; no Inv implementation for ListStore occurs in the available roots.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Move the unchanged inv definition into impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Inv for ListStore<M>; retain all existing requirements and preservation clauses."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:129"
+      ],
+      "quoted_evidence": "pub lists: Map<ListId, LinkedListOwner<M>>,",
+      "compliance_or_na_reason": "Maps represent held lists, loose handles and cursors; IDs and region relations encode distinct state needed by operations."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:106"
+      ],
+      "quoted_evidence": "&&& forall|i: int|",
+      "compliance_or_na_reason": "Explicit quantified registry and pairwise disjointness properties use relevant slot/domain triggers; these are relational properties rather than simple Seq::all predicates."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:108"
+      ],
+      "quoted_evidence": "0 <= i < lo.list.len() ==> regions.slot_owners[lo.slot_index_at(",
+      "compliance_or_na_reason": "Registry sequence indexing is guarded by 0 <= i < lo.list.len(); target consists of spec/proof operations, with map membership premises on tracked removals."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:600"
+      ],
+      "quoted_evidence": "pub axiom fn insert_before_at_embedded<M: AnyFrameMeta + Repr<MetaSlotSmall>>(",
+      "compliance_or_na_reason": "The axioms reflect in-crate ownership transitions, not opaque standard-library/third-party signatures. Their semantic defect is reported separately; this rule does not by itself justify moving crate-specific owners into vstd_extra::external. No local assume_specification for external APIs occurs."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:600"
+      ],
+      "quoted_evidence": "pub axiom fn insert_before_at_embedded<M: AnyFrameMeta + Repr<MetaSlotSmall>>(",
+      "compliance_or_na_reason": "No arbitrary external storage/interior-mutability model is introduced. Generic ownership transitions use AnyFrameMeta + Repr<MetaSlotSmall>; unavailable Repr implementation prevents a broader semantic-law audit."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "The target declares no assume_specification receiver."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:60"
+      ],
+      "quoted_evidence": "use vstd_extra::set_extra::lemma_finite_int_set_has_unused;",
+      "compliance_or_na_reason": "Inventoried all target spec/proof/axiom functions and searched names/signatures across every available verified_libs, ostd/specs and ostd/src Rust file. Reviewed semantic candidates where available; no quoted equivalent definition supports a duplicate finding. Vendored vstd and some supporting libraries are omitted and upstream checks are prohibited, so this is limited source-level coverage, not a global uniqueness claim."
+    }
+  ]
+}

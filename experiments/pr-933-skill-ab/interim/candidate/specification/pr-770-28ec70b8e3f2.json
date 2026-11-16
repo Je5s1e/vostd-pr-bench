@@ -1,0 +1,63 @@
+{
+  "Findings": [
+    {
+      "id": "770-spec-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:630",
+      "quoted_evidence": "            ret ==> self@ == Set::range(0, cpu_count()),",
+      "problem": "is_full permits false for a full set. Thus a caller cannot derive the documented full-set decision in the false branch, or establish is_full after new_full/add_all.",
+      "key_premise": "is_full permits false for a full set. Thus a caller cannot derive the documented full-set decision in the false branch, or establish is_full after new_full/add_all.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Replace implication with equivalence (or exact returns self@ == Set::range(0, cpu_count())) and prove the first mismatch implies a missing valid CPU."
+    },
+    {
+      "id": "770-spec-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:723",
+      "quoted_evidence": "            IteratorSpec::obeys_prophetic_iter_laws(&ret),\n            IteratorSpec::decrease(&ret) is Some,",
+      "problem": "iter exposes no relationship between returned elements and this set and no ascending-order guarantee, despite the explicit order promise and the full/empty iterator tests. Iterator-law compliance and a decreasing measure alone do not state contents or ordering.",
+      "key_premise": "iter exposes no relationship between returned elements and this set and no ascending-order guarantee, despite the explicit order promise and the full/empty iterator tests. Iterator-law compliance and a decreasing measure alone do not state contents or ordering.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Specify that the initial remaining sequence consists exactly of this view’s CPU IDs in strictly ascending order, without duplicates. Preserve and justify whatever production/completion guarantee the active iterator model supports; do not infer termination from closure value ensures alone. The active vstd iterator source is unavailable, so the exact trait vocabulary and proof feasibility remain untested."
+    },
+    {
+      "id": "770-spec-3",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:535",
+      "quoted_evidence": "        returns self.count_spec() as usize,",
+      "problem": "count returns a closed backing-word population count with no exported relation to the abstract Set view. A caller using only public contracts cannot establish count == self@.len(), including after new_empty or add.",
+      "key_premise": "count returns a closed backing-word population count with no exported relation to the abstract Set view. A caller using only public contracts cannot establish count == self@.len(), including after new_empty or add.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Export and prove under self.inv() the equality count_spec() == self@.len(), or return the view cardinality directly. Keep representation details private."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:414"
+      ],
+      "quoted_evidence": "            self.inv(),",
+      "compliance_or_na_reason": "Public CPU-set operations use valid-state constraints; CpuId bounds come from its type invariant. Private allocation helper bounds match capacity arithmetic. No required weakening established: arbitrary spec CpuId values do not inherit runtime invariants. Atomic operations and tests are plain Rust; no current verified caller failure is claimed."
+    }
+  ]
+}

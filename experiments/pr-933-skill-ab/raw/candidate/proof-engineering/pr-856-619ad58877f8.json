@@ -1,0 +1,94 @@
+{
+  "Findings": [
+    {
+      "id": "856-proof-1",
+      "severity": "low",
+      "guideline": "reuse-existing-specifications",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:585",
+      "quoted_evidence": "&&& writer_own.mem_view matches Some(VmIoMemView::WriteView(_))",
+      "problem": "The read/write requirements restate existing VmIoOwner predicates for the exact same Some(ReadView/WriteView) property. This duplicates the representation test already centralized in the owner model.",
+      "key_premise": "ostd/specs/mm/io.rs:147 defines pub open spec fn has_write_view(self) -> bool { self.mem_view matches Some(VmIoMemView::WriteView(_)) }; line 141 defines the corresponding has_read_view. writer_own and reader_own are VmIoOwner values, not Option values.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use writer_own.has_write_view() at line 585 and reader_own.has_read_view() at line 603 (and corresponding proof assertions); retain inv, wf and read_view_initialized separately."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:349"
+      ],
+      "quoted_evidence": "#[verifier::external_body]",
+      "compliance_or_na_reason": "read_inner is an explicit same-crate trusted bridge; RwArc has a type invariant establishing wf on executable instances. No unsupported missing-wf claim is made. VmIoOnce external bodies inherit no semantic postconditions from the supplied trait. Exact vstd/external dependency implementation unavailable."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:349"
+      ],
+      "quoted_evidence": "#[verifier::external_body]",
+      "compliance_or_na_reason": "No assume_specification receiver declarations."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:355"
+      ],
+      "quoted_evidence": "pub fn read_inner(&self) -> RwLockReadGuard<'_, DmaCoherentInnerAtomic<M>, PreemptDisabled> {",
+      "compliance_or_na_reason": "Same-crate code retains executable bodies and uses external_body plus verus_spec rather than assume_specification. No new std/third-party wrapper in target."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:65"
+      ],
+      "quoted_evidence": "pub _marker: PhantomData<M>,",
+      "compliance_or_na_reason": "Objective implementation applies to a marker-only owner, not M or stored subjective memory permissions. No concrete unsafe transfer/access path was found. Resource validity is explicitly supplied through SimpleResourceInvariant."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:693"
+      ],
+      "quoted_evidence": "if offset > remain_before_skip {",
+      "compliance_or_na_reason": "Transfer paths check offset and remaining capacity before skip/copy; target contains no unchecked executable collection index model."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:281"
+      ],
+      "quoted_evidence": "let ghost range = vaddr..(vaddr + len) as usize;",
+      "compliance_or_na_reason": "Uses existing VirtPtr, VmIoOwner and segment models rather than introducing competing memory models. The trivial marker token does not claim ownership of bytes."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:573"
+      ],
+      "quoted_evidence": "open spec fn read_requires(",
+      "compliance_or_na_reason": "No new quantified predicates in this target."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:87"
+      ],
+      "quoted_evidence": "impl<M: AnyUFrameMeta + ?Sized> Inv for DmaCoherentInner<M> {",
+      "compliance_or_na_reason": "Intrinsic segment/address validity is expressed through Inv and packaged with its resource invariant. Trivial marker owner has no independent nontrivial invariant. Pure-spec self.inner.wf premises are not removed based on RwArc executable type invariants."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "pr": 933,
+  "baseline_sha": "032089aa3d4603fa68f3f874cddfc6d61ff81225",
+  "candidate_sha": "cc0b47efab48260764a6d4f989bdcb1cfbf30155",
+  "guidelines_sha": "032089aa3d4603fa68f3f874cddfc6d61ff81225",
+  "workspace": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht",
+  "cases": [
+    {
+      "sample_id": "pr-628-096c166e5ce6",
+      "pr": 628,
+      "target": "ostd/specs/mm/embedding/list_store.rs",
+      "scope": "whole file (files mode)",
+      "base_sha": "55470b50087681b07f4dc546fcec4d3b0848b858",
+      "head_sha": "096c166e5ce679af1906f21285a58934ae194c70",
+      "target_sha256": "d62211280a4720cffa211381e3f0fb5a727c32cf1f7848ba57bef5fe38f2f76f",
+      "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-628-096c166e5ce6"
+    },
+    {
+      "sample_id": "pr-632-1be8099780ff",
+      "pr": 632,
+      "target": "ostd/specs/mm/frame/meta_region_owners.rs",
+      "scope": "whole file (files mode)",
+      "base_sha": "d958c3f510e674eac47771b8a58e98f0f52db055",
+      "head_sha": "1be8099780ff8e4a83bed8a22543003873a4bbc2",
+      "target_sha256": "cde4f293dc50451f09e4fd91bccc7e9167b9d5516376ed36cdf252d50f12fcf1",
+      "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-632-1be8099780ff"
+    },
+    {
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "pr": 770,
+      "target": "ostd/src/cpu/set.rs",
+      "scope": "whole file (files mode)",
+      "base_sha": "cf3be3cd8ce55aa06fecb0381b769f9929956c03",
+      "head_sha": "28ec70b8e3f2124f4fd6c0060cbaa506f963a673",
+      "target_sha256": "49e47d730bfb4b6f24a1d8d863ffcfc04de5313694678903a7bd9c11f636c299",
+      "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-770-28ec70b8e3f2"
+    },
+    {
+      "sample_id": "pr-856-619ad58877f8",
+      "pr": 856,
+      "target": "ostd/src/mm/dma/dma_coherent.rs",
+      "scope": "whole file (files mode)",
+      "base_sha": "18aea7a127610ad471325235b85395afe82710da",
+      "head_sha": "619ad58877f84f3c310358e393f2ac3257311de8",
+      "target_sha256": "60deb44be1e6eb79064e5a8f55e75c63653043629a2f3d56c802096da0c1de1f",
+      "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-856-619ad58877f8"
+    },
+    {
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "pr": 886,
+      "target": "ostd/src/arch/x86/ex_table.rs",
+      "scope": "whole file (files mode)",
+      "base_sha": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
+      "head_sha": "fe5eb7f3e6aa70c7efce9d93d9fde2e1011b1986",
+      "target_sha256": "f658d625c9531cd2a20492e3a04d8fd92fdf7e2c92bc16460e507d3f41be9583",
+      "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-886-fe5eb7f3e6aa"
+    },
+    {
+      "sample_id": "pr-931-79810bc1eeb5",
+      "pr": 931,
+      "target": "ostd/libs/linux-bzimage/builder/src/lib.rs",
+      "scope": "whole file (files mode)",
+      "base_sha": "c25ca6f98633e7de6c09c66e9e981061ed51cfb4",
+      "head_sha": "79810bc1eeb5a65acb4ec81370d0671253ab48c9",
+      "target_sha256": "f457d9b555288e399c1ee38ac4d34546644fbc97d120cf7a66785990f3dc8bd9",
+      "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-931-79810bc1eeb5"
+    }
+  ]
+}

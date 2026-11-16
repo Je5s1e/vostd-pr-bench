@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-886-fe5eb7f3e6aa",
+  "pr_number": 886,
+  "title": "prove: verify x86 exception table",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/886",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
+  "head_sha": "fe5eb7f3e6aa70c7efce9d93d9fde2e1011b1986",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/ex_table.rs",
+    "ostd/src/arch/x86/mod.rs"
+  ],
+  "diff_sha256": "71842722692b38cc555dfcc3f461a3d1c63c96c7cbe7008368d60370f11edd8c",
+  "versions": {
+    "before": {
+      "commit": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "fe5eb7f3e6aa70c7efce9d93d9fde2e1011b1986",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  }
+}

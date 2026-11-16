@@ -1,0 +1,101 @@
+{
+  "Findings": [
+    {
+      "id": "628-proof-1",
+      "severity": "high",
+      "guideline": "complete-external-contracts",
+      "location": "ostd/specs/mm/embedding/list_store.rs:623",
+      "quoted_evidence": "old(owner).list_id == 0 ==> !used_ids.contains(final(owner).list_id),",
+      "problem": "The trusted insertion axiom promises an ID outside an arbitrary Set<u64>, without any restriction on that set. Choosing the full u64 set leaves no permitted result for an otherwise admissible empty-list insertion; the executable allocator only supplies freshness relative to its actual allocation history.",
+      "key_premise": "used_ids has no precondition and can contain every u64, while the empty-owner branch requires a returned u64 outside it.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Tie used_ids to an authoritative allocation history and model allocator exhaustion, or require and justify an available fresh ID before this proof-level state transition."
+    },
+    {
+      "id": "628-proof-2",
+      "severity": "low",
+      "guideline": "implement-inv-for-models",
+      "location": "ostd/specs/mm/embedding/list_store.rs:134",
+      "quoted_evidence": "impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.\n    pub open spec fn inv(self) -> bool {",
+      "problem": "ListStore defines its intrinsic validity as an inherent inv method instead of implementing the shared Inv trait.",
+      "key_premise": "The whole target has no Inv implementation for ListStore.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Move this unchanged predicate into impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Inv for ListStore<M>."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:600"
+      ],
+      "quoted_evidence": "pub axiom fn insert_before_at_embedded",
+      "compliance_or_na_reason": "No assume_specification receiver declarations."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:600"
+      ],
+      "quoted_evidence": "pub axiom fn insert_before_at_embedded",
+      "compliance_or_na_reason": "These are explicit crate-specific embedding axioms over OSTD owners, not opaque standard-library specifications. Their semantic gap is reported separately; no third-party wrapper is introduced."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:600"
+      ],
+      "quoted_evidence": "M: AnyFrameMeta + Repr<MetaSlotSmall>",
+      "compliance_or_na_reason": "No immutable external container model generalized over interior-mutable storage is introduced; owner relations explicitly constrain permissions. Full Repr boundary implementation unavailable."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:615"
+      ],
+      "quoted_evidence": "0 <= n <= old(owner).list.len(),",
+      "compliance_or_na_reason": "Insertion and removal axioms retain position bounds; optional take operations branch on range membership."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:348"
+      ],
+      "quoted_evidence": "insert_before_at_embedded(regions, owner, frame_own, 0, used_ids);",
+      "compliance_or_na_reason": "Front/back helpers reuse the general transition and fresh IDs reuse lemma_finite_int_set_has_unused. Searched available ostd roots; vendored vstd and verified_libs absent, upstream prohibited, so absence of duplicates is not established."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:129"
+      ],
+      "quoted_evidence": "pub lists: Map<ListId, LinkedListOwner<M>>,",
+      "compliance_or_na_reason": "Maps track ownership pools and existing sequence-plus-position CursorOwner models track order."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:107"
+      ],
+      "quoted_evidence": "#![trigger lo.slot_index_at(i)]",
+      "compliance_or_na_reason": "Relational membership properties use explicit slot and map-membership triggers; not simple unary sequence predicates."
+    }
+  ]
+}

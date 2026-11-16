@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:25"
+      ],
+      "quoted_evidence": "use vstd_extra::external::xmas_elf::{",
+      "compliance_or_na_reason": "Imported xmas_elf boundary models were read in full. Parsing and get_data use conditional no_unwind, program-table readability guards iterator guarantees, and getters map to exposed header fields. Target validity requires those guards. Exact xmas-elf 0.10.0 sources and active vstd are omitted, so correspondence and parser-input inhabitation remain unverified; no vacuity claim is made."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:25"
+      ],
+      "quoted_evidence": "use vstd_extra::external::xmas_elf::{",
+      "compliance_or_na_reason": "All ELF parse/header trusted models are imported from vstd_extra::external::xmas_elf. Target helpers are defined spec functions rather than local trusted copies."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:146"
+      ],
+      "quoted_evidence": "spec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Target handles concrete ELF program-header representations; it grants no generic storage model laws."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:129"
+      ],
+      "quoted_evidence": "let file_length = program.file_size() as usize;",
+      "compliance_or_na_reason": "Executable destination slice bounds follow file_size <= mem_size and bounded offset+mem_size. Spec prefix recursion bounds count by programs.len() and guards count == 0."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:174"
+      ],
+      "quoted_evidence": "spec fn flat_load_step(old: Seq<u8>, data: Seq<u8>, offset: int, mem_size: int) -> Seq<u8> {",
+      "compliance_or_na_reason": "Seq<u8> with a sequential load-step fold represents zero-extension and ordered overlapping writes; memory-only tails preserve existing bytes."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:150"
+      ],
+      "quoted_evidence": "forall|i: int|",
+      "compliance_or_na_reason": "Per-program validity quantifier binds programs[i] as the trigger; branches depend on program kind and metadata. No derivable fact is elevated to an axiom."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:146"
+      ],
+      "quoted_evidence": "spec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No spec model struct is introduced. valid_flat_segments relates a program sequence to a separate input byte sequence."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "The target declares no assume_specification receiver."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:25"
+      ],
+      "quoted_evidence": "use vstd_extra::external::xmas_elf::{",
+      "compliance_or_na_reason": "Inventoried all target spec/proof/axiom functions and searched names/signatures across every available verified_libs, ostd/specs and ostd/src Rust file. Reviewed semantic candidates where available; no quoted equivalent definition supports a duplicate finding. Vendored vstd and some supporting libraries are omitted and upstream checks are prohibited, so this is limited source-level coverage, not a global uniqueness claim."
+    }
+  ]
+}

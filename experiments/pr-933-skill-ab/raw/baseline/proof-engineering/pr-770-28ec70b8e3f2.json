@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:12"
+      ],
+      "quoted_evidence": "external::{",
+      "compliance_or_na_reason": "Reviewed imported smallvec and count_ones boundary declarations: resize has growth bounds and cloned-element semantics; slice borrows expose initial/final views. Closure contracts at 747-769 state invoked-element bounds/bit predicates. No private vstd unfolding was identified. Exact vstd adapter implementations and dependency sources are unavailable, so completeness/soundness is not certified."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:12"
+      ],
+      "quoted_evidence": "external::{",
+      "compliance_or_na_reason": "SmallVec and count_ones models are imported from vstd_extra::external; target contains no assume/admit/external_body/axiom declarations."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:31"
+      ],
+      "quoted_evidence": "// A bitset representing the CPUs in the system.",
+      "compliance_or_na_reason": "Caller uses SmallVec<[u64; 2]>; external/smallvec.rs guards operations with obeys_smallvec_array and admits precisely [u64; 2]."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:145"
+      ],
+      "quoted_evidence": "pub open spec fn bit_at(seq: Seq<u64>, i: int) -> bool {",
+      "compliance_or_na_reason": "bit_at checks its modeled bit range; exec indexing uses bounds from inv, loop bounds, or short-circuit part_idx < len (contains)."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:232"
+      ],
+      "quoted_evidence": "closed spec fn view(&self) -> Set<int> {",
+      "compliance_or_na_reason": "Set<int> is the public CPU membership view; Seq<u64> and prefix population counts support the backing word traversal."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:274"
+      ],
+      "quoted_evidence": "cpu_count() <= j < 64 * smallvec_view(&self.bits).len() as int ==> !bit_at(",
+      "compliance_or_na_reason": "Tail-bit quantifier uses bit_at triggers and index bounds. Other explicit quantifiers support index-sensitive word and bit correspondence; lack of active vstd prevents validating a Seq::all substitution."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:267"
+      ],
+      "quoted_evidence": "impl Inv for CpuSet {",
+      "compliance_or_na_reason": "CpuSet implements Inv and mutators require/preserve it. new_full constructs temporarily invalid all-ones tail words before clearing them, so a type invariant is not a drop-in replacement."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "The target declares no assume_specification receiver."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:9"
+      ],
+      "quoted_evidence": "bits::{",
+      "compliance_or_na_reason": "Inventoried all target spec/proof/axiom functions and searched names/signatures across every available verified_libs, ostd/specs and ostd/src Rust file. Reviewed semantic candidates where available; no quoted equivalent definition supports a duplicate finding. Vendored vstd and some supporting libraries are omitted and upstream checks are prohibited, so this is limited source-level coverage, not a global uniqueness claim."
+    }
+  ]
+}

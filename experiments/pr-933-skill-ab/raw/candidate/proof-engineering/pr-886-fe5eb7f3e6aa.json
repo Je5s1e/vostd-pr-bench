@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:122"
+      ],
+      "quoted_evidence": "/// Trusted linker boundary: the section is non-null, aligned, initialized,",
+      "compliance_or_na_reason": "read_table explicitly states linker safety assumptions and equates the complete returned sequence to table_model. No conditional result is vacuous: find returns Some on a match and None after traversal. Actual linker output and vendored slice semantics are unavailable."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:125"
+      ],
+      "quoted_evidence": "#[verifier::external_body]",
+      "compliance_or_na_reason": "No assume_specification receivers."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:131"
+      ],
+      "quoted_evidence": "fn read_table() -> &'static [ExTableItem] {",
+      "compliance_or_na_reason": "This is a same-crate linker-symbol boundary with a retained executable body and explicit spec, not a generic wrapper around an external API."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Model is concrete immutable linker data; no generic storage/ordering assumptions."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:83"
+      ],
+      "quoted_evidence": "r matches Some(recovery) ==> exists|i: int| 0 <= i < table_model().len()",
+      "compliance_or_na_reason": "Properties about matching indices and earlier entries retain bounds; executable access is via slice iteration."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:100"
+      ],
+      "quoted_evidence": "let ex_table = read_table();",
+      "compliance_or_na_reason": "Inventory is table_model, read_table contract and lookup contract. Searched available ostd/specs and ostd/src for exception-table equivalents; no competing model found. verified_libs and vstd omitted, so full reuse coverage unavailable."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Sequence preserves first-match order and duplicate-address behavior that a map would erase."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:105"
+      ],
+      "quoted_evidence": "forall|i: int| 0 <= i < iter.index()",
+      "compliance_or_na_reason": "Prefix exclusion quantifiers are bounded and explicitly triggered; Seq::all could express them but its exact definition and effect in the historical proof context cannot be checked without vstd/toolchain. No demonstrated violation."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:11"
+      ],
+      "quoted_evidence": "struct ExTableItem {",
+      "compliance_or_na_reason": "Pair of addresses and zero-size ExTable carry no intrinsic validity beyond trusted section construction; no spec struct invariant requiring Inv is introduced."
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-632-1be8099780ff",
+  "pr_number": 632,
+  "title": "Prove tracked MM ownership helper axioms",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/632",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d958c3f510e674eac47771b8a58e98f0f52db055",
+  "head_sha": "1be8099780ff8e4a83bed8a22543003873a4bbc2",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/cursor.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "verified_libs/vstd_extra/src/ghost_tree.rs"
+  ],
+  "diff_sha256": "abcba8f7188b2f5866be2f36c81f717f37941783176b40c5b02932a9b4ac59d1",
+  "versions": {
+    "before": {
+      "commit": "d958c3f510e674eac47771b8a58e98f0f52db055",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "1be8099780ff8e4a83bed8a22543003873a4bbc2",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  }
+}

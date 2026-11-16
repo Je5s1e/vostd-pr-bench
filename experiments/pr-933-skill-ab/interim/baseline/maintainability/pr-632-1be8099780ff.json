@@ -1,0 +1,282 @@
+{
+  "Findings": [
+    {
+      "id": "pr-632-1be8099780ff-maint-01",
+      "severity": "low",
+      "guideline": "group-imports-by-crate",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:1",
+      "quoted_evidence": "use vstd::atomic::*;",
+      "problem": "vstd, vstd_extra and crate definitions are fragmented across several imports instead of per-crate proof groups.",
+      "key_premise": "Lines 1,3,4 import vstd separately; lines 8,9,11 import vstd_extra separately.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Consolidate same-crate proof imports, separating the model imports from inherited executable imports."
+    },
+    {
+      "id": "pr-632-1be8099780ff-maint-02",
+      "severity": "low",
+      "guideline": "organize-proof-imports",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:138",
+      "quoted_evidence": "vstd_extra::cast_ptr::PointsTo::<MetaSlot, Metadata<M>>::new_spec(",
+      "problem": "Typed permission contracts repeatedly spell a long path even though cast_ptr is already imported.",
+      "key_premise": "cast_ptr is imported at line 8; PointsTo has an ambiguity with simple_pptr::PointsTo, but the module-qualified cast_ptr::PointsTo is unambiguous.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use cast_ptr::PointsTo for these return types and constructors, retaining the module qualifier to disambiguate."
+    },
+    {
+      "id": "pr-632-1be8099780ff-maint-03",
+      "severity": "low",
+      "guideline": "use-chained-comparisons",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:220",
+      "quoted_evidence": "range.start <= paddr,",
+      "problem": "The paddr_not_mapped_at contract separates contiguous range bounds.",
+      "key_premise": "Adjacent requires are range.start <= paddr and paddr < range.end.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Combine them as range.start <= paddr < range.end without adding any relation."
+    },
+    {
+      "id": "pr-632-1be8099780ff-maint-04",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:115",
+      "quoted_evidence": "pub open spec fn ref_count(self, i: usize) -> (res: u64)",
+      "problem": "ref_count names an unused result binder.",
+      "key_premise": "res is not used by a contract or the function body.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use -> u64; the body already defines the exact spec value."
+    },
+    {
+      "id": "pr-632-1be8099780ff-maint-05",
+      "severity": "low",
+      "guideline": "name-proof-roles",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:230",
+      "quoted_evidence": "pub proof fn inv_implies_correct_addr(self, paddr: usize)",
+      "problem": "Reusable address and mapping facts and trusted borrow helpers lack their role prefixes.",
+      "key_premise": "inv_implies_correct_addr and paddr_not_mapped_at are proof facts; borrow_typed_perm and borrow_mut_typed_perm are axioms.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use lemma_ for proved facts and axiom_ for trusted declarations, updating call sites."
+    },
+    {
+      "id": "pr-632-1be8099780ff-maint-06",
+      "severity": "low",
+      "guideline": "document-verified-apis",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:44",
+      "quoted_evidence": "All functions in\nthe verified code that call `from_raw` have a precondition that the frame's index is not a key in `slots`.\nSupporting source ostd/src/mm/frame/mod.rs:563: old(regions).slots.contains_key(frame_to_index(paddr)),",
+      "problem": "The ownership documentation says from_raw requires absence from slots, but the actual verified API requires presence. This reverses the described safety boundary.",
+      "key_premise": "Frame::from_raw explicitly requires old(regions).slots.contains_key(frame_to_index(paddr)).",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Correct the ownership explanation to match the current permission/obligation protocol and distinguish the unsafe caller obligation from the checked slot-presence condition."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:28"
+      ],
+      "quoted_evidence": "verus! {",
+      "compliance_or_na_reason": "Specifications are explicitly marked spec, proofs are proof functions/blocks, and executable items retain distinct bodies; no unnecessary adjacent macro boundary identified."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No redundant as int comparison/arithmetic casts identified; function-parameter casts must remain."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No raw-pointer @.addr identity expressions occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No Seq subrange/take/skip calls occur in the target; executable iterator/reader skip is not this rule."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No repeated branch-local broadcast use occurs in the target."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No repeated guarded payload projections needing a shared Option binder occur in this target."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No is_ok/is_err/unwrap result-contract chain or duplicated exhaustiveness direction occurs."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "Compared the frozen target diff: no unjustified executable rewrite identified. Commit-by-commit/upstream history was not supplied and network use is forbidden; this is not a claim about unavailable history."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:183"
+      ],
+      "quoted_evidence": "pub open spec fn paddr_range_in_region(self, range: Range<Paddr>) -> bool",
+      "compliance_or_na_reason": "Search found no references to paddr_range_in_region, paddr_range_not_in_region or paddr_not_mapped_at outside their definitions in supplied Rust files. They predate this change and omitted trees prevent establishing newly introduced global dead helpers; record follow-up, not a proved violation."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No private one-use auxiliary proof helper without an independent abstraction boundary is demonstrated."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No private auxiliary proof functions occur before the API surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:57"
+      ],
+      "quoted_evidence": "pub ghost frame_obligations: vstd::multiset::Multiset<usize>,",
+      "compliance_or_na_reason": "The multiset is ghost inside a tracked owner; slots and slot_owners keep default tracked fields."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:60"
+      ],
+      "quoted_evidence": "pub ghost struct MetaRegionModel {",
+      "compliance_or_na_reason": "The duplicable model is ghost; MetaRegionOwners holds linear permissions and is tracked."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:65"
+      ],
+      "quoted_evidence": "open spec fn inv(self) -> bool {",
+      "compliance_or_na_reason": "Private representation helpers are not exposed as pub open, or the public model is a caller-facing contract surface."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No broad lint suppression is introduced for a local issue in the target."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {",
+      "compliance_or_na_reason": "This shared 304-line frame ownership model is used by frame and page-table code and belongs under ostd/specs."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No verbatim spec-helper bodies duplicated across per-type instantiations occur; trait implementations with distinct receiver types are not generated per-type copies."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:274"
+      ],
+      "quoted_evidence": "// FIXME: use authorative monoid instead of current unsound implementations",
+      "compliance_or_na_reason": "The unresolved ownership-ledger boundary is explicitly marked; no historical claim that it was discharged is made."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No demonstrated failing imported callee resolution is present. The historical compiler is unavailable; no speculative import rewrite is required."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "No independently duplicated executable helper formula requiring a spec twin is present."
+    }
+  ]
+}

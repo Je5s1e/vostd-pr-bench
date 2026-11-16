@@ -1,0 +1,268 @@
+{
+  "Findings": [
+    {
+      "id": "pr-856-619ad58877f8-maint-01",
+      "severity": "low",
+      "guideline": "group-imports-by-crate",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:2",
+      "quoted_evidence": "use vstd::arithmetic::mul::lemma_mul_inequality;",
+      "problem": "The new unconditional vstd proof import is separate from the unconditional prelude import.",
+      "key_premise": "The first two vstd uses have no cfg distinction; Objective is separately cfg-gated and may remain separate.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Combine arithmetic::mul::lemma_mul_inequality and prelude::* in one vstd use; preserve the cfg-gated Objective import."
+    },
+    {
+      "id": "pr-856-619ad58877f8-maint-02",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:117",
+      "quoted_evidence": "#[verus_spec(r =>\n    requires this@.inv(),\n    returns this@.data.start_daddr,\n)]",
+      "problem": "Several accessors bind an unused r even though their contract uses returns or only self state.",
+      "key_premise": "daddr_inner, paddr_inner, nframes_inner and nbytes_inner specify exact values without referencing r; outer daddr/paddr/nframes/nbytes also never reference r.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Remove unused r => binders from those contracts, preserving returns and requires/ensures clauses unchanged."
+    },
+    {
+      "id": "pr-856-619ad58877f8-maint-03",
+      "severity": "low",
+      "guideline": "prefer-ghost-model-structs",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:50",
+      "quoted_evidence": "pub struct DmaCoherentVmIoOwner<M: ?Sized>(pub PhantomData<M>);",
+      "problem": "The proof-only VmIo permission marker is an ordinary struct even though its own documentation says it carries only the permission parameter.",
+      "key_premise": "DmaCoherentVmIoOwner is a PhantomData-only model passed via Tracked VmIo signatures; no executable state is represented.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Try ghost struct DmaCoherentVmIoOwner and validate trait/mode compatibility on the historical toolchain; retain a different mode only if the ownership protocol requires it."
+    },
+    {
+      "id": "pr-856-619ad58877f8-maint-04",
+      "severity": "low",
+      "guideline": "document-verified-apis",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:39",
+      "quoted_evidence": "/// The mapping will be destroyed automatically when\n/// the object is dropped.\n...\n// Original Drop impl for DmaCoherentInner (removed during Verus migration):",
+      "problem": "The public mapping documentation promises automatic teardown while the entire inner Drop implementation is commented out.",
+      "key_premise": "The only documented teardown code in this target is inside the comment beginning at line 510.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "State the current disabled teardown boundary alongside the mapping API until the destructor is restored; do not claim automatic destruction."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {",
+      "compliance_or_na_reason": "Specifications are explicitly marked spec, proofs are proof functions/blocks, and executable items retain distinct bodies; no unnecessary adjacent macro boundary identified."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No separated contiguous bounds with a shared middle expression require combining."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:173"
+      ],
+      "quoted_evidence": "lemma_mul_inequality(i as int, frame_count as int, PAGE_SIZE as int);",
+      "compliance_or_na_reason": "The newly added casts are arguments to the int-typed multiplication lemma, not redundant comparison casts."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No raw-pointer @.addr identity expressions occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No Seq subrange/take/skip calls occur in the target; executable iterator/reader skip is not this rule."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:2"
+      ],
+      "quoted_evidence": "use vstd::arithmetic::mul::lemma_mul_inequality;",
+      "compliance_or_na_reason": "Proof imports are identifiable. No repeated unambiguous long proof path found; no reveal is removed without verification."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No repeated branch-local broadcast use occurs in the target."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No repeated guarded payload projections needing a shared Option binder occur in this target."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:121"
+      ],
+      "quoted_evidence": "r matches Ok(r) ==> r.inner.wf(),",
+      "compliance_or_na_reason": "Result payload is bound once and there is no repeated exhaustive contrapositive."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "Compared the frozen target diff: no unjustified executable rewrite identified. Commit-by-commit/upstream history was not supplied and network use is forbidden; this is not a claim about unavailable history."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:82"
+      ],
+      "quoted_evidence": "open spec fn inv(self) -> bool {",
+      "compliance_or_na_reason": "Names communicate mathematical and ownership roles; no reusable proof/axiom prefix issue identified."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:82"
+      ],
+      "quoted_evidence": "open spec fn inv(self) -> bool {",
+      "compliance_or_na_reason": "Searched all available per-case Rust files for each named helper. Current local/trait callers or an explicit model boundary are present. Omitted library trees are unavailable, not proof of non-use."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No private one-use auxiliary proof helper without an independent abstraction boundary is demonstrated."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No private auxiliary proof functions occur before the API surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:82"
+      ],
+      "quoted_evidence": "open spec fn inv(self) -> bool {",
+      "compliance_or_na_reason": "No repeated field mode markers on a ghost struct or all-tracked tuple wrappers identified."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:82"
+      ],
+      "quoted_evidence": "open spec fn inv(self) -> bool {",
+      "compliance_or_na_reason": "Private representation helpers are not exposed as pub open, or the public model is a caller-facing contract surface."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:59"
+      ],
+      "quoted_evidence": "#[expect(unused)]",
+      "compliance_or_na_reason": "The temporary cache-policy field uses an item-local expect, with a specific restoration TODO."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:82"
+      ],
+      "quoted_evidence": "open spec fn inv(self) -> bool {",
+      "compliance_or_na_reason": "Searched named spec users in the available after tree. Model placement is appropriate to its local use or substantial shared ownership subsystem."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No verbatim spec-helper bodies duplicated across per-type instantiations occur; trait implementations with distinct receiver types are not generated per-type copies."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:171"
+      ],
+      "quoted_evidence": "// A whole-segment `usize` fit (see `check_and_insert_dma_mapping`)",
+      "compliance_or_na_reason": "The new loop comment explains the actual bound used to replace assume; disabled cache-policy functionality has a concrete TODO."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No demonstrated failing imported callee resolution is present. The historical compiler is unavailable; no speculative import rewrite is required."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:208"
+      ],
+      "quoted_evidence": "this@.data.start_daddr,",
+      "compliance_or_na_reason": "Inner accessors directly attach their exact result to the guard model through returns."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "status": "fulfilled",
+  "value": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[{\"id\":6911880046,\"body\":\"Explain why these changes are needed?\",\"html_url\":\"https://github.com/asterinas/vostd/pull/933#issuecomment-6911880046\",\"user\":{\"login\":\"Marsman1996\",\"id\":22045841,\"profile_url\":\"https://github.com/Marsman1996\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/22045841?v=4\"},\"author_association\":\"COLLABORATOR\",\"reactions\":{\"total_count\":0,\"+1\":0,\"-1\":0,\"laugh\":0,\"confused\":0,\"heart\":0,\"hooray\":0,\"rocket\":0,\"eyes\":0},\"created_at\":\"2026-11-16T08:56:02Z\",\"updated_at\":\"2026-11-16T08:56:02Z\"}]"
+      }
+    ]
+  }
+}

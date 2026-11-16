@@ -1,0 +1,13 @@
+Specification pass only. Read prompt.txt in full first; followed frozen candidate skill/SKILL.md and references/specification-audit.md, frozen guidelines/README.md and named supporting sections of proof-engineering.md. No sibling runs, labels, scores, GitHub/network or original checkout source were accessed.
+
+Read all six full after target files, splitting long files into successive ranges after truncated outputs. Reviewed exec/proof signatures, private helpers, attributes, mutable tracked outputs, pure specs, plain Rust portions and tests. No before-tree or diff content was needed for whole-file reporting.
+
+Additional source inspected/search results within corresponding case after trees:
+628: ostd/specs/arch/x86/mod.rs (has_safe_slot), ostd/specs/mm/frame/mapping.rs (frame_to_index), ostd/src/mm/frame/meta.rs (get_slot), ostd/src/mm/frame/linked_list.rs (push_back and cursor_mut_at). Searched after tree for step callers; none outside target found in provided files. Other searches inspected relevant raw_count references only.
+632: ostd/specs/mm/frame/meta_owners.rs (actual owner fields); searches for verified_libs/vstd_extra/src/ownership.rs and cast_ptr.rs failed because files are not supplied. InvView inherited contract and cast_ptr semantics cannot be fully checked.
+770: ostd/src/cpu/mod.rs (CPU count/type invariant), available-path inventory for external/smallvec.rs and iterator models. No active vstd iterator implementation was provided; iter suggestion deliberately avoids inventing exact trait signatures or claiming termination.
+856: ostd/src/mm/io.rs (VmIo declarations, FallibleVmRead/Write declarations and macro impls, kernel/slice constructors and to_fallible); ostd/src/sync/rwlock.rs (guard/wf/read context); ostd/src/mm/dma/mod.rs (DmaCoherent exports). Trait read/write contracts are conditional on obeys booleans; DmaCoherent disables them. Supporting missing FallibleVmRead/Write declaration contracts are outside reporting scope.
+886: target self-contained; linker model is an acknowledged trusted boundary.
+931: ostd/libs/linux-bzimage/builder/src/mapping.rs (conversion contracts/implementation), verified_libs/vstd_extra/src/external/xmas_elf.rs (parser, program iterator, header and load-data contracts). The dependency iterator specifies produces as well as remaining/decrease.
+
+No historical Verus/Z3 available, as stipulated. No verification, compilation, diagnostic clients or logical experiments were executed. All findings are static, and suggested strengthened contracts were not proved. No source modifications. JSON artifacts were parsed and required top-level/rule coverage checked. Omitted snapshot files are unavailable evidence, not evidence of source absence.

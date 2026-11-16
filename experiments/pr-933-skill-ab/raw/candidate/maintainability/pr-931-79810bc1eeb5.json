@@ -1,0 +1,247 @@
+{
+  "Findings": [
+    {
+      "id": "931-maintainability-01",
+      "severity": "low",
+      "guideline": "preserve-exec-code",
+      "location": "ostd/libs/linux-bzimage/builder/src/lib.rs:121",
+      "quoted_evidence": "            // `mem_size` can exceed `file_size`. Only newly appended bytes are zeroed;\n            // an overlapping segment's memory-only tail keeps existing bytes.\nBefore: // Note that `mem_size` can be greater than `file_size`. The remaining part must be\n// filled with zeros.",
+      "problem": "The verification change replaces an inherited runtime comment rather than preserving it verbatim.",
+      "key_premise": "The before file says the remaining mem_size portion must be filled with zeros; this patch substitutes overlap semantics.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Restore the original comment in this proof change and submit the overlap-related documentation correction separately."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Executable sections, specifications and proof bodies are visibly marked; no adjacent redundant verus blocks require merging."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:155"
+      ],
+      "quoted_evidence": "                &&& program_load_data_readable(&program, input)\n                &&& program.file_size() <= program.mem_size() <= usize::MAX\n                &&& SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= program.virtual_addr() <= usize::MAX\n                    - LEGACY_SETUP_SEC_SIZE\n                &&& flat_segment_offset(&program) + program.mem_size() <= isize::MAX",
+      "compliance_or_na_reason": "Memory-size and virtual-address bounds use direct equivalent chained comparisons."
+    },
+    {
+      "guideline": "use-returns-for-exact-results",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No unreported exact-value equality or unused result binder requiring a change was found; view equalities do not directly have the executable return type."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:174"
+      ],
+      "quoted_evidence": "spec fn flat_load_step(old: Seq<u8>, data: Seq<u8>, offset: int, mem_size: int) -> Seq<u8> {\n    Seq::new(\n        vstd::math::max(old.len() as int, offset + mem_size) as nat,",
+      "compliance_or_na_reason": "old.len() is cast at math::max's int argument boundary, and program.mem_size() is cast at the int parameter of flat_load_step; these are not comparison-only casts."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No pointer-view @.addr identity constraints occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No spec Seq subrange/take/skip expression needs replacement in this target."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No repeated long proof-symbol qualification requiring another import was found; one-off references and ambiguous PointsTo qualifications are allowed. Reveal minimality cannot be verified without Verus."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No per-branch repeated broadcast use occurs in the target."
+    },
+    {
+      "guideline": "group-imports-by-crate",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:24"
+      ],
+      "quoted_evidence": "use vstd::{prelude::*, std_specs::iter::IteratorSpec};\nuse vstd_extra::external::xmas_elf::{\n    elf_parse_no_unwind, elf_parse_result, elf_program_headers, elf_program_headers_readable,\n    program_header_type, program_load_bytes, program_load_data_readable,\n};\n\nuse mapping::{LEGACY_SETUP_SEC_SIZE, SETUP32_LMA};\n\nuse std::{\n    fs::File,\n    io::{Read, Seek, SeekFrom, Write},\n    path::Path,\n};\n\nuse align_ext::AlignExt;\npub use encoder::{PayloadEncoding, encode_kernel};\nuse mapping::{SetupFileOffset, SetupVA};\nuse xmas_elf::{program::SegmentData, sections::SectionData};",
+      "compliance_or_na_reason": "New vstd and vstd_extra symbols are consolidated above inherited imports, with a separate verification-added mapping import. The inherited mapping runtime import stays separate."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No repeated payload facts on the same Option requiring one shared binding were found."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Enum contracts use is/matches or explicit matches; failure branches with independent state guarantees are retained."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "The reviewed resource/type names describe their roles; no additional misnamed standalone ownership proof helper was found. Trait-mandated method names are retained."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Searched all spec/proof symbol names in this case after tree. Helpers have visible uses or serve the documented model/trait/harness boundary; omitted trees are not evidence of global absence."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No additional one-off auxiliary wrapper lacking a meaningful contract boundary was established; public model/ownership operations are intentional abstractions."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No misplaced auxiliary side-obligation proof was established; public model APIs and invariant-preservation core proofs remain part of the module surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Tracked binders and ghost fields indicate actual ownership/mode boundaries; no additional redundant marker was established."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Runtime structs retain runtime mode; mathematical models and linear owners have appropriate distinct roles. Mode choices were inspected statically, not verified."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:140"
+      ],
+      "quoted_evidence": "/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(\n    programs: Seq<xmas_elf::program::ProgramHeader<'_>>,\n    input: Seq<u8>,\n) -> bool {",
+      "compliance_or_na_reason": "Representation helpers have private spec visibility and are not exposed as pub open APIs."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "Existing prose and formal contracts supply the visible caller meaning; missing verification headings or helper summaries are not findings under the current page."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:18"
+      ],
+      "quoted_evidence": "#[expect(\n    non_snake_case,\n    reason = \"The verified bitflags macro exposes flag names as methods.\"\n)]\nmod pe_header;",
+      "compliance_or_na_reason": "Existing expect(non_snake_case) applies to the macro-bearing pe_header module, with an explicit reason; this diff adds no broader suppression."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(\n    programs: Seq<xmas_elf::program::ProgramHeader<'_>>,\n    input: Seq<u8>,\n) -> bool {",
+      "compliance_or_na_reason": "The roughly 80-line mathematical model has local users only, as shown by symbol searches, and belongs beside to_flat_binary."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No verbatim per-type family of spec helper bodies occurs; similar ownership operations have different signatures or semantics."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No independently demonstrated misleading proof-debt claim beyond any documentation finding was found. Wording-only nits are not reported, and unavailable history cannot establish removed supporting assertions."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No observed imported-call resolution workaround is required; the historical verifier is unavailable, so resolution is not independently certified."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:138"
+      ],
+      "quoted_evidence": "verus! {\n\n/// The mapping expression uses mathematical integers; validity below makes\n/// each executable addition, subtraction, and usize cast exact.\nspec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {\n    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA\n}\n\nspec fn valid_flat_segments(",
+      "compliance_or_na_reason": "No unpaired arithmetic executable/model twin is demonstrated in this target."
+    }
+  ]
+}

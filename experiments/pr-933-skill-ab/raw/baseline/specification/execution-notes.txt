@@ -1,0 +1,22 @@
+Specification baseline pass: six independent whole-file reviews completed.
+
+Authority read: prompt.txt in this output directory (entire persona and frozen pass rules); baseline/skill/SKILL.md; baseline/skill/references/specification-audit.md; guidelines/README.md; guidelines/proof-engineering.md (supporting complete-external-contracts and implement-inv-for-models sections; full page was printed while resolving headings).
+
+Frozen target files read in full under each corresponding inputs/<case>/after tree:
+pr-628-096c166e5ce6: ostd/specs/mm/embedding/list_store.rs (initial large output truncated; subsequent overlapping chunks covered the omitted middle).
+pr-632-1be8099780ff: ostd/specs/mm/frame/meta_region_owners.rs.
+pr-770-28ec70b8e3f2: ostd/src/cpu/set.rs (initial output truncated; subsequent reads covered add/remove body gap).
+pr-856-619ad58877f8: ostd/src/mm/dma/dma_coherent.rs.
+pr-886-fe5eb7f3e6aa: ostd/src/arch/x86/ex_table.rs.
+pr-931-79810bc1eeb5: ostd/libs/linux-bzimage/builder/src/lib.rs.
+
+Supporting source read/searched only in matching after trees:
+628: ostd/src/mm/frame/linked_list.rs (push_back and cursor_mut_at contracts/bodies), ostd/src/mm/frame/meta.rs (get_slot), ostd/specs/mm/frame/mapping.rs (frame_to_index and alignment). Search identified cursor-owner constructors. The embedded proof steps themselves supply concrete natural next-call obligations; no external verified client failure is claimed.
+632: ostd/specs/mm/frame/meta_owners.rs (MetaSlotOwner fields/invariant); searched verified_libs for InvView, unavailable there.
+770: verified_libs file inventory, attempted iterator-model lookup (file unavailable). Existing tests and commented From impl were read as unverified examples, not verified client evidence.
+856: ostd/src/mm/io.rs (VmIo read/write contracts and VmIoOnce declaration), ostd/src/mm/dma/mod.rs (HasDaddr, check_and_insert_dma_mapping), ostd/src/mm/mod.rs (HasPaddr). Missing contracts at out-of-scope HasPaddr/HasDaddr/VmIoOnce declarations were not misreported as per-impl fixes. Plain Rust trait implementations and commented-out Drop/Deref code are not treated as verified guarantees.
+931: ostd/libs/linux-bzimage/builder/src/mapping.rs in full; verified_libs/vstd_extra/src/external/xmas_elf.rs relevant parser, program iterator, Load access and address model sections.
+
+Method: output/contract inventory included proof helpers, tracked mutable state, arrow tracked outputs, inherited trait gates, and plain Rust APIs. Checked preconditions against ownership/non-panicking requirements and result guarantees against explicit promises/next calls. No source changes, network, external labels/comments, other runs or persona outputs were used. Existing frozen trees are partial: absent vstd or trait definitions are unavailable evidence, not absence in the historical repository.
+
+No Verus/Z3 or runnable historical toolchain was supplied. No verification or client experiment was attempted, and no verification success/failure is claimed. Findings are static source conclusions. Suggested stronger contracts and fixes have not been solver-validated; iterator coverage correction explicitly depends on unavailable active vstd semantics. No broad CI runs or executable variants were made. JSON schema and exact finding quote substrings were checked locally, and primary line references were aligned to quoted source. Each case JSON was saved when its review completed.

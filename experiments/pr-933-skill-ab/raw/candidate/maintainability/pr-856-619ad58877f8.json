@@ -1,0 +1,268 @@
+{
+  "Findings": [
+    {
+      "id": "856-maintainability-01",
+      "severity": "low",
+      "guideline": "group-imports-by-crate",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:2",
+      "quoted_evidence": "use vstd::arithmetic::mul::lemma_mul_inequality;\nuse vstd::prelude::*;\n#[cfg(feature = \"irc11\")]\nuse vstd::thread_view::Objective;",
+      "problem": "The new arithmetic lemma is imported separately from the existing unconditional vstd prelude import.",
+      "key_premise": "Both imports are unconditional verification imports of vstd.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Combine arithmetic::mul::lemma_mul_inequality and prelude::* in one vstd use; keep the separately cfg-gated Objective import conditional."
+    },
+    {
+      "id": "856-maintainability-02",
+      "severity": "low",
+      "guideline": "prefer-ghost-model-structs",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:45",
+      "quoted_evidence": "/// The tracked owner for the inner part of a [`DmaCoherent`].\n///\n/// This mirrors [`DmaStreamVmIoOwner`](super::dma_stream::DmaStreamVmIoOwner):\n/// the real memory ownership lives in the inner `RwArc`, and this token is\n/// only the public `VmIo` permission parameter.\npub struct DmaCoherentVmIoOwner<M: ?Sized>(pub PhantomData<M>);",
+      "problem": "The proof-only VmIo permission marker is an ordinary struct although its only field is PhantomData and its uses are specification or tracked permission arguments.",
+      "key_premise": "DmaCoherentVmIoOwner carries no runtime state; its comment explicitly identifies it as the VmIo permission parameter.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Try ghost struct for DmaCoherentVmIoOwner and verify its generic trait uses. No historical verifier is available here, so compilation of the mode change remains unchecked."
+    },
+    {
+      "id": "856-maintainability-03",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:204",
+      "quoted_evidence": "    #[verus_spec(r =>\n        requires\n            this@.inv(),\n        returns\n            this@.data.start_daddr,\n    )]\n    fn daddr_inner(this: &RwLockReadGuard<DmaCoherentInnerAtomic<M>, PreemptDisabled>) -> Daddr {",
+      "problem": "daddr_inner declares r but never uses it; paddr_inner, nframes_inner and nbytes_inner do the same.",
+      "key_premise": "The contracts use returns expressions independent of the r binder.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Remove the unused r => binders from these exact-return contracts and other unused result binders in this file."
+    },
+    {
+      "id": "856-maintainability-04",
+      "severity": "low",
+      "guideline": "document-verified-apis",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:39",
+      "quoted_evidence": "/// The mapping will be destroyed automatically when\n/// the object is dropped.",
+      "problem": "The public type claims automatic destruction of the DMA mapping while the actual Drop implementation, including remove_dma_mapping, is commented out.",
+      "key_premise": "The only mapping destruction implementation in this target is inside a block comment at lines 507-548.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "State the current disabled-cleanup limitation adjacent to the public guarantee, preserving the original prose and distinguishing the intended runtime API from this snapshot's verified scope."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "Executable sections, specifications and proof bodies are visibly marked; no adjacent redundant verus blocks require merging."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "The available contiguous bounds use chained comparisons where equivalent; independent bounds were not joined by inventing a relation."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No demonstrated redundant as int cast requiring a change was found; int-parameter casts are retained. No compiler experiment was available."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No pointer-view @.addr identity constraints occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No spec Seq subrange/take/skip expression needs replacement in this target."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No repeated long proof-symbol qualification requiring another import was found; one-off references and ambiguous PointsTo qualifications are allowed. Reveal minimality cannot be verified without Verus."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No per-branch repeated broadcast use occurs in the target."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No repeated payload facts on the same Option requiring one shared binding were found."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "Enum contracts use is/matches or explicit matches; failure branches with independent state guarantees are retained."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "Compared the available before/after source or diff. No additional unsupported executable rewrite is established; pre-snapshot history and upstream logs are unavailable."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "The reviewed resource/type names describe their roles; no additional misnamed standalone ownership proof helper was found. Trait-mandated method names are retained."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "Searched all spec/proof symbol names in this case after tree. Helpers have visible uses or serve the documented model/trait/harness boundary; omitted trees are not evidence of global absence."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No additional one-off auxiliary wrapper lacking a meaningful contract boundary was established; public model/ownership operations are intentional abstractions."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No misplaced auxiliary side-obligation proof was established; public model APIs and invariant-preservation core proofs remain part of the module surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "Tracked binders and ghost fields indicate actual ownership/mode boundaries; no additional redundant marker was established."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No representation-only pub open helper requiring closure was established; public model predicates used as caller-facing reasoning surfaces are legitimate."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:58"
+      ],
+      "quoted_evidence": "    /// TODO: restore cache-policy switching once the page-table API is verified.\n    #[expect(unused)]\n    pub is_cache_coherent: bool,",
+      "compliance_or_na_reason": "The deliberately unused cache-policy field carries a local expect(unused)."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "Searched this case after tree for the defined spec functions. Placement matches either a substantial subsystem model under ostd/specs or a small local implementation model."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No verbatim per-type family of spec helper bodies occurs; similar ownership operations have different signatures or semantics."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:169"
+      ],
+      "quoted_evidence": "                while i < frame_count {\n                    proof {\n                        // A whole-segment `usize` fit (see `check_and_insert_dma_mapping`)\n                        // bounds every frame offset in the loop.\n                        lemma_mul_inequality(i as int, frame_count as int, PAGE_SIZE as int);\n                    }",
+      "compliance_or_na_reason": "The new proof note identifies the whole-segment bound justifying every frame offset; removed assume is replaced by a concrete arithmetic lemma. No verifier result is claimed."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:689"
+      ],
+      "quoted_evidence": "            Self::reader_inner(inner)\n        };\n\n        let remain_before_skip = reader.remain();\n        if offset > remain_before_skip {",
+      "compliance_or_na_reason": "Attributed helper invocation uses Self::reader_inner, an explicit associated path; no import workaround is introduced."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:33"
+      ],
+      "quoted_evidence": "verus! {\n\n/// A coherent (or consistent) DMA mapping,\n/// which guarantees that the device and the CPU can\n/// access the data in parallel.\n///\n/// The mapping will be destroyed automatically when\n/// the object is dropped.\npub struct DmaCoherent<M: AnyUFrameMeta + ?Sized> {",
+      "compliance_or_na_reason": "No unpaired arithmetic executable/model twin is demonstrated in this target."
+    }
+  ]
+}

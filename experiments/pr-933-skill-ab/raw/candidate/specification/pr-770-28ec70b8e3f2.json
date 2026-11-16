@@ -1,0 +1,79 @@
+{
+  "Findings": [
+    {
+      "id": "770-spec-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:630",
+      "quoted_evidence": "    /// Returns true if the set is full.\n            ret ==> self@ == Set::range(0, cpu_count()),",
+      "problem": "is_full permits false for a full set. Thus a caller cannot derive the documented full-set decision in the false branch, or establish is_full after new_full/add_all.",
+      "key_premise": "is_full permits false for a full set. Thus a caller cannot derive the documented full-set decision in the false branch, or establish is_full after new_full/add_all.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Replace implication with equivalence (or exact returns self@ == Set::range(0, cpu_count())) and prove the first mismatch implies a missing valid CPU."
+    },
+    {
+      "id": "770-spec-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:723",
+      "quoted_evidence": "    /// Iterates over the CPUs in the set.\n    ///\n    /// The order of the iteration is guaranteed to be in ascending order.\n            IteratorSpec::obeys_prophetic_iter_laws(&ret),\n            IteratorSpec::decrease(&ret) is Some,",
+      "problem": "iter exposes no relationship between returned elements and this set and no ascending-order guarantee, despite the explicit order promise and the full/empty iterator tests. Iterator-law compliance and a decreasing measure alone do not state contents or ordering.",
+      "key_premise": "iter exposes no relationship between returned elements and this set and no ascending-order guarantee, despite the explicit order promise and the full/empty iterator tests. Iterator-law compliance and a decreasing measure alone do not state contents or ordering.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Specify that the initial remaining sequence consists exactly of this view\u2019s CPU IDs in strictly ascending order, without duplicates. Preserve and justify whatever production/completion guarantee the active iterator model supports; do not infer termination from closure value ensures alone. The active vstd iterator source is unavailable, so the exact trait vocabulary and proof feasibility remain untested."
+    },
+    {
+      "id": "770-spec-3",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:535",
+      "quoted_evidence": "    /// Returns the number of CPUs in the set.\n        returns self.count_spec() as usize,",
+      "problem": "count returns a closed backing-word population count with no exported relation to the abstract Set view. A caller using only public contracts cannot establish count == self@.len(), including after new_empty or add.",
+      "key_premise": "count returns a closed backing-word population count with no exported relation to the abstract Set view. A caller using only public contracts cannot establish count == self@.len(), including after new_empty or add.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Export and prove under self.inv() the equality count_spec() == self@.len(), or return the view cardinality directly. Keep representation details private."
+    },
+    {
+      "id": "770-spec-4",
+      "severity": "low",
+      "guideline": "api-preconditions",
+      "location": "ostd/src/cpu/set.rs:782",
+      "quoted_evidence": "    /// Only for internal use. Build a vector of `num_cpus`-covering words, all equal to `val`.\n            (num_cpus as int) == cpu_count(),\n// Existing unverified test:\n        for test_num_cpus in [1usize, 3, 12, 64, 96, 99, 128, 256, 288, 1024] {\n            let set = CpuSet::with_capacity_val(test_num_cpus, 0);",
+      "problem": "with_capacity_val unnecessarily requires the requested size equal the global CPU count. Its result only promises a vector covering the requested size with uniform words, and the existing multi-size test intentionally calls it with other sizes.",
+      "key_premise": "The implementation uses only the input num_cpus and val, while the separate allocation bound already constrains the actual requested allocation; the postcondition does not promise CpuSet.inv().",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Remove the equality to cpu_count(), retaining the allocation-size bound. Let public constructors establish CpuSet.inv() when supplying the actual CPU count. The current test is unverified, so this is a future verification/usability restriction rather than an observed failing verified caller."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:414"
+      ],
+      "quoted_evidence": "            self.inv(),",
+      "compliance_or_na_reason": "Public CPU-set operations use valid-state constraints; CpuId bounds come from its type invariant. The private helper restriction is reported separately. Atomic operations and tests are plain Rust; no current verified caller failure is claimed."
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-628-096c166e5ce6",
+  "pr_number": 628,
+  "title": "Prove list_store pop/push wrapper axioms",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/628",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "55470b50087681b07f4dc546fcec4d3b0848b858",
+  "head_sha": "096c166e5ce679af1906f21285a58934ae194c70",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/list_store.rs"
+  ],
+  "diff_sha256": "5b355ba1618bc5d8902ce393dcf9d20c5dbe3e4ce41a3f5126ff8a5f0dac0783",
+  "versions": {
+    "before": {
+      "commit": "55470b50087681b07f4dc546fcec4d3b0848b858",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "096c166e5ce679af1906f21285a58934ae194c70",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  }
+}

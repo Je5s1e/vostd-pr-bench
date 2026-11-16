@@ -1,0 +1,282 @@
+{
+  "Findings": [
+    {
+      "id": "770-maintainability-01",
+      "severity": "low",
+      "guideline": "avoid-redundant-as-int-casts",
+      "location": "ostd/src/cpu/set.rs:244",
+      "quoted_evidence": "proof fn lemma_cpucount_fits()\n    ensures\n        2 * (parts_for_cpus_spec(cpu_count() as usize) as int) * (size_of::<u64>() as int)\n            <= isize::MAX as int,",
+      "problem": "The capacity bound defensively casts every numeric operand to int although ghost comparisons and mixed mathematical arithmetic coerce them.",
+      "key_premise": "The casts in this bound are arithmetic/comparison operands, not int-typed function arguments or standalone divisors.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Drop the redundant as int casts in this bound and analogous comparisons, keeping casts needed for int parameters and narrowing results; confirm with the historical verifier when available."
+    },
+    {
+      "id": "770-maintainability-02",
+      "severity": "low",
+      "guideline": "keep-internal-spec-helpers-closed",
+      "location": "ostd/src/cpu/set.rs:118",
+      "quoted_evidence": "pub open spec fn count_set_bits_prefix(seq: Seq<u64>, end: int) -> int\n    recommends\n        0 <= end <= seq.len(),\n    decreases end,\n{\n    if end <= 0 {\n        0\n    } else {\n        count_set_bits_prefix(seq, end - 1) + u64_set_bits(seq[end - 1])\n    }\n}\n\n/// Number of set bits in all words of `seq`.\npub open spec fn count_set_bits(seq: Seq<u64>) -> int {\n    count_set_bits_prefix(seq, seq.len() as int)\n}\n\n/// Expected value of word `idx` in a full CPU set.\npub open spec fn full_set_word(num_cpus: int, len: int, idx: int) -> u64 {\n    if idx == len - 1 && bit_idx_spec(num_cpus) != 0 {\n        ((1u64 << bit_idx_spec(num_cpus)) - 1) as u64\n    } else {\n        !0u64\n    }\n}\n\n/// Bit `i` is set in the bit sequence `seq`.\npub open spec fn bit_at(seq: Seq<u64>, i: int) -> bool {\n    if 0 <= i < 64 * seq.len() as int {",
+      "problem": "Representation helpers count_set_bits_prefix, count_set_bits, full_set_word and bit_at are pub open even though the available tree uses them only in this module.",
+      "key_premise": "All word-level helper references are in cpu/set.rs, and they expose the backing bit layout rather than the set view.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Make representation-only helpers private closed spec functions; keep the public set model and caller-provable requirements usable through their intended API."
+    },
+    {
+      "id": "770-maintainability-03",
+      "severity": "low",
+      "guideline": "defer-auxiliary-proof-functions",
+      "location": "ostd/src/cpu/set.rs:154",
+      "quoted_evidence": "proof fn lemma_bit_at_uniform(seq: Seq<u64>, val: u64, j: int)\n    requires\n        forall|k: int| 0 <= k < seq.len() ==> seq[k] == val,\n        0 <= j < 64 * seq.len() as int,\n    ensures\n        bit_at(seq, j) == ((val & (1u64 << bit_idx_spec(j))) != 0),\n{\n    reveal(bit_at);\n    assert(seq[part_idx_spec(j) as int] == val);\n}\n\nproof fn lemma_u64_nonzero_has_set_bit_aux(word: u64, n: u32)",
+      "problem": "Private bit-manipulation and bounds lemmas precede the public CpuSet API and split the model declarations.",
+      "key_premise": "lemma_bit_at_uniform and the following nonzero-bit helpers discharge representation side obligations; constructors begin at line 350.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Move auxiliary proofs to a clearly marked trailing verus block, keeping View, Inv, and executable APIs first."
+    },
+    {
+      "id": "770-maintainability-04",
+      "severity": "low",
+      "guideline": "inline-single-use-proof-helpers",
+      "location": "ostd/src/cpu/set.rs:218",
+      "quoted_evidence": "proof fn lemma_u64_nonzero_has_set_bit(word: u64)\n    requires\n        word != 0,\n    ensures\n        exists|b: u32| b < 64 && #[trigger] (word & (1u64 << b)) != 0,\n{\n    assert(word >> 64u32 == 0) by (bit_vector);\n    lemma_u64_nonzero_has_set_bit_aux(word, 64);\n}",
+      "problem": "This wrapper proof has one caller and only forwards the argument to the recursive auxiliary proof after one assertion.",
+      "key_premise": "lemma_u64_nonzero_has_set_bit is called once, from is_empty; its recursive auxiliary has no independent consumer.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Inline the wrapper at is_empty and nest the recursive proof helper there, unless verification demonstrates a necessary separate context boundary."
+    },
+    {
+      "id": "770-maintainability-05",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/src/cpu/set.rs:515",
+      "quoted_evidence": "    #[verus_spec(ret =>\n        requires\n            self.inv(),\n        returns self@.contains(cpu_id@),\n    )]\n    pub fn contains(&self, cpu_id: CpuId) -> bool {",
+      "problem": "contains retains an unused ret binder despite expressing its exact result with returns; is_empty repeats this pattern and exact closure results use ensures.",
+      "key_premise": "The contains contract does not reference ret.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Remove unused ret binders and use returns for exact closure results where the declared types match."
+    },
+    {
+      "id": "770-maintainability-06",
+      "severity": "low",
+      "guideline": "preserve-exec-code",
+      "location": "ostd/src/cpu/set.rs:779",
+      "quoted_evidence": "    /// Only for internal use. Build a vector of `num_cpus`-covering words, all equal to `val`.\nBefore: /// Only for internal use. The set cannot contain non-existent CPUs.",
+      "problem": "The inherited with_capacity_val rustdoc was rewritten during verification. The original source comment must remain verbatim under the current rule.",
+      "key_premise": "The before file says: Only for internal use. The set cannot contain non-existent CPUs.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Restore the original comment and handle any correction separately; also give new_empty's temporary-result rewrite its required adjacent original form."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Executable sections, specifications and proof bodies are visibly marked; no adjacent redundant verus blocks require merging."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "The available contiguous bounds use chained comparisons where equivalent; independent bounds were not joined by inventing a relation."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No pointer-view @.addr identity constraints occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No spec Seq subrange/take/skip expression needs replacement in this target."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:4"
+      ],
+      "quoted_evidence": "use vstd::{\n    arithmetic::div_mod::lemma_fundamental_div_mod, layout::size_of, prelude::*, set::Set,\n    std_specs::iter::IteratorSpec,\n};\nuse vstd_extra::{\n    bits::{\n        group_u64_bit_algebra, lemma_u64_allones_bit, lemma_u64_and_zero, lemma_u64_masked_bit_keep,\n    },\n    external::{\n        bits::{lemma_u64_set_bits_nonzero, u64_set_bits},\n        smallvec::{group_smallvec_models, smallvec_view},\n    },\n    ownership::Inv,",
+      "compliance_or_na_reason": "Proof lemmas are explicitly imported; module-level broadcast paths occur once. Reveal necessity remains unchecked because the verifier is unavailable."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No per-branch repeated broadcast use occurs in the target."
+    },
+    {
+      "guideline": "group-imports-by-crate",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Verification-added imports are grouped separately from inherited runtime imports; same-crate verification symbols are combined where applicable."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No repeated payload facts on the same Option requiring one shared binding were found."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Enum contracts use is/matches or explicit matches; failure branches with independent state guarantees are retained."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:154"
+      ],
+      "quoted_evidence": "proof fn lemma_bit_at_uniform(seq: Seq<u64>, val: u64, j: int)\n    requires\n        forall|k: int| 0 <= k < seq.len() ==> seq[k] == val,\n        0 <= j < 64 * seq.len() as int,\n    ensures\n        bit_at(seq, j) == ((val & (1u64 << bit_idx_spec(j))) != 0),\n{\n    reveal(bit_at);\n    assert(seq[part_idx_spec(j) as int] == val);\n}\n\nproof fn lemma_u64_nonzero_has_set_bit_aux(word: u64, n: u32)",
+      "compliance_or_na_reason": "Reusable facts use lemma_ prefixes and no ownership-manipulating proof helper is disguised as an executable API."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Searched all spec/proof symbol names in this case after tree. Helpers have visible uses or serve the documented model/trait/harness boundary; omitted trees are not evidence of global absence."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Tracked binders and ghost fields indicate actual ownership/mode boundaries; no additional redundant marker was established."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Runtime structs retain runtime mode; mathematical models and linear owners have appropriate distinct roles. Mode choices were inspected statically, not verified."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Existing prose and formal contracts supply the visible caller meaning; missing verification headings or helper summaries are not findings under the current page."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:27"
+      ],
+      "quoted_evidence": "#[derive(Clone, Debug, Default)]\n#[verifier::allow(autoderive_clone_without_spec)]\n#[verus_verify]",
+      "compliance_or_na_reason": "The autoderive-clone interoperability allowance is attached only to CpuSet."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "Searched this case after tree for the defined spec functions. Placement matches either a substantial subsystem model under ostd/specs or a small local implementation model."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No verbatim per-type family of spec helper bodies occurs; similar ownership operations have different signatures or semantics."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No independently demonstrated misleading proof-debt claim beyond any documentation finding was found. Wording-only nits are not reported, and unavailable history cannot establish removed supporting assertions."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {\n\n// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`\n// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` \u2194 spec `% 64`).\nconst BITS_PER_PART: usize = 64;\n\nconst NR_PARTS_NO_ALLOC: usize = 2;\n\n} // verus!",
+      "compliance_or_na_reason": "No observed imported-call resolution workaround is required; the historical verifier is unavailable, so resolution is not independently certified."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:45"
+      ],
+      "quoted_evidence": "} // verus!\n#[verus_verify]\n#[verus_spec(\n    returns part_idx_spec(cpu_id@),\n)]\nconst fn part_idx(cpu_id: CpuId) -> usize {\n    proof! {\n        reveal(part_idx_spec);\n    }\n    cpu_id.as_usize() / BITS_PER_PART\n}\n\n#[verus_verify]\n#[verus_spec(\n    returns bit_idx_spec(cpu_id@),\n)]\nconst fn bit_idx(cpu_id: CpuId) -> usize {\n    proof! {\n        reveal(bit_idx_spec);\n    }\n    cpu_id.as_usize() % BITS_PER_PART\n}\n\n#[verus_verify]\n#[verifier::when_used_as_spec(parts_for_cpus_spec)]\n#[verus_spec(\n    returns parts_for_cpus_spec(num_cpus),\n)]\nconst fn parts_for_cpus(num_cpus: usize) -> usize {",
+      "compliance_or_na_reason": "part_idx and bit_idx use faithful int-view twins via returns, while parts_for_cpus also carries when_used_as_spec. Different int argument shapes need not be forced into an exec signature."
+    }
+  ]
+}

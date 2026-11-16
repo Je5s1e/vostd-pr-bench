@@ -1,0 +1,239 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {",
+      "compliance_or_na_reason": "Specifications are explicitly marked spec, proofs are proof functions/blocks, and executable items retain distinct bodies; no unnecessary adjacent macro boundary identified."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No separated contiguous bounds with a shared middle expression require combining."
+    },
+    {
+      "guideline": "use-returns-for-exact-results",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No exact whole-result equality in ensures or unused named result binder identified."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No redundant as int comparison/arithmetic casts identified; function-parameter casts must remain."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No raw-pointer @.addr identity expressions occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No Seq subrange/take/skip calls occur in the target; executable iterator/reader skip is not this rule."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:2"
+      ],
+      "quoted_evidence": "use vstd::prelude::*;",
+      "compliance_or_na_reason": "Proof imports are identifiable. No repeated unambiguous long proof path found; no reveal is removed without verification."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No repeated branch-local broadcast use occurs in the target."
+    },
+    {
+      "guideline": "group-imports-by-crate",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:2"
+      ],
+      "quoted_evidence": "use vstd::prelude::*;",
+      "compliance_or_na_reason": "Verification imports precede inherited runtime imports with blank-line separation."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:83"
+      ],
+      "quoted_evidence": "r matches Some(recovery) ==> exists|i: int| 0 <= i < table_model().len()",
+      "compliance_or_na_reason": "The recovery payload is bound once; no-match is specified separately without weakening Some/None presence."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:88"
+      ],
+      "quoted_evidence": "r is None <==> forall|i: int| 0 <= i < table_model().len()",
+      "compliance_or_na_reason": "Some binds recovery and None characterizes absence of any match, without duplicated contrapositive clauses."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:92"
+      ],
+      "quoted_evidence": "/* `read_table` isolates linker-symbol casts unsupported by Verus.",
+      "compliance_or_na_reason": "The frozen diff retains original linker arithmetic and safety comment in an adjacent Origin Rust block; the helper performs the same computation and loop behavior is preserved."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Names communicate mathematical and ownership roles; no reusable proof/axiom prefix issue identified."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Searched all available per-case Rust files for each named helper. Current local/trait callers or an explicit model boundary are present. Omitted library trees are unavailable, not proof of non-use."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No private one-use auxiliary proof helper without an independent abstraction boundary is demonstrated."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No private auxiliary proof functions occur before the API surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "No repeated field mode markers on a ghost struct or all-tracked tuple wrappers identified."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:68"
+      ],
+      "quoted_evidence": "pub(crate) struct ExTable;",
+      "compliance_or_na_reason": "ExTable is an inherited executable API marker and ExTableItem is runtime table storage; no new proof-only struct is introduced."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Private representation helpers are not exposed as pub open, or the public model is a caller-facing contract surface."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:122"
+      ],
+      "quoted_evidence": "/// Trusted linker boundary: the section is non-null, aligned, initialized,",
+      "compliance_or_na_reason": "The trusted raw-slice boundary explicitly states alignment, lifetime, initialization and bounds assumptions. First-match documentation matches the quantified contract."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No broad lint suppression is introduced for a local issue in the target."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Only this small exception-table implementation uses table_model in supplied source, so local placement is appropriate."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No verbatim spec-helper bodies duplicated across per-type instantiations occur; trait implementations with distinct receiver types are not generated per-type copies."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:122"
+      ],
+      "quoted_evidence": "/// Trusted linker boundary: the section is non-null, aligned, initialized,",
+      "compliance_or_na_reason": "Non-obvious linker assumptions are documented once at their owning trusted helper."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No demonstrated failing imported callee resolution is present. The historical compiler is unavailable; no speculative import rewrite is required."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No independently duplicated executable helper formula requiring a spec twin is present."
+    }
+  ]
+}

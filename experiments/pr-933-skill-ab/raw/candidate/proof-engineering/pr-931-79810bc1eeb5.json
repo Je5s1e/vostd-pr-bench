@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:25"
+      ],
+      "quoted_evidence": "use vstd_extra::external::xmas_elf::{",
+      "compliance_or_na_reason": "Inspected ElfFile::new/program_iter, ProgramHeader get_type/get_data/virtual_addr/mem_size/file_size, Type equality, Vec IndexMut, slice AsMut, and pointer models. Input predicate supplies parse no-unwind, success, readable headers, Load data bounds and allocation limits; get_data only promises Load behavior under exactly these premises. Exact xmas-elf 0.10.0 and Rust 1.99.1 sources plus vstd iterator/IndexSpec definitions are not supplied, so dependency soundness is not fully validated. No vacuity claim."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:25"
+      ],
+      "quoted_evidence": "use vstd_extra::external::xmas_elf::{",
+      "compliance_or_na_reason": "No assume_specification declarations in target."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:101"
+      ],
+      "quoted_evidence": "let elf = xmas_elf::ElfFile::new(elf_file).unwrap();",
+      "compliance_or_na_reason": "Target consumes centralized xmas_elf and slice/Vec boundary specs; introduces only checked local models. Mapping conversion has a trusted assumption outside scope, but target validity already supplies the actual conversion bounds."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:174"
+      ],
+      "quoted_evidence": "spec fn flat_load_step(old: Seq<u8>, data: Seq<u8>, offset: int, mem_size: int) -> Seq<u8> {",
+      "compliance_or_na_reason": "Flat binary model uses concrete immutable bytes and concrete ELF header variants, no new generic trusted container laws. Vec mutation model preserves generic SliceIndex relation; exact inherited index_req unavailable."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:156"
+      ],
+      "quoted_evidence": "&&& program.file_size() <= program.mem_size() <= usize::MAX",
+      "compliance_or_na_reason": "Destination file length is bounded by memory extent, resize covers that extent, and readability bounds the source; spec prefix indexing is guarded by count. Allocation extent is additionally <= isize::MAX."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:205"
+      ],
+      "quoted_evidence": "program_load_bytes(&program, input),",
+      "compliance_or_na_reason": "Local model reuses external byte extraction and existing mapping constants. Searched supplied verified_libs/ostd roots and builder siblings for each flat helper; no identical transformation model found. Full vendored vstd and upstream checks unavailable."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:174"
+      ],
+      "quoted_evidence": "spec fn flat_load_step(old: Seq<u8>, data: Seq<u8>, offset: int, mem_size: int) -> Seq<u8> {",
+      "compliance_or_na_reason": "Seq<u8> and an ordered prefix fold represent overlapping segments faithfully: copy overwrites file bytes and only newly appended bytes are zeroed. Order cannot be collapsed into an unordered set."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:152"
+      ],
+      "quoted_evidence": "let program = #[trigger] programs[i];",
+      "compliance_or_na_reason": "Bounded per-header validation uses an explicit header trigger, and Seq::new expresses byte selection without an added axiom. Historical Seq::all proof effect cannot be tested."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:164"
+      ],
+      "quoted_evidence": "spec fn valid_flat_binary_input(input: &[u8]) -> bool {",
+      "compliance_or_na_reason": "No new spec struct with intrinsic invariant is introduced; these are input validity predicates for existing byte slices and external headers."
+    }
+  ]
+}

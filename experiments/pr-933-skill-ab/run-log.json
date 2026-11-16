@@ -1,0 +1,20 @@
+{
+  "completed_at_utc": "2026-11-16T12:25:42.118037+00:00",
+  "execution": "six no-history collaboration persona agents; one batch per variant/persona; no outcome-directed reruns",
+  "model": "session default; no model or reasoning override; backend exact identifier/seed/temperature not exported",
+  "agent_tasks": [
+    "baseline_maint",
+    "candidate_maint",
+    "baseline_proof",
+    "candidate_proof",
+    "baseline_spec",
+    "candidate_spec"
+  ],
+  "persona_outputs": 36,
+  "case_reports": 12,
+  "findings_adjudicated": 71,
+  "verus_runs": 0,
+  "github_comments_sent": 0,
+  "source_input_integrity": "all 3864 input hashes unchanged",
+  "bench_gold_integrity": "all six label files unchanged"
+}

@@ -1,0 +1,53 @@
+{
+  "Findings": [
+    {
+      "id": "specification-856-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:364",
+      "quoted_evidence": "#[verus_spec(r =>\n        requires\n            self.inner.wf(),\n        ensures\n            self.inner.wf(),\n    )]",
+      "problem": "The public daddr/paddr/nframes/nbytes getters expose no fact about their results. map only supplies inner.wf(), so a natural caller cannot establish that the resulting mapping describes the input segment or that nbytes equals nframes * PAGE_SIZE.",
+      "key_premise": "The exact inner helper returns are lost across read_inner (only guard invariant) and the public getter contracts; no mapping identity/model is exported.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Introduce an abstract mapping descriptor tied to the segment on successful map, preserve its relation through read_inner, and specify getter results from it. Reader/writer contracts should likewise expose their exact mapped range and initial remaining/available length; reader should retain read_view_initialized from reader_inner. Account for the publicly mutable inner representation before claiming immutable descriptors."
+    },
+    {
+      "id": "specification-856-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:565",
+      "quoted_evidence": "closed spec fn obeys_vmio_read_spec() -> bool {\n        false\n    }\n\n    closed spec fn obeys_vmio_write_spec() -> bool {\n        false\n    }",
+      "problem": "Both VmIo result contracts are disabled, so neither the return nor any final reader/writer/permission/owner state is guaranteed at a call. The detailed local read_spec/write_spec therefore do not deliver the trait documentation promise of complete transfer on success, or the validity needed for the next I/O call.",
+      "key_premise": "VmIo::read/write in io.rs gate their only ensures with these false flags.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Prove and enable the implementation postconditions, covering all mutable outputs on success and error. Adjust error guarantees to actual partial-memory effects rather than promising unsupported restoration; preserve cursor/permission correspondence on every branch."
+    },
+    {
+      "id": "specification-856-3",
+      "severity": "medium",
+      "guideline": "api-preconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:587",
+      "quoted_evidence": "&&& (writer.cursor.range@.end <= KERNEL_BASE_VADDR || KERNEL_END_VADDR\n            <= writer.cursor.range@.start)",
+      "problem": "read_requires and write_requires exclude every kernel buffer, even a buffer disjoint from the DMA mapping. This prevents ordinary kernel-to-device or device-to-kernel copies when the ownership conditions and actual source/destination disjointness hold.",
+      "key_premise": "The requirement uses the entire kernel address interval instead of the concrete DMA range; reader_inner/writer_inner only export that broad interval.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Expose the actual DMA memory range and require disjointness from that range, retaining valid initialized read permissions, write permissions, and all aliasing restrictions. Verify the relaxed contract against the copy primitive."
+    }
+  ],
+  "Compliance": []
+}

@@ -1,0 +1,23 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:159"
+      ],
+      "quoted_evidence": "old(self).slots.contains_key(i),\n            old(self).slot_owners.contains_key(i),",
+      "compliance_or_na_reason": "Borrow requires present keys and cast permission well-formedness; redemption requires positive ledger count. Proof-lemma bounds/alignment support their conclusions. No excessive requirement established."
+    },
+    {
+      "guideline": "api-postconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:172"
+      ],
+      "quoted_evidence": "final(self).slots[i] == final(res).points_to,\n            final(self).slot_owners[i].inner_perms == final(res).inner_perms,",
+      "compliance_or_na_reason": "Borrow result identity and writeback, domains, other entries and all actual remaining slot-owner fields are covered; raw_count is not an actual field. Mint/redeem specify exact self updates and minted token value. InvView trait and cast-pointer implementation were unavailable, so inherited view_preserves_inv strength was not independently checked."
+    }
+  ]
+}

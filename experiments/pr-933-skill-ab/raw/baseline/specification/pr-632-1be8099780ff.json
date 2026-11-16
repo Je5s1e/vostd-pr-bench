@@ -1,0 +1,23 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:136"
+      ],
+      "quoted_evidence": "self.slots.contains_key(i),\n            self.slot_owners.contains_key(i),",
+      "compliance_or_na_reason": "Typed borrowing requires the available outer/inner permissions and their well-formedness. Ledger redemption requires a positive count, while minting imposes no extraneous restrictions. These are valid ownership/protocol obligations."
+    },
+    {
+      "guideline": "api-postconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:172"
+      ],
+      "quoted_evidence": "final(self).slots[i] == final(res).points_to,\n            final(self).slot_owners[i].inner_perms == final(res).inner_perms,",
+      "compliance_or_na_reason": "Typed mutable borrowing ties borrow-end state to the final returned permission, preserves both domains, other entries, all remaining actual owner fields and the ledger. Mint/redeem specify exact state transitions. InvView declaration was unavailable in the frozen tree, so inheritance strength could not independently be checked; no absence inferred."
+    }
+  ]
+}

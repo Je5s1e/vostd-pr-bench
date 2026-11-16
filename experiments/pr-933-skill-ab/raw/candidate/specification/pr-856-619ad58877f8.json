@@ -1,0 +1,69 @@
+{
+  "Findings": [
+    {
+      "id": "856-spec-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:366",
+      "quoted_evidence": "    /// Returns the starting device address.\n        ensures\n            self.inner.wf(),",
+      "problem": "The multi-hop daddr/paddr/nframes/nbytes wrappers do not constrain r at all. map only establishes inner.wf(), and read_inner only returns an invariant guard, so even the private exact getters do not give public callers a way to recover the mapping identity and size promised at construction.",
+      "key_premise": "The multi-hop daddr/paddr/nframes/nbytes wrappers do not constrain r at all. map only establishes inner.wf(), and read_inner only returns an invariant guard, so even the private exact getters do not give public callers a way to recover the mapping identity and size promised at construction.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Introduce a public abstract mapping descriptor tied to the guarded state, preserving concurrency semantics. On successful map relate it to the input segment; have public address/size getters return its corresponding fields. If public inner mutation prevents stable identity, specify values from an explicit read snapshot instead. Do not equate mutable protected data with a permanently fixed value without an invariant."
+    },
+    {
+      "id": "856-spec-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:565",
+      "quoted_evidence": "// ostd/src/mm/io.rs:1224-1228:\n    /// # No short reads\n    ///\n    /// On success, the `writer` must be written with the requested data\n    /// completely. If, for any reason, the requested data is only partially\n    /// available, then the method shall return an error.\n    closed spec fn obeys_vmio_read_spec() -> bool {\n        false\n    }\n\n    closed spec fn obeys_vmio_write_spec() -> bool {\n        false\n    }",
+      "problem": "Both VmIo postconditions are disabled, so read/write expose no result or final state guarantees for the exec cursor and both tracked mutable owners, including success. The trait explicitly promises no short reads/writes, but callers cannot recover validity or ownership for a second call.",
+      "key_premise": "Both VmIo postconditions are disabled, so read/write expose no result or final state guarantees for the exec cursor and both tracked mutable owners, including success. The trait explicitly promises no short reads/writes, but callers cannot recover validity or ownership for a second call.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Prove and enable the read/write contracts, covering cursor, owner and memory effects in both Ok and Err arms. Preserve partial-copy/error semantics accurately. The supplied FallibleVmRead/Write trait declarations themselves have no contracts, so inherited dependency guarantees must first be made available at those declarations (outside reporting scope); do not patch individual impl ensures and assume generic trait callers see them."
+    },
+    {
+      "id": "856-spec-3",
+      "severity": "medium",
+      "guideline": "api-preconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:587",
+      "quoted_evidence": "// ostd/src/mm/io.rs:1928:\n    /// Constructs a [`VmWriter<'a, Infallible>`] from a mutable byte slice.\n        &&& (writer.cursor.range@.end <= KERNEL_BASE_VADDR || KERNEL_END_VADDR\n            <= writer.cursor.range@.start)",
+      "problem": "read_requires excludes every kernel buffer, and write_requires has the same restriction, although VmIo supports slice-backed kernel readers/writers converted with to_fallible. A disjoint stack/heap byte buffer cannot be used for an ordinary DMA copy despite satisfying real ownership and non-overlap obligations.",
+      "key_premise": "read_requires excludes every kernel buffer, and write_requires has the same restriction, although VmIo supports slice-backed kernel readers/writers converted with to_fallible. A disjoint stack/heap byte buffer cannot be used for an ordinary DMA copy despite satisfying real ownership and non-overlap obligations.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Replace exclusion of the entire kernel interval with the needed disjointness against the actual mapped transfer range, exposed through a sound mapping model or permission protocol. Preserve validity, Some(ReadView/WriteView), initialization and ownership requirements. Do not remove necessary alias restrictions."
+    },
+    {
+      "id": "856-spec-4",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/mm/dma/dma_coherent.rs:423",
+      "quoted_evidence": "    /// Returns a reader to read data from it.\n            reader_perm@.has_read_view(),\n            r.wf(reader_perm@),\n            KERNEL_BASE_VADDR <= r.cursor.range@.start,\n            r.cursor.range@.end <= KERNEL_END_VADDR,",
+      "problem": "reader/writer promise access to this mapping but expose only arbitrary kernel-range validity (writer even omits those bounds), with no starting address or extent tied to the mapping. reader also drops reader_inner\u2019s read_view_initialized guarantee, preventing the next natural write call that requires an initialized read view.",
+      "key_premise": "reader/writer promise access to this mapping but expose only arbitrary kernel-range validity (writer even omits those bounds), with no starting address or extent tied to the mapping. reader also drops reader_inner\u2019s read_view_initialized guarantee, preventing the next natural write call that requires an initialized read view.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Tie each returned cursor and tracked owner range to a sound snapshot of this mapping, expose full initial remain/avail, and propagate reader_perm@.read_view_initialized(). Strengthen reader_inner/writer_inner to relate their result ranges to this@.data.segment, then carry the relation through public wrappers."
+    }
+  ],
+  "Compliance": []
+}

@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:155"
+      ],
+      "quoted_evidence": "pub axiom fn borrow_mut_typed_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(",
+      "compliance_or_na_reason": "Borrow-mut boundary explicitly specifies initial and final points-to state, map domains, untouched slots, and obligation framing. Exact cast_ptr/DropObligation implementations are absent, so resource soundness cannot be certified; no unsupported violation is asserted."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:131"
+      ],
+      "quoted_evidence": "pub axiom fn borrow_typed_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(",
+      "compliance_or_na_reason": "Borrow axioms concern this crate-specific metadata owner; no standard-library or third-party API assume_specification is defined in the target."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:131"
+      ],
+      "quoted_evidence": "pub axiom fn borrow_typed_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(",
+      "compliance_or_na_reason": "Typed permission reconstruction is guarded by the cast_ptr wf predicate rather than asserting arbitrary storage semantics from a trait bound alone. Full semantic checking is limited by omitted cast_ptr source."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:134"
+      ],
+      "quoted_evidence": ") -> (tracked res: &vstd_extra::cast_ptr::PointsTo<MetaSlot, Metadata<M>>)",
+      "compliance_or_na_reason": "The typed borrow requires both map keys before accessing corresponding entries. Other spec map reads may be total and are not executable indexing."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:60"
+      ],
+      "quoted_evidence": "pub ghost struct MetaRegionModel {",
+      "compliance_or_na_reason": "MetaRegionModel uses Map<usize, MetaSlotModel>; obligation multiplicity uses Multiset rather than a bespoke collection."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:126"
+      ],
+      "quoted_evidence": "forall|i: usize|",
+      "compliance_or_na_reason": "The single-slot frame relation quantifies over keys with an explicit other.slot_owners[i] trigger; it is a map relation, not a sequence-wide element predicate."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:88"
+      ],
+      "quoted_evidence": "impl Inv for MetaRegionModel {",
+      "compliance_or_na_reason": "Both tracked owners and their ghost model implement Inv; InvView exposes preservation. The wf calls relate distinct permission and owner values."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:1"
+      ],
+      "quoted_evidence": "use vstd::atomic::*;",
+      "compliance_or_na_reason": "The target declares no assume_specification receiver."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:125"
+      ],
+      "quoted_evidence": "pub open spec fn slot_owners_agree_except(self, other: MetaRegionOwners, idx: usize) -> bool {",
+      "compliance_or_na_reason": "Inventoried all target spec/proof/axiom functions and searched names/signatures across every available verified_libs, ostd/specs and ostd/src Rust file. Reviewed semantic candidates where available; no quoted equivalent definition supports a duplicate finding. Vendored vstd and some supporting libraries are omitted and upstream checks are prohibited, so this is limited source-level coverage, not a global uniqueness claim."
+    }
+  ]
+}

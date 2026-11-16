@@ -1,0 +1,282 @@
+{
+  "Findings": [
+    {
+      "id": "pr-628-096c166e5ce6-maint-01",
+      "severity": "low",
+      "guideline": "group-imports-by-crate",
+      "location": "ostd/specs/mm/embedding/list_store.rs:58",
+      "quoted_evidence": "use vstd_extra::cast_ptr::Repr;",
+      "problem": "Same-crate proof imports are split across multiple statements and crate::specs imports follow executable crate imports.",
+      "key_premise": "Lines 58-60 separately import vstd_extra, and 67-74 separately import crate::specs.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Combine each proof crate into one use group, then put crate::specs in its own group above inherited executable imports."
+    },
+    {
+      "id": "pr-628-096c166e5ce6-maint-02",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/specs/mm/embedding/list_store.rs:821",
+      "quoted_evidence": "res == self.lists[id].list.len(),",
+      "problem": "Read-only step helpers express exact values with ensures instead of returns.",
+      "key_premise": "step_size, step_is_empty, step_contains, step_current_meta and step_as_list specify an exact entire result.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use returns self.lists[id].list.len() in step_size and analogous type-matched expressions for the other exact results; retain additional state/result clauses in ensures."
+    },
+    {
+      "id": "pr-628-096c166e5ce6-maint-03",
+      "severity": "low",
+      "guideline": "match-enum-results",
+      "location": "ostd/specs/mm/embedding/list_store.rs:2385",
+      "quoted_evidence": "res.is_some() <==> 0 <= self.cursors[id].index < self.cursors[id].length(),",
+      "problem": "The current-meta result shape uses is_some rather than the direct enum predicate.",
+      "key_premise": "This is a shape-only Option query in a proof contract.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Write res is Some <==> 0 <= self.cursors[id].index < self.cursors[id].length()."
+    },
+    {
+      "id": "pr-628-096c166e5ce6-maint-04",
+      "severity": "low",
+      "guideline": "name-proof-roles",
+      "location": "ostd/specs/mm/embedding/list_store.rs:382",
+      "quoted_evidence": "pub proof fn pop_front_embedded<M: AnyFrameMeta + Repr<MetaSlotSmall>>(",
+      "problem": "Tracked state transformers and axioms lack their role prefixes.",
+      "key_premise": "pop_front_embedded consumes/returns tracked resources; insert_before_at_embedded and take_at_embedded are axiom functions.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Prefix tracked wrapper/step operations with tracked_ and trusted axioms with axiom_; update call sites together."
+    },
+    {
+      "id": "pr-628-096c166e5ce6-maint-05",
+      "severity": "low",
+      "guideline": "defer-auxiliary-proof-functions",
+      "location": "ostd/specs/mm/embedding/list_store.rs:1958",
+      "quoted_evidence": "proof fn lemma_checkout_inv(old_self: Self, new_self: Self, id: ListId, index: int)",
+      "problem": "Private bookkeeping lemmas interrupt the persistent-cursor API before its public operations.",
+      "key_premise": "lemma_checkout_inv, lemma_checkin_inv and lemma_revise_cursor_inv precede step_cursor_front_mut.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Move these private auxiliary lemmas to a documented trailing proof section, preserving public harness APIs in place."
+    },
+    {
+      "id": "pr-628-096c166e5ce6-maint-06",
+      "severity": "low",
+      "guideline": "inline-single-use-proof-helpers",
+      "location": "ostd/specs/mm/embedding/list_store.rs:255",
+      "quoted_evidence": "pub proof fn lemma_fresh_list_id_not_in_dom<M: AnyFrameMeta + Repr<MetaSlotSmall>>(",
+      "problem": "A one-line helper is exported solely to discharge the fresh-ID choice at one local caller.",
+      "key_premise": "Available source search finds its definition and the single call in step_list_new; its body only calls lemma_finite_int_set_has_unused.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Inline that proof step in step_list_new rather than expanding the module proof API; preserve the chosen fresh-id expression."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:76"
+      ],
+      "quoted_evidence": "verus! {",
+      "compliance_or_na_reason": "Specifications are explicitly marked spec, proofs are proof functions/blocks, and executable items retain distinct bodies; no unnecessary adjacent macro boundary identified."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:108"
+      ],
+      "quoted_evidence": "0 <= i < lo.list.len() ==> regions.slot_owners[lo.slot_index_at(",
+      "compliance_or_na_reason": "List bounds use chained comparisons throughout contracts and assertions."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No redundant as int comparison/arithmetic casts identified; function-parameter casts must remain."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No raw-pointer @.addr identity expressions occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No Seq subrange/take/skip calls occur in the target; executable iterator/reader skip is not this rule."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:57"
+      ],
+      "quoted_evidence": "use vstd::prelude::*;",
+      "compliance_or_na_reason": "Proof imports are identifiable. No repeated unambiguous long proof path found; no reveal is removed without verification."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No repeated branch-local broadcast use occurs in the target."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No repeated guarded payload projections needing a shared Option binder occur in this target."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "Compared the frozen target diff: no unjustified executable rewrite identified. Commit-by-commit/upstream history was not supplied and network use is forbidden; this is not a claim about unavailable history."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "Step operations deliberately define the documented one-step soundness harness boundary. They need not have runtime callers; omitted trees also prevent global dead-code claims."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:128"
+      ],
+      "quoted_evidence": "pub regions: MetaRegionOwners,",
+      "compliance_or_na_reason": "Tracked struct fields rely on their default tracked mode; tracked binders carry owned resources."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {",
+      "compliance_or_na_reason": "ListStore owns linear region/list/frame/cursor resources, justifying tracked mode; no pure ghost-only struct is made executable."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:102"
+      ],
+      "quoted_evidence": "pub open spec fn list_registry_ok<M: AnyFrameMeta + Repr<MetaSlotSmall>>(",
+      "compliance_or_na_reason": "Private representation helpers are not exposed as pub open, or the public model is a caller-facing contract surface."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:78"
+      ],
+      "quoted_evidence": "/// Logical identifier for a held [`LinkedListOwner`] in the store.",
+      "compliance_or_na_reason": "No demonstrated misleading verification claim identified. Missing verification headings and prose restating formal contracts are not findings."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No broad lint suppression is introduced for a local issue in the target."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {",
+      "compliance_or_na_reason": "The 2740-line subsystem harness belongs under ostd/specs even though its named spec helpers are local."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No verbatim spec-helper bodies duplicated across per-type instantiations occur; trait implementations with distinct receiver types are not generated per-type copies."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:78"
+      ],
+      "quoted_evidence": "/// Logical identifier for a held [`LinkedListOwner`] in the store.",
+      "compliance_or_na_reason": "No demonstrated stale trust-boundary claim identified. Wordiness alone is a compliance note under the evidence contract, not a documentation finding; history beyond the frozen diff is unavailable."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No demonstrated failing imported callee resolution is present. The historical compiler is unavailable; no speculative import rewrite is required."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1"
+      ],
+      "quoted_evidence": "//! Self-contained one-step-soundness harness for the frame `LinkedList`",
+      "compliance_or_na_reason": "No independently duplicated executable helper formula requiring a spec twin is present."
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+{
+  "Findings": [
+    {
+      "id": "628-maintainability-01",
+      "severity": "low",
+      "guideline": "group-imports-by-crate",
+      "location": "ostd/specs/mm/embedding/list_store.rs:57",
+      "quoted_evidence": "use vstd::prelude::*;\nuse vstd_extra::cast_ptr::Repr;\nuse vstd_extra::ownership::*;\nuse vstd_extra::set_extra::lemma_finite_int_set_has_unused;\n\nuse crate::mm::Paddr;\nuse crate::mm::frame::{\n    AnyFrameMeta, Link,\n    meta::{REF_COUNT_UNIQUE, REF_COUNT_UNUSED},\n};\nuse crate::specs::arch::has_safe_slot;\nuse crate::specs::mm::frame::linked_list::linked_list_owners::{\n    CursorOwner, LinkOwner, LinkedListOwner, MetaSlotSmall,\n};\nuse crate::specs::mm::frame::mapping::frame_to_index;\nuse crate::specs::mm::frame::meta_owners::PageUsage;\nuse crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;\nuse crate::specs::mm::frame::unique::UniqueFrameOwner;",
+      "problem": "Verification imports from vstd_extra and crate::specs are split into several use statements and mixed with executable-item imports.",
+      "key_premise": "The import list contains three separate vstd_extra use statements and several crate::specs statements.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Combine same-crate symbols within the verification groups and put crate::specs in its own blank-line-separated group."
+    },
+    {
+      "id": "628-maintainability-02",
+      "severity": "low",
+      "guideline": "name-proof-roles",
+      "location": "ostd/specs/mm/embedding/list_store.rs:284",
+      "quoted_evidence": "pub proof fn push_front_embedded<M: AnyFrameMeta + Repr<MetaSlotSmall>>(\n    tracked regions: &mut MetaRegionOwners,\n    tracked owner: &mut LinkedListOwner<M>,\n    tracked frame_own: &mut UniqueFrameOwner<Link<M>>,\n    used_ids: Set<u64>,",
+      "problem": "Ownership-transforming proof wrappers omit the tracked_ prefix; the remaining axiom declarations also omit axiom_.",
+      "key_premise": "push_front_embedded, pop_front_embedded, push_back_embedded, pop_back_embedded and mutating step_* functions manipulate tracked ownership; insert_before_at_embedded, take_at_embedded and list_drop_embedded are axioms.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Prefix ownership proof operations with tracked_ and axioms with axiom_; update their callers and rustdoc references together."
+    },
+    {
+      "id": "628-maintainability-03",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/specs/mm/embedding/list_store.rs:816",
+      "quoted_evidence": "    pub proof fn step_size(tracked &self, id: ListId) -> (res: nat)\n        requires\n            self.inv(),\n            self.lists.dom().contains(id),\n        ensures\n            res == self.lists[id].list.len(),",
+      "problem": "The exact result is expressed as an equality in ensures. The same pattern appears in step_is_empty, step_contains, step_current_meta and step_as_list.",
+      "key_premise": "step_size returns a nat exactly equal to self.lists[id].list.len().",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use returns self.lists[id].list.len() and remove its result binder; use type-matched returns expressions for the other exact results, retaining independent postconditions."
+    },
+    {
+      "id": "628-maintainability-04",
+      "severity": "low",
+      "guideline": "avoid-redundant-mode-markers",
+      "location": "ostd/specs/mm/embedding/list_store.rs:522",
+      "quoted_evidence": "    let ghost n = if owner.list.len() > 0 {\n        owner.list.len() - 1\n    } else {\n        0\n    };",
+      "problem": "An explicit ghost local repeats the mode already implied by the proof body; many step_* proof bodies repeat this pattern.",
+      "key_premise": "n is an ordinary mathematical local in a proof fn, not an executable boundary.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use let n in proof bodies for mathematical locals, while retaining tracked binders for ownership values."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "Executable sections, specifications and proof bodies are visibly marked; no adjacent redundant verus blocks require merging."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "The available contiguous bounds use chained comparisons where equivalent; independent bounds were not joined by inventing a relation."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No demonstrated redundant as int cast requiring a change was found; int-parameter casts are retained. No compiler experiment was available."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No pointer-view @.addr identity constraints occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No spec Seq subrange/take/skip expression needs replacement in this target."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No repeated long proof-symbol qualification requiring another import was found; one-off references and ambiguous PointsTo qualifications are allowed. Reveal minimality cannot be verified without Verus."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No per-branch repeated broadcast use occurs in the target."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No repeated payload facts on the same Option requiring one shared binding were found."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "Enum contracts use is/matches or explicit matches; failure branches with independent state guarantees are retained."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "Compared the available before/after source or diff. No additional unsupported executable rewrite is established; pre-snapshot history and upstream logs are unavailable."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "Searched all spec/proof symbol names in this case after tree. Helpers have visible uses or serve the documented model/trait/harness boundary; omitted trees are not evidence of global absence."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No additional one-off auxiliary wrapper lacking a meaningful contract boundary was established; public model/ownership operations are intentional abstractions."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No misplaced auxiliary side-obligation proof was established; public model APIs and invariant-preservation core proofs remain part of the module surface."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}",
+      "compliance_or_na_reason": "ListStore owns actual tracked region/list/frame/cursor resources; tracked mode expresses the ownership protocol."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No representation-only pub open helper requiring closure was established; public model predicates used as caller-facing reasoning surfaces are legitimate."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "Existing prose and formal contracts supply the visible caller meaning; missing verification headings or helper summaries are not findings under the current page."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No broad crate/module lint allowance was found; existing local attributes do not broaden suppression across the target."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:119"
+      ],
+      "quoted_evidence": "/// One-step-soundness store for the frame `LinkedList`. Holds the shared\n/// `regions`, the set of held lists, the pool of loose\n/// (push-eligible) `UniqueFrame<Link<M>>` handles, and the live cursors.\n///\n/// A cursor *checks out* its list: a live `CursorMut` borrows the\n/// `LinkedList` exclusively, so while a cursor exists its\n/// `LinkedListOwner` lives inside the [`CursorOwner`] (`cursors`) rather\n/// than in `lists`. Dropping the cursor returns the list to `lists`.\npub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}",
+      "compliance_or_na_reason": "The 2740-line ownership harness is a substantial subsystem model correctly located under ostd/specs, even though its spec helpers are local."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No verbatim per-type family of spec helper bodies occurs; similar ownership operations have different signatures or semantics."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No independently demonstrated misleading proof-debt claim beyond any documentation finding was found. Wording-only nits are not reported, and unavailable history cannot establish removed supporting assertions."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No observed imported-call resolution workaround is required; the historical verifier is unavailable, so resolution is not independently certified."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:127"
+      ],
+      "quoted_evidence": "pub tracked struct ListStore<M: AnyFrameMeta + Repr<MetaSlotSmall>> {\n    pub regions: MetaRegionOwners,\n    pub lists: Map<ListId, LinkedListOwner<M>>,\n    pub loose: Map<LooseId, UniqueFrameOwner<Link<M>>>,\n    pub cursors: Map<CursorId, CursorOwner<M>>,\n}\n\nimpl<M: AnyFrameMeta + Repr<MetaSlotSmall>> ListStore<M> {\n    /// The store's top-level invariant.",
+      "compliance_or_na_reason": "No unpaired arithmetic executable/model twin is demonstrated in this target."
+    }
+  ]
+}

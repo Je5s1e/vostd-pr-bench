@@ -1,0 +1,239 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "Executable sections, specifications and proof bodies are visibly marked; no adjacent redundant verus blocks require merging."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "The available contiguous bounds use chained comparisons where equivalent; independent bounds were not joined by inventing a relation."
+    },
+    {
+      "guideline": "use-returns-for-exact-results",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No unreported exact-value equality or unused result binder requiring a change was found; view equalities do not directly have the executable return type."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No demonstrated redundant as int cast requiring a change was found; int-parameter casts are retained. No compiler experiment was available."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No pointer-view @.addr identity constraints occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No spec Seq subrange/take/skip expression needs replacement in this target."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No repeated long proof-symbol qualification requiring another import was found; one-off references and ambiguous PointsTo qualifications are allowed. Reveal minimality cannot be verified without Verus."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No per-branch repeated broadcast use occurs in the target."
+    },
+    {
+      "guideline": "group-imports-by-crate",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "Verification-added imports are grouped separately from inherited runtime imports; same-crate verification symbols are combined where applicable."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No repeated payload facts on the same Option requiring one shared binding were found."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "Enum contracts use is/matches or explicit matches; failure branches with independent state guarantees are retained."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:92"
+      ],
+      "quoted_evidence": "        /* `read_table` isolates linker-symbol casts unsupported by Verus.\n         * Origin Rust:\n         * let table_size =\n         *     (__ex_table_end as usize - __ex_table as usize) / core::mem::size_of::<ExTableItem>();\n         * // SAFETY: `__ex_table` is a static section consisting of `ExTableItem`.\n         * let ex_table =\n         *     unsafe { core::slice::from_raw_parts(__ex_table as *const ExTableItem, table_size) };\n         */\n        let ex_table = read_table();",
+      "compliance_or_na_reason": "Compared the before file: linker arithmetic and raw-slice construction are retained verbatim in read_table. The adjacent Origin Rust block and concrete unsupported-cast reason explain the minimal extraction; scanning order is preserved."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "The reviewed resource/type names describe their roles; no additional misnamed standalone ownership proof helper was found. Trait-mandated method names are retained."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "Searched all spec/proof symbol names in this case after tree. Helpers have visible uses or serve the documented model/trait/harness boundary; omitted trees are not evidence of global absence."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No additional one-off auxiliary wrapper lacking a meaningful contract boundary was established; public model/ownership operations are intentional abstractions."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No misplaced auxiliary side-obligation proof was established; public model APIs and invariant-preservation core proofs remain part of the module surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "Tracked binders and ghost fields indicate actual ownership/mode boundaries; no additional redundant marker was established."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "Runtime structs retain runtime mode; mathematical models and linear owners have appropriate distinct roles. Mode choices were inspected statically, not verified."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No representation-only pub open helper requiring closure was established; public model predicates used as caller-facing reasoning surfaces are legitimate."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:122"
+      ],
+      "quoted_evidence": "/// Trusted linker boundary: the section is non-null, aligned, initialized,\n/// readable and immutable for the kernel lifetime, and matches `table_model()`.\n/// Its bounds are ordered; its byte length is an entry-size multiple <= `isize::MAX`.",
+      "compliance_or_na_reason": "The helper explicitly documents the trusted linker allocation, lifetime and model boundary; caller prose promises exactly the first-match behavior stated in its contract."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No broad crate/module lint allowance was found; existing local attributes do not broaden suppression across the target."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:23"
+      ],
+      "quoted_evidence": "/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "table_model has only local references in the supplied after tree and is a one-line model beside its implementation."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No verbatim per-type family of spec helper bodies occurs; similar ownership operations have different signatures or semantics."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No independently demonstrated misleading proof-debt claim beyond any documentation finding was found. Wording-only nits are not reported, and unavailable history cannot establish removed supporting assertions."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No observed imported-call resolution workaround is required; the historical verifier is unavailable, so resolution is not independently certified."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:21"
+      ],
+      "quoted_evidence": "verus! {\n\n/// Linker-ordered (instruction, recovery) address pairs.\npub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;\n\n} // verus!\n/// A structure representing the usage of exception table (ExTable).\n/// This table is used for recovering from specific exception handling faults\n/// occurring at known points in the code.",
+      "compliance_or_na_reason": "No unpaired arithmetic executable/model twin is demonstrated in this target."
+    }
+  ]
+}

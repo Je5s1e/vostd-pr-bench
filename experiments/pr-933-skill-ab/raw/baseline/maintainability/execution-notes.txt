@@ -1,0 +1,40 @@
+Authority read in full: guidelines/README.md and guidelines/maintainability.md; baseline/skill/SKILL.md and baseline/maintainability/prompt.txt. The initial path guidelines/docs/coding-guidelines/maintainability.md did not exist; resolved to frozen guidelines/maintainability.md.
+
+Enumerated current rules:
+separate-verus-modes
+use-chained-comparisons
+use-returns-for-exact-results
+avoid-redundant-as-int-casts
+use-addr-for-pointers
+seq-range-slicing
+organize-proof-imports
+attach-broadcast-axioms-once
+group-imports-by-crate
+bind-option-payloads
+match-enum-results
+preserve-exec-code
+name-proof-roles
+avoid-unused-spec-helpers
+inline-single-use-proof-helpers
+defer-auxiliary-proof-functions
+avoid-redundant-mode-markers
+prefer-ghost-model-structs
+keep-internal-spec-helpers-closed
+document-verified-apis
+narrow-lint-suppressions
+right-size-spec-placement
+generate-repeated-spec-helpers
+document-real-proof-debt
+qualified-verus-spec-calls
+pair-exec-helpers-with-spec-models
+
+Read all six complete frozen after targets (large files in sequential chunks), context.json metadata, and target-file sections of each diff.patch. Searched all supplied corresponding after-tree Rust files for every target-defined spec/proof name, including counts and files; inspected Frame::from_raw in pr-632 after/ostd/src/mm/frame/mod.rs and searched the pr-856 VmIo owning trait source. No network, labels, bench README, other persona outputs or sibling runs were read.
+
+Missing evidence: no per-commit git log/upstream history, historical Verus/Z3 or complete vstd/vstd_extra sources supplied. No verification or logical experiments were run; no reveal-removal claim is made. Supplied after trees include all ostd but omit unchanged external libraries; zero search hits there do not prove global absence. No reviewed sources modified. Outputs are static review evidence, not orchestrator verdicts.
+
+pr-628-096c166e5ce6: 6 findings, 20 compliance records; ostd/specs/mm/embedding/list_store.rs
+pr-632-1be8099780ff: 6 findings, 20 compliance records; ostd/specs/mm/frame/meta_region_owners.rs
+pr-770-28ec70b8e3f2: 6 findings, 20 compliance records; ostd/src/cpu/set.rs
+pr-856-619ad58877f8: 4 findings, 22 compliance records; ostd/src/mm/dma/dma_coherent.rs
+pr-886-fe5eb7f3e6aa: 0 findings, 26 compliance records; ostd/src/arch/x86/ex_table.rs
+pr-931-79810bc1eeb5: 1 findings, 25 compliance records; ostd/libs/linux-bzimage/builder/src/lib.rs

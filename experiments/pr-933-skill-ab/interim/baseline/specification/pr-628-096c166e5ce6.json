@@ -1,0 +1,64 @@
+{
+  "Findings": [
+    {
+      "id": "specification-628-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/specs/mm/embedding/list_store.rs:1106",
+      "quoted_evidence": "pub proof fn step_push_front(tracked &mut self, id: ListId, lid: LooseId)\n        requires\n            old(self).inv(),\n            old(self).lists.dom().contains(id),\n            old(self).loose.dom().contains(lid),\n        ensures\n            final(self).inv(),",
+      "problem": "The step mutators discard their documented transitions at the public contract boundary. In particular, push cannot be followed by size/pop on the same id, and a Some loose id returned by pop/take cannot be used for push: neither domain membership nor the inserted/removed identity follows from inv alone.",
+      "key_premise": "The mutation contracts expose invariant preservation but omit map transitions; related gaps occur in step_push_back, step_insert_before_at, step_cursor_insert_before, successful pop/take variants, and frame clauses on cursor/new/drop steps.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Specify the affected map domains and entries, loose-handle consumption/production, list sequence edits and preservation of unrelated entries; for Some(lid), ensure fresh lid membership and the popped slot identity. Export unchanged maps on cursor moves/checkouts and freed slots on list drop. Keep nondeterministic newly minted list IDs abstract."
+    },
+    {
+      "id": "specification-628-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/specs/mm/embedding/list_store.rs:2280",
+      "quoted_evidence": "res == (exists|i: int|\n                0 <= i < old(self).lists[id].list.len() && old(self).lists[id].slot_index_at(i)\n                    == frame_to_index(frame)),",
+      "problem": "step_cursor_mut_at claims to mirror rejection of non-safe addresses, but checks only the page index. An unaligned address one byte into a listed frame has the same frame_to_index and yields true, whereas get_slot rejects it.",
+      "key_premise": "frame_to_index is paddr / PAGE_SIZE; get_slot explicitly returns NotAligned on paddr % PAGE_SIZE != 0, and this step has no alignment precondition.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Guard both the membership result and implementation branch with has_safe_slot(frame), as step_contains already does; preserve the unchanged-store guarantee for that miss."
+    },
+    {
+      "id": "specification-628-3",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/specs/mm/embedding/list_store.rs:475",
+      "quoted_evidence": "old(owner).list.len() > 0 ==> final(owner).list == old(owner).list.insert(\n            old(owner).list.len() - 1,\n            final(frame_own).meta_own,\n        ),",
+      "problem": "push_back_embedded is documented as splicing at the tail but promises insertion before the last element. For [A,B] and C it produces [A,C,B], contradicting the promised back insertion and the next pop_back expectation.",
+      "key_premise": "Both the helper body and the corresponding executable push_back use the last-element cursor with insert_before.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Align the executable back insertion and embedding with insertion at old length (the ghost/end position), then state the append sequence result; retain the corresponding neighbor-frame conditions."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1822",
+        "ostd/specs/mm/embedding/list_store.rs:1106"
+      ],
+      "quoted_evidence": "old(self).inv(),\n            old(self).lists.dom().contains(id),",
+      "compliance_or_na_reason": "Store validity and held-resource membership express ownership protocol. Empty/out-of-range take operations accept requests and return None rather than demanding success; embedded nonempty take requirements apply only to successful primitives."
+    }
+  ]
+}

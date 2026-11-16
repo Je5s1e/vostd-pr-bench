@@ -1,0 +1,47 @@
+{
+  "Findings": [
+    {
+      "id": "628-spec-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/specs/mm/embedding/list_store.rs:1104",
+      "quoted_evidence": "    /// `LinkedList::push_front`: move the loose handle `lid` to the front\n    /// of list `id`. The frame is forgotten into the list (its\n    /// drop-obligation consumed); the `loose` entry is removed.\n        ensures\n            final(self).inv(),",
+      "problem": "Mutation wrappers discard documented transitions and frames. After step_push_front callers cannot establish that id still exists for step_size; successful pop/take returns Some without establishing that its payload exists in loose for the next push.",
+      "key_premise": "Mutation wrappers discard documented transitions and frames. After step_push_front callers cannot establish that id still exists for step_size; successful pop/take returns Some without establishing that its payload exists in loose for the next push.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Expose abstract transitions and unchanged entries: inserted/removed link sequences and identities, loose removal/insertion with returned fresh key, cursor indices, list deletion and freed slots. Apply to push_front/back, insert_before_at, cursor_insert_before, successful pop/take variants, and list_drop; complete new/checkout/move/checkin frames too. In step_list_new expose list_id == 0 and unchanged cursors. Carry embedded-operation region frames through wrappers. This is documented composability, not a demonstrated current caller failure."
+    },
+    {
+      "id": "628-spec-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/specs/mm/embedding/list_store.rs:2296",
+      "quoted_evidence": "    /// positioned at that link; otherwise (the frame is absent \u2014 or not a\n    /// safe managed slot, which can never be a link) leave the store\n    /// unchanged. Mirrors exec `cursor_mut_at(frame) -> Option<CursorMut>`\nres == (exists|i: int|\n                0 <= i < old(self).lists[id].list.len() && old(self).lists[id].slot_index_at(i)\n                    == frame_to_index(frame)),",
+      "problem": "step_cursor_mut_at documents rejection of unsafe managed slots but compares only page quotients. An unaligned p + 1 in an existing link page is accepted: frame_to_index is paddr / PAGE_SIZE, whereas has_safe_slot requires alignment.",
+      "key_premise": "step_cursor_mut_at documents rejection of unsafe managed slots but compares only page quotients. An unaligned p + 1 in an existing link page is accepted: frame_to_index is paddr / PAGE_SIZE, whereas has_safe_slot requires alignment.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Add has_safe_slot(frame) to the exact result, hit postcondition and body condition. Keep invalid requests accepted with false and unchanged state; do not add an alignment precondition."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/embedding/list_store.rs:1258"
+      ],
+      "quoted_evidence": "old(self).inv(),\n            old(self).lists.dom().contains(id),",
+      "compliance_or_na_reason": "All proof API inputs inventoried: validity, stored-owner membership, tracked ownership relations, index bounds and explicit drop accounting are legitimate. Public pop/take accepts empty or invalid positions. No excessive clause established."
+    }
+  ]
+}

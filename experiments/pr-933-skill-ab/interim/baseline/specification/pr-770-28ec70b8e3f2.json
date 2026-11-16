@@ -1,0 +1,69 @@
+{
+  "Findings": [
+    {
+      "id": "specification-770-1",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:630",
+      "quoted_evidence": "ret ==> self@ == Set::range(0, cpu_count()),",
+      "problem": "is_full exposes only the true direction. A caller cannot establish that new_full().is_full() returns true, or infer a missing CPU from false.",
+      "key_premise": "No converse guarantee is present for this deterministic predicate.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use returns self@ == Set::range(0, cpu_count()), and prove the mismatch branch establishes non-fullness."
+    },
+    {
+      "id": "specification-770-2",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:722",
+      "quoted_evidence": "IteratorSpec::obeys_prophetic_iter_laws(&ret),\n            IteratorSpec::decrease(&ret) is Some,",
+      "problem": "The iterator contract does not relate any yielded CPU to self@ or state its documented ascending order. Even an unrelated or empty iterator satisfies these exposed facts; clients cannot establish membership or coverage from iter().",
+      "key_premise": "Only iterator-law and decrease facts are exported; the test_full_cpu_set_iter_is_all Rust test uses the promised behavior but is not evidence of a verified client.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Expose the active iterator model relation between yielded CPU views and the sorted elements of self@ (membership, uniqueness and order). State exhaustive coverage only under the active iterator completion guarantees; inspect the unavailable vstd iterator definitions before choosing exact syntax or termination claims."
+    },
+    {
+      "id": "specification-770-3",
+      "severity": "medium",
+      "guideline": "api-postconditions",
+      "location": "ostd/src/cpu/set.rs:535",
+      "quoted_evidence": "returns self.count_spec() as usize,",
+      "problem": "count returns an opaque count_spec without any exported connection to the set view. A caller cannot derive that an empty set has count zero or that count equals the number of members.",
+      "key_premise": "count_spec is closed and counts private backing words; no public lemma bridges it to self@.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Specify the abstract cardinality self@.len() and establish finiteness, or export a proved bridge count_spec() == self@.len() under inv()."
+    },
+    {
+      "id": "specification-770-4",
+      "severity": "medium",
+      "guideline": "api-preconditions",
+      "location": "ostd/src/cpu/set.rs:409",
+      "quoted_evidence": "requires\n            self.inv(),",
+      "problem": "The invariant requires a fully allocated vector, excluding the empty backing representation supplied by derived Default even though add explicitly grows it and contains/remove guard their indices. This is an implementation-specific restriction on ordinary empty-set use.",
+      "key_premise": "CpuSet derives Default; inv requires exactly parts_for_cpus(cpu_count()) words, and add documents its growth branch as dead only under that requirement.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Allow valid shorter backing vectors with clear nonexistent bits, retain allocation and CpuId bounds, and verify the growth case. Supply the default/clone contracts needed to preserve that public validity abstraction."
+    }
+  ],
+  "Compliance": []
+}

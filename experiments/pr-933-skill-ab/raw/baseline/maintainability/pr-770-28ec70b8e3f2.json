@@ -1,0 +1,282 @@
+{
+  "Findings": [
+    {
+      "id": "pr-770-28ec70b8e3f2-maint-01",
+      "severity": "low",
+      "guideline": "keep-internal-spec-helpers-closed",
+      "location": "ostd/src/cpu/set.rs:136",
+      "quoted_evidence": "pub open spec fn full_set_word(num_cpus: int, len: int, idx: int) -> u64 {",
+      "problem": "Representation-only helpers expose backing-word details as public open APIs although all observed users are local.",
+      "key_premise": "full_set_word and bit_at are only referenced within cpu/set.rs; they describe the backing words, not the abstract Set contract.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Make internal representation helpers private closed spec functions, revealing them locally where necessary; keep caller-facing count_spec and the Set view available."
+    },
+    {
+      "id": "pr-770-28ec70b8e3f2-maint-02",
+      "severity": "low",
+      "guideline": "defer-auxiliary-proof-functions",
+      "location": "ostd/src/cpu/set.rs:154",
+      "quoted_evidence": "proof fn lemma_bit_at_uniform(seq: Seq<u64>, val: u64, j: int)",
+      "problem": "Private bit and capacity lemmas precede View/Inv and the executable API, obscuring the main module surface.",
+      "key_premise": "The auxiliary block starts at line 154, before View and CpuSet::new_full.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Move private lemmas into a labeled trailing proof section while keeping public specs, View, Inv and executable functions first."
+    },
+    {
+      "id": "pr-770-28ec70b8e3f2-maint-03",
+      "severity": "low",
+      "guideline": "inline-single-use-proof-helpers",
+      "location": "ostd/src/cpu/set.rs:300",
+      "quoted_evidence": "proof fn lemma_full_bits_imply_full_set(set: &CpuSet)",
+      "problem": "The full-bits lemma has one local call and exposes only an internal representation-to-view proof step.",
+      "key_premise": "Its sole call is in is_full; no separate abstraction boundary or proof-isolation requirement is documented.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Place this proof at its is_full call site, unless a concrete verifier context-isolation need establishes the separate boundary."
+    },
+    {
+      "id": "pr-770-28ec70b8e3f2-maint-04",
+      "severity": "low",
+      "guideline": "avoid-redundant-as-int-casts",
+      "location": "ostd/src/cpu/set.rs:79",
+      "quoted_evidence": "assert(num_cpus as int > 0);",
+      "problem": "Comparison and mixed integer arithmetic contain redundant as int casts.",
+      "key_premise": "Verus auto-coerces comparisons, and other examples include len() as int in bounds and isize::MAX as int in fit inequalities.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Remove comparison casts such as num_cpus as int > 0; simplify the size inequality while retaining casts at int-typed function parameters and narrowing as usize casts."
+    },
+    {
+      "id": "pr-770-28ec70b8e3f2-maint-05",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/src/cpu/set.rs:590",
+      "quoted_evidence": "#[verus_spec(ret: bool => ensures ret == (*part == 0u64))]",
+      "problem": "Closure exact-result contracts still use ensures, while contains/is_empty keep unused ret binders despite returns clauses.",
+      "key_premise": "The predicate closure equates its entire bool result with *part == 0u64.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use returns *part == 0u64 for that closure and analogous exact closure results; remove unused ret binders from contains/is_empty."
+    },
+    {
+      "id": "pr-770-28ec70b8e3f2-maint-06",
+      "severity": "low",
+      "guideline": "preserve-exec-code",
+      "location": "ostd/src/cpu/set.rs:779",
+      "quoted_evidence": "Before: /// Only for internal use. The set cannot contain non-existent CPUs.\nAfter: /// Only for internal use. Build a vector of `num_cpus`-covering words, all equal to `val`.",
+      "problem": "The verification change rewrites inherited runtime documentation for with_capacity_val.",
+      "key_premise": "The frozen before text is: /// Only for internal use. The set cannot contain non-existent CPUs.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Preserve the original runtime documentation verbatim in this verification change; submit any correction separately upstream."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:37"
+      ],
+      "quoted_evidence": "verus! {",
+      "compliance_or_na_reason": "Specifications are explicitly marked spec, proofs are proof functions/blocks, and executable items retain distinct bodies; no unnecessary adjacent macro boundary identified."
+    },
+    {
+      "guideline": "use-chained-comparisons",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:120"
+      ],
+      "quoted_evidence": "0 <= end <= seq.len(),",
+      "compliance_or_na_reason": "Bounds are chained; 0 <= j < cpu_count() && j < 64 * seq.len() has no known cpu_count <= 64*len premise in that lemma, so inventing such a chain would be invalid."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No raw-pointer @.addr identity expressions occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No Seq subrange/take/skip calls occur in the target; executable iterator/reader skip is not this rule."
+    },
+    {
+      "guideline": "organize-proof-imports",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:566"
+      ],
+      "quoted_evidence": "reveal_with_fuel(count_set_bits_prefix, 1);",
+      "compliance_or_na_reason": "Proof symbols are imported and remaining qualified broadcast entries are one-off. Open-function reveal may be load-bearing; no removal can be justified without the unavailable verifier."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No repeated branch-local broadcast use occurs in the target."
+    },
+    {
+      "guideline": "group-imports-by-crate",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:4"
+      ],
+      "quoted_evidence": "use vstd::{",
+      "compliance_or_na_reason": "Verification imports precede inherited runtime imports with blank-line separation."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No repeated guarded payload projections needing a shared Option binder occur in this target."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No is_ok/is_err/unwrap result-contract chain or duplicated exhaustiveness direction occurs."
+    },
+    {
+      "guideline": "name-proof-roles",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:154"
+      ],
+      "quoted_evidence": "proof fn lemma_bit_at_uniform(seq: Seq<u64>, val: u64, j: int)",
+      "compliance_or_na_reason": "Auxiliary proofs consistently use lemma_ and runtime/model names describe CPU sets and bit positions."
+    },
+    {
+      "guideline": "avoid-unused-spec-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:99"
+      ],
+      "quoted_evidence": "pub closed spec fn parts_for_cpus_spec(n: usize) -> usize {",
+      "compliance_or_na_reason": "Searched all available per-case Rust files for each named helper. Current local/trait callers or an explicit model boundary are present. Omitted library trees are unavailable, not proof of non-use."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:99"
+      ],
+      "quoted_evidence": "pub closed spec fn parts_for_cpus_spec(n: usize) -> usize {",
+      "compliance_or_na_reason": "No repeated field mode markers on a ghost struct or all-tracked tuple wrappers identified."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:30"
+      ],
+      "quoted_evidence": "pub struct CpuSet {",
+      "compliance_or_na_reason": "Runtime types remain ordinary; model/ownership modes inspected statically. Historical verification is unavailable."
+    },
+    {
+      "guideline": "document-verified-apis",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:26"
+      ],
+      "quoted_evidence": "/// A subset of all CPUs in the system.",
+      "compliance_or_na_reason": "No demonstrated misleading verification claim identified. Missing verification headings and prose restating formal contracts are not findings."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:28"
+      ],
+      "quoted_evidence": "#[verifier::allow(autoderive_clone_without_spec)]",
+      "compliance_or_na_reason": "The Verus-specific derive allowance is scoped to CpuSet rather than the module; this is not a Rust expect-compatible lint."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:99"
+      ],
+      "quoted_evidence": "pub closed spec fn parts_for_cpus_spec(n: usize) -> usize {",
+      "compliance_or_na_reason": "Searched named spec users in the available after tree. Model placement is appropriate to its local use or substantial shared ownership subsystem."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No verbatim spec-helper bodies duplicated across per-type instantiations occur; trait implementations with distinct receiver types are not generated per-type copies."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:26"
+      ],
+      "quoted_evidence": "/// A subset of all CPUs in the system.",
+      "compliance_or_na_reason": "No demonstrated stale trust-boundary claim identified. Wordiness alone is a compliance note under the evidence contract, not a documentation finding; history beyond the frozen diff is unavailable."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "No demonstrated failing imported callee resolution is present. The historical compiler is unavailable; no speculative import rewrite is required."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:48"
+      ],
+      "quoted_evidence": "returns part_idx_spec(cpu_id@),",
+      "compliance_or_na_reason": "part_idx/bit_idx are paired with int-shaped spec twins and parts_for_cpus is attached to its faithful total model with when_used_as_spec."
+    }
+  ]
+}

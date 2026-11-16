@@ -1,0 +1,473 @@
+[
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "pr-628-096c166e5ce6-maint-01",
+    "verdict": "confirmed",
+    "reason": "Checked import headers: same-crate verification uses are split. Consolidation must stay within blank-line/conditional groups; cfg Objective remains conditional.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:58",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "pr-628-096c166e5ce6-maint-02",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:821",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "pr-628-096c166e5ce6-maint-03",
+    "verdict": "confirmed",
+    "reason": "At list_store.rs:2385 the result-shape-only is_some query can use the direct enum predicate without weakening payload or shape facts.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:2385",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "pr-628-096c166e5ce6-maint-04",
+    "verdict": "confirmed",
+    "reason": "Checked complete proof/axiom signatures and ownership mutations: tracked_ applies to ownership transformers; lemma_ to facts; axiom_ to trusted declarations.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:382",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "pr-628-096c166e5ce6-maint-05",
+    "verdict": "confirmed",
+    "reason": "Checked helper bodies and surrounding API declarations. The cited private representation/bookkeeping lemmas interrupt API layout. Move auxiliary helpers only, retain exported/critical proof APIs.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:1958",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "pr-628-096c166e5ce6-maint-06",
+    "verdict": "uncertain",
+    "reason": "Call-site searches support single use, but no controlled verifier run establishes that proof-context isolation is unnecessary. Existing named contracts may form intentional boundaries; preserve as unverified, not a measured true positive.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:255",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "pr-632-1be8099780ff-maint-01",
+    "verdict": "confirmed",
+    "reason": "Checked import headers: same-crate verification uses are split. Consolidation must stay within blank-line/conditional groups; cfg Objective remains conditional.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:1",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "pr-632-1be8099780ff-maint-02",
+    "verdict": "confirmed",
+    "reason": "cast_ptr module is already imported; cast_ptr::PointsTo retains disambiguation from simple_pptr::PointsTo while removing a redundant crate prefix.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:138",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "pr-632-1be8099780ff-maint-03",
+    "verdict": "confirmed",
+    "reason": "Both adjacent range inequalities are conjuncts; chaining range.start <= paddr < range.end is equivalent and preserves alignment.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:220",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "pr-632-1be8099780ff-maint-04",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:115",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "pr-632-1be8099780ff-maint-05",
+    "verdict": "confirmed",
+    "reason": "Checked complete proof/axiom signatures and ownership mutations: tracked_ applies to ownership transformers; lemma_ to facts; axiom_ to trusted declarations.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:230",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "pr-632-1be8099780ff-maint-06",
+    "verdict": "confirmed",
+    "reason": "Checked the concrete documentation contradiction against the live-slot contract or commented-out Drop body. Preserve original inherited prose and append a precise current-snapshot limitation; do not silently rewrite original documentation during proof work.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:44",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "pr-770-28ec70b8e3f2-maint-01",
+    "verdict": "confirmed",
+    "reason": "Searched available case source uses: backing-word helpers are local. Public count_spec is already closed; retain public abstract contracts and introduce required local reveal calls when closing representations.",
+    "source_location": "ostd/src/cpu/set.rs:136",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "pr-770-28ec70b8e3f2-maint-02",
+    "verdict": "confirmed",
+    "reason": "Checked helper bodies and surrounding API declarations. The cited private representation/bookkeeping lemmas interrupt API layout. Move auxiliary helpers only, retain exported/critical proof APIs.",
+    "source_location": "ostd/src/cpu/set.rs:154",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "pr-770-28ec70b8e3f2-maint-03",
+    "verdict": "uncertain",
+    "reason": "Call-site searches support single use, but no controlled verifier run establishes that proof-context isolation is unnecessary. Existing named contracts may form intentional boundaries; preserve as unverified, not a measured true positive.",
+    "source_location": "ostd/src/cpu/set.rs:300",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "pr-770-28ec70b8e3f2-maint-04",
+    "verdict": "confirmed",
+    "reason": "The highlighted cast occurrences are comparison/mixed mathematical arithmetic operands under the frozen guideline. Keep int-parameter casts and narrowing casts; no compilation of the suggested edits was performed.",
+    "source_location": "ostd/src/cpu/set.rs:79",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "pr-770-28ec70b8e3f2-maint-05",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/src/cpu/set.rs:590",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "pr-770-28ec70b8e3f2-maint-06",
+    "verdict": "confirmed",
+    "reason": "Compared frozen before and after: the inherited comment/rustdoc wording changed. Adjacent executable behavior is not claimed changed by that comment edit. Restore original wording or propose a separate documentation correction.",
+    "source_location": "ostd/src/cpu/set.rs:779",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "pr-856-619ad58877f8-maint-01",
+    "verdict": "confirmed",
+    "reason": "Checked import headers: same-crate verification uses are split. Consolidation must stay within blank-line/conditional groups; cfg Objective remains conditional.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:2",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "pr-856-619ad58877f8-maint-02",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed. Raw primary line :117 is map, whose result binder is used; the described unused binder really occurs at daddr_inner :204 and analogous accessors. Relocate finding; never delete map result binder.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:117",
+    "reviewed_by": "parent static source check; label-aware adjudication",
+    "corrected_location": "ostd/src/mm/dma/dma_coherent.rs:204"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "pr-856-619ad58877f8-maint-03",
+    "verdict": "uncertain",
+    "reason": "PhantomData-only permission marker suggests a ghost model, but its trait/mode compatibility and protocol identity cannot be established without the historical toolchain. Keep as an unverified suggestion, not a proven safe edit.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:50",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "pr-856-619ad58877f8-maint-04",
+    "verdict": "confirmed",
+    "reason": "Checked the concrete documentation contradiction against the live-slot contract or commented-out Drop body. Preserve original inherited prose and append a precise current-snapshot limitation; do not silently rewrite original documentation during proof work.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:39",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "maintainability",
+    "sample_id": "pr-931-79810bc1eeb5",
+    "finding_id": "pr-931-79810bc1eeb5-maint-01",
+    "verdict": "confirmed",
+    "reason": "Compared frozen before and after: the inherited comment/rustdoc wording changed. Adjacent executable behavior is not claimed changed by that comment edit. Restore original wording or propose a separate documentation correction.",
+    "source_location": "ostd/libs/linux-bzimage/builder/src/lib.rs:121",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "proof-engineering",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "628-proof-engineering-1",
+    "verdict": "uncertain",
+    "reason": "The axiom does not constrain used_ids and demands a fresh u64. The universal-u64 set defeats that postcondition if the remaining resource premises are inhabitable. Those premises were not constructed/verified; retain a conditional contract concern, not a demonstrated global contradiction.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:623",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "baseline",
+    "persona": "proof-engineering",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "628-proof-engineering-2",
+    "verdict": "confirmed",
+    "reason": "ListStore owns an intrinsic inv predicate in an inherent impl at :136; no matching Inv impl appears in the available source. Move the same predicate, retaining all threaded conditions.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:136",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "628-maintainability-01",
+    "verdict": "confirmed",
+    "reason": "Checked import headers: same-crate verification uses are split. Consolidation must stay within blank-line/conditional groups; cfg Objective remains conditional.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:57",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "628-maintainability-02",
+    "verdict": "confirmed",
+    "reason": "Checked complete proof/axiom signatures and ownership mutations: tracked_ applies to ownership transformers; lemma_ to facts; axiom_ to trusted declarations.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:284",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "628-maintainability-03",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:816",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-628-096c166e5ce6",
+    "finding_id": "628-maintainability-04",
+    "verdict": "confirmed",
+    "reason": "Checked list_store.rs:522 within a proof fn; n is a mathematical local, not an exec/tracked boundary. Candidate suggests retaining tracked binders.",
+    "source_location": "ostd/specs/mm/embedding/list_store.rs:522",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-01",
+    "verdict": "confirmed",
+    "reason": "Checked import headers: same-crate verification uses are split. Consolidation must stay within blank-line/conditional groups; cfg Objective remains conditional.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:1",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-02",
+    "verdict": "confirmed",
+    "reason": "cast_ptr module is already imported; cast_ptr::PointsTo retains disambiguation from simple_pptr::PointsTo while removing a redundant crate prefix.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:131",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-03",
+    "verdict": "confirmed",
+    "reason": "Both adjacent range inequalities are conjuncts; chaining range.start <= paddr < range.end is equivalent and preserves alignment.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:217",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-04",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:115",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-05",
+    "verdict": "confirmed",
+    "reason": "Checked complete proof/axiom signatures and ownership mutations: tracked_ applies to ownership transformers; lemma_ to facts; axiom_ to trusted declarations.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:217",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-06",
+    "verdict": "uncertain",
+    "reason": "Search finds only definitions in the available snapshot, but not all dependency consumers are included. The report itself acknowledges this; do not claim global absence or unconditional safe deletion.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:217",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-632-1be8099780ff",
+    "finding_id": "632-maintainability-07",
+    "verdict": "confirmed",
+    "reason": "Checked the concrete documentation contradiction against the live-slot contract or commented-out Drop body. Preserve original inherited prose and append a precise current-snapshot limitation; do not silently rewrite original documentation during proof work.",
+    "source_location": "ostd/specs/mm/frame/meta_region_owners.rs:42",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "770-maintainability-01",
+    "verdict": "confirmed",
+    "reason": "The highlighted cast occurrences are comparison/mixed mathematical arithmetic operands under the frozen guideline. Keep int-parameter casts and narrowing casts; no compilation of the suggested edits was performed.",
+    "source_location": "ostd/src/cpu/set.rs:244",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "770-maintainability-02",
+    "verdict": "confirmed",
+    "reason": "Searched available case source uses: backing-word helpers are local. Public count_spec is already closed; retain public abstract contracts and introduce required local reveal calls when closing representations.",
+    "source_location": "ostd/src/cpu/set.rs:118",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "770-maintainability-03",
+    "verdict": "confirmed",
+    "reason": "Checked helper bodies and surrounding API declarations. The cited private representation/bookkeeping lemmas interrupt API layout. Move auxiliary helpers only, retain exported/critical proof APIs.",
+    "source_location": "ostd/src/cpu/set.rs:154",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "770-maintainability-04",
+    "verdict": "uncertain",
+    "reason": "Call-site searches support single use, but no controlled verifier run establishes that proof-context isolation is unnecessary. Existing named contracts may form intentional boundaries; preserve as unverified, not a measured true positive.",
+    "source_location": "ostd/src/cpu/set.rs:218",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "770-maintainability-05",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/src/cpu/set.rs:515",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "finding_id": "770-maintainability-06",
+    "verdict": "confirmed",
+    "reason": "Compared frozen before and after: the inherited comment/rustdoc wording changed. Adjacent executable behavior is not claimed changed by that comment edit. Restore original wording or propose a separate documentation correction. The additional new_empty request is over-broad: let ret plus erased proof scaffolding is not independently shown to require an executable-divergence marker. Drop that extra suggestion; keep the verified rustdoc issue.",
+    "source_location": "ostd/src/cpu/set.rs:779",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "856-maintainability-01",
+    "verdict": "confirmed",
+    "reason": "Checked import headers: same-crate verification uses are split. Consolidation must stay within blank-line/conditional groups; cfg Objective remains conditional.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:2",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "856-maintainability-02",
+    "verdict": "uncertain",
+    "reason": "PhantomData-only permission marker suggests a ghost model, but its trait/mode compatibility and protocol identity cannot be established without the historical toolchain. Keep as an unverified suggestion, not a proven safe edit.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:45",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "856-maintainability-03",
+    "verdict": "confirmed",
+    "reason": "Checked cited declarations and corresponding exact-result/unused-binder contracts. No independent state postcondition may be removed.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:204",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-856-619ad58877f8",
+    "finding_id": "856-maintainability-04",
+    "verdict": "confirmed",
+    "reason": "Checked the concrete documentation contradiction against the live-slot contract or commented-out Drop body. Preserve original inherited prose and append a precise current-snapshot limitation; do not silently rewrite original documentation during proof work.",
+    "source_location": "ostd/src/mm/dma/dma_coherent.rs:39",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  },
+  {
+    "variant": "candidate",
+    "persona": "maintainability",
+    "sample_id": "pr-931-79810bc1eeb5",
+    "finding_id": "931-maintainability-01",
+    "verdict": "confirmed",
+    "reason": "Compared frozen before and after: the inherited comment/rustdoc wording changed. Adjacent executable behavior is not claimed changed by that comment edit. Restore original wording or propose a separate documentation correction.",
+    "source_location": "ostd/libs/linux-bzimage/builder/src/lib.rs:121",
+    "reviewed_by": "parent static source check; label-aware adjudication"
+  }
+]

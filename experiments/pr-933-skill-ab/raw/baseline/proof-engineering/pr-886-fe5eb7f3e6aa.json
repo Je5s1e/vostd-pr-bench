@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:126"
+      ],
+      "quoted_evidence": "#[verus_spec(r =>",
+      "compliance_or_na_reason": "read_table exposes the exact ordered address-pair sequence. Boundary prose states alignment, initialization, immutability, ordered bounds and size limit. Actual linker layout is unavailable; no assertion of its independently verified truth is made."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:125"
+      ],
+      "quoted_evidence": "#[verifier::external_body]",
+      "compliance_or_na_reason": "read_table is this crate's linker wrapper with executable body preserved and an external_body/verus_spec contract, matching the in-crate boundary rule."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Concrete Vaddr pair sequence only; no generic external storage model."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:83"
+      ],
+      "quoted_evidence": "r matches Some(recovery) ==> exists|i: int| 0 <= i < table_model().len()",
+      "compliance_or_na_reason": "Existential hit witness and no-match quantifier are bounded by table_model().len(); executable iteration uses a borrowed slice."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Ordered Seq<(Vaddr,Vaddr)> preserves the first-match semantics directly."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:84"
+      ],
+      "quoted_evidence": "&& #[trigger] table_model()[i].0 == inst_addr",
+      "compliance_or_na_reason": "Index-dependent first-match and prefix no-match properties retain bounded quantifiers with address-projection triggers."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:11"
+      ],
+      "quoted_evidence": "struct ExTableItem {",
+      "compliance_or_na_reason": "ExTableItem is two addresses and ExTable is a unit type; neither introduces an intrinsic spec-state validity predicate."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "The target declares no assume_specification receiver."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:24"
+      ],
+      "quoted_evidence": "pub uninterp spec fn table_model() -> Seq<(Vaddr, Vaddr)>;",
+      "compliance_or_na_reason": "Inventoried all target spec/proof/axiom functions and searched names/signatures across every available verified_libs, ostd/specs and ostd/src Rust file. Reviewed semantic candidates where available; no quoted equivalent definition supports a duplicate finding. Vendored vstd and some supporting libraries are omitted and upstream checks are prohibited, so this is limited source-level coverage, not a global uniqueness claim."
+    }
+  ]
+}

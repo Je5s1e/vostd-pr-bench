@@ -1,0 +1,23 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:91"
+      ],
+      "quoted_evidence": "pub fn find_recovery_inst_addr(inst_addr: Vaddr) -> Option<Vaddr> {",
+      "compliance_or_na_reason": "The lookup has no input restriction and handles misses normally. Linker memory validity is an explicit trusted read_table boundary, not a caller-supplied success requirement."
+    },
+    {
+      "guideline": "api-postconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:88"
+      ],
+      "quoted_evidence": "r is None <==> forall|i: int| 0 <= i < table_model().len()\n                ==> #[trigger] table_model()[i].0 != inst_addr,",
+      "compliance_or_na_reason": "Some is tied to a matching recovery and excludes all earlier matches; None is exactly absence. read_table exports the full address-pair sequence. No mutable output is omitted. Linker implementation soundness is separate from this caller contract."
+    }
+  ]
+}

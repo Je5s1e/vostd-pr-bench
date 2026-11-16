@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:83"
+      ],
+      "quoted_evidence": "num_cpus.div_ceil(BITS_PER_PART)",
+      "compliance_or_na_reason": "Inspected external SmallVec new/with_capacity/len/resize/as_slice/as_mut_slice/Deref/DerefMut, count_ones, div_ceil and slice fill contracts. div_ceil has conditional no_unwind and SmallVec growth bounds account for rounding. Iterator closure contracts state their invocation range/bit obligations; captured self.inv is available when constructing them. Vendored iterator definitions and exact dependency source are absent, so those external semantics cannot be fully audited. No vacuity claim."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/cpu/set.rs:12"
+      ],
+      "quoted_evidence": "external::{",
+      "compliance_or_na_reason": "No assume_specification declared in target."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:12"
+      ],
+      "quoted_evidence": "external::{",
+      "compliance_or_na_reason": "Third-party SmallVec and integer specifications are imported from external modules, not trusted anew in caller. cpu_count is a same-crate boundary with an external_body front door."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:32"
+      ],
+      "quoted_evidence": "bits: SmallVec<[InnerPart; NR_PARTS_NO_ALLOC]>,",
+      "compliance_or_na_reason": "Backing type is [u64; 2]; inspected external guard obeys_smallvec_array and its sole [u64; 2] admission."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:760"
+      ],
+      "quoted_evidence": "(self.bits.as_slice()[part_idx] & (1 << bit_idx)) != 0",
+      "compliance_or_na_reason": "Filter requires id < end; end is len*64. Other executable indexing is range guarded or discharged from CpuId and inv. bit_at explicitly returns false outside sequence bit range."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:609"
+      ],
+      "quoted_evidence": "lemma_u64_nonzero_has_set_bit(*initial[idx]);",
+      "compliance_or_na_reason": "Inventoried local spec/lemma declarations and searched all supplied verified_libs/ostd roots. Existing set_bits_nonzero proves a count bound, whereas this lemma supplies an explicit bit witness, so name similarity is not duplication. Vendored vstd and upstream unavailable."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:229"
+      ],
+      "quoted_evidence": "type V = Set<int>;",
+      "compliance_or_na_reason": "Set<int> gives CPU membership while Seq<u64> describes backing representation and prefix counts justify executable accumulation."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:283"
+      ],
+      "quoted_evidence": "#![trigger bit_at(smallvec_view(&self.bits), j)]",
+      "compliance_or_na_reason": "Tail-bit invariant uses the bit predicate as a selective trigger; word-prefix quantifiers support indexed loop reasoning. No evidence that replacing them improves proof context without unavailable verification."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/cpu/set.rs:277"
+      ],
+      "quoted_evidence": "impl Inv for CpuSet {",
+      "compliance_or_na_reason": "Inv is appropriate: new_full/add_all transiently set unused bits before clearing them. CpuId type invariant is used on executable values, not assumed for arbitrary spec values."
+    }
+  ]
+}

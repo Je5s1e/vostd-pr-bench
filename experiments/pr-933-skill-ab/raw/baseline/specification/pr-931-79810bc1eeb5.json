@@ -1,0 +1,23 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:97"
+      ],
+      "quoted_evidence": "requires valid_flat_binary_input(elf_file),",
+      "compliance_or_na_reason": "The predicate covers parser success before unwrap, non-panicking/aligned table access, valid Load data, file<=memory size and exact bounded address arithmetic/allocation. It does not require disjoint or ordered segments. These are justified non-panicking and valid-ELF constraints, not an invented success obligation for a fallible API (to_flat_binary returns Vec and unwraps). The caller make_bzimage is plain unverified Rust; no claim it proves these premises."
+    },
+    {
+      "guideline": "api-postconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:98"
+      ],
+      "quoted_evidence": "ensures ret@ == flat_binary_spec(elf_file),",
+      "compliance_or_na_reason": "The exact sequence model exposes ordered load processing, extension zeroing, file-byte overwrites and preserved overlapping memory tails, including empty/non-Load inputs. Iterator dependency exports remaining, produces and decrease under readable-table conditions. Plain Rust make_bzimage has no formal filesystem contract; assert_elf64_reloc_supported is a panic-based validation helper and legacy32_rust_target_json is a pure include_str reader. No verified filesystem result is claimed."
+    }
+  ]
+}

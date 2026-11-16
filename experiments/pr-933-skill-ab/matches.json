@@ -1,0 +1,146 @@
+[
+  {
+    "sample_id": "pr-628-096c166e5ce6",
+    "pr": 628,
+    "issue_id": "pr-628-096c166e5ce6:issue-3577128689",
+    "rules": [
+      "name-proof-roles"
+    ],
+    "target": true,
+    "baseline": {
+      "status": "hit",
+      "finding_ids": [
+        "pr-628-096c166e5ce6-maint-04"
+      ]
+    },
+    "candidate": {
+      "status": "hit",
+      "finding_ids": [
+        "628-maintainability-02"
+      ]
+    },
+    "rationale": "Both identify ownership-transformer naming and suggest tracked_, not lemma_. Candidate explicitly covers unit-returning push helpers; one gold issue only."
+  },
+  {
+    "sample_id": "pr-632-1be8099780ff",
+    "pr": 632,
+    "issue_id": "pr-632-1be8099780ff:issue-3594255389",
+    "rules": [
+      "linear-resource-model-soundness"
+    ],
+    "target": true,
+    "baseline": {
+      "status": "miss",
+      "finding_ids": []
+    },
+    "candidate": {
+      "status": "hit",
+      "finding_ids": [
+        "632-proof-1"
+      ]
+    },
+    "rationale": "Candidate explains ledger reset while retaining token and false clean_inv. Baseline has no corresponding finding. Match by root cause despite different guideline identifier."
+  },
+  {
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "pr": 770,
+    "issue_id": "pr-770-28ec70b8e3f2:issue-4042976752",
+    "rules": [
+      "quantifiers-and-triggers"
+    ],
+    "target": false,
+    "baseline": {
+      "status": "miss",
+      "finding_ids": []
+    },
+    "candidate": {
+      "status": "miss",
+      "finding_ids": []
+    },
+    "rationale": "Neither pass reports replacement of the zero-element forall with Seq::all; other cast/layout/contract findings do not match this label."
+  },
+  {
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "pr": 770,
+    "issue_id": "pr-770-28ec70b8e3f2:issue-4042969977",
+    "rules": [
+      "defer-auxiliary-proof-functions"
+    ],
+    "target": true,
+    "baseline": {
+      "status": "hit",
+      "finding_ids": [
+        "pr-770-28ec70b8e3f2-maint-02"
+      ]
+    },
+    "candidate": {
+      "status": "hit",
+      "finding_ids": [
+        "770-maintainability-03"
+      ]
+    },
+    "rationale": "Both identify the same private auxiliary lemma layout root cause at the beginning of the block (:154); the label points to capacity helper :244 in that block. Accepted by semantic root cause, not exact line equality."
+  },
+  {
+    "sample_id": "pr-856-619ad58877f8",
+    "pr": 856,
+    "issue_id": "pr-856-619ad58877f8:issue-4367306309",
+    "rules": [
+      "group-imports-by-crate"
+    ],
+    "target": true,
+    "baseline": {
+      "status": "hit",
+      "finding_ids": [
+        "pr-856-619ad58877f8-maint-01"
+      ]
+    },
+    "candidate": {
+      "status": "hit",
+      "finding_ids": [
+        "856-maintainability-01"
+      ]
+    },
+    "rationale": "Both identify unconditional vstd imports and preserve cfg Objective."
+  },
+  {
+    "sample_id": "pr-886-fe5eb7f3e6aa",
+    "pr": 886,
+    "issue_id": "pr-886-fe5eb7f3e6aa:issue-4451380859",
+    "rules": [
+      "match-enum-results"
+    ],
+    "target": true,
+    "baseline": {
+      "status": "miss",
+      "finding_ids": []
+    },
+    "candidate": {
+      "status": "miss",
+      "finding_ids": []
+    },
+    "rationale": "Both have no matching finding and mark match-enum-results as compliance; the reverse None-equivalence direction remains redundant."
+  },
+  {
+    "sample_id": "pr-931-79810bc1eeb5",
+    "pr": 931,
+    "issue_id": "pr-931-79810bc1eeb5:review-comment-4582797497",
+    "rules": [
+      "preserve-exec-code"
+    ],
+    "target": true,
+    "baseline": {
+      "status": "hit",
+      "finding_ids": [
+        "pr-931-79810bc1eeb5-maint-01"
+      ]
+    },
+    "candidate": {
+      "status": "hit",
+      "finding_ids": [
+        "931-maintainability-01"
+      ]
+    },
+    "rationale": "Both identify replacement of original comment without claiming changed resize/copy behavior."
+  }
+]

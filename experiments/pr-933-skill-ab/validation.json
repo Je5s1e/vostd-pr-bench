@@ -1,0 +1,293 @@
+{
+  "outputs": [
+    {
+      "variant": "baseline",
+      "persona": "maintainability",
+      "sample_id": "pr-628-096c166e5ce6",
+      "findings": 6,
+      "compliance": 20,
+      "sha256": "f1d863353f45f7b79c3e2ea7313143d38798df5145594e32b5aa6538fa5bdd6b"
+    },
+    {
+      "variant": "baseline",
+      "persona": "maintainability",
+      "sample_id": "pr-632-1be8099780ff",
+      "findings": 6,
+      "compliance": 20,
+      "sha256": "d66b34ad2ca6f4d79b651a9e02f116fa6a7e5e09038e00dda7b80c4848ffdc64"
+    },
+    {
+      "variant": "baseline",
+      "persona": "maintainability",
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "findings": 6,
+      "compliance": 20,
+      "sha256": "f2d19cd51cab99d9ff1008bbfb6f8ce4de42a94372ca6895f5146a3a85b00eff"
+    },
+    {
+      "variant": "baseline",
+      "persona": "maintainability",
+      "sample_id": "pr-856-619ad58877f8",
+      "findings": 4,
+      "compliance": 22,
+      "sha256": "771efac2c5f4f6bf1041f83c29943125fac15bd2a8015f6e9334fbdeb6a3a49e"
+    },
+    {
+      "variant": "baseline",
+      "persona": "maintainability",
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "findings": 0,
+      "compliance": 26,
+      "sha256": "c254bd035a0ff4acf22f54e730b76c66ab59e457c72352e8464090ccb2c6612d"
+    },
+    {
+      "variant": "baseline",
+      "persona": "maintainability",
+      "sample_id": "pr-931-79810bc1eeb5",
+      "findings": 1,
+      "compliance": 25,
+      "sha256": "6d2e098e932cbe80f1ec0c9403918b4dc08e8b55087c52b8d1f87228e6ceb812"
+    },
+    {
+      "variant": "baseline",
+      "persona": "proof-engineering",
+      "sample_id": "pr-628-096c166e5ce6",
+      "findings": 2,
+      "compliance": 7,
+      "sha256": "cf8698d05f0a200f8f60be5d830282e3adde4b510e52a42f2b416e13640bd741"
+    },
+    {
+      "variant": "baseline",
+      "persona": "proof-engineering",
+      "sample_id": "pr-632-1be8099780ff",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "9d17b0f4e9f54921183d67ed23e14aea7024642510cb33ab912d606a72691747"
+    },
+    {
+      "variant": "baseline",
+      "persona": "proof-engineering",
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "b7fc8e148e2597511775907d32eb774d137ee7fc15823908acc124edbdd11010"
+    },
+    {
+      "variant": "baseline",
+      "persona": "proof-engineering",
+      "sample_id": "pr-856-619ad58877f8",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "899aa3006c12e965596d01e2b2fa877d051c92c89c7cb5d24c7c9fe5eccab1b8"
+    },
+    {
+      "variant": "baseline",
+      "persona": "proof-engineering",
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "06df2804afaec7d11dff7e60b740b78364b14741b0cc6ae15e9971cb8c0b8b4c"
+    },
+    {
+      "variant": "baseline",
+      "persona": "proof-engineering",
+      "sample_id": "pr-931-79810bc1eeb5",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "0a3f0e1d18a918f56f0e85c533439b1c6dfdd1c590bfda1f0ace01d64aae1b5a"
+    },
+    {
+      "variant": "baseline",
+      "persona": "specification",
+      "sample_id": "pr-628-096c166e5ce6",
+      "findings": 3,
+      "compliance": 1,
+      "sha256": "c79b07301cb20eecd8b57b9f90bb59280523b40aba09c21c79c64d6e23f29345"
+    },
+    {
+      "variant": "baseline",
+      "persona": "specification",
+      "sample_id": "pr-632-1be8099780ff",
+      "findings": 0,
+      "compliance": 2,
+      "sha256": "898491b2bddbb1394f759d124d08532a79a5535dad46a23105d0476df0181076"
+    },
+    {
+      "variant": "baseline",
+      "persona": "specification",
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "findings": 4,
+      "compliance": 0,
+      "sha256": "7ccf1908f25c6ef59ce32274b929498694c1a1e383971d71a83b3fe7cc6b6a2b"
+    },
+    {
+      "variant": "baseline",
+      "persona": "specification",
+      "sample_id": "pr-856-619ad58877f8",
+      "findings": 3,
+      "compliance": 0,
+      "sha256": "4e9c45a3d0263a9b7744ea3ca224d492417e0472d87813978197f5826b92e8d1"
+    },
+    {
+      "variant": "baseline",
+      "persona": "specification",
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "findings": 0,
+      "compliance": 2,
+      "sha256": "8927a980abd0e8dc2daa3e0001af2e0453c0d9427964045d79bbe8466758f4dc"
+    },
+    {
+      "variant": "baseline",
+      "persona": "specification",
+      "sample_id": "pr-931-79810bc1eeb5",
+      "findings": 0,
+      "compliance": 2,
+      "sha256": "b79262b4f2ea68b0f74a1447630fbb7cd8f3a38295015a8f045bdcb094b31f78"
+    },
+    {
+      "variant": "candidate",
+      "persona": "maintainability",
+      "sample_id": "pr-628-096c166e5ce6",
+      "findings": 4,
+      "compliance": 22,
+      "sha256": "fcb03b35b9c5fe14dfa9e705fc167b495ece500f94a6715ef05144aed00576ad"
+    },
+    {
+      "variant": "candidate",
+      "persona": "maintainability",
+      "sample_id": "pr-632-1be8099780ff",
+      "findings": 7,
+      "compliance": 19,
+      "sha256": "4abbdfc86af4a49b7b312520a71946d8ba0bce3f4419accf9812f670d1ef39a8"
+    },
+    {
+      "variant": "candidate",
+      "persona": "maintainability",
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "findings": 6,
+      "compliance": 20,
+      "sha256": "4ae3d963f3ac93de01f5b43c160f7e4056a71cfd526f44a390e7fe13a855a959"
+    },
+    {
+      "variant": "candidate",
+      "persona": "maintainability",
+      "sample_id": "pr-856-619ad58877f8",
+      "findings": 4,
+      "compliance": 22,
+      "sha256": "3fa17e151879077eaab92ee48ff4f7a91d6c371968d8656915d5f6c02257e538"
+    },
+    {
+      "variant": "candidate",
+      "persona": "maintainability",
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "findings": 0,
+      "compliance": 26,
+      "sha256": "6764a297638b39dfc921295eab31b03ec1bff0a4bcb66e40bd220850ba22584a"
+    },
+    {
+      "variant": "candidate",
+      "persona": "maintainability",
+      "sample_id": "pr-931-79810bc1eeb5",
+      "findings": 1,
+      "compliance": 25,
+      "sha256": "a403a3bb5924569752a81d2d67ce27c2b7a4bb26dbcfa076c04c094ccb707229"
+    },
+    {
+      "variant": "candidate",
+      "persona": "proof-engineering",
+      "sample_id": "pr-628-096c166e5ce6",
+      "findings": 2,
+      "compliance": 7,
+      "sha256": "bd1ed0b3183976865d04ab71b9034d98782e4b775640db93089f4030c61e01dd"
+    },
+    {
+      "variant": "candidate",
+      "persona": "proof-engineering",
+      "sample_id": "pr-632-1be8099780ff",
+      "findings": 1,
+      "compliance": 8,
+      "sha256": "db5fc053eef309ab5924873ebdea368f728d6328a136dfa1dfe66b8190dd5d47"
+    },
+    {
+      "variant": "candidate",
+      "persona": "proof-engineering",
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "7d58dcfc8819c57afa463d26856674559edc31c3cbd20814f7292ede11328e79"
+    },
+    {
+      "variant": "candidate",
+      "persona": "proof-engineering",
+      "sample_id": "pr-856-619ad58877f8",
+      "findings": 1,
+      "compliance": 8,
+      "sha256": "ce9021cee32e02fa998aebfcabca6e48fac81bf7b27459c3929e9f71280e7f77"
+    },
+    {
+      "variant": "candidate",
+      "persona": "proof-engineering",
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "7b1799016ad852ab45d721a278cf4a488927fb48017870eed2ceca2864d45e29"
+    },
+    {
+      "variant": "candidate",
+      "persona": "proof-engineering",
+      "sample_id": "pr-931-79810bc1eeb5",
+      "findings": 0,
+      "compliance": 9,
+      "sha256": "0bd791d3901185c27e695f0720aa6b303b2414f8c98ba77e18a4d6ccedfc424c"
+    },
+    {
+      "variant": "candidate",
+      "persona": "specification",
+      "sample_id": "pr-628-096c166e5ce6",
+      "findings": 2,
+      "compliance": 1,
+      "sha256": "6a733f65eb9cb0a21cdf7a50382c5ae8f27694806683fc7c1241a88f3250b033"
+    },
+    {
+      "variant": "candidate",
+      "persona": "specification",
+      "sample_id": "pr-632-1be8099780ff",
+      "findings": 0,
+      "compliance": 2,
+      "sha256": "abe9cc9b44e93edfb88de8b99f0db32f4f6df96e35a6928838df216b8474e43a"
+    },
+    {
+      "variant": "candidate",
+      "persona": "specification",
+      "sample_id": "pr-770-28ec70b8e3f2",
+      "findings": 4,
+      "compliance": 1,
+      "sha256": "a27b928b8c9554e6ccba61a1a4d588ae21bf818f31df04fdc84d13062220864c"
+    },
+    {
+      "variant": "candidate",
+      "persona": "specification",
+      "sample_id": "pr-856-619ad58877f8",
+      "findings": 4,
+      "compliance": 0,
+      "sha256": "21c1c2bfefe0f34eb4163c1c82978d7056e327a99f2db9b33c76be48f125b6bb"
+    },
+    {
+      "variant": "candidate",
+      "persona": "specification",
+      "sample_id": "pr-886-fe5eb7f3e6aa",
+      "findings": 0,
+      "compliance": 2,
+      "sha256": "a80677c9510f93244835892f776d021c5ba54b53237461778290c70efedb0c77"
+    },
+    {
+      "variant": "candidate",
+      "persona": "specification",
+      "sample_id": "pr-931-79810bc1eeb5",
+      "findings": 0,
+      "compliance": 2,
+      "sha256": "a892330b734615a54ef59b53956295a626df95716cd262157f5358e6ca3dd0ba"
+    }
+  ],
+  "errors": []
+}

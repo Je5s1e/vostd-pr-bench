@@ -1,0 +1,239 @@
+--- experiments/pr-933-skill-ab/interim/baseline/maintainability/pr-632-1be8099780ff.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/maintainability/pr-632-1be8099780ff.json
+@@ -85,7 +85,7 @@
+       "severity": "low",
+       "guideline": "document-verified-apis",
+       "location": "ostd/specs/mm/frame/meta_region_owners.rs:44",
+-      "quoted_evidence": "All functions in\nthe verified code that call `from_raw` have a precondition that the frame's index is not a key in `slots`.\nSupporting source ostd/src/mm/frame/mod.rs:563: old(regions).slots.contains_key(frame_to_index(paddr)),",
++      "quoted_evidence": "/// Double-free happens when `from_raw` is called on a frame that is not forgotten, or that has been\n/// dropped with `ManuallyDrop::drop` instead of `into_raw`. All functions in\n/// the verified code that call `from_raw` have a precondition that the frame's index is not a key in `slots`.\nSupporting source ostd/src/mm/frame/mod.rs:563:\n            old(regions).slots.contains_key(frame_to_index(paddr)),",
+       "problem": "The ownership documentation says from_raw requires absence from slots, but the actual verified API requires presence. This reverses the described safety boundary.",
+       "key_premise": "Frame::from_raw explicitly requires old(regions).slots.contains_key(frame_to_index(paddr)).",
+       "experiment": {
+
+--- experiments/pr-933-skill-ab/interim/baseline/maintainability/pr-856-619ad58877f8.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/maintainability/pr-856-619ad58877f8.json
+@@ -20,8 +20,8 @@
+       "id": "pr-856-619ad58877f8-maint-02",
+       "severity": "low",
+       "guideline": "use-returns-for-exact-results",
+-      "location": "ostd/src/mm/dma/dma_coherent.rs:117",
+-      "quoted_evidence": "#[verus_spec(r =>\n    requires this@.inv(),\n    returns this@.data.start_daddr,\n)]",
++      "location": "ostd/src/mm/dma/dma_coherent.rs:210",
++      "quoted_evidence": "    #[inline(always)]\n    #[verus_spec(r =>\n        requires\n            this@.inv(),\n        returns\n            this@.data.start_daddr,\n    )]\n    fn daddr_inner(this: &RwLockReadGuard<DmaCoherentInnerAtomic<M>, PreemptDisabled>) -> Daddr {",
+       "problem": "Several accessors bind an unused r even though their contract uses returns or only self state.",
+       "key_premise": "daddr_inner, paddr_inner, nframes_inner and nbytes_inner specify exact values without referencing r; outer daddr/paddr/nframes/nbytes also never reference r.",
+       "experiment": {
+@@ -53,7 +53,7 @@
+       "severity": "low",
+       "guideline": "document-verified-apis",
+       "location": "ostd/src/mm/dma/dma_coherent.rs:39",
+-      "quoted_evidence": "/// The mapping will be destroyed automatically when\n/// the object is dropped.\n...\n// Original Drop impl for DmaCoherentInner (removed during Verus migration):",
++      "quoted_evidence": "/// The mapping will be destroyed automatically when\n/// the object is dropped.\n\n/*\n// Original Drop impl for DmaCoherentInner (removed during Verus migration):\nimpl Drop for DmaCoherentInner {\n    fn drop(&mut self) {",
+       "problem": "The public mapping documentation promises automatic teardown while the entire inner Drop implementation is commented out.",
+       "key_premise": "The only documented teardown code in this target is inside the comment beginning at line 510.",
+       "experiment": {
+--- experiments/pr-933-skill-ab/interim/baseline/specification/pr-628-096c166e5ce6.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/specification/pr-628-096c166e5ce6.json
+@@ -4,7 +4,7 @@
+       "id": "specification-628-1",
+       "severity": "medium",
+       "guideline": "api-postconditions",
+-      "location": "ostd/specs/mm/embedding/list_store.rs:1106",
++      "location": "ostd/specs/mm/embedding/list_store.rs:1098",
+       "quoted_evidence": "pub proof fn step_push_front(tracked &mut self, id: ListId, lid: LooseId)\n        requires\n            old(self).inv(),\n            old(self).lists.dom().contains(id),\n            old(self).loose.dom().contains(lid),\n        ensures\n            final(self).inv(),",
+       "problem": "The step mutators discard their documented transitions at the public contract boundary. In particular, push cannot be followed by size/pop on the same id, and a Some loose id returned by pop/take cannot be used for push: neither domain membership nor the inserted/removed identity follows from inv alone.",
+       "key_premise": "The mutation contracts expose invariant preservation but omit map transitions; related gaps occur in step_push_back, step_insert_before_at, step_cursor_insert_before, successful pop/take variants, and frame clauses on cursor/new/drop steps.",
+@@ -20,7 +20,7 @@
+       "id": "specification-628-2",
+       "severity": "medium",
+       "guideline": "api-postconditions",
+-      "location": "ostd/specs/mm/embedding/list_store.rs:2280",
++      "location": "ostd/specs/mm/embedding/list_store.rs:2296",
+       "quoted_evidence": "res == (exists|i: int|\n                0 <= i < old(self).lists[id].list.len() && old(self).lists[id].slot_index_at(i)\n                    == frame_to_index(frame)),",
+       "problem": "step_cursor_mut_at claims to mirror rejection of non-safe addresses, but checks only the page index. An unaligned address one byte into a listed frame has the same frame_to_index and yields true, whereas get_slot rejects it.",
+       "key_premise": "frame_to_index is paddr / PAGE_SIZE; get_slot explicitly returns NotAligned on paddr % PAGE_SIZE != 0, and this step has no alignment precondition.",
+@@ -36,7 +36,7 @@
+       "id": "specification-628-3",
+       "severity": "medium",
+       "guideline": "api-postconditions",
+-      "location": "ostd/specs/mm/embedding/list_store.rs:475",
++      "location": "ostd/specs/mm/embedding/list_store.rs:471",
+       "quoted_evidence": "old(owner).list.len() > 0 ==> final(owner).list == old(owner).list.insert(\n            old(owner).list.len() - 1,\n            final(frame_own).meta_own,\n        ),",
+       "problem": "push_back_embedded is documented as splicing at the tail but promises insertion before the last element. For [A,B] and C it produces [A,C,B], contradicting the promised back insertion and the next pop_back expectation.",
+       "key_premise": "Both the helper body and the corresponding executable push_back use the last-element cursor with insert_before.",
+@@ -54,8 +54,7 @@
+       "guideline": "api-preconditions",
+       "status": "complies",
+       "locations": [
+-        "ostd/specs/mm/embedding/list_store.rs:1822",
+-        "ostd/specs/mm/embedding/list_store.rs:1106"
++        "ostd/specs/mm/embedding/list_store.rs:1824"
+       ],
+       "quoted_evidence": "old(self).inv(),\n            old(self).lists.dom().contains(id),",
+       "compliance_or_na_reason": "Store validity and held-resource membership express ownership protocol. Empty/out-of-range take operations accept requests and return None rather than demanding success; embedded nonempty take requirements apply only to successful primitives."
+
+--- experiments/pr-933-skill-ab/interim/baseline/specification/pr-632-1be8099780ff.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/specification/pr-632-1be8099780ff.json
+@@ -5,7 +5,7 @@
+       "guideline": "api-preconditions",
+       "status": "complies",
+       "locations": [
+-        "ostd/specs/mm/frame/meta_region_owners.rs:132"
++        "ostd/specs/mm/frame/meta_region_owners.rs:136"
+       ],
+       "quoted_evidence": "self.slots.contains_key(i),\n            self.slot_owners.contains_key(i),",
+       "compliance_or_na_reason": "Typed borrowing requires the available outer/inner permissions and their well-formedness. Ledger redemption requires a positive count, while minting imposes no extraneous restrictions. These are valid ownership/protocol obligations."
+@@ -14,7 +14,7 @@
+       "guideline": "api-postconditions",
+       "status": "complies",
+       "locations": [
+-        "ostd/specs/mm/frame/meta_region_owners.rs:166"
++        "ostd/specs/mm/frame/meta_region_owners.rs:172"
+       ],
+       "quoted_evidence": "final(self).slots[i] == final(res).points_to,\n            final(self).slot_owners[i].inner_perms == final(res).inner_perms,",
+       "compliance_or_na_reason": "Typed mutable borrowing ties borrow-end state to the final returned permission, preserves both domains, other entries, all remaining actual owner fields and the ledger. Mint/redeem specify exact state transitions. InvView declaration was unavailable in the frozen tree, so inheritance strength could not independently be checked; no absence inferred."
+
+--- experiments/pr-933-skill-ab/interim/baseline/specification/pr-770-28ec70b8e3f2.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/specification/pr-770-28ec70b8e3f2.json
+@@ -20,7 +20,7 @@
+       "id": "specification-770-2",
+       "severity": "medium",
+       "guideline": "api-postconditions",
+-      "location": "ostd/src/cpu/set.rs:722",
++      "location": "ostd/src/cpu/set.rs:723",
+       "quoted_evidence": "IteratorSpec::obeys_prophetic_iter_laws(&ret),\n            IteratorSpec::decrease(&ret) is Some,",
+       "problem": "The iterator contract does not relate any yielded CPU to self@ or state its documented ascending order. Even an unrelated or empty iterator satisfies these exposed facts; clients cannot establish membership or coverage from iter().",
+       "key_premise": "Only iterator-law and decrease facts are exported; the test_full_cpu_set_iter_is_all Rust test uses the promised behavior but is not evidence of a verified client.",
+@@ -52,7 +52,7 @@
+       "id": "specification-770-4",
+       "severity": "medium",
+       "guideline": "api-preconditions",
+-      "location": "ostd/src/cpu/set.rs:409",
++      "location": "ostd/src/cpu/set.rs:407",
+       "quoted_evidence": "requires\n            self.inv(),",
+       "problem": "The invariant requires a fully allocated vector, excluding the empty backing representation supplied by derived Default even though add explicitly grows it and contains/remove guard their indices. This is an implementation-specific restriction on ordinary empty-set use.",
+       "key_premise": "CpuSet derives Default; inv requires exactly parts_for_cpus(cpu_count()) words, and add documents its growth branch as dead only under that requirement.",
+--- experiments/pr-933-skill-ab/interim/candidate/specification/pr-628-096c166e5ce6.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/candidate/specification/pr-628-096c166e5ce6.json
+@@ -5,7 +5,7 @@
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/specs/mm/embedding/list_store.rs:1104",
+-      "quoted_evidence": "        ensures\n            final(self).inv(),",
++      "quoted_evidence": "    /// `LinkedList::push_front`: move the loose handle `lid` to the front\n    /// of list `id`. The frame is forgotten into the list (its\n    /// drop-obligation consumed); the `loose` entry is removed.\n        ensures\n            final(self).inv(),",
+       "problem": "Mutation wrappers discard documented transitions and frames. After step_push_front callers cannot establish that id still exists for step_size; successful pop/take returns Some without establishing that its payload exists in loose for the next push.",
+       "key_premise": "Mutation wrappers discard documented transitions and frames. After step_push_front callers cannot establish that id still exists for step_size; successful pop/take returns Some without establishing that its payload exists in loose for the next push.",
+       "experiment": {
+@@ -21,7 +21,7 @@
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/specs/mm/embedding/list_store.rs:2296",
+-      "quoted_evidence": "res == (exists|i: int|\n                0 <= i < old(self).lists[id].list.len() && old(self).lists[id].slot_index_at(i)\n                    == frame_to_index(frame)),",
++      "quoted_evidence": "    /// positioned at that link; otherwise (the frame is absent \u2014 or not a\n    /// safe managed slot, which can never be a link) leave the store\n    /// unchanged. Mirrors exec `cursor_mut_at(frame) -> Option<CursorMut>`\nres == (exists|i: int|\n                0 <= i < old(self).lists[id].list.len() && old(self).lists[id].slot_index_at(i)\n                    == frame_to_index(frame)),",
+       "problem": "step_cursor_mut_at documents rejection of unsafe managed slots but compares only page quotients. An unaligned p + 1 in an existing link page is accepted: frame_to_index is paddr / PAGE_SIZE, whereas has_safe_slot requires alignment.",
+       "key_premise": "step_cursor_mut_at documents rejection of unsafe managed slots but compares only page quotients. An unaligned p + 1 in an existing link page is accepted: frame_to_index is paddr / PAGE_SIZE, whereas has_safe_slot requires alignment.",
+       "experiment": {
+
+--- experiments/pr-933-skill-ab/interim/candidate/specification/pr-770-28ec70b8e3f2.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/candidate/specification/pr-770-28ec70b8e3f2.json
+@@ -5,7 +5,7 @@
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/src/cpu/set.rs:630",
+-      "quoted_evidence": "            ret ==> self@ == Set::range(0, cpu_count()),",
++      "quoted_evidence": "    /// Returns true if the set is full.\n            ret ==> self@ == Set::range(0, cpu_count()),",
+       "problem": "is_full permits false for a full set. Thus a caller cannot derive the documented full-set decision in the false branch, or establish is_full after new_full/add_all.",
+       "key_premise": "is_full permits false for a full set. Thus a caller cannot derive the documented full-set decision in the false branch, or establish is_full after new_full/add_all.",
+       "experiment": {
+@@ -21,7 +21,7 @@
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/src/cpu/set.rs:723",
+-      "quoted_evidence": "            IteratorSpec::obeys_prophetic_iter_laws(&ret),\n            IteratorSpec::decrease(&ret) is Some,",
++      "quoted_evidence": "    /// Iterates over the CPUs in the set.\n    ///\n    /// The order of the iteration is guaranteed to be in ascending order.\n            IteratorSpec::obeys_prophetic_iter_laws(&ret),\n            IteratorSpec::decrease(&ret) is Some,",
+       "problem": "iter exposes no relationship between returned elements and this set and no ascending-order guarantee, despite the explicit order promise and the full/empty iterator tests. Iterator-law compliance and a decreasing measure alone do not state contents or ordering.",
+       "key_premise": "iter exposes no relationship between returned elements and this set and no ascending-order guarantee, despite the explicit order promise and the full/empty iterator tests. Iterator-law compliance and a decreasing measure alone do not state contents or ordering.",
+       "experiment": {
+@@ -30,14 +30,14 @@
+         "exit_code": null,
+         "result": null
+       },
+-      "suggestion": "Specify that the initial remaining sequence consists exactly of this view’s CPU IDs in strictly ascending order, without duplicates. Preserve and justify whatever production/completion guarantee the active iterator model supports; do not infer termination from closure value ensures alone. The active vstd iterator source is unavailable, so the exact trait vocabulary and proof feasibility remain untested."
++      "suggestion": "Specify that the initial remaining sequence consists exactly of this view\u2019s CPU IDs in strictly ascending order, without duplicates. Preserve and justify whatever production/completion guarantee the active iterator model supports; do not infer termination from closure value ensures alone. The active vstd iterator source is unavailable, so the exact trait vocabulary and proof feasibility remain untested."
+     },
+     {
+       "id": "770-spec-3",
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/src/cpu/set.rs:535",
+-      "quoted_evidence": "        returns self.count_spec() as usize,",
++      "quoted_evidence": "    /// Returns the number of CPUs in the set.\n        returns self.count_spec() as usize,",
+       "problem": "count returns a closed backing-word population count with no exported relation to the abstract Set view. A caller using only public contracts cannot establish count == self@.len(), including after new_empty or add.",
+       "key_premise": "count returns a closed backing-word population count with no exported relation to the abstract Set view. A caller using only public contracts cannot establish count == self@.len(), including after new_empty or add.",
+       "experiment": {
+@@ -47,6 +47,22 @@
+         "result": null
+       },
+       "suggestion": "Export and prove under self.inv() the equality count_spec() == self@.len(), or return the view cardinality directly. Keep representation details private."
++    },
++    {
++      "id": "770-spec-4",
++      "severity": "low",
++      "guideline": "api-preconditions",
++      "location": "ostd/src/cpu/set.rs:782",
++      "quoted_evidence": "    /// Only for internal use. Build a vector of `num_cpus`-covering words, all equal to `val`.\n            (num_cpus as int) == cpu_count(),\n// Existing unverified test:\n        for test_num_cpus in [1usize, 3, 12, 64, 96, 99, 128, 256, 288, 1024] {\n            let set = CpuSet::with_capacity_val(test_num_cpus, 0);",
++      "problem": "with_capacity_val unnecessarily requires the requested size equal the global CPU count. Its result only promises a vector covering the requested size with uniform words, and the existing multi-size test intentionally calls it with other sizes.",
++      "key_premise": "The implementation uses only the input num_cpus and val, while the separate allocation bound already constrains the actual requested allocation; the postcondition does not promise CpuSet.inv().",
++      "experiment": {
++        "attempted": false,
++        "command": null,
++        "exit_code": null,
++        "result": null
++      },
++      "suggestion": "Remove the equality to cpu_count(), retaining the allocation-size bound. Let public constructors establish CpuSet.inv() when supplying the actual CPU count. The current test is unverified, so this is a future verification/usability restriction rather than an observed failing verified caller."
+     }
+   ],
+   "Compliance": [
+@@ -57,7 +73,7 @@
+         "ostd/src/cpu/set.rs:414"
+       ],
+       "quoted_evidence": "            self.inv(),",
+-      "compliance_or_na_reason": "Public CPU-set operations use valid-state constraints; CpuId bounds come from its type invariant. Private allocation helper bounds match capacity arithmetic. No required weakening established: arbitrary spec CpuId values do not inherit runtime invariants. Atomic operations and tests are plain Rust; no current verified caller failure is claimed."
++      "compliance_or_na_reason": "Public CPU-set operations use valid-state constraints; CpuId bounds come from its type invariant. The private helper restriction is reported separately. Atomic operations and tests are plain Rust; no current verified caller failure is claimed."
+     }
+   ]
+ }
+
+--- experiments/pr-933-skill-ab/interim/candidate/specification/pr-856-619ad58877f8.json
++++ /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/candidate/specification/pr-856-619ad58877f8.json
+@@ -21,7 +21,7 @@
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/src/mm/dma/dma_coherent.rs:565",
+-      "quoted_evidence": "    closed spec fn obeys_vmio_read_spec() -> bool {\n        false\n    }\n\n    closed spec fn obeys_vmio_write_spec() -> bool {\n        false\n    }",
++      "quoted_evidence": "// ostd/src/mm/io.rs:1224-1228:\n    /// # No short reads\n    ///\n    /// On success, the `writer` must be written with the requested data\n    /// completely. If, for any reason, the requested data is only partially\n    /// available, then the method shall return an error.\n    closed spec fn obeys_vmio_read_spec() -> bool {\n        false\n    }\n\n    closed spec fn obeys_vmio_write_spec() -> bool {\n        false\n    }",
+       "problem": "Both VmIo postconditions are disabled, so read/write expose no result or final state guarantees for the exec cursor and both tracked mutable owners, including success. The trait explicitly promises no short reads/writes, but callers cannot recover validity or ownership for a second call.",
+       "key_premise": "Both VmIo postconditions are disabled, so read/write expose no result or final state guarantees for the exec cursor and both tracked mutable owners, including success. The trait explicitly promises no short reads/writes, but callers cannot recover validity or ownership for a second call.",
+       "experiment": {
+@@ -37,7 +37,7 @@
+       "severity": "medium",
+       "guideline": "api-preconditions",
+       "location": "ostd/src/mm/dma/dma_coherent.rs:587",
+-      "quoted_evidence": "        &&& (writer.cursor.range@.end <= KERNEL_BASE_VADDR || KERNEL_END_VADDR\n            <= writer.cursor.range@.start)",
++      "quoted_evidence": "// ostd/src/mm/io.rs:1928:\n    /// Constructs a [`VmWriter<'a, Infallible>`] from a mutable byte slice.\n        &&& (writer.cursor.range@.end <= KERNEL_BASE_VADDR || KERNEL_END_VADDR\n            <= writer.cursor.range@.start)",
+       "problem": "read_requires excludes every kernel buffer, and write_requires has the same restriction, although VmIo supports slice-backed kernel readers/writers converted with to_fallible. A disjoint stack/heap byte buffer cannot be used for an ordinary DMA copy despite satisfying real ownership and non-overlap obligations.",
+       "key_premise": "read_requires excludes every kernel buffer, and write_requires has the same restriction, although VmIo supports slice-backed kernel readers/writers converted with to_fallible. A disjoint stack/heap byte buffer cannot be used for an ordinary DMA copy despite satisfying real ownership and non-overlap obligations.",
+       "experiment": {
+@@ -53,9 +53,9 @@
+       "severity": "medium",
+       "guideline": "api-postconditions",
+       "location": "ostd/src/mm/dma/dma_coherent.rs:423",
+-      "quoted_evidence": "            reader_perm@.has_read_view(),\n            r.wf(reader_perm@),\n            KERNEL_BASE_VADDR <= r.cursor.range@.start,\n            r.cursor.range@.end <= KERNEL_END_VADDR,",
+-      "problem": "reader/writer promise access to this mapping but expose only arbitrary kernel-range validity (writer even omits those bounds), with no starting address or extent tied to the mapping. reader also drops reader_inner’s read_view_initialized guarantee, preventing the next natural write call that requires an initialized read view.",
+-      "key_premise": "reader/writer promise access to this mapping but expose only arbitrary kernel-range validity (writer even omits those bounds), with no starting address or extent tied to the mapping. reader also drops reader_inner’s read_view_initialized guarantee, preventing the next natural write call that requires an initialized read view.",
++      "quoted_evidence": "    /// Returns a reader to read data from it.\n            reader_perm@.has_read_view(),\n            r.wf(reader_perm@),\n            KERNEL_BASE_VADDR <= r.cursor.range@.start,\n            r.cursor.range@.end <= KERNEL_END_VADDR,",
++      "problem": "reader/writer promise access to this mapping but expose only arbitrary kernel-range validity (writer even omits those bounds), with no starting address or extent tied to the mapping. reader also drops reader_inner\u2019s read_view_initialized guarantee, preventing the next natural write call that requires an initialized read view.",
++      "key_premise": "reader/writer promise access to this mapping but expose only arbitrary kernel-range validity (writer even omits those bounds), with no starting address or extent tied to the mapping. reader also drops reader_inner\u2019s read_view_initialized guarantee, preventing the next natural write call that requires an initialized read view.",
+       "experiment": {
+         "attempted": false,
+         "command": null,

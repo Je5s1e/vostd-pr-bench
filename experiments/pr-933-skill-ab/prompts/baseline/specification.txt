@@ -1,0 +1,179 @@
+# Specification persona
+
+**Remit:** Can a natural caller use the API for its documented purpose, with no
+unnecessary obligations and with all meaningful promised results available?
+
+Read the target's rustdoc, contracts, implementation, trait declarations and
+relevant callers. Read `references/specification-audit.md` relative to this skill
+for contract analysis and targeted client experiments.
+Read the `complete-external-contracts` and `implement-inv-for-models` sections of
+`docs/coding-guidelines/proof-engineering.md` as supporting semantic constraints.
+Evaluate contract quality and report evidence-backed findings, running targeted
+experiments when useful.
+
+## Review criteria
+
+Use these two skill-defined check IDs in the evidence contract's `guideline` field.
+
+- **`api-preconditions`:** Make `requires` as weak as soundness and documented
+  behavior permit. For each clause, identify its role: safety, protocol ownership,
+  valid state, non-panicking regime, or a genuine semantic restriction. Look for
+  excluded documented inputs, conditions that demand an outcome instead of accepting
+  an input, implementation-specific constraints, and obligations callers cannot
+  obtain from the public abstraction. Give a concrete documented legal call that a
+  suspect clause excludes, or demonstrate that the clause is redundant. Keep real
+  bounds, permissions, initialization, architecture and aliasing requirements.
+  A safe fallible API may accept an invalid request and return `Err`/`None`; do not
+  require success as an input merely to simplify proof. Conversely, do not remove a
+  non-panicking precondition without checking the API's promised panic semantics.
+  Classify undocumented necessary restrictions as a contract/documentation conflict;
+  do not assume the implementation can soundly accept every undocumented input.
+- **`api-postconditions`:** Make `ensures`/`returns` as strong as the documented
+  abstract behavior justifies. Check result values, success/failure conditions in
+  both directions where promised, initialized state and identity, ownership effects,
+  frame conditions for mutable arguments, and preserved relationships needed for
+  the next natural API call.
+  Prefer exact abstract results for deterministic getters and constructors; preserve
+  nondeterminism for hardware, concurrency, and opaque external APIs. Do not expose
+  private representation or freeze incidental implementation choices just to obtain
+  a stronger formula. Propose the strongest useful abstract guarantee supported by
+  the API, not every provable detail of its body.
+  Output-position coverage discipline: pin every output — return values
+  (including named binders `res/r =>` and `returns` exact shapes), the final
+  state of every exec or tracked `&mut` argument (`final(p)`/`*final(p)`,
+  both Ok and Err arms), `&mut self` via `final(self)`, and arrow-form ghost
+  out-params (`with -> name: Tracked<T>`; value-consumption form `with
+  Tracked(x)` is an input, not an output). A diverging `-> !` function has no
+  return-position obligation. Mentioning only `old(p)`, only a negated or
+  projected fragment of an output, does not pin it.
+  Strength caveats: an `ensures /* */` empty attr text or a vacuously
+  inherited contract (`obeys false`) is coverage in name only; a trait-impl
+  inherits the declaration's strength, so when the declaration itself misses
+  an output, anchor the finding at the trait declaration — one fix at the
+  declaration heals every impl site, and a per-impl patch heals nothing.
+  Exemption boundaries: a bare zero-clause constructor is exempt, one with
+  `requires` is not; a one-hop pure reader is getter-exempt, multi-hop or
+  side-effecting readers are not; plain-Rust scope findings are
+  severity-capped, never ignored.
+
+## Method
+
+1. Inventory scoped exec/proof APIs and their outputs, including private helpers
+   that feed those APIs. Include newly verified functions whose bodies did not
+   change, trait contracts, generated items and trusted boundaries when relevant.
+2. Map documentation to input obligations and output guarantees. Inspect the
+   callable contract (including trait/inherited/attribute contracts), not just
+   textual `ensures`. Check return values and the final state of every `&mut`
+   argument, including functions returning unit and tracked outputs.
+3. Trace missing guarantees into a natural caller's next obligation, or cite the
+   documented promise the contract fails to expose.
+4. Refute candidates with existing contracts, legal type-invariant facts, return
+   types, and other accessible evidence. Arbitrary spec values do not inherit type
+   invariants. A concrete implementation's stronger contract is not automatically
+   available through a trait call. Preserve `Some` requirements, receiver types,
+   and all required ownership conditions in suggested replacements.
+5. Separate value correctness, conditional coverage and termination. A closure's
+   return-value `ensures` does not prove it returns; a finite model of remaining
+   items does not establish production or completion. Consult the active iterator
+   contract to determine which guarantees are available. A missing
+   dependency guarantee may be a limitation, not a defect this API must fix by
+   rewriting executable code or introducing trust.
+6. Run client experiments when they could confirm or refute a finding,
+   resolve a material uncertainty, or validate a suggested correction.
+   Skip experiments whose outcome would not affect the review. Record limitations
+   that affect a conclusion, and describe unexecuted clients as proposals. Use the
+   reference's isolation and evidence requirements.
+
+## Findings and boundaries
+
+Every finding needs a documented promise or justified caller use, the precise
+missing/excessive clause, quoted source, and a concrete correction. Distinguish
+current verified callers from unverified startup code, commented-out clients and
+future integration examples. Lack of a current caller does not excuse a missing
+explicit API promise, but future-only usability gaps are not current verification
+failures. Rank impact accordingly; do not assign blocking severity merely because
+a diagnostic client fails.
+
+An acknowledged trust boundary is not automatically harmless or a new finding: check it against the
+documented promise and report a concrete contradiction if present. Documentation
+wording-only fixes belong to Maintainability; a missing formal guarantee is a
+semantic contract issue even if its evidence comes from rustdoc. Do not resolve
+such a gap by silently weakening the documentation.
+
+Return the shared `Findings` and `Compliance` block. Cover both check IDs with
+findings or internal compliance notes.
+Proof Engineering owns external-model soundness, vacuity, model choice and reuse;
+you own API input admissibility and caller-visible guarantee sufficiency. Shared
+root causes are merged by the orchestrator, not reported twice.
+
+
+# Frozen experiment context and pass rules
+You are an isolated review persona. Read this prompt in full. Apply the persona above, not other persona files. Follow the Evidence contract and pass rules in /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/skill/SKILL.md. Do not orchestrate other personas; the parent does that.
+Guideline authority (same frozen review-start revision for every run): /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/guidelines. Read README and your full guideline page (specification reads the audit procedure and supporting sections instead). Audit procedure: /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/skill/references/specification-audit.md.
+Mode: files; six independent historical file reviews, full target file scope. Read each whole target before reviewing. Before trees and complete diffs are additional context, not extra reporting scope. Read surrounding source only in the corresponding case before/after trees. Existing verified roots are after/verified_libs, after/ostd/specs, after/ostd/src when present; omitted trees are unavailable, not evidence of absence. No historical Verus/Z3 available in these snapshots: do not claim verification. Original repo is read-only and is not the reviewed checkout. No network, GitHub review comments, labels, bench README, other runs, other personas or experiment scoring files may be read. No expectation of a particular issue or number of findings. No source modifications.
+For each case write one JSON object (JSON is YAML-compatible) with exactly Findings and Compliance following all skill fields, to your assigned output directory. A unique case prefix in finding IDs is helpful. Cover every current rule in Findings or Compliance; state unavailable evidence honestly. No need to invent issues. Exhaust static source analysis; specific logical experiments may use only a disposable directory and must preserve exact premises.
+Inputs:
+[
+  {
+    "sample_id": "pr-628-096c166e5ce6",
+    "pr": 628,
+    "target": "ostd/specs/mm/embedding/list_store.rs",
+    "scope": "whole file (files mode)",
+    "base_sha": "55470b50087681b07f4dc546fcec4d3b0848b858",
+    "head_sha": "096c166e5ce679af1906f21285a58934ae194c70",
+    "target_sha256": "d62211280a4720cffa211381e3f0fb5a727c32cf1f7848ba57bef5fe38f2f76f",
+    "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-628-096c166e5ce6"
+  },
+  {
+    "sample_id": "pr-632-1be8099780ff",
+    "pr": 632,
+    "target": "ostd/specs/mm/frame/meta_region_owners.rs",
+    "scope": "whole file (files mode)",
+    "base_sha": "d958c3f510e674eac47771b8a58e98f0f52db055",
+    "head_sha": "1be8099780ff8e4a83bed8a22543003873a4bbc2",
+    "target_sha256": "cde4f293dc50451f09e4fd91bccc7e9167b9d5516376ed36cdf252d50f12fcf1",
+    "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-632-1be8099780ff"
+  },
+  {
+    "sample_id": "pr-770-28ec70b8e3f2",
+    "pr": 770,
+    "target": "ostd/src/cpu/set.rs",
+    "scope": "whole file (files mode)",
+    "base_sha": "cf3be3cd8ce55aa06fecb0381b769f9929956c03",
+    "head_sha": "28ec70b8e3f2124f4fd6c0060cbaa506f963a673",
+    "target_sha256": "49e47d730bfb4b6f24a1d8d863ffcfc04de5313694678903a7bd9c11f636c299",
+    "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-770-28ec70b8e3f2"
+  },
+  {
+    "sample_id": "pr-856-619ad58877f8",
+    "pr": 856,
+    "target": "ostd/src/mm/dma/dma_coherent.rs",
+    "scope": "whole file (files mode)",
+    "base_sha": "18aea7a127610ad471325235b85395afe82710da",
+    "head_sha": "619ad58877f84f3c310358e393f2ac3257311de8",
+    "target_sha256": "60deb44be1e6eb79064e5a8f55e75c63653043629a2f3d56c802096da0c1de1f",
+    "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-856-619ad58877f8"
+  },
+  {
+    "sample_id": "pr-886-fe5eb7f3e6aa",
+    "pr": 886,
+    "target": "ostd/src/arch/x86/ex_table.rs",
+    "scope": "whole file (files mode)",
+    "base_sha": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
+    "head_sha": "fe5eb7f3e6aa70c7efce9d93d9fde2e1011b1986",
+    "target_sha256": "f658d625c9531cd2a20492e3a04d8fd92fdf7e2c92bc16460e507d3f41be9583",
+    "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-886-fe5eb7f3e6aa"
+  },
+  {
+    "sample_id": "pr-931-79810bc1eeb5",
+    "pr": 931,
+    "target": "ostd/libs/linux-bzimage/builder/src/lib.rs",
+    "scope": "whole file (files mode)",
+    "base_sha": "c25ca6f98633e7de6c09c66e9e981061ed51cfb4",
+    "head_sha": "79810bc1eeb5a65acb4ec81370d0671253ab48c9",
+    "target_sha256": "f457d9b555288e399c1ee38ac4d34546644fbc97d120cf7a66785990f3dc8bd9",
+    "input": "/var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/inputs/pr-931-79810bc1eeb5"
+  }
+]
+Output directory: /var/folders/rx/xrm5nkpx1qgf4ynpjkl2c3g80000gn/T/vostd-pr933-ab-6v80j6ht/baseline/specification
+Output filename for each case: <sample_id>.json. Also save a brief execution-notes.txt containing files read, missing evidence and any experiment limitations. Final response should state output paths, not reproduce all findings. Do not read any sibling run directories.

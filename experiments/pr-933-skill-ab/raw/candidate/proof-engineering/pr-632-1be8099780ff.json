@@ -1,0 +1,94 @@
+{
+  "Findings": [
+    {
+      "id": "632-proof-1",
+      "severity": "high",
+      "guideline": "implement-inv-for-models",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:57",
+      "quoted_evidence": "pub ghost frame_obligations: vstd::multiset::Multiset<usize>,",
+      "problem": "The ledger is now freely assignable ghost data, so a caller can mint an obligation, keep the tracked token, and reset frame_obligations to Multiset::empty(). inv() does not constrain this field, so clean_inv() then reports a clean boundary while the token remains outstanding.",
+      "key_premise": "After tracked_mint_frame_obligation, the public ghost field can be reset without consuming its returned DropObligation; clean_inv checks only inv plus ledger emptiness.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Represent conservation with an authoritative tracked resource linked to obligation tokens, and expose only mint/redeem operations preserving that relationship. Merely hiding the field is insufficient without the token-to-ledger invariant."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:131"
+      ],
+      "quoted_evidence": "pub axiom fn borrow_typed_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(",
+      "compliance_or_na_reason": "Typed borrow axioms specify wf and initial/final permission correspondence, and mutable borrowing preserves the ledger. No external std API is specified in target. DropObligation source absent from supplied verified_libs subset; no soundness claim about it."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:131"
+      ],
+      "quoted_evidence": "pub axiom fn borrow_typed_perm",
+      "compliance_or_na_reason": "No assume_specification receivers."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:285"
+      ],
+      "quoted_evidence": "DropObligation::tracked_mint(slot_idx)",
+      "compliance_or_na_reason": "Minting uses the shared DropObligation boundary; existing OSTD permission axioms are explicitly marked."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:138"
+      ],
+      "quoted_evidence": "vstd_extra::cast_ptr::PointsTo::<MetaSlot, Metadata<M>>::new_spec(",
+      "compliance_or_na_reason": "Generic typed borrowing is conditioned on permission wf rather than asserting generic immutable container laws. Missing cast_ptr source limits deeper validation."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:136"
+      ],
+      "quoted_evidence": "self.slots.contains_key(i),",
+      "compliance_or_na_reason": "Borrowed permission accesses require map membership; spec range predicates use guarded mathematical indexing."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:285"
+      ],
+      "quoted_evidence": "DropObligation::tracked_mint(slot_idx)",
+      "compliance_or_na_reason": "The former mint/redeem axioms are replaced by bodies using existing token machinery. Searched available roots; full vstd/vstd_extra unavailable."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:57"
+      ],
+      "quoted_evidence": "pub ghost frame_obligations: vstd::multiset::Multiset<usize>,",
+      "compliance_or_na_reason": "Multiset captures repeated obligations per slot; the representation is mathematically apt although conservation is broken as separately reported."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:68"
+      ],
+      "quoted_evidence": "forall|i: usize| i < max_meta_slots() <==> #[trigger] self.slot_owners.contains_key(i)",
+      "compliance_or_na_reason": "Domain and slot predicates use explicit membership/index triggers appropriate for map relations."
+    }
+  ]
+}

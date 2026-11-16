@@ -1,0 +1,23 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:91"
+      ],
+      "quoted_evidence": "    pub fn find_recovery_inst_addr(inst_addr: Vaddr) -> Option<Vaddr> {",
+      "compliance_or_na_reason": "Lookup has no unnecessary precondition: arbitrary instruction addresses are admitted and absence is represented as None. The linker requirements reside at the explicitly trusted read_table boundary."
+    },
+    {
+      "guideline": "api-postconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/src/arch/x86/ex_table.rs:80"
+      ],
+      "quoted_evidence": "    /// Returns the first match in `table_model()`, or `None` iff no entry matches.",
+      "compliance_or_na_reason": "Some specifies matching recovery and excludes earlier matches; None is equivalent to absence, so duplicates and no-match cases are covered. read_table pins the complete ordered sequence via map_values. Neither function has mutable or tracked outputs. No verification was run."
+    }
+  ]
+}

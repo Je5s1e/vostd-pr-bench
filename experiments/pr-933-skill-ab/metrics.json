@@ -1,0 +1,14 @@
+{
+  "baseline": {
+    "target_hits": 4,
+    "target_total": 6,
+    "all_label_hits": 4,
+    "all_label_total": 7
+  },
+  "candidate": {
+    "target_hits": 5,
+    "target_total": 6,
+    "all_label_hits": 5,
+    "all_label_total": 7
+  }
+}

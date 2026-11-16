@@ -1,0 +1,28 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "api-preconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:96",
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:146",
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:164"
+      ],
+      "quoted_evidence": "    requires valid_flat_binary_input(elf_file),",
+      "compliance_or_na_reason": "The success/parse/readability conditions match unwrap and slicing panic regimes; file_size <= mem_size and address/offset/allocation bounds justify copying and exact usize arithmetic. Invalid ELF input has no promised fallible outcome here. No excessive precondition established. make_bzimage remains an unverified host caller, not evidence of a discharged precondition."
+    },
+    {
+      "guideline": "api-postconditions",
+      "status": "complies",
+      "locations": [
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:97",
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:174",
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:189",
+        "ostd/libs/linux-bzimage/builder/src/lib.rs:215"
+      ],
+      "quoted_evidence": "    ensures ret@ == flat_binary_spec(elf_file),",
+      "compliance_or_na_reason": "The complete Vec output is pinned to ordered segment folding, including zero extension, overwrites, skipped non-load segments and preserved preexisting overlapping tails. program_iter explicitly provides remaining, produces-all-true and decrease, not merely closure return-value facts. No mutable or tracked output exists for to_flat_binary. Plain-Rust make_bzimage filesystem effects and assert_elf64_reloc_supported are unverified host integration, and the literal legacy target reader has no additional output-model need. No verification claim is made."
+    }
+  ]
+}

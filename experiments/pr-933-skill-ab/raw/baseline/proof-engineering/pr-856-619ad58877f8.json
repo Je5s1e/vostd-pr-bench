@@ -1,0 +1,86 @@
+{
+  "Findings": [],
+  "Compliance": [
+    {
+      "guideline": "complete-external-contracts",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:349"
+      ],
+      "quoted_evidence": "#[verifier::external_body]",
+      "compliance_or_na_reason": "read_inner and read_once/write_once are explicit in-crate external_body boundaries. RwArc has a type invariant yielding wf (rwarc.rs:46-53), so lack of a separate read_inner requires wf is not itself unsound. AtomicDataWithOwner implementation is omitted; its resource law and the once-operation trusted contracts could not be fully audited."
+    },
+    {
+      "guideline": "centralize-trusted-boundaries",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:349"
+      ],
+      "quoted_evidence": "#[verifier::external_body]",
+      "compliance_or_na_reason": "The skipped bodies remain compiled in-crate functions under external_body; no external API assume_specification is declared beside the caller."
+    },
+    {
+      "guideline": "restrict-generic-trusted-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:69"
+      ],
+      "quoted_evidence": "#[cfg(feature = \"irc11\")]",
+      "compliance_or_na_reason": "Objective impl is for a tracked PhantomData-only owner with no stored memory permissions, and the surrounding resource invariant checks value.inv(). No concrete unsafe transfer follows from M being a marker; no missing Send claim is made."
+    },
+    {
+      "guideline": "distinguish-spec-and-exec-indexing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:159"
+      ],
+      "quoted_evidence": "#[verus_spec(",
+      "compliance_or_na_reason": "No sequence or collection indexing model is introduced; DMA offsets are checked against remaining/available bytes before skip."
+    },
+    {
+      "guideline": "canonical-spec-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:301"
+      ],
+      "quoted_evidence": "with",
+      "compliance_or_na_reason": "Reader/writer pointer ranges use standard Range values. The resource invariant separates executable segment state from its tracked owner."
+    },
+    {
+      "guideline": "quantifiers-and-triggers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:87"
+      ],
+      "quoted_evidence": "impl<M: AnyUFrameMeta + ?Sized> Inv for DmaCoherentInner<M> {",
+      "compliance_or_na_reason": "No explicit quantified model clauses or custom trigger machinery occurs in this target."
+    },
+    {
+      "guideline": "implement-inv-for-models",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:87"
+      ],
+      "quoted_evidence": "impl<M: AnyUFrameMeta + ?Sized> Inv for DmaCoherentInner<M> {",
+      "compliance_or_na_reason": "DmaCoherentInner intrinsic validity is an Inv implementation; resource invariants combine owner and value validity. No duplicate type invariant is present in the target."
+    },
+    {
+      "guideline": "name-assume-spec-receivers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:1"
+      ],
+      "quoted_evidence": "// SPDX-License-Identifier: MPL-2.0",
+      "compliance_or_na_reason": "The target declares no assume_specification receiver."
+    },
+    {
+      "guideline": "reuse-existing-specifications",
+      "status": "complies",
+      "locations": [
+        "ostd/src/mm/dma/dma_coherent.rs:6"
+      ],
+      "quoted_evidence": "use vstd_extra::{",
+      "compliance_or_na_reason": "Inventoried all target spec/proof/axiom functions and searched names/signatures across every available verified_libs, ostd/specs and ostd/src Rust file. Reviewed semantic candidates where available; no quoted equivalent definition supports a duplicate finding. Vendored vstd and some supporting libraries are omitted and upstream checks are prohibited, so this is limited source-level coverage, not a global uniqueness claim."
+    }
+  ]
+}

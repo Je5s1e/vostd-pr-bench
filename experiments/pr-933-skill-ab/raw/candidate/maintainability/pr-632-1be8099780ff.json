@@ -1,0 +1,289 @@
+{
+  "Findings": [
+    {
+      "id": "632-maintainability-01",
+      "severity": "low",
+      "guideline": "group-imports-by-crate",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:1",
+      "quoted_evidence": "use vstd::atomic::*;\n\nuse vstd::prelude::*;\nuse vstd::simple_pptr::{self, *};\n\nuse core::ops::Range;\n\nuse vstd_extra::cast_ptr::{self, Repr};\nuse vstd_extra::drop_tracking::DropObligation;\n\nuse vstd_extra::ownership::*;\n\nuse super::meta_owners::{MetaPerm, MetaSlotModel, MetaSlotOwner, MetaSlotStorage};\nuse super::*;\nuse crate::mm::Paddr;\nuse crate::mm::frame::Link;\nuse crate::mm::frame::meta::{\n    AnyFrameMeta, META_SLOT_SIZE, MetaSlot, REF_COUNT_MAX, mapping::frame_to_meta,\n};\nuse crate::mm::kspace::FRAME_METADATA_RANGE;\nuse crate::specs::arch::{MAX_PADDR, PAGE_SIZE};\n\nuse crate::specs::mm::frame::{\n    mapping::{frame_to_index, max_meta_slots, meta_addr},\n    meta_owners::Metadata,\n};",
+      "problem": "The proof imports are fragmented across multiple same-crate statements and the crate::specs imports are mixed with runtime items.",
+      "key_premise": "There are three separate vstd and three separate vstd_extra statements, plus split crate::specs imports.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Consolidate each verification crate within its group and separate model imports from inherited executable imports."
+    },
+    {
+      "id": "632-maintainability-02",
+      "severity": "low",
+      "guideline": "organize-proof-imports",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:131",
+      "quoted_evidence": "    pub axiom fn borrow_typed_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(\n        &self,\n        i: usize,\n    ) -> (tracked res: &vstd_extra::cast_ptr::PointsTo<MetaSlot, Metadata<M>>)\n        requires\n            self.slots.contains_key(i),\n            self.slot_owners.contains_key(i),\n            vstd_extra::cast_ptr::PointsTo::<MetaSlot, Metadata<M>>::new_spec(\n                self.slots[i],\n                self.slot_owners[i].inner_perms,\n            ).wf(&self.slot_owners[i].inner_perms),",
+      "problem": "Repeated fully qualified cast_ptr::PointsTo paths duplicate the cast_ptr module alias already imported at line 8.",
+      "key_premise": "The same unambiguous vstd_extra::cast_ptr::PointsTo path recurs at lines 134, 138, 158 and 162.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Use cast_ptr::PointsTo consistently; retain the module qualification to distinguish it from simple_pptr::PointsTo."
+    },
+    {
+      "id": "632-maintainability-03",
+      "severity": "low",
+      "guideline": "use-chained-comparisons",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:217",
+      "quoted_evidence": "    pub proof fn paddr_not_mapped_at(self, range: Range<Paddr>, paddr: Paddr)\n        requires\n            self.paddr_range_not_mapped(range),\n            range.start <= paddr,\n            paddr < range.end,\n            paddr % PAGE_SIZE == 0,",
+      "problem": "The adjacent bounds over paddr are split despite sharing the intermediate expression.",
+      "key_premise": "range.start <= paddr and paddr < range.end are conjunctive requirements.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Write range.start <= paddr < range.end, preserving the alignment requirement."
+    },
+    {
+      "id": "632-maintainability-04",
+      "severity": "low",
+      "guideline": "use-returns-for-exact-results",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:115",
+      "quoted_evidence": "    pub open spec fn ref_count(self, i: usize) -> (res: u64)\n        recommends\n            self.inv(),\n            i < max_meta_slots() as usize,\n    {\n        self.slot_owners[i].inner_perms.ref_count.value()",
+      "problem": "The spec function has an unused result binder.",
+      "key_premise": "res appears only in the return declaration of ref_count.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Replace -> (res: u64) with -> u64."
+    },
+    {
+      "id": "632-maintainability-05",
+      "severity": "low",
+      "guideline": "name-proof-roles",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:217",
+      "quoted_evidence": "    pub proof fn paddr_not_mapped_at(self, range: Range<Paddr>, paddr: Paddr)\n        requires\n            self.paddr_range_not_mapped(range),\n            range.start <= paddr,\n            paddr < range.end,\n            paddr % PAGE_SIZE == 0,\n        ensures\n            self.slot_owners[frame_to_index(paddr)].paths_in_pt.is_empty(),",
+      "problem": "The reusable fact paddr_not_mapped_at lacks the lemma_ prefix; inv_implies_correct_addr has the same naming issue.",
+      "key_premise": "Both functions are proof facts rather than ownership-transfer helpers.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Rename surviving reusable facts with lemma_; delete paddr_not_mapped_at instead if it remains unused. Prefix the two trusted borrowing axioms with axiom_."
+    },
+    {
+      "id": "632-maintainability-06",
+      "severity": "low",
+      "guideline": "avoid-unused-spec-helpers",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:217",
+      "quoted_evidence": "    pub proof fn paddr_not_mapped_at(self, range: Range<Paddr>, paddr: Paddr)\n        requires\n            self.paddr_range_not_mapped(range),\n            range.start <= paddr,\n            paddr < range.end,\n            paddr % PAGE_SIZE == 0,\n        ensures\n            self.slot_owners[frame_to_index(paddr)].paths_in_pt.is_empty(),\n    {\n        // The trigger frame_to_index(paddr) fires from the ensures clause,\n        // instantiating the forall in paddr_range_not_mapped at this paddr.\n    }",
+      "problem": "paddr_not_mapped_at has no caller in the supplied complete ostd tree; paddr_range_in_region and paddr_range_not_in_region likewise have only definitions.",
+      "key_premise": "A word-boundary search of this case after tree finds only their definitions, and no external consumer is documented.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Remove these helpers unless a current consumer or intentional external abstraction boundary can be identified. The omitted dependency trees limit global absence claims."
+    },
+    {
+      "id": "632-maintainability-07",
+      "severity": "low",
+      "guideline": "document-verified-apis",
+      "location": "ostd/specs/mm/frame/meta_region_owners.rs:42",
+      "quoted_evidence": "/// Double-free happens when `from_raw` is called on a frame that is not forgotten, or that has been\n/// dropped with `ManuallyDrop::drop` instead of `into_raw`. All functions in\n/// the verified code that call `from_raw` have a precondition that the frame's index is not a key in `slots`.\nSupporting frame_specs.rs:36-42: from_raw_requires_safety requires regions.slot_owners.contains_key(frame_to_index(paddr)), regions.inv(), and ref_count != REF_COUNT_UNUSED.",
+      "problem": "The safety description says from_raw requires the slot to be absent, but the current model requires an existing live slot and region invariant. This reverses the documented ownership boundary.",
+      "key_premise": "Frame::from_raw_requires_safety requires slot_owners.contains_key and regions.inv(); MetaRegionOwners::inv implies slots.contains_key.",
+      "experiment": {
+        "attempted": false,
+        "command": null,
+        "exit_code": null,
+        "result": null
+      },
+      "suggestion": "Correct the safety explanation to describe the current live-slot and obligation protocol, explicitly as a documentation correction."
+    }
+  ],
+  "Compliance": [
+    {
+      "guideline": "separate-verus-modes",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "Executable sections, specifications and proof bodies are visibly marked; no adjacent redundant verus blocks require merging."
+    },
+    {
+      "guideline": "avoid-redundant-as-int-casts",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No demonstrated redundant as int cast requiring a change was found; int-parameter casts are retained. No compiler experiment was available."
+    },
+    {
+      "guideline": "use-addr-for-pointers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No pointer-view @.addr identity constraints occur in the target."
+    },
+    {
+      "guideline": "seq-range-slicing",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No spec Seq subrange/take/skip expression needs replacement in this target."
+    },
+    {
+      "guideline": "attach-broadcast-axioms-once",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No per-branch repeated broadcast use occurs in the target."
+    },
+    {
+      "guideline": "bind-option-payloads",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No repeated payload facts on the same Option requiring one shared binding were found."
+    },
+    {
+      "guideline": "match-enum-results",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "Enum contracts use is/matches or explicit matches; failure branches with independent state guarantees are retained."
+    },
+    {
+      "guideline": "preserve-exec-code",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "Compared the available before/after source or diff. No additional unsupported executable rewrite is established; pre-snapshot history and upstream logs are unavailable."
+    },
+    {
+      "guideline": "inline-single-use-proof-helpers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No additional one-off auxiliary wrapper lacking a meaningful contract boundary was established; public model/ownership operations are intentional abstractions."
+    },
+    {
+      "guideline": "defer-auxiliary-proof-functions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No misplaced auxiliary side-obligation proof was established; public model APIs and invariant-preservation core proofs remain part of the module surface."
+    },
+    {
+      "guideline": "avoid-redundant-mode-markers",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:57"
+      ],
+      "quoted_evidence": "    pub ghost frame_obligations: vstd::multiset::Multiset<usize>,\n}\n\npub ghost struct MetaRegionModel {\n    pub slots: Map<usize, MetaSlotModel>,\n}",
+      "compliance_or_na_reason": "The multiset is ghost within a tracked owner, while fields inside the ghost model omit redundant ghost markers."
+    },
+    {
+      "guideline": "prefer-ghost-model-structs",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).\n    /// Multiset semantics \u2014 multiple outstanding obligations at the same slot\n    /// are counted individually.\n    pub ghost frame_obligations: vstd::multiset::Multiset<usize>,\n}\n\npub ghost struct MetaRegionModel {\n    pub slots: Map<usize, MetaSlotModel>,\n}",
+      "compliance_or_na_reason": "MetaRegionOwners is tracked for permission ownership while MetaRegionModel is explicitly ghost. No verification run was possible."
+    },
+    {
+      "guideline": "keep-internal-spec-helpers-closed",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No representation-only pub open helper requiring closure was established; public model predicates used as caller-facing reasoning surfaces are legitimate."
+    },
+    {
+      "guideline": "narrow-lint-suppressions",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No broad crate/module lint allowance was found; existing local attributes do not broaden suppression across the target."
+    },
+    {
+      "guideline": "right-size-spec-placement",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "Searched this case after tree for the defined spec functions. Placement matches either a substantial subsystem model under ostd/specs or a small local implementation model."
+    },
+    {
+      "guideline": "generate-repeated-spec-helpers",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No verbatim per-type family of spec helper bodies occurs; similar ownership operations have different signatures or semantics."
+    },
+    {
+      "guideline": "document-real-proof-debt",
+      "status": "complies",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No independently demonstrated misleading proof-debt claim beyond any documentation finding was found. Wording-only nits are not reported, and unavailable history cannot establish removed supporting assertions."
+    },
+    {
+      "guideline": "qualified-verus-spec-calls",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No observed imported-call resolution workaround is required; the historical verifier is unavailable, so resolution is not independently certified."
+    },
+    {
+      "guideline": "pair-exec-helpers-with-spec-models",
+      "status": "not-applicable",
+      "locations": [
+        "ostd/specs/mm/frame/meta_region_owners.rs:46"
+      ],
+      "quoted_evidence": "pub tracked struct MetaRegionOwners {\n    pub slots: Map<usize, simple_pptr::PointsTo<MetaSlot>>,\n    pub slot_owners: Map<usize, MetaSlotOwner>,\n    /// Outstanding per-instance obligations for both `Frame<M>` and\n    /// `Segment<M>`, as a multiset of slot indices. `ManuallyDrop::new(frame,\n    /// ..)` adds one entry at `frame.key()` (mint paired with the `raw_count++`\n    /// bump); `Frame::drop` (via `consume_obligation`) and `ManuallyDrop::new`\n    /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n    /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).",
+      "compliance_or_na_reason": "No unpaired arithmetic executable/model twin is demonstrated in this target."
+    }
+  ]
+}
