@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-819-15e19d347120",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-819-15e19d347120:issue-4226890291",
+      "original_label_id": "4226890291",
+      "category": "guideline",
+      "description": "Volatile-read address constraints access the pointer view representation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/external/ptr.rs",
+          "start_line": 116,
+          "end_line": 116
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The same module's pointer model uses the addr accessor; replacing only address projections preserves provenance and metadata distinctions.",
+      "source_evidence": "113: pub assume_specification<T>[ core::ptr::read_volatile::<T> ](src: *const T) -> T\n114:     requires\n115:         src@.addr + size_of::<T>() <= usize::MAX,\n116:         src@.addr % align_of::<T>() == 0,\n117:     opens_invariants none\n118:     no_unwind when src@.addr % align_of::<T>() == 0\n119: ;\n120: \n121: /// [core::ptr::write_volatile](https://doc.rust-lang.org/std/ptr/fn.write_volatile.html);\n122: /// debug builds panic on misaligned `dst`, so the alignment carries `no_unwind when`.\n123: pub assume_specification<T>[ core::ptr::write_volatile::<T> ](dst: *mut T, src: T)",
+      "rule_ids": [
+        "use-addr-for-pointers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/819#discussion_r4226890291",
+      "related_comment_ids": [
+        "4226890291"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-819-15e19d347120:issue-4226891187",
+      "original_label_id": "4226891187",
+      "category": "guideline",
+      "description": "Volatile-write address constraints access the pointer view representation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/external/ptr.rs",
+          "start_line": 125,
+          "end_line": 125
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The destination address should use dst.addr(); this is a separate external operation from the read finding.",
+      "source_evidence": "122: /// debug builds panic on misaligned `dst`, so the alignment carries `no_unwind when`.\n123: pub assume_specification<T>[ core::ptr::write_volatile::<T> ](dst: *mut T, src: T)\n124:     requires\n125:         dst@.addr + size_of::<T>() <= usize::MAX,\n126:         dst@.addr % align_of::<T>() == 0,\n127:     opens_invariants none\n128:     no_unwind when dst@.addr % align_of::<T>() == 0\n129: ;\n130: \n131: /// [<*mut T>::add](https://doc.rust-lang.org/std/primitive.pointer.html#method.add) preserves\n132: /// provenance and metadata; debug builds panic on offset overflow, so the no-overflow",
+      "rule_ids": [
+        "use-addr-for-pointers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/819#discussion_r4226891187",
+      "related_comment_ids": [
+        "4226891187"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

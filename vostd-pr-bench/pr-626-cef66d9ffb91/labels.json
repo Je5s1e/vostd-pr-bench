@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-626-cef66d9ffb91",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-626-cef66d9ffb91:issue-3570339232",
+      "original_label_id": "3570339232",
+      "category": "guideline",
+      "description": "New Metadata specification import is added as another standalone same-crate import.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "start_line": 21,
+          "end_line": 21
+        }
+      ],
+      "rationale": "Independent base diff corrects first-pass premise: vstd_extra::array_ptr at18 is inherited and must not be blamed on this PR. The PR adds a new standalone crate::specs::mm::frame::meta_owners::Metadata import at21 adjacent to same-crate spec imports22-25, adding another split import instead of joining the verification group. Accepted scope is this new Metadata import only.",
+      "source_evidence": "15:     nr_subpage_per_huge, paddr_to_vaddr, page_table::*,\n16: };\n17: \n18: use vstd_extra::array_ptr::*;\n19: \n20: use crate::mm::page_table::*;\n21: use crate::specs::mm::frame::meta_owners::Metadata;\n22: use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;\n23: use crate::specs::mm::page_table::node::Guards;\n24: use crate::specs::mm::page_table::node::entry_owners::EntryOwner;\n25: use crate::specs::task::InAtomicMode;",
+      "rule_ids": [
+        "group-imports-by-crate"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/626#discussion_r3570339232",
+      "related_comment_ids": [
+        "3570339232"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

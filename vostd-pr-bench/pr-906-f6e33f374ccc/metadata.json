@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-906-f6e33f374ccc",
+  "pr_number": 906,
+  "title": "prove: verify task stack-size parsing",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/906",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "24317fd3c8b086a637c239cf7c9f426b3c7e368d",
+  "head_sha": "f6e33f374cccf7ec2a35694d2f2e53a573747ed0",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/task/kernel_stack.rs",
+    "ostd/src/task/mod.rs",
+    "ostd/src/task/stack_size.rs",
+    "tools/tests/stack_size.rs"
+  ],
+  "diff_sha256": "6fab3cc0189cddfbdde1f826e2017d7cdda60188d0d76ba04d15e3e5cd7b2166",
+  "versions": {
+    "before": {
+      "commit": "24317fd3c8b086a637c239cf7c9f426b3c7e368d",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "f6e33f374cccf7ec2a35694d2f2e53a573747ed0",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

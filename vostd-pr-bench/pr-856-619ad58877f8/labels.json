@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-856-619ad58877f8",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-856-619ad58877f8:issue-4367306309",
+      "original_label_id": "4367306309",
+      "category": "guideline",
+      "description": "use \n```rust\nvstd::{arithmetic::mul::lemma_mul_inequality, prelude::*}\n```\naccording to the guideline",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_coherent.rs",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "rationale": "Independent header check: unconditional vstd arithmetic and prelude imports split on2-3; group them. cfg(irc11) Objective import remains separate to preserve conditionality.",
+      "source_evidence": "1: // SPDX-License-Identifier: MPL-2.0\n2: use vstd::arithmetic::mul::lemma_mul_inequality;\n3: use vstd::prelude::*;\n4: #[cfg(feature = \"irc11\")]\n5: use vstd::thread_view::Objective;\n6: use vstd_extra::{\n7:     atomic_data::AtomicDataWithOwner,\n8:     ownership::{Inv, OwnerOf},\n9:     resource_invariant::SimpleResourceInvariant,\n10: };",
+      "rule_ids": [
+        "group-imports-by-crate"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/856#discussion_r4367306309",
+      "related_comment_ids": [
+        "4367306309"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

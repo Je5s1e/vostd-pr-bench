@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-860-a4749f699922",
+  "pr_number": 860,
+  "title": "Rcu paper single link",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/860",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "18aea7a127610ad471325235b85395afe82710da",
+  "head_sha": "a4749f699922e248fea0664211257966404c01f2",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    ".github/workflows/ci-irc11.yml",
+    "ostd/specs/mod.rs",
+    "ostd/specs/sync/mod.rs",
+    "ostd/specs/sync/rcu/atomic.rs",
+    "ostd/specs/sync/rcu/cpu.rs",
+    "ostd/specs/sync/rcu/grace_period.rs",
+    "ostd/specs/sync/rcu/link.rs",
+    "ostd/specs/sync/rcu/mod.rs",
+    "ostd/specs/sync/rcu/permissions.rs",
+    "ostd/specs/sync/rcu/retirement.rs",
+    "ostd/specs/sync/rcu/traversal.rs",
+    "ostd/specs/task/cpu_core.rs",
+    "ostd/specs/task/mod.rs",
+    "ostd/specs/task/rcu.rs",
+    "ostd/src/cpu/mod.rs",
+    "ostd/src/sync/rcu/acceptance.rs",
+    "ostd/src/sync/rcu/irc11.rs",
+    "ostd/src/sync/rcu/mod.rs",
+    "ostd/src/sync/rcu/non_null/mod.rs",
+    "ostd/src/sync/rcu/weak_lock.rs",
+    "ostd/src/sync/rcu/weak_monitor.rs",
+    "ostd/src/sync/rcu/weak_root.rs",
+    "tools/tests/rcu_callback_smoke.rs",
+    "verified_libs/vstd_extra/src/lib.rs",
+    "verified_libs/vstd_extra/src/raw_callback.rs",
+    "verified_libs/vstd_extra/src/rcu_objects.rs",
+    "verified_libs/vstd_extra/src/rcu_objects/owned_root.rs",
+    "verified_libs/vstd_extra/src/rcu_objects/root.rs"
+  ],
+  "diff_sha256": "b89f0831144db9811bfdaafbe5e411bbe019471a9f396bda98b77694c029956f",
+  "versions": {
+    "before": {
+      "commit": "18aea7a127610ad471325235b85395afe82710da",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "a4749f699922e248fea0664211257966404c01f2",
+      "file_count": 339,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 7
+}

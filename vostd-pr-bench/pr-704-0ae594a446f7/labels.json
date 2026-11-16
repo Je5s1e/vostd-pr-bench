@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-704-0ae594a446f7",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-704-0ae594a446f7:issue-3810356706",
+      "original_label_id": "3810356706",
+      "category": "guideline",
+      "description": "Just `final(cursor)@==old(cursor)@` should work, same for `peek_next`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/external/btree.rs",
+          "start_line": 256,
+          "end_line": 256
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. CursorMutModel has exactly keys, position, map. None branch separately equates all three fields; equality of the entire model expresses precisely the same frame condition without repetition.",
+      "source_evidence": "252:             None => {\n253:                 &&& old(cursor)@.position == 0\n254:                 &&& final(cursor)@.keys == old(cursor)@.keys\n255:                 &&& final(cursor)@.position == old(cursor)@.position\n256:                 &&& final(cursor)@.map == old(cursor)@.map\n257:             },\n258:         },\n259: ;\n260: \n261: /// Specification for [`CursorMut::peek_next`].",
+      "rule_ids": [
+        "canonical-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/704#discussion_r3810356706",
+      "related_comment_ids": [
+        "3810356706"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

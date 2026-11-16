@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-679-f7dfb8525a55",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-679-f7dfb8525a55:issue-3690850716",
+      "original_label_id": "3690850716",
+      "category": "guideline",
+      "description": "Should we add a lemma prefix? There seem to be several functions missing the prefix in this file.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "start_line": 159,
+          "end_line": 159
+        }
+      ],
+      "rationale": "Inspected entire lemma signature and mathematical postcondition at159 onward; no tracked mutation. Explicit naming rule requires lemma_ prefix for reusable proved facts. Guideline directly cites case, so exposed replay.",
+      "source_evidence": "152: {\n153: }\n154: \n155: /// Localizes the \"no existing slot aliases the inserted frame\" universal fact\n156: /// into its own prover query, so the `MetaRegionOwners::inv` and map-insert\n157: /// quantifiers do not get over-instantiated inside `insert_before`'s body.\n158: #[verifier::spinoff_prover]\n159: proof fn insert_before_slot_distinct<M: AnyFrameMeta + Repr<MetaSlotSmall>>(\n160:     owner0: LinkedListOwner<M>,\n161:     regions0: MetaRegionOwners,\n162:     frame_idx: int,\n163:     nn: int,\n164: )\n165:     requires\n166:         owner0.relate_region(regions0),\n167:         regions0.inv(),",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/679#discussion_r3690850716",
+      "related_comment_ids": [
+        "3690850716"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

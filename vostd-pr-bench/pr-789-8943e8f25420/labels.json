@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-789-8943e8f25420",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-789-8943e8f25420:issue-4060179620",
+      "original_label_id": "4060179620",
+      "category": "guideline",
+      "description": "Identical per-header length accessors are hand-copied.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/x86/kernel/acpi/remapping.rs",
+          "start_line": 69,
+          "end_line": 69
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: Multiple u16 header accessors repeat self.length and can share a macro with type parameters. The original line-1 anchor is corrected to the first implementation.",
+      "source_evidence": "66: }\n67: \n68: impl DrhdHeader {\n69:     pub closed spec fn length_spec(self) -> u16 {\n70:         self.length\n71:     }\n72: }\n73: \n74: /// Reserved Memory Region Reporting (RMRR).\n75: ///\n76: /// BIOS allocated reserved memory ranges that may be DMA targets.",
+      "rule_ids": [
+        "generate-repeated-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/789#discussion_r4060179620",
+      "related_comment_ids": [
+        "4060179620"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-789-8943e8f25420:issue-4060261778",
+      "original_label_id": "4060261778",
+      "category": "semantic",
+      "description": "A public parser precondition has no externally usable introduction rule.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/x86/kernel/acpi/remapping.rs",
+          "start_line": 317,
+          "end_line": 317
+        }
+      ],
+      "rationale": "Independently read recursive closed valid_device_scopes and public parser macro requires373; no public introducing lemma exists. External caller cannot establish even concrete well-formed bytes via closed body. Correct criterion is caller-provable contract; also supported by keep-internal-spec-helpers-closed exception.",
+      "source_evidence": "314: }\n315: \n316: /// Whether `bytes[start..end]` is a sequence of complete device-scope entries.\n317: pub closed spec fn valid_device_scopes(bytes: Seq<u8>, start: int, end: int) -> bool\n318:     decreases end - start,\n319: {\n320:     &&& 0 <= start <= end <= bytes.len()\n321:     &&& if start == end {\n322:         true\n323:     } else {\n324:         let remaining = bytes.subrange(start, end);",
+      "rule_ids": [
+        "api-preconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/789#discussion_r4060261778",
+      "related_comment_ids": [
+        "4060261778"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

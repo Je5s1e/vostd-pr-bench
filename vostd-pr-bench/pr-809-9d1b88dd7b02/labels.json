@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-809-9d1b88dd7b02",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-809-9d1b88dd7b02:issue-4129188836",
+      "original_label_id": "4129188836",
+      "category": "guideline",
+      "description": "Already correctly typed ranges are repeatedly reconstructed field-for-field.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 48,
+          "end_line": 48
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: FreeRange.block and the receiving set elements are both Range<usize>. Reconstruction adds no conversion or information. Related occurrences are grouped here.",
+      "source_evidence": "45: /// The set-of-ranges view of a free-list map, dropping its keys and `FreeRange` wrapper.\n46: closed spec fn freelist_model(freelist: Map<usize, FreeRange>) -> Set<Range<usize>> {\n47:     freelist.dom().map(\n48:         |key: usize| Range { start: freelist[key].block.start, end: freelist[key].block.end },\n49:     )\n50: }\n51: \n52: /// The addresses covered by the free-list ranges.\n53: closed spec fn free_set(freelist: Set<Range<usize>>) -> Set<usize> {\n54:     freelist.map(|block: Range<usize>| block.view_set()).flatten()\n55: }",
+      "rule_ids": [
+        "canonical-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/809#discussion_r4129188836",
+      "related_comment_ids": [
+        "4129188836"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-809-9d1b88dd7b02:issue-4129191709",
+      "original_label_id": "4129191709",
+      "category": "guideline",
+      "description": "Internal resource fields unnecessarily expose representation to the parent module.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 90,
+          "end_line": 90
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: Search finds FreelistResource construction and use within this file; its associated resource role does not require exposing the individual fields.",
+      "source_evidence": "87: /// Lock-guarded proof resource: initialization state, the authoritative set,\n88: /// and ownership of all currently free addresses.\n89: pub(super) tracked struct FreelistResource {\n90:     pub(super) initialized: Sum<OneShotPending, OneShotSet>,\n91:     pub(super) state: GhostSetAuth<usize>,\n92:     pub(super) remaining: GhostSubset<usize>,\n93: }\n94: \n95: #[cfg(feature = \"irc11\")]\n96: unsafe impl Objective for FreelistResource {\n97: ",
+      "rule_ids": [
+        "keep-internal-spec-helpers-closed"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/809#discussion_r4129191709",
+      "related_comment_ids": [
+        "4129191709"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-809-9d1b88dd7b02:issue-4129214991",
+      "original_label_id": "4129214991",
+      "category": "guideline",
+      "description": "The changed contract binds the same Ok payload in separate implication blocks.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 440,
+          "end_line": 440
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The new token guarantee can share the existing success payload binding. The Ok/Some equivalence must remain; it is not redundant.",
+      "source_evidence": "437:                 &&& self@.start <= res.start <= res.end <= self@.end\n438:             },\n439:             res is Ok <==> allocated@ is Some,\n440:             res matches Ok(range) ==> allocated@ matches Some(token) && {\n441:                 &&& token.id() == self.state_id()\n442:                 &&& token.range() == Range {\n443:                     start: range.start,\n444:                     end: range.end,\n445:                 }\n446:             },\n447:     )]",
+      "rule_ids": [
+        "match-enum-results"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/809#discussion_r4129214991",
+      "related_comment_ids": [
+        "4129214991"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

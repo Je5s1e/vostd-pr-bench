@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-742-32f28ee1260b",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-742-32f28ee1260b:issue-3964397263",
+      "original_label_id": "3964397263",
+      "category": "guideline",
+      "description": "Is this definition used?",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/mod.rs",
+          "start_line": 3885,
+          "end_line": 3885
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. old_store binding at embedding/mod.rs:3885 has no subsequent use in function; other old_store occurrences are in an earlier unrelated function. Author confirms merge residue.",
+      "source_evidence": "3881:     };\n3882:     assert(s.regions.inv()) by {\n3883:         reveal(VmStore::structural_inv);\n3884:     };\n3885:     let ghost old_store = *s;\n3886:     let ghost old_regions = s.regions;\n3887:     let ghost old_frames = s.frames;\n3888:     let ghost old_segments = s.segments;\n3889:     let ghost sid_range = s.segments[sid].range;\n3890:     let ghost new_entry_ghost = SegmentEntry { range: sub_range };",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/742#discussion_r3964397263",
+      "related_comment_ids": [
+        "3964397263"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-742-32f28ee1260b:issue-3964412018",
+      "original_label_id": "3964412018",
+      "category": "guideline",
+      "description": "Is the `::` at the beginning necessary? Besides, this import is under `core::{fmt::Debug, ops::Range}` in the source code.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/libs/id-alloc/src/lib.rs",
+          "start_line": 7,
+          "end_line": 7
+        }
+      ],
+      "rationale": "Diff moves the original bitvec import above core and mixes it with verification-added imports. Keep leading :: if needed for disambiguation; restore source grouping.",
+      "source_evidence": "3: #![deny(unsafe_code)]\n4: #![feature(proc_macro_hygiene)]\n5: #![expect(internal_features)]\n6: \n7: use ::bitvec::prelude::BitVec;\n8: use vstd::prelude::*;\n9: use vstd_extra::{debug_assert, prelude::*};\n10: \n11: use core::{fmt::Debug, ops::Range};\n12: ",
+      "rule_ids": [
+        "group-imports-by-crate"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/742#discussion_r3964412018",
+      "related_comment_ids": [
+        "3964412018"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-742-32f28ee1260b:issue-3964456182",
+      "original_label_id": "3964456182",
+      "category": "guideline",
+      "description": "Do we need this lemma? It seems very trivial.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/libs/id-alloc/src/lib.rs",
+          "start_line": 160,
+          "end_line": 160
+        }
+      ],
+      "rationale": "Independent whole-tree search finds only declaration and self-recursive call. This is an unused private helper regardless of whether the recursive congruence proof simplifies under the historical solver.",
+      "source_evidence": "156:     assert(t.subrange(k, s.len() as int) =~= s.subrange(k, s.len() as int)) by {}\n157: }\n158: \n159: /// Element-wise-equal sequences have the same `first_zero_seq`.\n160: proof fn lemma_first_zero_seq_ext_equal(a: Seq<bool>, b: Seq<bool>)\n161:     requires\n162:         a =~= b,\n163:     ensures\n164:         first_zero_seq(a) == first_zero_seq(b),\n165:     decreases a.len(),",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/742#discussion_r3964456182",
+      "related_comment_ids": [
+        "3964456182"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

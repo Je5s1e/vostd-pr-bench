@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-738-b759e2fe2adc",
+  "pr_number": 738,
+  "title": "sync(sync): update to 0.18.1",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/738",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+  "head_sha": "b759e2fe2adcf3261f56dc5ae10099b75243f160",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/sync/rwarc.rs",
+    "ostd/src/sync/rwlock.rs",
+    "ostd/src/sync/rwmutex.rs",
+    "ostd/src/sync/spin.rs"
+  ],
+  "diff_sha256": "c024b703fad276f54fb1dcdd89c116fc925bd95b1ef6e7d815bd39c346453bff",
+  "versions": {
+    "before": {
+      "commit": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6d6502d142b049f691055d9de76709ef47c664d6",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "b759e2fe2adcf3261f56dc5ae10099b75243f160",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6d6502d142b049f691055d9de76709ef47c664d6",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-820-23c7625612f0",
+  "pr_number": 820,
+  "title": "Add ISA IRQ override mapping proofs",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/820",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "7e53bd1223e5c3f958c863ad48dcb917cd8e9b3e",
+  "head_sha": "23c7625612f0835e234ca7d90a3b157942acc486",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/x86/irq.rs",
+    "ostd/specs/arch/x86/mod.rs",
+    "ostd/src/arch/x86/kernel/irq/mod.rs"
+  ],
+  "diff_sha256": "c8cd8e62a8e43c43a9d4371be729c6eaad2c65f7d6ebe6afaad3739b75dcd8c3",
+  "versions": {
+    "before": {
+      "commit": "7e53bd1223e5c3f958c863ad48dcb917cd8e9b3e",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "23c7625612f0835e234ca7d90a3b157942acc486",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 3
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-778-994b5b0a00cf",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-778-994b5b0a00cf:issue-4045503423",
+      "original_label_id": "4045503423",
+      "category": "guideline",
+      "description": "New contains helper has no current consumer.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/memory_region_specs.rs",
+          "start_line": 41,
+          "end_line": 41
+        }
+      ],
+      "rationale": "Searched MemRegionModel uses and contains operations; model is only consumed by memory_region specs and boot memory region view/constructors, none calls this contains helper. No published consumer justification.",
+      "source_evidence": "38:     }\n39: \n40:     /// Whether `addr` is in the half-open range `[base, end)` of the region.\n41:     pub open spec fn contains(self, addr: int) -> bool {\n42:         self.base <= addr < self.end\n43:     }\n44: \n45:     /// Whether the region overlaps the other region.\n46:     pub open spec fn overlaps(self, other: Self) -> bool {\n47:         self.base < other.end && other.base < self.end\n48:     }",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/778#discussion_r4045503423",
+      "related_comment_ids": [
+        "4045503423"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-778-994b5b0a00cf:issue-4045505932",
+      "original_label_id": "4045505932",
+      "category": "guideline",
+      "description": "New overlaps helper has no current consumer.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/memory_region_specs.rs",
+          "start_line": 46,
+          "end_line": 46
+        }
+      ],
+      "rationale": "Repository search for overlaps and model use confirms unused public helper; routine range/set operations elsewhere are not callers of this model method.",
+      "source_evidence": "43:     }\n44: \n45:     /// Whether the region overlaps the other region.\n46:     pub open spec fn overlaps(self, other: Self) -> bool {\n47:         self.base < other.end && other.base < self.end\n48:     }\n49: \n50:     /// Whether both boundaries of the region are multiples of `align`.\n51:     pub open spec fn aligned(self, align: int) -> bool {\n52:         self.base % align == 0 && self.end % align == 0\n53:     }",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/778#discussion_r4045505932",
+      "related_comment_ids": [
+        "4045505932"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

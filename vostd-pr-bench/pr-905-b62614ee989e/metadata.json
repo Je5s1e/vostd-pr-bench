@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-905-b62614ee989e",
+  "pr_number": 905,
+  "title": "Verify x86 TSC frequency calculation via CPUID",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/905",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "29f0517ec33a6a7423316b08de78664a83305d5d",
+  "head_sha": "b62614ee989e85dbc57248f01cf5970641c6642e",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/kernel/mod.rs",
+    "ostd/src/arch/x86/kernel/tsc.rs",
+    "verified_libs/vstd_extra/src/external/x86.rs"
+  ],
+  "diff_sha256": "2b03d51cd63457dd7f7395b61f3df86eaef8d8bc30e29a6b19a4b472b74e49dc",
+  "versions": {
+    "before": {
+      "commit": "29f0517ec33a6a7423316b08de78664a83305d5d",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "b62614ee989e85dbc57248f01cf5970641c6642e",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

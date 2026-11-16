@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-718-80dcb9bc16eb",
+  "pr_number": 718,
+  "title": "prove: verify utility range operations",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/718",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+  "head_sha": "80dcb9bc16eb9145a1b79c34a4a6512ca78f8f55",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/util/mod.rs",
+    "ostd/src/util/ops.rs",
+    "verified_libs/vstd_extra/src/external/iter.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/external/range.rs",
+    "verified_libs/vstd_extra/src/lib.rs",
+    "verified_libs/vstd_extra/src/range.rs"
+  ],
+  "diff_sha256": "406e939547e69688855b46087697b27c62ba350764b67c85cb8ab51410d3db0b",
+  "versions": {
+    "before": {
+      "commit": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6d6502d142b049f691055d9de76709ef47c664d6",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "80dcb9bc16eb9145a1b79c34a4a6512ca78f8f55",
+      "file_count": 324,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6d6502d142b049f691055d9de76709ef47c664d6",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 3
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-770-28ec70b8e3f2",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-770-28ec70b8e3f2:issue-4042976752",
+      "original_label_id": "4042976752",
+      "category": "guideline",
+      "description": "Independent source and rule inspection confirms: Bounded forall checks every sequence element equal zero; Seq::all expresses same predicate without exposing indices.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/cpu/set.rs",
+          "start_line": 285,
+          "end_line": 285
+        }
+      ],
+      "rationale": "Independent source and rule inspection confirms: Bounded forall checks every sequence element equal zero; Seq::all expresses same predicate without exposing indices.",
+      "source_evidence": "282: proof fn lemma_empty_bits_imply_empty_set(set: &CpuSet)\n283:     requires\n284:         forall|i: int|\n285:             0 <= i < smallvec_view(&set.bits).len() ==> smallvec_view(&set.bits)[i] == 0u64,\n286:     ensures\n287:         set@ == Set::empty(),\n288: {\n289:     let seq = smallvec_view(&set.bits);\n290:     assert forall|j: int| !set@.contains(j) by {\n291:         if 0 <= j < cpu_count() && j < 64 * seq.len() {\n292:             lemma_bit_at_uniform(seq, 0u64, j);",
+      "rule_ids": [
+        "quantifiers-and-triggers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/770#discussion_r4042976752",
+      "related_comment_ids": [
+        "4042976752"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-770-28ec70b8e3f2:issue-4042969977",
+      "original_label_id": "4042969977",
+      "category": "guideline",
+      "description": "Independent source and rule inspection confirms: Private lemma_cpucount_fits and related representation/bounds helpers interrupt the public CpuSet model and APIs; move auxiliary section to trailing block.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/cpu/set.rs",
+          "start_line": 244,
+          "end_line": 244
+        }
+      ],
+      "rationale": "Independent source and rule inspection confirms: Private lemma_cpucount_fits and related representation/bounds helpers interrupt the public CpuSet model and APIs; move auxiliary section to trailing block.",
+      "source_evidence": "241:     }\n242: }\n243: \n244: proof fn lemma_cpucount_fits()\n245:     ensures\n246:         2 * (parts_for_cpus_spec(cpu_count() as usize) as int) * (size_of::<u64>() as int)\n247:             <= isize::MAX as int,\n248: {\n249:     if cpu_count() > 0 {\n250:         assert(parts_for_cpus_spec(cpu_count() as usize) as int == (cpu_count() + 63) / 64) by {\n251:             reveal(parts_for_cpus_spec)",
+      "rule_ids": [
+        "defer-auxiliary-proof-functions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/770#discussion_r4042969977",
+      "related_comment_ids": [
+        "4042969977"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

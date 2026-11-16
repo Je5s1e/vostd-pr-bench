@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-626-cef66d9ffb91",
+  "pr_number": 626,
+  "title": "fix `Cursor::new` that may create duplicate page table permissions",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/626",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "9f303a1bdce25c7def21ce28b60a7d4f84217262",
+  "head_sha": "cef66d9ffb91f3bc2f087e479f0571a67f5ff011",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/kvirt_store.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "8aa5508aa676b0ecfbe24aa69ae53659ddf63cba9e92bf42355ffcaf44f8c6d1",
+  "versions": {
+    "before": {
+      "commit": "9f303a1bdce25c7def21ce28b60a7d4f84217262",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "cef66d9ffb91f3bc2f087e479f0571a67f5ff011",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-906-f6e33f374ccc",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-906-f6e33f374ccc:issue-4525740735",
+      "original_label_id": "4525740735",
+      "category": "guideline",
+      "description": "Existing executable parser functions are moved to a new sibling module for verification isolation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/task/stack_size.rs",
+          "start_line": 1,
+          "end_line": 1
+        }
+      ],
+      "rationale": "Diff independently creates stack_size.rs and rewires kernel_stack import; explicit comment says moved only to verify while rest disabled. Parser bodies remain elsewhere as comments and visibility is widened. Preserve original placement and enable needed block instead of verification-only relocation.",
+      "source_evidence": "1: // SPDX-License-Identifier: MPL-2.0\n2: //! Decimal parsing for the build-time kernel stack size.\n3: use vstd::{prelude::*, string::StringSliceAdditionalSpecFns};\n4: \n5: verus! {\n6: \n7: /// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n8: pub(super) open spec fn decimal_value(bytes: Seq<u8>) -> int",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/906#discussion_r4525740735",
+      "related_comment_ids": [
+        "4525740735"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-674-fc2045c29e48",
+  "pr_number": 674,
+  "title": " Prove page table stores and tracked owner helpers",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/674",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d54378ad684ff897cdecfecb8770f70c5aa3cd7c",
+  "head_sha": "fc2045c29e488d7ad622ec9e7f97c96118aed88a",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "verified_libs/vstd_extra/src/array_ptr.rs"
+  ],
+  "diff_sha256": "6188787ac81c7391060050b9155a79a295f2d43e5e8b9a686109dc0e5286672f",
+  "versions": {
+    "before": {
+      "commit": "d54378ad684ff897cdecfecb8770f70c5aa3cd7c",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "fc2045c29e488d7ad622ec9e7f97c96118aed88a",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

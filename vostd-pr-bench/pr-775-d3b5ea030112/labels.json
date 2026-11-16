@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-775-d3b5ea030112",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-775-d3b5ea030112:issue-4032713402",
+      "original_label_id": "4032713402",
+      "category": "guideline",
+      "description": "A private recursive construction helper unnecessarily expands the associated proof API.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/ghost_tree.rs",
+          "start_line": 613,
+          "end_line": 613
+        }
+      ],
+      "rationale": "Repository-wide search independently finds one external caller tracked_new_val609 and self-recursive call621. Local named recursive helper is permitted; do not recommend unrolling recursion or claim a patch was verified.",
+      "source_evidence": "610:         Self::tracked_new(val, lv, children)\n611:     }\n612: \n613:     proof fn tracked_none_seq(n: nat) -> (tracked res: Seq<Option<Self>>)\n614:         ensures\n615:             res == Seq::new(n, |i| None),\n616:         decreases n,\n617:     {\n618:         if n == 0 {\n619:             Seq::tracked_empty()\n620:         } else {",
+      "rule_ids": [
+        "inline-single-use-proof-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/775#discussion_r4032713402",
+      "related_comment_ids": [
+        "4032713402"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

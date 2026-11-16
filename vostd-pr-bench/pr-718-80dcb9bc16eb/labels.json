@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-718-80dcb9bc16eb",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-718-80dcb9bc16eb:issue-3920632755",
+      "original_label_id": "3920632755",
+      "category": "guideline",
+      "description": "`Seq` has a `Seq::any` method that encapsulates this `exists`, that may be cleaner.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/range.rs",
+          "start_line": 86,
+          "end_line": 86
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. Existential ranges over sequence indices and tests one element predicate, directly matching Seq::any. This is a readability finding, not a claim of a verified trigger-preserving patch.",
+      "source_evidence": "82: proof fn lemma_seq_range_union_contains<T: FiniteRange>(s: Seq<Range<T>>, x: T)\n83:     ensures\n84:         seq_range_union(s).contains(x) <==> exists|i: int|\n85:             #![trigger range_as_set(s[i]).contains(x)]\n86:             0 <= i < s.len() && range_as_set(s[i]).contains(x),\n87: {\n88:     broadcast use {Seq::to_set_ensures, Set::lemma_flatten_contains};\n89: \n90:     let range_sets = s.map_values(|r: Range<T>| range_as_set(r));\n91:     if seq_range_union(s).contains(x) {",
+      "rule_ids": [
+        "quantifiers-and-triggers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/718#discussion_r3920632755",
+      "related_comment_ids": [
+        "3920632755"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-718-80dcb9bc16eb:issue-3920681960",
+      "original_label_id": "3920681960",
+      "category": "guideline",
+      "description": "This forall clause can be expressed by `Seq::all`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/ops.rs",
+          "start_line": 63,
+          "end_line": 63
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. First forall states each output range is nonempty, directly expressible by Seq::all. Adjacent-pair ordering forall is a different property and must not be blindly replaced.",
+      "source_evidence": "59:             &&& ret.remaining() == range_difference_seq(*a, *b)\n60:             &&& ret.remaining().len() <= 2\n61:             &&& forall|i: int|\n62:                 0 <= i < ret.remaining().len() ==> (\n63:                 #[trigger] ret.remaining()[i]).start.is_lt(&ret.remaining()[i].end)\n64:             &&& forall|i: int|\n65:                 0 <= i < ret.remaining().len() - 1 ==> (\n66:                 #[trigger] ret.remaining()[i]).end.is_le(&ret.remaining()[i + 1].start)\n67:             &&& seq_range_union(ret.remaining()) == range_as_set(*a).difference(range_as_set(*b))\n68:         },",
+      "rule_ids": [
+        "quantifiers-and-triggers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/718#discussion_r3920681960",
+      "related_comment_ids": [
+        "3920681960"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-718-80dcb9bc16eb:issue-3920738708",
+      "original_label_id": "3920738708",
+      "category": "guideline",
+      "description": "This function is used only once, you can inline it in the following proof.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/range.rs",
+          "start_line": 108,
+          "end_line": 108
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. lemma_seq_range_union_small is private, called only once at range.rs:186, and serves a local small-sequence case split.",
+      "source_evidence": "104:         range_sets.to_set().lemma_flatten_contains(x);\n105:     }\n106: }\n107: \n108: proof fn lemma_seq_range_union_small<T: FiniteRange>(s: Seq<Range<T>>)\n109:     requires\n110:         s.len() <= 2,\n111:     ensures\n112:         s.len() == 0 ==> seq_range_union(s) == Set::<T>::empty(),\n113:         s.len() == 1 ==> seq_range_union(s) == range_as_set(s[0]),",
+      "rule_ids": [
+        "inline-single-use-proof-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/718#discussion_r3920738708",
+      "related_comment_ids": [
+        "3920738708"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

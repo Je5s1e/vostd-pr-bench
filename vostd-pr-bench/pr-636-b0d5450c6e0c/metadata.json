@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-636-b0d5450c6e0c",
+  "pr_number": 636,
+  "title": "Verify axiom fn new_untracked_frame",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/636",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d88962beabc466ff41033efefdb96c4a481b2ae5",
+  "head_sha": "b0d5450c6e0c8c056a3320f495bf8dc78f3049c2",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs"
+  ],
+  "diff_sha256": "ceadb7df320add1b3aa3b00fca0b4abb38ae546b58adcd8f46db573099fd4afa",
+  "versions": {
+    "before": {
+      "commit": "d88962beabc466ff41033efefdb96c4a481b2ae5",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "b0d5450c6e0c8c056a3320f495bf8dc78f3049c2",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

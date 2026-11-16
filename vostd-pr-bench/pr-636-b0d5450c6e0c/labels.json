@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-636-b0d5450c6e0c",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-636-b0d5450c6e0c:issue-3593301151",
+      "original_label_id": "3593301151",
+      "category": "guideline",
+      "description": "These two lines can be combined using `has_safe_slot`",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+          "start_line": 275,
+          "end_line": 275
+        }
+      ],
+      "rationale": "has_safe_slot in specs/arch/x86/mod.rs:36-39 is exactly conjunction paddr%PAGE_SIZE==0 and paddr<MAX_PADDR, duplicated at tracked_new_untracked_frame274-275; use existing canonical predicate.",
+      "source_evidence": "271:         prop: PageProperty,\n272:     ) -> (tracked res: Self)\n273:         requires\n274:             paddr % PAGE_SIZE == 0,\n275:             paddr < MAX_PADDR,\n276:             1 <= parent_level,\n277:             parent_level < NR_LEVELS,\n278:             paddr % page_size(parent_level) == 0,\n279:             paddr + page_size(parent_level) <= MAX_PADDR,\n280:             C::raw_item_well_formed(paddr, parent_level, prop),",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/636#discussion_r3593301151",
+      "related_comment_ids": [
+        "3593301151"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-636-b0d5450c6e0c:issue-3593299813",
+      "original_label_id": "3593299813",
+      "category": "guideline",
+      "description": "Aggregate this with the previous line using the chaining operator, i.e., `1 <= parent_level < NR_LEVELS`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+          "start_line": 277,
+          "end_line": 277
+        }
+      ],
+      "rationale": "Adjacent requires clauses 1<=parent_level and parent_level<NR_LEVELS have identical middle operand and combine exactly without semantic change.",
+      "source_evidence": "273:         requires\n274:             paddr % PAGE_SIZE == 0,\n275:             paddr < MAX_PADDR,\n276:             1 <= parent_level,\n277:             parent_level < NR_LEVELS,\n278:             paddr % page_size(parent_level) == 0,\n279:             paddr + page_size(parent_level) <= MAX_PADDR,\n280:             C::raw_item_well_formed(paddr, parent_level, prop),\n281:             !C::tracked(C::item_from_raw_spec(paddr, parent_level, prop)),\n282:         ensures",
+      "rule_ids": [
+        "use-chained-comparisons"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/636#discussion_r3593299813",
+      "related_comment_ids": [
+        "3593299813"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

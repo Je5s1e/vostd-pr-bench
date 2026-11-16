@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-674-fc2045c29e48",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-674-fc2045c29e48:issue-3671555470",
+      "original_label_id": "3671555470",
+      "category": "guideline",
+      "description": "Inspected page_table/mod.rs1835-1836 generic assume_specification for std AtomicUsize::from_ptr with no OSTD-specific input. Shared std boundary belongs in external specs. More serious missing safety contract is separate from this historical placement root.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "start_line": 1837,
+          "end_line": 1837
+        }
+      ],
+      "rationale": "Inspected page_table/mod.rs1835-1836 generic assume_specification for std AtomicUsize::from_ptr with no OSTD-specific input. Shared std boundary belongs in external specs. More serious missing safety contract is separate from this historical placement root.",
+      "source_evidence": "1834: #[doc(hidden)]\n1835: pub assume_specification<'a>[ AtomicUsize::from_ptr ](ptr: *mut usize) -> &'a AtomicUsize\n1836: ;\n1837: \n1838: /// Stores a page table entry with an atomic instruction.\n1839: ///\n1840: /// # Verification Design\n1841: /// The executable body performs an atomic store, while the tracked array permission records the\n1842: /// corresponding element update.\n1843: /// ## Preconditions\n1844: /// - The pointer must be a valid pointer to the array that represents the page table node.",
+      "rule_ids": [
+        "right-size-spec-placement"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/674#discussion_r3671555470",
+      "related_comment_ids": [
+        "3671555470"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-674-fc2045c29e48:issue-3671541240",
+      "original_label_id": "3671541240",
+      "category": "semantic",
+      "description": "Independently read complete as_mut_ptr534-544: requires only permission/bounds, no ensures/returns/effect relationship. Rust inline(always) is not Verus contract inlining. Caller store_pte1874-1877 casts returned ptr into atomic memory, yet modular specification cannot connect that ptr to tracked array element. Do not claim std atomic store is intrinsically tracked or that a patch was verified.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/array_ptr.rs",
+          "start_line": 539,
+          "end_line": 539
+        }
+      ],
+      "rationale": "Independently read complete as_mut_ptr534-544: requires only permission/bounds, no ensures/returns/effect relationship. Rust inline(always) is not Verus contract inlining. Caller store_pte1874-1877 casts returned ptr into atomic memory, yet modular specification cannot connect that ptr to tracked array element. Do not claim std atomic store is intrinsically tracked or that a patch was verified.",
+      "source_evidence": "536:             perm.wf(),\n537:             perm.is_pptr(*self),\n538:             self.index < N,\n539:     {\n540:         raw_ptr::with_exposed_provenance(\n541:             self.addr.wrapping_add(self.index.wrapping_mul(core::mem::size_of::<V>())),\n542:             Tracked(perm.exposed),\n543:         )\n544:     }\n545: \n546:     pub exec fn empty() -> ((res, perm): (ArrayPtr<V, N>, Tracked<PointsTo<V, N>>))",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/674#discussion_r3671541240",
+      "related_comment_ids": [
+        "3671541240"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

@@ -1,0 +1,235 @@
+name: IRC11 Toolchain
+
+on:
+  push:
+    branches:
+      - main
+      - "irc11-*"
+    paths:
+      - ".github/workflows/ci-irc11.yml"
+      - "tools/bootstrap-verus-irc11.sh"
+      - "tools/patches/verus-irc11.patch"
+      - "tools/patches/verus-irc11-vstd.patch"
+      - "tools/tests/irc11_smoke.rs"
+      - "tools/tests/rcu_callback_smoke.rs"
+      - "dv"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "ostd/**"
+      - "verified_libs/vstd_extra/**"
+      - "rust-toolchain.toml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/ci-irc11.yml"
+      - "tools/bootstrap-verus-irc11.sh"
+      - "tools/patches/verus-irc11.patch"
+      - "tools/patches/verus-irc11-vstd.patch"
+      - "tools/tests/irc11_smoke.rs"
+      - "tools/tests/rcu_callback_smoke.rs"
+      - "dv"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "ostd/**"
+      - "verified_libs/vstd_extra/**"
+      - "rust-toolchain.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: irc11-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-irc11:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CARGO_TERM_COLOR: always
+      VERUS_REPOSITORY: https://github.com/asterinas/verus.git
+      VERUS_BASE_COMMIT: c0f528d93de7f79731895dad300a548005d5ee06
+      VERUS_IRC11_PATCH: tools/patches/verus-irc11.patch
+      VERUS_COMPAT_PATCH: tools/patches/verus-irc11-vstd.patch
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt update -qq
+          sudo apt install -y build-essential unzip pkg-config libssl-dev llvm
+
+      - name: Record toolchain revisions
+        run: |
+          RUST_VERSION=$(sed -nE 's/^channel = "([^"]+)"/\1/p' rust-toolchain.toml)
+          if [[ -z "$RUST_VERSION" ]]; then
+            echo "Failed to extract the Rust version from rust-toolchain.toml" >&2
+            exit 1
+          fi
+
+          echo "RUST_VERSION=$RUST_VERSION" >> "$GITHUB_ENV"
+          echo "Using Rust $RUST_VERSION"
+          echo "Using pinned Asterinas Verus base $VERUS_BASE_COMMIT"
+
+      - name: Cache IRC11 Rust toolchain
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+            ~/.rustup/tmp
+          key: ${{ runner.os }}-irc11-rust-${{ env.RUST_VERSION }}-${{ env.VERUS_BASE_COMMIT }}
+
+      - name: Cache IRC11 Cargo dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-irc11-cargo-${{ env.VERUS_BASE_COMMIT }}-${{ hashFiles('tools/bootstrap-verus-irc11.sh', 'tools/patches/verus-irc11.patch', 'tools/patches/verus-irc11-vstd.patch') }}
+          restore-keys: |
+            ${{ runner.os }}-irc11-cargo-
+
+      - name: Cache IRC11 Verus
+        id: cache-verus
+        uses: actions/cache@v6
+        with:
+          path: tools/verus
+          key: ${{ runner.os }}-irc11-verus-v1-${{ env.VERUS_BASE_COMMIT }}-${{ hashFiles('tools/bootstrap-verus-irc11.sh', 'tools/patches/verus-irc11.patch', 'tools/patches/verus-irc11-vstd.patch') }}
+
+      - name: Bootstrap IRC11 Verus
+        run: |
+          if [[ "${{ steps.cache-verus.outputs.cache-hit }}" != "true" ]]; then
+            rm -rf tools/verus
+            git init tools/verus
+            git -C tools/verus remote add origin "$VERUS_REPOSITORY"
+            git -C tools/verus fetch --depth=1 origin "$VERUS_BASE_COMMIT"
+            git -C tools/verus checkout --detach FETCH_HEAD
+            git -C tools/verus apply "$GITHUB_WORKSPACE/$VERUS_IRC11_PATCH"
+            git -C tools/verus apply "$GITHUB_WORKSPACE/$VERUS_COMPAT_PATCH"
+          fi
+
+          test "$(git -C tools/verus rev-parse HEAD)" = "$VERUS_BASE_COMMIT"
+          git -C tools/verus apply --reverse --check "$GITHUB_WORKSPACE/$VERUS_COMPAT_PATCH"
+          git -C tools/verus diff --check
+
+          # A cached Verus still needs the Rust toolchain it was built with.
+          # Use the pinned checkout's version for both bootstrap and Cargo verification.
+          IRC11_RUST_VERSION=$(sed -nE 's/^channel = "([^"]+)"/\1/p' tools/verus/rust-toolchain.toml)
+          if [[ -z "$IRC11_RUST_VERSION" ]]; then
+            echo "Failed to extract the pinned IRC11 Rust version" >&2
+            exit 1
+          fi
+          rustup toolchain install "$IRC11_RUST_VERSION" --profile minimal \
+            --component rustc-dev,llvm-tools,rustfmt --target x86_64-unknown-none
+          export RUSTUP_TOOLCHAIN="$IRC11_RUST_VERSION"
+          echo "RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN" >> "$GITHUB_ENV"
+
+          if [[ "${{ steps.cache-verus.outputs.cache-hit }}" != "true" ]]; then
+            bash tools/bootstrap-verus-irc11.sh
+          else
+            echo "Using cached IRC11 Verus"
+          fi
+
+          test -x tools/verus/source/target-verus/release/cargo-verus
+          test -x tools/verus/source/target-verus/release/verus
+          test -f tools/verus/source/target-verus/release/vstd.vir
+          test -f tools/verus/source/vstd/atomic_weak.rs
+          test -f tools/verus/source/vstd/thread_view.rs
+
+      - name: Smoke test SC and IRC11 atomics together
+        run: |
+          tools/verus/source/target-verus/release/verus \
+            --crate-type=lib \
+            tools/tests/irc11_smoke.rs
+
+      - name: Verify IRC11 adapters and OSTD bridge
+        run: |
+          # The pinned IRC11 and mainline Verus toolchains can use different
+          # package versions. Keep the repository lockfile aligned with
+          # mainline while allowing Cargo to resolve the IRC11 versions here.
+          IRC11_LOCKFILE_BACKUP="$RUNNER_TEMP/Cargo.lock.mainline"
+          cp Cargo.lock "$IRC11_LOCKFILE_BACKUP"
+          trap 'cp "$IRC11_LOCKFILE_BACKUP" Cargo.lock' EXIT
+          cargo dv verify --package vstd_extra \
+            --features irc11,vstd/weak-memory
+          cargo dv verify --package ostd \
+            --features irc11,vstd/weak-memory
+
+      - name: Check proof-carrying RCU callbacks
+        run: |
+          RCU_TEST_DIR=$(mktemp -d "$RUNNER_TEMP/rcu-callback.XXXXXX")
+          RCU_VERUS=tools/verus/source/target-verus/release/verus
+          export VERUS_Z3_PATH="$GITHUB_WORKSPACE/tools/verus/source/z3"
+          "$RCU_VERUS" --compile tools/tests/rcu_callback_smoke.rs -o "$RCU_TEST_DIR/callback"
+          "$RCU_TEST_DIR/callback"
+          if "$RCU_VERUS" --cfg rcu_reject_wrong_proof tools/tests/rcu_callback_smoke.rs > "$RCU_TEST_DIR/wrong-proof.log" 2>&1; then
+            echo "RCU regression: callback accepted the wrong proof"
+            exit 1
+          fi
+          grep -q 'failed precondition' "$RCU_TEST_DIR/wrong-proof.log"
+          grep -Fq 'self.call_requires(proof@)' "$RCU_TEST_DIR/wrong-proof.log"
+          if "$RCU_VERUS" --cfg rcu_reject_double_call tools/tests/rcu_callback_smoke.rs > "$RCU_TEST_DIR/double-call.log" 2>&1; then
+            echo "RCU regression: callback accepted a second invocation"
+            exit 1
+          fi
+          grep -q 'use of moved value: `callback`' "$RCU_TEST_DIR/double-call.log"
+
+      - name: Reject quiescent reports with an active reader
+        run: |
+          RCU_TEST_DIR=$(mktemp -d "$RUNNER_TEMP/rcu-reader.XXXXXX")
+          RCU_LOCKFILE_BACKUP="$RCU_TEST_DIR/Cargo.lock.mainline"
+          cp Cargo.lock "$RCU_LOCKFILE_BACKUP"
+          trap 'cp "$RCU_LOCKFILE_BACKUP" Cargo.lock' EXIT
+          if cargo dv focus --package ostd --features irc11,vstd/weak-memory -- \
+              --cfg rcu_reject_active_report --verify-only-module sync::rcu::acceptance \
+              > "$RCU_TEST_DIR/active-reader.log" 2>&1; then
+            echo "RCU regression: active reader was reported quiescent"
+            exit 1
+          fi
+          grep -q 'failed precondition' "$RCU_TEST_DIR/active-reader.log"
+          grep -Fq 'old(self).participant().fraction() == 1real' "$RCU_TEST_DIR/active-reader.log"
+
+      - name: Check owning-link safety boundaries
+        run: |
+          RCU_TEST_DIR=$(mktemp -d "$RUNNER_TEMP/rcu-link.XXXXXX")
+          RCU_LOCKFILE_BACKUP="$RCU_TEST_DIR/Cargo.lock.mainline"
+          cp Cargo.lock "$RCU_LOCKFILE_BACKUP"
+          trap 'cp "$RCU_LOCKFILE_BACKUP" Cargo.lock' EXIT
+          for rejection in report parent_close vacuity initialized_vacuity wrong_publication; do
+            if cargo dv focus --package ostd --features irc11,vstd/weak-memory -- \
+                --cfg "rcu_reject_link_$rejection" --verify-only-module sync::rcu::acceptance \
+                > "$RCU_TEST_DIR/$rejection.log" 2>&1; then
+              echo "RCU regression: owning-link $rejection counterexample verified"
+              exit 1
+            fi
+          done
+          grep -q 'failed precondition' "$RCU_TEST_DIR/report.log"
+          grep -Fq 'old(context).participant().fraction() == 1real' "$RCU_TEST_DIR/report.log"
+          grep -Fq 'cannot move out of `parent_guard` because it is borrowed' "$RCU_TEST_DIR/parent_close.log"
+          grep -q 'assertion failed' "$RCU_TEST_DIR/vacuity.log"
+          grep -Fq 'assert(false);' "$RCU_TEST_DIR/vacuity.log"
+          grep -q 'assertion failed' "$RCU_TEST_DIR/initialized_vacuity.log"
+          grep -Fq 'assert(false);' "$RCU_TEST_DIR/initialized_vacuity.log"
+          grep -q 'failed precondition' "$RCU_TEST_DIR/wrong_publication.log"
+          grep -Fq 'self.accepts(value)' "$RCU_TEST_DIR/wrong_publication.log"
+
+      - name: Check for unexpected source changes
+        if: always()
+        run: git diff --exit-code
+
+      - name: Publish summary
+        if: always()
+        run: |
+          if [[ "${{ job.status }}" = "success" ]]; then
+            echo "## IRC11 toolchain, adapters, and OSTD bridge verification: passed" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## IRC11 toolchain, adapters, and OSTD bridge verification: failed" >> "$GITHUB_STEP_SUMMARY"
+          fi

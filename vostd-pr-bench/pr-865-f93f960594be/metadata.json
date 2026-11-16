@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-865-f93f960594be",
+  "pr_number": 865,
+  "title": "Add LoongArch architecture support",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/865",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "2f621c2bbe5ab8ea913485963d80a425385797dd",
+  "head_sha": "f93f960594be1942b3d9e26ad6d6fdc59026b48f",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/loongarch/mod.rs",
+    "ostd/specs/arch/mod.rs",
+    "ostd/specs/arch/riscv/mod.rs",
+    "ostd/specs/arch/x86/mod.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/src/arch/loongarch/mm/mod.rs",
+    "ostd/src/arch/loongarch/mod.rs",
+    "ostd/src/arch/loongarch/timer/mod.rs",
+    "ostd/src/arch/riscv/mm/mod.rs",
+    "ostd/src/arch/x86/mm/mod.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/page_table/mod.rs"
+  ],
+  "diff_sha256": "f765a9df6a30ff2ce9c66f1f1ef996b495beadf6d3ea3fe2a661ae5d8d6810c3",
+  "versions": {
+    "before": {
+      "commit": "2f621c2bbe5ab8ea913485963d80a425385797dd",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "f93f960594be1942b3d9e26ad6d6fdc59026b48f",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 5
+}

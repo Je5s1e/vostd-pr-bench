@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-677-1de689b269f2",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-677-1de689b269f2:issue-3682414166",
+      "original_label_id": "3682414166",
+      "category": "guideline",
+      "description": "Direct source42-43 closes and immediately opens verus! with no intervening Rust item. Current separate-verus-modes explicitly requires adjoining verified items in one block.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/tlb.rs",
+          "start_line": 43,
+          "end_line": 43
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/tlb.rs",
+          "start_line": 211,
+          "end_line": 211
+        }
+      ],
+      "rationale": "Direct source42-43 closes and immediately opens verus! with no intervening Rust item. Current separate-verus-modes explicitly requires adjoining verified items in one block.",
+      "source_evidence": "40: }\n41: \n42: } // verus!\n43: verus! {\n44: \n45: #[verus_verify]\n46: impl<'a  /*, G: PinCurrentCpu*/ > TlbFlusher<'a  /*, G*/ > {\n47:     /// Creates a new TLB flusher with the specified CPUs to be flushed.\n48:     ///\n49:     /// The target CPUs should be a reference to an [`AtomicCpuSet`] that will\n50:     /// be loaded upon [`Self::dispatch_tlb_flush`].",
+      "rule_ids": [
+        "separate-verus-modes"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/677#discussion_r3682414166",
+      "related_comment_ids": [
+        "3682414166",
+        "3682411151"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

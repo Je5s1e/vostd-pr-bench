@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-487-5170c403b0d7",
+  "pr_number": 487,
+  "title": "WIP: Weak memory support",
+  "title_source": "github_pr_metadata_at_export",
+  "url": "https://github.com/asterinas/vostd/pull/487",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "40e9af00cf3962be53c9b37563591311a86fe0fc",
+  "head_sha": "5170c403b0d72bae0369bbdf92f42f41426e325b",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/cpu.rs",
+    "ostd/specs/mod.rs",
+    "ostd/specs/sync/mod.rs",
+    "ostd/specs/sync/rcu.rs",
+    "ostd/specs/sync/sc_model.rs",
+    "ostd/specs/sync/weak_memory.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/sync/mod.rs",
+    "ostd/src/sync/rcu/__mod.rs",
+    "ostd/src/sync/rcu/mod.rs",
+    "ostd/src/sync/rcu/monitor.rs",
+    "ostd/src/task/mod.rs",
+    "ostd/src/task/preempt/guard.rs",
+    "ostd/src/task/preempt/mod.rs",
+    "ostd/src/task/scheduler/mod.rs",
+    "verified_libs/vstd_extra/src/lib.rs",
+    "verified_libs/vstd_extra/src/raw_callback.rs"
+  ],
+  "diff_sha256": "54ff0f5c9e7b3f8e0a73ab1b5385974db6a0f1e186a9997e17f15164899cbfc4",
+  "versions": {
+    "before": {
+      "commit": "40e9af00cf3962be53c9b37563591311a86fe0fc",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "5170c403b0d72bae0369bbdf92f42f41426e325b",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

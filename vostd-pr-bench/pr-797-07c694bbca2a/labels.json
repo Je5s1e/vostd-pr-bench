@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-797-07c694bbca2a",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309976607",
+      "original_label_id": "4309976607",
+      "category": "guideline",
+      "description": "Absence of panic is classified as a postcondition.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 117,
+          "end_line": 117
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The current guideline explicitly places this claim under Safety.",
+      "source_evidence": "114:     /// - `base + len` is at most `MAX_PADDR`.\n115:     ///\n116:     /// ## Postconditions\n117:     /// - The function does not panic.\n118:     #[verus_verify(dual_spec)]\n119:     #[verus_spec(\n120:         requires\n121:             base + len <= MAX_PADDR,\n122:         returns\n123:             Self::new(base, len, typ),\n124:     )]",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309976607",
+      "related_comment_ids": [
+        "4309976607"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309982983",
+      "original_label_id": "4309982983",
+      "category": "guideline",
+      "description": "Trivial constructor documentation enumerates empty obligations and misclassifies panic freedom.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 139,
+          "end_line": 139
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The block says there are no caller obligations and places panic freedom under Postconditions, both explicitly disallowed by the rule.",
+      "source_evidence": "136:     /// ## Functional Correctness\n137:     /// - The base and length are zero, and the type is `BadMemory`.\n138:     ///\n139:     /// ## Preconditions\n140:     /// - There are no caller obligations.\n141:     ///\n142:     /// ## Postconditions\n143:     /// - The function does not panic.\n144:     #[verus_verify(dual_spec)]\n145:     #[verus_spec(\n146:         returns Self::bad(),",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309982983",
+      "related_comment_ids": [
+        "4309982983"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309985493",
+      "original_label_id": "4309985493",
+      "category": "guideline",
+      "description": "Framebuffer conversion places panic freedom in Postconditions.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 193,
+          "end_line": 193
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: This is the same documentation rule as 4309976607 at a distinct API location.",
+      "source_evidence": "190:     /// ## Postconditions\n191:     /// - The result has base `fb.address`, length\n192:     ///   `(width * height * bpp + 7) / 8`, and type `Framebuffer`.\n193:     /// - The function does not panic.\n194:     #[verus_spec(\n195:         requires\n196:             fb.width * fb.height <= usize::MAX,\n197:             fb.width * fb.height * fb.bpp <= usize::MAX,\n198:             fb.address + (fb.width * fb.height * fb.bpp + 7) / 8 <= MAX_PADDR,\n199:         returns\n200:             Self::new(fb.address, ((fb.width * fb.height * fb.bpp + 7) / 8) as usize,",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309985493",
+      "related_comment_ids": [
+        "4309985493"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309995195",
+      "original_label_id": "4309995195",
+      "category": "guideline",
+      "description": "Functional-correctness bullet merely repeats the API summary.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 224,
+          "end_line": 224
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The bullet restates conversion to a physical reclaimable region without adding a verified relationship beyond the existing description.",
+      "source_evidence": "221:     ///   physical base does not underflow.\n222:     ///\n223:     /// ## Functional Correctness\n224:     /// - Translates the slice into a physical `Reclaimable` region.\n225:     ///\n226:     /// ## Preconditions\n227:     /// - The slice's base lies in the linear mapping, below `VMALLOC_BASE_VADDR`.\n228:     /// - The translated physical end is at most `MAX_PADDR`.\n229:     ///\n230:     /// ## Postconditions\n231:     /// - The base is the slice's physical address, and the length is the slice length.",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309995195",
+      "related_comment_ids": [
+        "4309995195"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309995947",
+      "original_label_id": "4309995947",
+      "category": "guideline",
+      "description": "Functional-correctness bullet repeats framebuffer conversion's ordinary description.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 183,
+          "end_line": 183
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The actual nontrivial size formula is documented separately. This generic sentence contributes no additional verified property.",
+      "source_evidence": "180:     /// - Both pixel-size multiplications are bounded, so they do not overflow.\n181:     ///\n182:     /// ## Functional Correctness\n183:     /// - Converts the framebuffer's bit size to a byte range.\n184:     ///\n185:     /// ## Preconditions\n186:     /// - `fb.width * fb.height` fits in `usize`.\n187:     /// - `fb.width * fb.height * fb.bpp` fits in `usize`.\n188:     /// - The framebuffer's physical end is at most `MAX_PADDR`.\n189:     ///\n190:     /// ## Postconditions",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309995947",
+      "related_comment_ids": [
+        "4309995947"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309998282",
+      "original_label_id": "4309998282",
+      "category": "semantic",
+      "description": "The public normalization model is opaque to external contract consumers.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 352,
+          "end_line": 352
+        }
+      ],
+      "rationale": "Independently traced public into_non_overlapping ensures567-572 through aligned_regions. Closed alignment/filter model conceals the advertised normalization relationship from external callers; no public characterization lemma. Fix need expose abstract facts, not representation fields.",
+      "source_evidence": "349:     }\n350: \n351:     /// The active regions after page alignment and removal of empty regions.\n352:     pub closed spec fn aligned_regions(self) -> Seq<MemoryRegion> {\n353:         self@.map_values(|r: MemoryRegion| r.aligned_region()).filter(|r: MemoryRegion| r.len > 0)\n354:     }\n355: }\n356: \n357: /// A contiguous, page-aligned partition of `[0, end)`.\n358: pub closed spec fn is_partition(rs: Seq<MemoryRegion>, end: int) -> bool {\n359:     &&& (if rs.len() == 0 {",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309998282",
+      "related_comment_ids": [
+        "4309998282"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4309999340",
+      "original_label_id": "4309999340",
+      "category": "semantic",
+      "description": "A public partition guarantee has no exported elimination rule.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 358,
+          "end_line": 358
+        }
+      ],
+      "rationale": "Read body358-371 and public result567: is_partition closed conceals adjacency/alignment/coverage promised for normalized map; all supporting proofs are private. Requires public characterization or open contract model.",
+      "source_evidence": "355: }\n356: \n357: /// A contiguous, page-aligned partition of `[0, end)`.\n358: pub closed spec fn is_partition(rs: Seq<MemoryRegion>, end: int) -> bool {\n359:     &&& (if rs.len() == 0 {\n360:         end == 0\n361:     } else {\n362:         rs[0].base == 0 && rs[rs.len() - 1].base + rs[rs.len() - 1].len == end\n363:     })\n364:     &&& (forall|i: int|\n365:         0 <= i < rs.len() ==> {",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4309999340",
+      "related_comment_ids": [
+        "4309999340"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4310003074",
+      "original_label_id": "4310003074",
+      "category": "guideline",
+      "description": "Private sweep-boundary scaffolding interrupts the public model/API section.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 374,
+          "end_line": 374
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: region_boundaries serves internal termination and sweep proofs; its callers are below it and it can reside in the trailing auxiliary section.",
+      "source_evidence": "371: }\n372: \n373: /// The boundaries at which the sweep can advance.\n374: closed spec fn region_boundaries(rs: Seq<MemoryRegion>) -> Set<int> {\n375:     rs.map_values(|r: MemoryRegion| r.base as int).to_set().union(\n376:         rs.map_values(|r: MemoryRegion| r.base + r.len).to_set(),\n377:     )\n378: }\n379: \n380: /// The type selected by the lowest-usability covering input region.\n381: #[verifier::opaque]",
+      "rule_ids": [
+        "defer-auxiliary-proof-functions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4310003074",
+      "related_comment_ids": [
+        "4310003074"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4310007313",
+      "original_label_id": "4310007313",
+      "category": "semantic",
+      "description": "Public coalescing guarantee is closed without an exported characterization.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 401,
+          "end_line": 401
+        }
+      ],
+      "rationale": "Public result572 provides coalesced only; closed opaque predicate401 hides adjacent-type inequality. Private lemma_coalesced_update cannot serve external users. Correct criterion is API postcondition usability, not a blanket rule to open internals.",
+      "source_evidence": "398: \n399: /// Adjacent regions have different types, so no further merge is possible.\n400: #[verifier::opaque]\n401: pub closed spec fn coalesced(rs: Seq<MemoryRegion>) -> bool {\n402:     forall|j: int| 0 < j < rs.len() ==> #[trigger] rs[j].typ != rs[j - 1].typ\n403: }\n404: \n405: impl<const LEN: usize> View for MemoryRegionArray<LEN> {\n406:     type V = Seq<MemoryRegion>;\n407: \n408:     closed spec fn view(&self) -> Seq<MemoryRegion> {",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4310007313",
+      "related_comment_ids": [
+        "4310007313"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4310011490",
+      "original_label_id": "4310011490",
+      "category": "semantic",
+      "description": "The public type-preservation guarantee has no usable external meaning.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 392,
+          "end_line": 392
+        }
+      ],
+      "rationale": "Public result568 exports preserves_types but its closed definition392 hides the advertised per-byte type selection relation; no public elimination lemma. Openness/characterization must reach selected_type as needed.",
+      "source_evidence": "389: }\n390: \n391: /// Every output byte carries the most restrictive covering input type.\n392: pub closed spec fn preserves_types(output: Seq<MemoryRegion>, input: Seq<MemoryRegion>) -> bool {\n393:     forall|i: int, addr: int|\n394:         #![trigger output[i], selected_type(input, addr, output[i].typ)]\n395:         0 <= i < output.len() && output[i].base <= addr < output[i].base + output[i].len\n396:             ==> selected_type(input, addr, output[i].typ)\n397: }\n398: \n399: /// Adjacent regions have different types, so no further merge is possible.",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4310011490",
+      "related_comment_ids": [
+        "4310011490"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4310013575",
+      "original_label_id": "4310013575",
+      "category": "guideline",
+      "description": "Default's block states empty obligations and places panic freedom under Postconditions.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 427,
+          "end_line": 427
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: These are direct violations of the current documentation rule. The comment's blanket deletion request is broader than the accepted issue.",
+      "source_evidence": "424:     /// - Uses the initialization contract of [`Self::new`].\n425:     ///\n426:     /// ## Preconditions\n427:     /// - There are no caller obligations.\n428:     ///\n429:     /// ## Postconditions\n430:     /// - The view is the empty sequence.\n431:     /// - The function does not panic.\n432:     #[verus_spec(ret =>\n433:         ensures\n434:             ret@ == Seq::<MemoryRegion>::empty(),",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4310013575",
+      "related_comment_ids": [
+        "4310013575"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-797-07c694bbca2a:issue-4310019118",
+      "original_label_id": "4310019118",
+      "category": "guideline",
+      "description": "Push's correctness bullet duplicates its append summary and detailed postconditions.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 499,
+          "end_line": 499
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The existing append summary and subsequent success/frame guarantees already cover this sentence.",
+      "source_evidence": "496:     /// - The write is guarded by `count < regions.len()`, so it stays inside the array.\n497:     ///\n498:     /// ## Functional Correctness\n499:     /// - Appends without changing existing regions.\n500:     ///\n501:     /// ## Preconditions\n502:     /// - There are no caller obligations beyond the type invariant.\n503:     ///\n504:     /// ## Postconditions\n505:     /// - If space remains, `region` is appended and the result is `Ok`.\n506:     /// - If full, the view is unchanged and the result is `Err`.",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/797#discussion_r4310019118",
+      "related_comment_ids": [
+        "4310019118"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

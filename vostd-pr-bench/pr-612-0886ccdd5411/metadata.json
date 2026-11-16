@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-612-0886ccdd5411",
+  "pr_number": 612,
+  "title": "Prove page table item roundtrip axioms",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/612",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "ab124435bbc85dae21c90079f39d7e6d76aafb95",
+  "head_sha": "0886ccdd541158731f210241284c04330bec7617",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "a4632dab2259d1dbf6aae2e189866caf35c801c1cc3d93126c0a016e97573c77",
+  "versions": {
+    "before": {
+      "commit": "ab124435bbc85dae21c90079f39d7e6d76aafb95",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "d3ed58403c0f281a6af51befc8a9d44d4d582ee4",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "0886ccdd541158731f210241284c04330bec7617",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "d3ed58403c0f281a6af51befc8a9d44d4d582ee4",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

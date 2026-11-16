@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-892-34407c0508d2",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-892-34407c0508d2:issue-4465288898",
+      "original_label_id": "4465288898",
+      "category": "guideline",
+      "description": "**Type:** canonical-spec-models\n**Problem:** `from_raw_spec` no longer reads its `paddr` argument, so the definitional `slot_vaddr() == frame_to_meta(paddr)` link is lost; `Segment`'s `peek`/`remaining` (`segment.rs:946-950`, `:967-971`) pass the per-index paddr without requiring `Segment::inv()`. Drop the now-dead parameter at those call sites, or state the relation explicitly (e.g. `requires slot_perm.addr() == frame_to_meta(paddr)`).",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/frame_specs.rs",
+          "start_line": 166,
+          "end_line": 166
+        }
+      ],
+      "rationale": "Independent complete body160-173 constructs Frame solely from slot_perm and metadata_perm, never references paddr. Drop unused spec argument; this is redundant model input, not a proven unsafe implementation.",
+      "source_evidence": "159: impl<M: ?Sized> Frame<M> {\n160:     pub open spec fn from_raw_spec(\n161:         paddr: Paddr,\n162:         slot_perm: &'static ExposedPointsTo<MetaSlot>,\n163:         metadata_perm: Option<FracMetadataPerm>,\n164:     ) -> Self {\n165:         Frame::<M> {\n166:             ptr: slot_perm.ptr(),\n167:             _marker: PhantomData,\n168:             #[cfg(verus_keep_ghost_body)]\n169:             tracked_slot_perm: Tracked(slot_perm),\n170:             #[cfg(verus_keep_ghost_body)]\n171:             tracked_metadata_perm: Tracked(metadata_perm),\n172:         }\n173:     }\n174: }",
+      "rule_ids": [
+        "canonical-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/892#discussion_r4465288898",
+      "related_comment_ids": [
+        "4465288898"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

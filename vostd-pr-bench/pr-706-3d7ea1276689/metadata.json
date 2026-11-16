@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-706-3d7ea1276689",
+  "pr_number": 706,
+  "title": "prove: arch::pci (x86) & io",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/706",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "e8164a7b6f80a2e239a5ca23b950b14aab86079a",
+  "head_sha": "3d7ea127668970427db7d198914f7e9bfa17146b",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "README.md",
+    "ostd/src/arch/riscv/mod.rs",
+    "ostd/src/arch/riscv/pci.rs",
+    "ostd/src/arch/x86/device/io_port.rs",
+    "ostd/src/arch/x86/device/mod.rs",
+    "ostd/src/arch/x86/io.rs",
+    "ostd/src/arch/x86/mod.rs",
+    "ostd/src/arch/x86/pci.rs",
+    "ostd/src/boot/memory_region.rs",
+    "ostd/src/bus/mod.rs",
+    "ostd/src/bus/pci/device_info.rs",
+    "ostd/src/bus/pci/mod.rs",
+    "ostd/src/io/io_mem/allocator.rs",
+    "ostd/src/io/io_mem/mod.rs",
+    "ostd/src/io/io_port/allocator.rs",
+    "ostd/src/io/io_port/mod.rs",
+    "ostd/src/io/mod.rs",
+    "ostd/src/lib.rs",
+    "ostd/src/prelude.rs",
+    "ostd/src/util/range_alloc.rs",
+    "verified_libs/vstd_extra/Cargo.toml",
+    "verified_libs/vstd_extra/src/external/int_specs.rs",
+    "verified_libs/vstd_extra/src/external/io_port.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/trans_macros.rs"
+  ],
+  "diff_sha256": "016a788b6af0ce5834cd229312af03165f5fd6d8edfa94cee38357bd2fec69ad",
+  "versions": {
+    "before": {
+      "commit": "e8164a7b6f80a2e239a5ca23b950b14aab86079a",
+      "file_count": 325,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "3d7ea127668970427db7d198914f7e9bfa17146b",
+      "file_count": 326,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

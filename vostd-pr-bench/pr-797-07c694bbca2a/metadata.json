@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-797-07c694bbca2a",
+  "pr_number": 797,
+  "title": "prove: memory region constructors and normalization",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/797",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d7d2ebec6b2d131e5d78ca40a052f67ce5b3a87a",
+  "head_sha": "07c694bbca2a99c2c6800b7fa27bb0cae446621d",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/boot/memory_region.rs",
+    "ostd/src/boot/mod.rs"
+  ],
+  "diff_sha256": "7be2a21858f577433e1a3499b2cea080a9b8cec1f573c68bb5149f671ea307e2",
+  "versions": {
+    "before": {
+      "commit": "d7d2ebec6b2d131e5d78ca40a052f67ce5b3a87a",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "07c694bbca2a99c2c6800b7fa27bb0cae446621d",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 12
+}

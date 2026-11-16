@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-856-619ad58877f8",
+  "pr_number": 856,
+  "title": "fix: prove DMA coherent frame address bounds",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/856",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "18aea7a127610ad471325235b85395afe82710da",
+  "head_sha": "619ad58877f84f3c310358e393f2ac3257311de8",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/dma/dma_coherent.rs"
+  ],
+  "diff_sha256": "1c311c44ac64f57a10edca20bc09a304520059ef00e86de619fc8c115a673010",
+  "versions": {
+    "before": {
+      "commit": "18aea7a127610ad471325235b85395afe82710da",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "619ad58877f84f3c310358e393f2ac3257311de8",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

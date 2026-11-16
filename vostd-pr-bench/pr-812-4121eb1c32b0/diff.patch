@@ -1,0 +1,321 @@
+diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
+index cc1a139f5..504c402b3 100644
+--- a/ostd/src/cpu/mod.rs
++++ b/ostd/src/cpu/mod.rs
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! CPU-related definitions.
+-use vstd::prelude::*;
++use vstd::{prelude::*, std_specs::convert::TryFromSpecImpl};
+ 
+ // pub mod local;
+ pub mod set;
+@@ -49,12 +49,22 @@ impl CpuId {
+ 
+ /// The error type returned when converting an out-of-range integer to [`CpuId`].
+ #[derive(Debug, Clone, Copy)]
++#[verus_verify]
+ pub struct CpuIdFromIntError;
+ 
++#[verus_verify]
+ impl TryFrom<usize> for CpuId {
+     type Error = CpuIdFromIntError;
+ 
++    #[verus_spec(ret =>
++        ensures
++            ret matches Ok(id) ==> id@ == value && cpu_count() > value,
++            cpu_count() > value ==> ret is Ok,
++    )]
+     fn try_from(value: usize) -> Result<Self, Self::Error> {
++        proof! {
++            broadcast use { axiom_cpu_count_bounds };
++        }
+         if value < num_cpus() {
+             Ok(CpuId(value as u32))
+         } else {
+@@ -136,11 +146,57 @@ pub broadcast axiom fn axiom_cpu_count_bounds()
+ impl CpuId {
+     /// A CPU id is always in the range of CPUs present in the system.
+     #[verifier::type_invariant]
+-    closed spec fn type_inv(self) -> bool {
++    pub closed spec fn type_inv(self) -> bool {
+         0 <= self@ < cpu_count()
+     }
+ }
+ 
++/// The `CpuId` at numeric index `i`. A closed helper, since a `pub open` spec
++/// cannot use the private tuple-struct constructor outside well-formed scopes.
++pub closed spec fn cpu_id_from_index(i: int) -> CpuId {
++    CpuId(i as u32)
++}
++
++/// The numeric range of a `CpuId`, exposed beyond `ostd::cpu` as a checked
++/// export: the closed `type_inv` definition does not unfold in other modules,
++/// so this broadcast lemma re-exposes the range facts to callers that
++/// establish the type invariant (e.g. via `use_type_invariant`).
++pub broadcast proof fn lemma_type_inv_range(cpu_id: CpuId)
++    requires
++        CpuId::type_inv(cpu_id),
++    ensures
++        #![trigger cpu_id@]
++        0 <= cpu_id@ < cpu_count(),
++{
++}
++
++/// `as_usize` mirrors the numeric view, and the index re-encodes exactly to a
++/// `u32` (below the CPU count): the `dual_spec` proxy's body is closed to other
++/// modules, so this broadcast lemma re-exposes the provable equalities.
++pub broadcast proof fn lemma_cpu_id_model(cpu_id: CpuId)
++    ensures
++        #![trigger cpu_id.as_usize()]
++        cpu_id.as_usize() == cpu_id@,
++        (cpu_id.as_usize() as u32) == cpu_id@,
++{
++}
++
++/// The spec model of [`TryFrom<usize>` for `CpuId`] required by vstd's `TryFrom`
++/// external trait extension: the conversion succeeds exactly below the CPU count.
++impl TryFromSpecImpl<usize> for CpuId {
++    open spec fn obeys_try_from_spec() -> bool {
++        true
++    }
++
++    open spec fn try_from_spec(v: usize) -> Result<Self, Self::Error> {
++        if cpu_count() > v {
++            Ok(cpu_id_from_index(v as int))
++        } else {
++            Err(arbitrary())
++        }
++    }
++}
++
+ } // verus!
+ /* cpu_local_cell! {
+     /// The current CPU ID.
+diff --git a/ostd/src/task/scheduler/info.rs b/ostd/src/task/scheduler/info.rs
+index 2296e4432..6743499a7 100644
+--- a/ostd/src/task/scheduler/info.rs
++++ b/ostd/src/task/scheduler/info.rs
+@@ -1,8 +1,15 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Scheduling related information in a task.
+-use core::sync::atomic::{AtomicU32, Ordering};
++use vstd::{
++    atomic::{PAtomicU32, PermissionU32},
++    prelude::*,
++};
+ 
+-use crate::{cpu::CpuId, task::Task};
++use crate::cpu::{axiom_cpu_count_bounds, cpu_count, lemma_cpu_id_model, lemma_type_inv_range};
++
++// use core::sync::atomic::{AtomicU32, Ordering};
++
++use crate::{cpu::CpuId /*, task::Task */};
+ 
+ /// Fields of a task that OSTD will never touch.
+ ///
+@@ -12,21 +19,33 @@ use crate::{cpu::CpuId, task::Task};
+ /// define them, such as
+ /// [existential types](https://github.com/rust-lang/rfcs/pull/2492) do not
+ /// exist yet. So we decide to define them in OSTD.
+-#[derive(Debug)]
++/* `PAtomicU32` has no `Debug` implementation, so the derive is dropped.
++ * Origin Rust: #[derive(Debug)]
++ */
++#[verus_verify]
+ pub struct TaskScheduleInfo {
+     /// The CPU that the task would like to be running on.
+     pub cpu: AtomicCpuId,
+ }
+ 
+ /// An atomic CPUID container.
+-#[derive(Debug)]
+-pub struct AtomicCpuId(AtomicU32);
++/* `PAtomicU32` has no `Debug` implementation, so the derive is dropped.
++ * Origin Rust: #[derive(Debug)] pub struct AtomicCpuId(AtomicU32);
++ */
++#[verus_verify]
++pub struct AtomicCpuId(PAtomicU32);
++
++verus! {
+ 
+ impl AtomicCpuId {
+     /// The null value of CPUID.
+     ///
+     /// An `AtomicCpuId` with `AtomicCpuId::NONE` as its inner value is empty.
+-    const NONE: u32 = u32::MAX;
++    /* `pub` is required by Verus: the methods' public contracts (and
++     * `inv_value`) refer to this constant, and public spec positions must be
++     * well-formed in every module that can use the contract.
++     */
++    pub const NONE: u32 = u32::MAX;
+ 
+     /// Sets the inner value of an `AtomicCpuId` if it's empty.
+     ///
+@@ -34,51 +53,136 @@ impl AtomicCpuId {
+     /// and containing the previous value. If the previous value is empty, it returns
+     /// `Ok(())`. Otherwise, it returns `Err(previous_value)` which the previous
+     /// value is a valid CPU ID.
++    #[verus_spec(
++        ret =>
++        with
++            Tracked(perm): Tracked<&mut PermissionU32>,
++        requires
++            old(perm).view().patomic == self.patomic_id(),
++            Self::inv_value(old(perm).view().value),
++        ensures
++            self.patomic_id() == final(perm).view().patomic,
++            ret.is_ok() ==> final(perm).view().value == cpu_id.as_usize() as u32,
++            ret matches Err(prev) ==> prev@ == old(perm).view().value
++                && final(perm).view().value == old(perm).view().value,
++            Self::inv_value(final(perm).view().value),
++    )]
+     pub fn set_if_is_none(&self, cpu_id: CpuId) -> core::result::Result<(), CpuId> {
+-        self.0
+-            .compare_exchange(
+-                Self::NONE,
+-                cpu_id.as_usize() as u32,
+-                Ordering::Relaxed,
+-                Ordering::Relaxed,
+-            )
+-            .map(|_| ())
+-            .map_err(|prev| (prev as usize).try_into().unwrap())
++        proof! {
++            broadcast use {
++                axiom_cpu_count_bounds,
++                lemma_cpu_id_model,
++                lemma_type_inv_range,
++            };
++            use_type_invariant(&cpu_id);
++            assert(Self::inv_value(cpu_id.as_usize() as u32));
++        }
++        /* PAtomicU32::compare_exchange takes the tracked permission and hardcodes
++         * `SeqCst`, so the call drops the two `Ordering::Relaxed` arguments; the
++         * `map_err` closure needs its own spec to carry the `unwrap` precondition.
++         * Origin Rust: self.0.compare_exchange(Self::NONE, cpu_id.as_usize() as u32, Ordering::Relaxed, Ordering::Relaxed).map(|_| ()).map_err(|prev| (prev as usize).try_into().unwrap())
++         */
++        self.0.compare_exchange(Tracked(perm), Self::NONE, cpu_id.as_usize() as u32).map(
++            |_| (),
++        ).map_err(
++            |prev: u32| -> (payload: CpuId)
++                requires
++                    cpu_count() > prev,
++                ensures
++                    payload@ == prev,
++                { (prev as usize).try_into().unwrap() },
++        )
+     }
+ 
+     /// Sets the inner value of an `AtomicCpuId` anyway.
++    #[verus_spec(
++        with
++            Tracked(perm): Tracked<&mut PermissionU32>,
++        requires
++            old(perm).view().patomic == self.patomic_id(),
++        ensures
++            self.patomic_id() == final(perm).view().patomic,
++            final(perm).view().value == cpu_id.as_usize() as u32,
++            Self::inv_value(final(perm).view().value),
++    )]
+     pub fn set_anyway(&self, cpu_id: CpuId) {
+-        self.0.store(cpu_id.as_usize() as u32, Ordering::Relaxed);
++        proof! {
++            broadcast use {
++                axiom_cpu_count_bounds,
++                lemma_cpu_id_model,
++                lemma_type_inv_range,
++            };
++            use_type_invariant(&cpu_id);
++            assert(Self::inv_value(cpu_id.as_usize() as u32));
++        }
++        /* Origin Rust: self.0.store(cpu_id.as_usize() as u32, Ordering::Relaxed); */
++        self.0.store(Tracked(perm), cpu_id.as_usize() as u32);
+     }
+ 
+     /// Sets the inner value of an `AtomicCpuId` to `AtomicCpuId::NONE`, i.e. makes
+     /// an `AtomicCpuId` empty.
++    #[verus_spec(
++        with
++            Tracked(perm): Tracked<&mut PermissionU32>,
++        requires
++            old(perm).view().patomic == self.patomic_id(),
++        ensures
++            self.patomic_id() == final(perm).view().patomic,
++            final(perm).view().value == Self::NONE,
++            Self::inv_value(final(perm).view().value),
++    )]
+     pub fn set_to_none(&self) {
+-        self.0.store(Self::NONE, Ordering::Relaxed);
++        /* Origin Rust: self.0.store(Self::NONE, Ordering::Relaxed); */
++        self.0.store(Tracked(perm), Self::NONE);
+     }
+ 
+     /// Gets the inner value of an `AtomicCpuId`.
++    #[verus_spec(
++        ret =>
++        with
++            Tracked(perm): Tracked<&PermissionU32>,
++        requires
++            perm.view().patomic == self.patomic_id(),
++            Self::inv_value(perm.view().value),
++        ensures
++            ret is None == (perm.view().value == Self::NONE),
++            ret matches Some(id) ==> id@ == perm.view().value,
++    )]
+     pub fn get(&self) -> Option<CpuId> {
+-        let val = self.0.load(Ordering::Relaxed);
++        /* Origin Rust: let val = self.0.load(Ordering::Relaxed); */
++        let val = self.0.load(Tracked(perm));
+         if val == Self::NONE {
+             None
+         } else {
+             Some((val as usize).try_into().ok()?)
+         }
+     }
++
++    /// The identity of the inner atomic cell, for tying permissions to `self`.
++    /// A closed helper, since a `pub` contract cannot use the private field.
++    pub closed spec fn patomic_id(&self) -> int {
++        self.0.id()
++    }
++
++    /// The trace invariant of the CPUID cell: the stored word is the null
++    /// constant `NONE` or encodes a valid CPU ID (below the CPU count).
++    pub open spec fn inv_value(v: u32) -> bool {
++        v == Self::NONE || 0 <= v < cpu_count()
++    }
+ }
+ 
++} // verus!
+ impl Default for AtomicCpuId {
+     fn default() -> Self {
+-        Self(AtomicU32::new(Self::NONE))
++        Self(PAtomicU32::new(Self::NONE).0)
+     }
+ }
+ 
+-impl CommonSchedInfo for Task {
++/* impl CommonSchedInfo for Task {
+     fn cpu(&self) -> &AtomicCpuId {
+         &self.schedule_info().cpu
+     }
+-}
++} */
+ 
+ /// Trait for fetching common scheduling information.
+ pub trait CommonSchedInfo {
+diff --git a/ostd/src/task/scheduler/mod.rs b/ostd/src/task/scheduler/mod.rs
+index 924dcba3e..0ab58d3de 100644
+--- a/ostd/src/task/scheduler/mod.rs
++++ b/ostd/src/task/scheduler/mod.rs
+@@ -64,9 +64,9 @@
+ //! can have catastrophic consequences,
+ //! as the task's stack and internal state may be corrupted by concurrent modifications.
+ // mod fifo_scheduler;
++pub mod info;
+ #[cfg(feature = "irc11")]
+ mod thread_view;
+-// pub mod info;
+ use alloc::sync::Arc;
+ use spin::Once;
+ 

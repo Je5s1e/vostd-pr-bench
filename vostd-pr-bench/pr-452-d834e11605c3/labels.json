@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-452-d834e11605c3",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-452-d834e11605c3:issue-3278110053",
+      "original_label_id": "3278110053",
+      "category": "guideline",
+      "description": "Five new integer is_power_of_two external specifications repeat the existing vstd power-of-two existential model.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/external/int_specs.rs",
+          "start_line": 11,
+          "end_line": 11
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/external/int_specs.rs",
+          "start_line": 16,
+          "end_line": 16
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/external/int_specs.rs",
+          "start_line": 21,
+          "end_line": 21
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/external/int_specs.rs",
+          "start_line": 26,
+          "end_line": 26
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/external/int_specs.rs",
+          "start_line": 31,
+          "end_line": 31
+        }
+      ],
+      "rationale": "Each of five new contracts repeats exists e:nat, pow2(e)==self_. Historical vstd power2.rs defines pow2(e)=pow(2,e) as nat, and is_pow2_exists(n)=exists i:nat,pow(2,i)==n. The historical lemma_pow_positive(2,e) guarantees positivity for every natural exponent, so that nat cast preserves the integer value. Therefore the duplicated predicates are mathematically equivalent to the canonical existing predicate, rather than literally syntactically identical. Unsigned receiver values already participate in mathematical equality. is_pow2_equiv provides the recursive-model equivalence when desired. No claim about verification performance or an executed replacement.",
+      "source_evidence": "1: //! Specs for stdlib methods on integer types that aren't covered by vstd.\n2: use vstd::prelude::*;\n3: use vstd::arithmetic::power2::pow2;\n4: \n5: verus! {\n6: \n7: /// Spec for `<int_type>::is_power_of_two`. Returns true iff `self` is a positive\n8: /// power of two, i.e., there exists `e: nat` with `pow2(e) == self`.\n9: pub assume_specification[ u8::is_power_of_two ](self_: u8) -> (r: bool)\n10:     ensures\n11:         r <==> (exists|e: nat| pow2(e) == self_),\n12: ;\n13: \n14: pub assume_specification[ u16::is_power_of_two ](self_: u16) -> (r: bool)\n15:     ensures\n16:         r <==> (exists|e: nat| pow2(e) == self_),\n17: ;\n18: \n19: pub assume_specification[ u32::is_power_of_two ](self_: u32) -> (r: bool)\n20:     ensures\n21:         r <==> (exists|e: nat| pow2(e) == self_),\n22: ;\n23: \n24: pub assume_specification[ u64::is_power_of_two ](self_: u64) -> (r: bool)\n25:     ensures\n26:         r <==> (exists|e: nat| pow2(e) == self_),\n27: ;\n28: \n29: pub assume_specification[ usize::is_power_of_two ](self_: usize) -> (r: bool)\n30:     ensures\n31:         r <==> (exists|e: nat| pow2(e) == self_),\n32: ;\n33: \n34: } // verus!",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/452#discussion_r3278110053",
+      "related_comment_ids": [
+        "3278110053"
+      ],
+      "verification": "source only; historical API definitions checked at immutable pre-review commit; no Verus run"
+    }
+  ]
+}

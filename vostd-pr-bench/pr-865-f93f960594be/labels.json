@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-865-f93f960594be",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-865-f93f960594be:issue-4385152015",
+      "original_label_id": "4385152015",
+      "category": "guideline",
+      "description": "**Type:** group-imports-by-crate\n**Problem:** The exec import header interleaves verification-added imports with inherited ones in one pile: `crate::specs` facade at :2 sits above `alloc`/`core` while the `vstd`/`vstd_extra` group (:5-6) sits below them, with no blank-line group separation; the canonical sibling shape (ostd/src/arch/riscv/mm/mod.rs:1-17) blank-separates vstd/vstd_extra, the `crate::specs` facade, alloc, core, and the crate exec group. Fix: regroup this header to that shape — blank-line-separated verification-added groups above the inherited imports.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/loongarch/mm/mod.rs",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "rationale": "Independent header check: crate::specs on2, inherited alloc/core on3-4, then vstd/vstd_extra on5-6 all contiguous. Guideline specifies separated verification, crate::specs, inherited groups.",
+      "source_evidence": "1: // SPDX-License-Identifier: MPL-2.0\n2: use crate::specs::arch::valid_frame_paddr;\n3: use alloc::fmt;\n4: use core::{arch::asm, ops::Range};\n5: use vstd::{arithmetic::power2::*, prelude::*};\n6: use vstd_extra::{external::ilog2::*, ownership::Inv};\n7: \n8: use crate::{\n9:     Pod,\n10:     mm::{",
+      "rule_ids": [
+        "group-imports-by-crate"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/865#discussion_r4385152015",
+      "related_comment_ids": [
+        "4385152015"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-865-f93f960594be:issue-4385152022",
+      "original_label_id": "4385152022",
+      "category": "guideline",
+      "description": "**Type:** avoid-unused-spec-helpers, organize-proof-imports\n**Problem:** Dead import binders: `vaddr_range_proofs` here (:12) is never called in the file (this arch's user/kernel lemmas discharge the managed-bounds/leading-bits facts via direct asserts, unlike riscv :121 and x86 :150 which call `lemma_leading_bits_properties`); and `page_table::PageTableEntryTrait` is imported but unreferenced here (:22) as well as in ostd/specs/arch/riscv/mod.rs:22 and ostd/specs/arch/x86/mod.rs:32 (both sibling imports added by this PR too). Fix: drop `vaddr_range_proofs` from this list and remove the three `PageTableEntryTrait` spec-file imports (or keep only where used).",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/loongarch/mod.rs",
+          "start_line": 12,
+          "end_line": 12
+        }
+      ],
+      "rationale": "Independent search finds vaddr_range_proofs only in import12, never referenced. This removes unused module import only; do not infer unused traits from textual searches.",
+      "source_evidence": "5: use vstd_extra::external::ilog2::lemma_usize_pow2_ilog2;\n6: \n7: use crate::specs::{\n8:     arch::model::ArchAddressSpaceModel,\n9:     mm::page_table::{\n10:         leading_bits_spec, nr_page_table_coverage_bits_spec, nr_pte_index_bits_spec,\n11:         page_table_managed_end_spec, page_table_managed_start_spec, pte_index_bit_offset_spec,\n12:         vaddr_range_proofs, vaddr_range_spec,\n13:     },\n14: };\n15: \n16: use crate::{\n17:     arch::mm::{NR_ENTRIES, PageTableEntry, PagingConsts},\n18:     mm::{\n19:         MAX_PADDR, Paddr, PagingConstsTrait, Vaddr,\n20:         kspace::{KernelPtConfig, LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},",
+      "rule_ids": [
+        "organize-proof-imports"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/865#discussion_r4385152022",
+      "related_comment_ids": [
+        "4385152022"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-865-f93f960594be:issue-4385152027",
+      "original_label_id": "4385152027",
+      "category": "guideline",
+      "description": "**Type:** organize-proof-imports\n**Problem:** `vstd::arithmetic::power2::lemma2_to64()` is fully qualified at :97 and :111 although the lemma is imported unqualified at :2 and called unqualified at :81-82 in the same file. Fix: use the unqualified call form.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/loongarch/mod.rs",
+          "start_line": 97,
+          "end_line": 97
+        }
+      ],
+      "rationale": "Direct source confirms lemma2_to64 imported once at line2, used bare at81, and needlessly fully qualified at97/111. This is historical import consistency feedback; organize-proof-imports specifically discusses broadcast/reveal and is not the precise rule for this spelling.",
+      "source_evidence": "90:         leading_bits_spec::<UserPtConfig>() == 0,\n91:         page_table_managed_start_spec::<UserPtConfig>() == 0,\n92:         page_table_managed_end_spec::<UserPtConfig>() == 0x0000_8000_0000_0000int,\n93:         vaddr_range_spec::<UserPtConfig>().start == 0,\n94:         vaddr_range_spec::<UserPtConfig>().end == 0x0000_7FFF_FFFF_FFFF,\n95: {\n96:     lemma_arch_specific_consts_properties::<PagingConsts>();\n97:     vstd::arithmetic::power2::lemma2_to64();\n98: \n99: }\n100: \n101: /// Checks the paged kernel range; the direct-mapping window is separate.\n102: pub(crate) proof fn lemma_vaddr_range_spec_kernel()\n103:     ensures\n104:         leading_bits_spec::<KernelPtConfig>() == 0xffff,\n105:         page_table_managed_start_spec::<KernelPtConfig>() == 0xFFFF_8000_0000_0000,",
+      "rule_ids": [
+        "review-convention:use-imported-name"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/865#discussion_r4385152027",
+      "related_comment_ids": [
+        "4385152027"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-865-f93f960594be:issue-4385152037",
+      "original_label_id": "4385152037",
+      "category": "guideline",
+      "description": "**Type:** defer-auxiliary-proof-functions\n**Problem:** The trailing `verus! {` block opens at :663 with no section banner, yet its first items are the two pub cross-module API lemmas `lemma_nr_subpage_per_huge_eq_nr_entries` (:665) and `lemma_layout` (:672), sitting above ~300 lines of private bit_vector helpers; they are called from ostd/src/mm/page_table/cursor/locking.rs:832, cursor/mod.rs:1194,2616 and ostd/src/mm/vm_space.rs:1844. Fix: hoist the two pub lemmas above the private helpers (riscv shape) or add the x86-style banner comment `// Auxiliary definitions and lemmas about bit properties of page table entries and flags.` above the block.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/loongarch/mm/mod.rs",
+          "start_line": 663,
+          "end_line": 663
+        }
+      ],
+      "rationale": "Independent source665 onward has public cross-module lemma API mixed into unlabeled trailing proof block after exec helpers. Rule explicitly separates public proof API from private trailing scaffolding; accepted scope is moving public API and labeling private block, not assuming a banner alone fixes API ordering.",
+      "source_evidence": "656: }\n657: \n658: pub(crate) unsafe fn __memset_fallible(dst: *mut u8, value: u8, size: usize) -> usize {\n659:     // TODO: implement fallible\n660:     unsafe { core::ptr::write_bytes(dst, value, size) };\n661:     0\n662: }\n663: verus! {\n664: \n665: pub proof fn lemma_nr_subpage_per_huge_eq_nr_entries()\n666:     ensures\n667:         crate::mm::nr_subpage_per_huge::<PagingConsts>() == NR_ENTRIES,\n668: {\n669: }\n670: \n671: impl PageTableEntry {",
+      "rule_ids": [
+        "defer-auxiliary-proof-functions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/865#discussion_r4385152037",
+      "related_comment_ids": [
+        "4385152037"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-865-f93f960594be:issue-4385152045",
+      "original_label_id": "4385152045",
+      "category": "semantic",
+      "description": "**Type:** complete-external-contracts\n**Problem:** `set_prop_req`'s present-branch imposes raw-word byte-level obligations unpublished on the shared surface this PR edited: bit 12 / `GLOBAL_IN_HUGE` (PPN bit 0, inside `PHYS_ADDR_MASK`) must be clear (:475) and the property must not be `GLOBAL` (:474), because exec `set_prop` (:532) and `raw_set_prop_spec` (:733) clear IS_BASIC without restoring it. The crate's own `new_page` produces exactly the excluded entries (odd frames keep bit 12 via `paddr & PHYS_ADDR_MASK` at :365, then re-OR IS_BASIC at :370; `lemma_new_page` :961 has no parity qualifier), the arch-neutral caller bridges the predicate through the pre-existing `assume(pte.set_prop_req(new_prop))` at ostd/src/mm/page_table/node/entry.rs:1294, and the trait doc updated in this PR (ostd/src/mm/page_table/mod.rs:1521) states only that absent-entry behavior is implementation-specific. Fix: either preserve IS_BASIC across `set_prop` (root cause — then both guards can go) or document these present-entry restrictions on the shared trait doc, beside `set_prop_ensures` (ostd/specs/arch/loongarch/mod.rs:29), and in `lemma_new_page`'s doc.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/loongarch/mm/mod.rs",
+          "start_line": 475,
+          "end_line": 475
+        }
+      ],
+      "rationale": "Independent bit-level source check: GLOBAL_IN_HUGE is bit12; set_prop_req rejects present entries with bit12 set, yet new_page_req allows any paddr and level1 with valid writeback/writecombining DIRTY property, so ordinary aligned paddr0x1000 can be constructed. set_prop clears IS_BASIC bit9 by masking PHYS_ADDR_MASK and reconstructing flags. This is a genuine restriction masking a page-entry behavior issue; not a recommendation to weaken preconditions without fixing/justifying behavior.",
+      "source_evidence": "468: \n469:     closed spec fn set_prop_req(self, prop: PageProperty) -> bool {\n470:         &&& Self::new_page_req(0, 1, prop)\n471:         &&& !self.is_huge()\n472:         // Present-entry updates clear IS_BASIC, so GLOBAL and address bit 12 must be clear.\n473:         &&& self.is_present() ==> {\n474:             &&& !prop.priv_flags.contains(PrivFlags::GLOBAL())\n475:             &&& self.0 & PageTableFlags::GLOBAL_IN_HUGE().bits() == 0\n476:         }\n477:     }\n478: \n479:     #[verus_spec(\n480:         ensures old(self).set_prop_ensures(prop, *final(self)),\n481:     )]\n482:     fn set_prop(&mut self, prop: PageProperty) {\n483:         proof {",
+      "rule_ids": [
+        "api-preconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/865#discussion_r4385152045",
+      "related_comment_ids": [
+        "4385152045"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

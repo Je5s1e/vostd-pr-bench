@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-860-a4749f699922",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-860-a4749f699922:issue-4377358983",
+      "original_label_id": "4377358983",
+      "category": "guideline",
+      "description": "New spec imports precede the vstd group and lack the prescribed stacking.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/weak_monitor.rs",
+          "start_line": 10,
+          "end_line": 10
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: weak_monitor supplies a clear newly added occurrence. Acceptance does not assume all eight locations named in the comment are equally in scope; cpu_core's cited line itself is inherited.",
+      "source_evidence": "7: //! active callbacks. A completed batch supplies a matching permit for each\n8: //! consuming callback invocation. The monitor publishes its accumulated retire\n9: //! observations through an actual native release/acquire lock.\n10: use crate::specs::{\n11:     sync::rcu::{\n12:         grace_period::{CompletedGracePeriod, RcuCallbackSummary, RcuGracePeriod, report_covers},\n13:         retirement::RcuRetiredFacts,\n14:     },\n15:     task::rcu::RunningRcuContext,\n16: };\n17: use vstd::{",
+      "rule_ids": [
+        "group-imports-by-crate"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377358983",
+      "related_comment_ids": [
+        "4377358983"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-860-a4749f699922:issue-4377358996",
+      "original_label_id": "4377358996",
+      "category": "guideline",
+      "description": "The same required Option payload is projected repeatedly.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/sync/rcu/atomic.rs",
+          "start_line": 475,
+          "end_line": 475
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The repeated parent.info projections can share a binding. Its required Some shape must remain; implication-only rewriting would weaken the precondition.",
+      "source_evidence": "472:             parent.info() is Some,\n473:             parent.lease() is Some,\n474:             source == (AllocationId {\n475:                 domain: parent.info()->Some_0.domain(),\n476:                 object: parent.info()->Some_0.obj(),\n477:             }),\n478:             source_ptr == spec_cast_ptr_to_thin_ptr::<U, T>(parent.info()->Some_0.ptr()),\n479:             reader.participant_id() == parent.reader().participant_id(),\n480:             reader.generation() == parent.reader().generation(),\n481:             reader.participant_view() == parent.reader().participant_view(),\n482:             reader.known_retired() == parent.reader().known_retired(),",
+      "rule_ids": [
+        "bind-option-payloads"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377358996",
+      "related_comment_ids": [
+        "4377358996"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-860-a4749f699922:issue-4377359005",
+      "original_label_id": "4377359005",
+      "category": "guideline",
+      "description": "An exact boolean return is expressed through a named ensures equality.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/weak_monitor.rs",
+          "start_line": 650,
+          "end_line": 650
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: returns self.complete() expresses exactly the existing guarantee; requires self.inv() remains unchanged.",
+      "source_evidence": "647:         requires\n648:             self.inv(),\n649:         ensures\n650:             res == self.complete(),\n651:     {\n652:         self.monitor.data.borrow(\n653:             Tracked(self.tracked_guard.borrow().tracked_resource()),\n654:         ).is_complete()\n655:     }\n656: \n657:     /// Detaches the completed batch and unlocks before handing it to the caller.",
+      "rule_ids": [
+        "use-returns-for-exact-results"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377359005",
+      "related_comment_ids": [
+        "4377359005"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-860-a4749f699922:issue-4377359015",
+      "original_label_id": "4377359015",
+      "category": "guideline",
+      "description": "Private singleton-choice scaffolding interrupts the API section.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/sync/rcu/cpu.rs",
+          "start_line": 246,
+          "end_line": 246
+        }
+      ],
+      "rationale": "Search independently finds three callers636/1054/1119; private singleton choose proof246 is scaffolding embedded among model API definitions. Move to trailing private helper section, do not delete as unused.",
+      "source_evidence": "243:     binding: CpuRcuCoreBinding,\n244: }\n245: \n246: proof fn lemma_choose_singleton_report(report: CpuRcuReportView)\n247:     ensures\n248:         (choose|candidate: CpuRcuReportView| Set::empty().insert(report).contains(candidate))\n249:             == report,\n250: {\n251:     let ghost reports = Set::empty().insert(report);\n252:     assert(reports.contains(report));\n253:     let ghost chosen = choose|candidate: CpuRcuReportView| reports.contains(candidate);",
+      "rule_ids": [
+        "defer-auxiliary-proof-functions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377359015",
+      "related_comment_ids": [
+        "4377359015"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-860-a4749f699922:issue-4377359025",
+      "original_label_id": "4377359025",
+      "category": "guideline",
+      "description": "A free spec function is imported but unused in this module.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/weak_monitor.rs",
+          "start_line": 12,
+          "end_line": 12
+        }
+      ],
+      "rationale": "Search of weak_monitor source finds report_covers only at import12. It is a named free predicate, not a trait required implicitly by method resolution.",
+      "source_evidence": "9: //! observations through an actual native release/acquire lock.\n10: use crate::specs::{\n11:     sync::rcu::{\n12:         grace_period::{CompletedGracePeriod, RcuCallbackSummary, RcuGracePeriod, report_covers},\n13:         retirement::RcuRetiredFacts,\n14:     },\n15:     task::rcu::RunningRcuContext,\n16: };\n17: use vstd::{\n18:     cell::pcell::{PCell, PointsTo},\n19:     prelude::*,",
+      "rule_ids": [
+        "organize-proof-imports"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377359025",
+      "related_comment_ids": [
+        "4377359025"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-860-a4749f699922:issue-4377359030",
+      "original_label_id": "4377359030",
+      "category": "guideline",
+      "description": "Two independently maintained predicates encode the same record-observation relation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/sync/rcu/cpu.rs",
+          "start_line": 66,
+          "end_line": 66
+        }
+      ],
+      "rationale": "Compared cpu.rs63-67 with retirement.rs251-253: both quantify same RcuRetiredRecord set and removal.observed_by(view). Keep differing interfaces but implement both through one canonical set relation.",
+      "source_evidence": "63:         records: Set<RcuRetiredRecord>,\n64:         view: Irc11ThreadView,\n65:     ) -> bool {\n66:         forall|record: RcuRetiredRecord| #[trigger]\n67:             records.contains(record) ==> record.removal.observed_by(view)\n68:     }\n69: \n70:     pub(super) open spec fn state(\n71:         cpu: CpuId,\n72:         generation: nat,\n73:         view: Irc11ThreadView,",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377359030",
+      "related_comment_ids": [
+        "4377359030"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-860-a4749f699922:issue-4377359041",
+      "original_label_id": "4377359041",
+      "category": "guideline",
+      "description": "Compare-exchange repeats its root's existing acceptance predicate.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/irc11.rs",
+          "start_line": 882,
+          "end_line": 882
+        }
+      ],
+      "rationale": "Read accepts259-260 and guard condition776-777: condition delegates to root.condition. Guard compare_exchange882-883 repeats accepts definition; correct reuse is self.root.accepts(value), not nonexistent guard.accepts.",
+      "source_evidence": "879:             self.inv(),\n880:             old(context).inv(),\n881:             self.participant() == old(context).participant().id(),\n882:             forall|owned: P::Permission| #[trigger]\n883:                 value.rel_perm(owned) ==> (self.condition())(owned),\n884:         ensures\n885:             final(context).inv(),\n886:             final(context).same_identity(*old(context)),\n887:             final(context).participant().fraction() == old(context).participant().fraction()\n888:                 + self.fraction(),\n889:             final(context)@.contains(old(context)@),",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/860#discussion_r4377359041",
+      "related_comment_ids": [
+        "4377359041"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

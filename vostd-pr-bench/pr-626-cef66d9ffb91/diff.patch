@@ -1,0 +1,390 @@
+diff --git a/ostd/specs/mm/embedding/kvirt_store.rs b/ostd/specs/mm/embedding/kvirt_store.rs
+index d8bc95206..bab66ea38 100644
+--- a/ostd/specs/mm/embedding/kvirt_store.rs
++++ b/ostd/specs/mm/embedding/kvirt_store.rs
+@@ -125,6 +125,7 @@ pub axiom fn query_embedded<'rcu>(
+         old(regions).inv(),
+         old(kernel_pt).inv(),
+         old(kernel_pt).metaregion_sound(*old(regions)),
++        old(kernel_pt).0.value.node().relate_guard(root_guard),
+         !(KVirtArea { range }).query_panic_condition(
+             KVirtAreaOwner { pt_owner: *old(kernel_pt) },
+             addr,
+@@ -165,6 +166,7 @@ impl KVmStore {
+                 addr,
+                 old(self).regions,
+             ),
++            old(self).kernel_pt.0.value.node().relate_guard(root_guard),
+         ensures
+             final(self).inv(),
+             final(self).kvirt_areas == old(self).kvirt_areas,
+diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
+index 96945b5b1..167a9de44 100644
+--- a/ostd/src/mm/kspace/kvirt_area.rs
++++ b/ostd/src/mm/kspace/kvirt_area.rs
+@@ -199,11 +199,14 @@ fn collect_largest_pages(va: Vaddr, pa: Paddr, len: usize) -> alloc::vec::Vec<(P
+         Tracked(guards): Tracked<&Guards<'rcu>>,
+     requires
+         regions.inv(),
++        old(kernel_owner)@ is Some ==> old(kernel_owner)@->0.inv(),
++        old(kernel_owner)@ is Some ==> old(kernel_owner)@->0.metaregion_sound(*regions),
+     ensures
+         final(kernel_owner)@ is Some,
+         final(kernel_owner)@->0.inv(),
+         (final(kernel_owner)@->0).0.value.is_node(),
+         res.root.ptr.addr() == (final(kernel_owner)@->0).0.value.node().meta_addr_self(),
++        old(kernel_owner)@ is Some ==> final(kernel_owner)@ == old(kernel_owner)@,
+         !PageTable::<KernelPtConfig>::create_user_pt_panic_condition(
+             (final(kernel_owner)@->0).0.value.node(),
+         ),
+@@ -417,6 +420,8 @@ impl KVirtArea {
+             self.inv(),
+             old(regions).inv(),
+             owner.inv(),
++            owner.pt_owner.metaregion_sound(*old(regions)),
++            owner.pt_owner.0.value.node().relate_guard(root_guard),
+             // Precise: out-of-range diverges at the top `assert!`, and the
+             // inner `Cursor::query` clones the resolved leaf frame — that
+             // clone aborts only when *that specific slot* is saturated.
+@@ -460,9 +465,10 @@ impl KVirtArea {
+             // gives `start + PAGE_SIZE <= FRAME_METADATA_BASE_VADDR + PAGE_SIZE`.
+         }
+         let page_table = {
+-            proof_decl! { let tracked mut _kpt_owner: Option<&PageTableOwner<KernelPtConfig>> = None; }
+-
+-            #[verus_spec(with Tracked(&mut _kpt_owner), Tracked(regions), Tracked(guards))]
++            proof_decl! {
++                let tracked mut kpt_owner = Some(&owner.pt_owner);
++            }
++            #[verus_spec(with Tracked(&mut kpt_owner), Tracked(regions), Tracked(guards))]
+             get_kernel_page_table()
+         };
+         let preempt_guard: &'rcu A = disable_preempt::<A>();
+@@ -559,6 +565,8 @@ impl KVirtArea {
+             kvirt_alloc_oom_condition(area_size) ==> may_panic(),
+             old(regions).inv(),
+             owner.inv(),
++            owner.pt_owner.metaregion_sound(*old(regions)),
++            owner.pt_owner.0.value.node().relate_guard(root_guard),
+             // For each frame, the map contains an appropriate owner keyed by
+             // that frame's paddr. Duplicates in `frames` share the same owner.
+             forall|i: int|
+@@ -614,10 +622,9 @@ impl KVirtArea {
+ 
+         let page_table = {
+             proof_decl! {
+-                    let tracked mut _kpt_owner: Option<&PageTableOwner<KernelPtConfig>> = None;
+-                }
+-
+-            #[verus_spec(with Tracked(&mut _kpt_owner), Tracked(regions), Tracked(guards))]
++                let tracked mut kpt_owner = Some(&owner.pt_owner);
++            }
++            #[verus_spec(with Tracked(&mut kpt_owner), Tracked(regions), Tracked(guards))]
+             get_kernel_page_table()
+         };
+         let preempt_guard = disable_preempt::<A>();
+@@ -924,6 +931,8 @@ impl KVirtArea {
+             kvirt_alloc_oom_condition(area_size) ==> may_panic(),
+             old(regions).inv(),
+             owner.inv(),
++            owner.pt_owner.metaregion_sound(*old(regions)),
++            owner.pt_owner.0.value.node().relate_guard(root_guard),
+             Self::untracked_range_slots_in_regions(&pa_range, *old(regions)),
+             map_offset + vstd_extra::external::range::range_usize_len(&pa_range) <= usize::MAX,
+         ensures
+@@ -959,10 +968,9 @@ impl KVirtArea {
+ 
+             let page_table = {
+                 proof_decl! {
+-                    let tracked mut _kpt_owner: Option<&PageTableOwner<KernelPtConfig>> = None;
++                    let tracked mut kpt_owner = Some(&owner.pt_owner);
+                 }
+-
+-                #[verus_spec(with Tracked(&mut _kpt_owner), Tracked(regions), Tracked(guards))]
++                #[verus_spec(with Tracked(&mut kpt_owner), Tracked(regions), Tracked(guards))]
+                 get_kernel_page_table()
+             };
+             let preempt_guard = disable_preempt::<A>();
+diff --git a/ostd/src/mm/page_table/cursor/locking.rs b/ostd/src/mm/page_table/cursor/locking.rs
+index 055e542c0..c6f4edb50 100644
+--- a/ostd/src/mm/page_table/cursor/locking.rs
++++ b/ostd/src/mm/page_table/cursor/locking.rs
+@@ -6,7 +6,10 @@ use vstd::prelude::*;
+ 
+ use vstd_extra::ownership::*;
+ 
+-use crate::mm::frame::meta::{REF_COUNT_MAX, REF_COUNT_UNIQUE, REF_COUNT_UNUSED};
++use crate::mm::frame::{
++    MetaSlot,
++    meta::{REF_COUNT_MAX, REF_COUNT_UNIQUE, REF_COUNT_UNUSED},
++};
+ use crate::mm::{
+     NR_ENTRIES, NR_LEVELS, PAGE_SIZE, Paddr, PagingConsts, PagingConstsTrait, PagingLevel, Vaddr,
+     nr_subpage_per_huge, paddr_to_vaddr, page_table::*,
+@@ -15,6 +18,7 @@ use crate::mm::{
+ use vstd_extra::array_ptr::*;
+ 
+ use crate::mm::page_table::*;
++use crate::specs::mm::frame::meta_owners::Metadata;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::node::Guards;
+ use crate::specs::mm::page_table::node::entry_owners::EntryOwner;
+@@ -36,6 +40,8 @@ pub assume_specification<Idx: Clone>[ Range::<Idx>::clone ](range: &Range<Idx>)
+         Tracked(regions): Tracked<&mut MetaRegionOwners>,
+         Tracked(guards): Tracked<&mut Guards<'rcu>>
+     requires
++        pt.relates_owner(pt_own, *old(regions)),
++        pt_own.0.value.node().relate_guard(root_guard),
+         forall|i: int| 0 <= i < NR_ENTRIES ==> pt_own.0.children[i] is Some,
+         va.start < va.end,
+         // Per-config tightening; see `Cursor::new`. Pulled through to the
+@@ -110,6 +116,7 @@ pub assume_specification<Idx: Clone>[ Range::<Idx>::clone ](range: &Range<Idx>)
+             CursorMut::<C, A>::item_not_mapped(item, *final(regions)),
+ )]
+ #[verifier::spinoff_prover]
++#[verifier::exec_allows_no_decreases_clause]
+ pub fn lock_range<'rcu, C: PageTableConfig, A: InAtomicMode>(
+     pt: &'rcu PageTable<C>,
+     guard: &'rcu A,
+@@ -123,31 +130,65 @@ pub fn lock_range<'rcu, C: PageTableConfig, A: InAtomicMode>(
+         root_guard,
+     );
+ 
+-    // The re-try loop of finding the sub-tree root.
+-    //
+-    // If we locked a stray node, we need to re-try. Otherwise, although
+-    // there are no safety concerns, the operations of a cursor on an stray
+-    // sub-tree will not see the current state and will not change the current
+-    // state, breaking serializability.
+-    /*
+-    let mut subtree_root = loop {
+-        if let Some(subtree_root) = try_traverse_and_lock_subtree_root(pt, guard, va) {
+-            break subtree_root;
++    // Retry if the candidate subtree became stray before we acquired its lock.
++    // A failed attempt is transactional at the specification level, so every
++    // iteration starts from the same cursor and ownership state.
++    let ghost cursor_own_before_retry = cursor_own;
++    let ghost regions_before_retry = *regions;
++    let ghost guards_before_retry = *guards;
++    let mut subtree_root = None;
++    #[verus_spec(
++        invariant
++            subtree_root is None ==> {
++                &&& cursor_own == cursor_own_before_retry
++                &&& cursor_own.level == NR_LEVELS
++                &&& cursor_own.continuations.dom().contains(NR_LEVELS - 1)
++                &&& cursor_own.continuations[NR_LEVELS - 1].all_some()
++                &&& *regions == regions_before_retry
++                &&& *guards == guards_before_retry
++            },
++            subtree_root is Some ==> {
++                &&& regions.inv()
++                &&& 1 <= cursor_own.level <= NR_LEVELS
++                &&& cursor_own.continuations.dom().contains(cursor_own.level - 1)
++                &&& cursor_own.continuations[cursor_own.level - 1].inv()
++                &&& cursor_own.continuations[cursor_own.level - 1].guard == subtree_root->0
++                &&& cursor_own.continuations[cursor_own.level - 1].entry_own.is_node()
++                &&& cursor_own.continuations[cursor_own.level - 1].entry_own.inv()
++                &&& cursor_own.continuations[cursor_own.level - 1].entry_own.node().relate_guard(
++                    cursor_own.continuations[cursor_own.level - 1].guard,
++                )
++                &&& cursor_own.continuations[cursor_own.level - 1].entry_own.metaregion_sound(
++                    *regions,
++                )
++                &&& guards.lock_held(
++                    cursor_own.continuations[cursor_own.level - 1]
++                        .entry_own.node().meta_addr_self(),
++                )
++            },
++    )]
++    while subtree_root.is_none() {
++        #[verus_spec(with Tracked(&mut cursor_own), Tracked(regions), Tracked(guards))]
++        let candidate = try_traverse_and_lock_subtree_root(pt, guard, va);
++        if let Some(candidate_root) = candidate {
++            subtree_root = Some(candidate_root);
+         }
+-    };
+-    */
+-    #[verus_spec(with Tracked(&mut cursor_own), Tracked(regions), Tracked(guards))]
+-    let subtree_root = try_traverse_and_lock_subtree_root(pt, guard, va);
+-
+-    // `try_traverse_and_lock_subtree_root`'s postcondition
+-    // unconditionally promises `r is Some` (the external_body implementation
+-    // is the post-retry form).
++    }
+     let mut subtree_root = subtree_root.unwrap();
+ 
+     // Once we have locked the sub-tree that is not stray, we won't read any
+     // stray nodes in the following traversal since we must lock before reading.
+     let tracked mut cont = cursor_own.continuations.tracked_remove(cursor_own.level - 1);
+     let ghost cont_slot_idx = cont.entry_own.tracked_borrow_node().slot_index;
++    proof {
++        assert(cont.entry_own.metaregion_sound(*regions));
++        assert(regions.slots.contains_key(cont_slot_idx));
++        assert(regions.slot_owners.contains_key(cont_slot_idx));
++        assert(vstd_extra::cast_ptr::PointsTo::<MetaSlot, Metadata<PageTablePageMeta<C>>>::new_spec(
++            regions.slots[cont_slot_idx],
++            regions.slot_owners[cont_slot_idx].inner_perms,
++        ).wf(&regions.slot_owners[cont_slot_idx].inner_perms));
++    }
+     let tracked cont_meta_perm = regions.borrow_typed_perm::<PageTablePageMeta<C>>(cont_slot_idx);
+     #[verus_spec(with Tracked(cont_meta_perm))]
+     let guard_level = subtree_root.level();
+@@ -236,14 +277,15 @@ pub fn unlock_range<C: PageTableConfig, A: InAtomicMode>(cursor: &mut Cursor<'_,
+         Tracked(guards): Tracked<&mut Guards<'rcu>>
+     requires
+         old(cursor_own).level == NR_LEVELS,
++        old(cursor_own).continuations.dom().contains(NR_LEVELS - 1),
+         old(cursor_own).continuations[NR_LEVELS - 1].all_some(),
+     ensures
+-        // Phase 6: the retry loop in the commented-out body would handle the
+-        // stray-node race; the external_body shipped here is the post-retry
+-        // form that always returns Some on success paths in the absence of
+-        // concurrent recycling.
+-        r is Some,
+-        {
++        r is None ==> {
++            &&& *final(cursor_own) == *old(cursor_own)
++            &&& *final(regions) == *old(regions)
++            &&& *final(guards) == *old(guards)
++        },
++        r is Some ==> {
+             &&& final(cursor_own).va == old(cursor_own).va
+             &&& final(cursor_own).prefix == old(cursor_own).prefix
+             &&& final(cursor_own).view_mappings() == old(cursor_own).view_mappings()
+@@ -254,7 +296,7 @@ pub fn unlock_range<C: PageTableConfig, A: InAtomicMode>(cursor: &mut Cursor<'_,
+             &&& final(cursor_own).continuations[final(cursor_own).level - 1].guard == r->0
+         },
+         // The subtree root's entry_own is a valid node with matching guard.
+-        {
++        r is Some ==> {
+             let cont = final(cursor_own).continuations[final(cursor_own).level - 1];
+             &&& cont.entry_own.is_node()
+             &&& cont.entry_own.inv()
+@@ -262,7 +304,7 @@ pub fn unlock_range<C: PageTableConfig, A: InAtomicMode>(cursor: &mut Cursor<'_,
+             &&& cont.entry_own.metaregion_sound(*final(regions))
+         },
+         // The subtree root is lock_held in guards.
+-        final(guards).lock_held(
++        r is Some ==> final(guards).lock_held(
+             final(cursor_own).continuations[final(cursor_own).level - 1]
+                 .entry_own.node().meta_addr_self()),
+         // regions invariant preserved
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index c8710a643..dca497912 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -272,7 +272,8 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {
+              Tracked(regions): Tracked<&mut MetaRegionOwners>,
+              Tracked(guards): Tracked<&mut Guards<'rcu>>,
+         requires
+-            pt_own.inv(),
++            pt.relates_owner(pt_own, *old(regions)),
++            pt_own.0.value.node().relate_guard(root_guard),
+             // Per-config tightening: e.g. `KernelPtConfig` overrides
+             // `LOCKED_END_BOUND_spec` to `FRAME_METADATA_BASE_VADDR`. Callers
+             // for `KernelPtConfig` (KVirtArea, etc.) discharge this from the
+@@ -2192,7 +2193,8 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+              Tracked(regions): Tracked<&mut MetaRegionOwners>,
+              Tracked(guards): Tracked<&mut Guards<'rcu>>,
+         requires
+-            pt_own.inv(),
++            pt.relates_owner(pt_own, *old(regions)),
++            pt_own.0.value.node().relate_guard(root_guard),
+             // Per-config tightening; see `Cursor::new`.
+             0 < va.end <= C::LOCKED_END_BOUND_spec(),
+         ensures
+diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
+index b9aa9f35f..44cf83d35 100644
+--- a/ostd/src/mm/page_table/mod.rs
++++ b/ostd/src/mm/page_table/mod.rs
+@@ -1218,6 +1218,17 @@ impl PageTable<KernelPtConfig> {
+ 
+ #[verus_verify]
+ impl<C: PageTableConfig> PageTable<C> {
++    /// Relates this executable page-table handle to its tracked ownership tree.
++    pub open spec fn relates_owner(
++        &self,
++        owner: PageTableOwner<C>,
++        regions: MetaRegionOwners,
++    ) -> bool {
++        &&& owner.inv()
++        &&& self.root.ptr.addr() == owner.0.value.node().meta_addr_self()
++        &&& owner.metaregion_sound(regions)
++    }
++
+     /// Create a new empty page table.
+     ///
+     /// Useful for the IOMMU page tables only.
+@@ -1365,7 +1376,8 @@ impl<C: PageTableConfig> PageTable<C> {
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards<'rcu>>
+         requires
+-            owner.inv(),
++            self.relates_owner(owner, *old(regions)),
++            owner.0.value.node().relate_guard(root_guard),
+             // Per-config tightening; see `Cursor::new`.
+             0 < va.end <= C::LOCKED_END_BOUND_spec(),
+         ensures
+@@ -1420,7 +1432,8 @@ impl<C: PageTableConfig> PageTable<C> {
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards<'rcu>>
+         requires
+-            owner.inv(),
++            self.relates_owner(owner, *old(regions)),
++            owner.0.value.node().relate_guard(root_guard),
+             // Per-config tightening; see `Cursor::new`.
+             0 < va.end <= C::LOCKED_END_BOUND_spec(),
+         ensures
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index a33d40207..415290d16 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -220,11 +220,13 @@ impl<'a> VmSpace<'a> {
+     #[verus_spec(r =>
+         with
+             Tracked(owner): Tracked<PageTableOwner<UserPtConfig>>,
++            Ghost(root_guard): Ghost<PageTableGuard<'a, UserPtConfig>>,
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards<'a>>,
+                 -> cursor_owner: Tracked<Option<CursorOwner<'a, UserPtConfig>>>,
+         requires
+-            owner.inv(),
++            self.pt.relates_owner(owner, *old(regions)),
++            owner.0.value.node().relate_guard(root_guard),
+             va.end > 0,
+         ensures
+             crate::mm::page_table::Cursor::<UserPtConfig, G>::cursor_new_success_conditions(*va) ==> (r matches Ok(_) && cursor_owner@ matches Some(_)),
+@@ -242,7 +244,7 @@ impl<'a> VmSpace<'a> {
+             let tracked mut out_owner: Option<CursorOwner<'a, UserPtConfig>>;
+         }
+         match {
+-            #[verus_spec(with Tracked(owner), Ghost(vstd::pervasive::arbitrary::<PageTableGuard<'a, UserPtConfig>>()), Tracked(regions), Tracked(guards))]
++            #[verus_spec(with Tracked(owner), Ghost(root_guard), Tracked(regions), Tracked(guards))]
+             self.pt.cursor(guard, va)
+         } {
+             Ok((pt_cursor, tracked_owner)) => {
+@@ -279,11 +281,13 @@ impl<'a> VmSpace<'a> {
+     #[verus_spec(r =>
+         with
+             Tracked(owner): Tracked<PageTableOwner<UserPtConfig>>,
++            Ghost(root_guard): Ghost<PageTableGuard<'a, UserPtConfig>>,
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards<'a>>
+                 -> cursor_owner: Tracked<Option<CursorOwner<'a, UserPtConfig>>>,
+         requires
+-            owner.inv(),
++            self.pt.relates_owner(owner, *old(regions)),
++            owner.0.value.node().relate_guard(root_guard),
+             va.end > 0,
+         ensures
+             crate::mm::page_table::Cursor::<UserPtConfig, G>::cursor_new_success_conditions(*va) ==> (r matches Ok(_) && cursor_owner@ matches Some(_)),
+@@ -297,7 +301,7 @@ impl<'a> VmSpace<'a> {
+             let tracked mut out_owner: Option<CursorOwner<'a, UserPtConfig>>;
+         }
+         match {
+-            #[verus_spec(with Tracked(owner), Ghost(vstd::pervasive::arbitrary::<PageTableGuard<'a, UserPtConfig>>()), Tracked(regions), Tracked(guards))]
++            #[verus_spec(with Tracked(owner), Ghost(root_guard), Tracked(regions), Tracked(guards))]
+             self.pt.cursor_mut(guard, va)
+         } {
+             Ok((pt_cursor, tracked_owner)) => {

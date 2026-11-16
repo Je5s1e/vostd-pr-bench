@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-728-7e0d60333942",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-728-7e0d60333942:issue-3893260126",
+      "original_label_id": "3893260126",
+      "category": "guideline",
+      "description": "New proof-only constant and invariant marker use ordinary struct mode.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 24,
+          "end_line": 24
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: FreelistConstant is constructed as ghost data and used by ResourceInvariant; FreelistInvariant is its marker. Neither supplies runtime state.",
+      "source_evidence": "21:     initialized_witness: Option<GhostPersistentSingleton<()>>,\n22: }\n23: \n24: struct FreelistConstant {\n25:     fullrange: Range<int>,\n26:     initialized_id: Loc,\n27: }\n28: \n29: struct FreelistInvariant;\n30: \n31: closed spec fn initialized_resource(",
+      "rule_ids": [
+        "prefer-ghost-model-structs"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/728#discussion_r3893260126",
+      "related_comment_ids": [
+        "3893260126"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-728-7e0d60333942:issue-3893413063",
+      "original_label_id": "3893413063",
+      "category": "guideline",
+      "description": "Several facts repeatedly guard and project the same Option payload.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 209,
+          "end_line": 209
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The target_node conditions can bind one key and group the payload-dependent facts without changing None behavior.",
+      "source_evidence": "206:                 right_length <= usize::MAX - allocate_range.end,\n207:                 freelist_wf(self@, freelist@),\n208:                 target_node is Some ==> freelist@.contains_key(target_node->0),\n209:                 target_node is Some ==>\n210:                     freelist@[target_node->0].block.start <= allocate_range.start,\n211:                 target_node is Some ==>\n212:                     allocate_range.end <= freelist@[target_node->0].block.end,\n213:                 target_node is Some ==>\n214:                     left_length == allocate_range.start\n215:                         - freelist@[target_node->0].block.start,\n216:                 target_node is Some ==>",
+      "rule_ids": [
+        "bind-option-payloads"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/728#discussion_r3893413063",
+      "related_comment_ids": [
+        "3893413063"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

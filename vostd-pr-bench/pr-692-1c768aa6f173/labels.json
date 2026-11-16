@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-692-1c768aa6f173",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-692-1c768aa6f173:issue-3732669271",
+      "original_label_id": "3732669271",
+      "category": "guideline",
+      "description": "Independent source and rule inspection confirms: New from_spec uses fully-qualified free spec name with no attribute resolution requirement; import duration_new_spec and use direct name.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/timer/jiffies.rs",
+          "start_line": 51,
+          "end_line": 51
+        }
+      ],
+      "rationale": "Independent source and rule inspection confirms: New from_spec uses fully-qualified free spec name with no attribute resolution requirement; import duration_new_spec and use direct name.",
+      "source_evidence": "48:     }\n49: \n50:     open spec fn from_spec(value: Jiffies) -> Duration {\n51:         vstd_extra::external::duration_new_spec(value.duration_secs(), value.duration_nanos())\n52:     }\n53: }\n54: \n55: } // verus!\n56: impl Jiffies {\n57:     /// The maximum value of [`Jiffies`].\n58:     pub const MAX: Self = Self(u64::MAX);",
+      "rule_ids": [
+        "organize-proof-imports"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/692#discussion_r3732669271",
+      "related_comment_ids": [
+        "3732669271"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

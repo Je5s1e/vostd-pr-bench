@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-900-d5d5a579f00c",
+  "pr_number": 900,
+  "title": "Wire preemption guard to local IRQs and model CPU IRQ state",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/900",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "8e4b202d69d1eb706a5fec2f8c3f26f03f841893",
+  "head_sha": "d5d5a579f00c3874de31f64d8eaa1cf1f7f9b47b",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/task/cpu_core.rs",
+    "ostd/src/arch/x86/irq.rs",
+    "ostd/src/task/preempt/guard.rs",
+    "ostd/src/trap/irq.rs"
+  ],
+  "diff_sha256": "ca19d44a007c1b7fe6a3eef7093b8766c59d67f0638c45048ad8219c5dee18fa",
+  "versions": {
+    "before": {
+      "commit": "8e4b202d69d1eb706a5fec2f8c3f26f03f841893",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "d5d5a579f00c3874de31f64d8eaa1cf1f7f9b47b",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

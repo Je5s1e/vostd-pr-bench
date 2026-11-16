@@ -1,0 +1,957 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 04a89e2da..ac4ffd6ca 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -676,6 +676,8 @@ dependencies = [
+  "bitvec",
+  "smallvec",
+  "vstd",
++ "x86",
++ "x86_64",
+ ]
+ 
+ [[package]]
+diff --git a/ostd/src/arch/x86/kernel/apic/mod.rs b/ostd/src/arch/x86/kernel/apic/mod.rs
+index d5bdf0c26..320871e3b 100644
+--- a/ostd/src/arch/x86/kernel/apic/mod.rs
++++ b/ostd/src/arch/x86/kernel/apic/mod.rs
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+-use alloc::boxed::Box;
++use vstd::prelude::*;
++
++/* use alloc::boxed::Box;
+ 
+ use bit_field::BitField;
+ use spin::Once;
+@@ -7,11 +9,12 @@ use xapic::get_xapic_base_address;
+ 
+ use crate::{cpu::PinCurrentCpu, cpu_local, io::IoMemAllocatorBuilder};
+ 
++static APIC_TYPE: Once<ApicType> = Once::new(); */
++
+ mod x2apic;
+ mod xapic;
+ 
+-static APIC_TYPE: Once<ApicType> = Once::new();
+-
++/*
+ /// Returns a reference to the local APIC instance of the current CPU.
+ ///
+ /// The reference to the APIC instance will not outlive the given
+@@ -102,6 +105,9 @@ pub fn get_or_init(_guard: &dyn PinCurrentCpu) -> &(dyn Apic + 'static) {
+     // APIC instance was created. The initialization above ensures this.
+     &**unsafe { apic.get() }
+ }
++*/
++
++verus! {
+ 
+ pub trait Apic: ApicTimer {
+     fn id(&self) -> u32;
+@@ -134,10 +140,12 @@ pub trait ApicTimer {
+     fn set_timer_div_config(&self, div_config: DivideConfig);
+ }
+ 
++/*
+ enum ApicType {
+     XApic,
+     X2Apic,
+ }
++*/
+ 
+ /// The inter-processor interrupt control register.
+ ///
+@@ -167,6 +175,49 @@ enum ApicType {
+ pub struct Icr(u64);
+ 
+ impl Icr {
++    /// The raw 64-bit value of the ICR register.
++    pub closed spec fn raw_spec(self) -> u64 {
++        self.0
++    }
++}
++
++/// The 64-bit ICR value obtained by or-shifting each encoded field into its
++/// position, where `dest_shifted` is the already-shifted destination field
++/// (`sh`/`tm`/`lv`/`ds`/`dis`/`dm`/`v` denote the shorthand, trigger mode,
++/// level, delivery status, destination mode, delivery mode, and vector bits,
++/// respectively).
++spec fn icr_or_value(
++    dest_shifted: u64,
++    sh: u64,
++    tm: u64,
++    lv: u64,
++    ds: u64,
++    dis: u64,
++    dm: u64,
++    v: u64,
++) -> u64 {
++    dest_shifted | (sh << 18) | (tm << 15) | (lv << 14) | (ds << 12) | (dis << 11) | (dm << 8) | v
++}
++
++} // verus!
++#[verus_verify]
++impl Icr {
++    #[verus_spec(ret =>
++        ensures
++            ret.raw_spec() & 0xff == vector as u64,
++            (ret.raw_spec() >> 8) & 0x7 == delivery_mode as u64,
++            (ret.raw_spec() >> 11) & 0x1 == destination_mode as u64,
++            (ret.raw_spec() >> 12) & 0x1 == delivery_status as u64,
++            (ret.raw_spec() >> 14) & 0x1 == level as u64,
++            (ret.raw_spec() >> 15) & 0x1 == trigger_mode as u64,
++            (ret.raw_spec() >> 18) & 0x3 == destination_shorthand as u64,
++            // Bit 13 and bits 16-17 are reserved and always zero.
++            ret.raw_spec() & 0x32000 == 0,
++            match destination {
++                ApicId::XApic(d) => ret.raw_spec() >> 56 == d as u64,
++                ApicId::X2Apic(d) => ret.raw_spec() >> 32 == d as u64,
++            },
++    )]
+     #[expect(clippy::too_many_arguments)]
+     pub fn new(
+         destination: ApicId,
+@@ -182,6 +233,58 @@ impl Icr {
+             ApicId::XApic(d) => (d as u64) << 56,
+             ApicId::X2Apic(d) => (d as u64) << 32,
+         };
++        proof! {
++            match destination {
++                ApicId::XApic(d) => {
++                    assert(dest == ((d as u64) << 56));
++                    assert(((d as u64) << 56) & 0xffff_ffff == 0) by (bit_vector);
++                    lemma_icr_or_value_field_bits(
++                        dest,
++                        destination_shorthand as u64,
++                        trigger_mode as u64,
++                        level as u64,
++                        delivery_status as u64,
++                        destination_mode as u64,
++                        delivery_mode as u64,
++                        vector as u64,
++                    );
++                    lemma_icr_or_value_xapic_dest(
++                        d,
++                        destination_shorthand as u64,
++                        trigger_mode as u64,
++                        level as u64,
++                        delivery_status as u64,
++                        destination_mode as u64,
++                        delivery_mode as u64,
++                        vector as u64,
++                    );
++                }
++                ApicId::X2Apic(d) => {
++                    assert(dest == ((d as u64) << 32));
++                    assert(((d as u64) << 32) & 0xffff_ffff == 0) by (bit_vector);
++                    lemma_icr_or_value_field_bits(
++                        dest,
++                        destination_shorthand as u64,
++                        trigger_mode as u64,
++                        level as u64,
++                        delivery_status as u64,
++                        destination_mode as u64,
++                        delivery_mode as u64,
++                        vector as u64,
++                    );
++                    lemma_icr_or_value_x2apic_dest(
++                        d,
++                        destination_shorthand as u64,
++                        trigger_mode as u64,
++                        level as u64,
++                        delivery_status as u64,
++                        destination_mode as u64,
++                        delivery_mode as u64,
++                        vector as u64,
++                    );
++                }
++            }
++        }
+         Icr(dest
+             | ((destination_shorthand as u64) << 18)
+             | ((trigger_mode as u64) << 15)
+@@ -193,16 +296,20 @@ impl Icr {
+     }
+ 
+     /// Returns the lower 32 bits of the ICR.
++    #[verus_spec(returns self.raw_spec() as u32)]
+     pub fn lower(&self) -> u32 {
+         self.0 as u32
+     }
+ 
+     /// Returns the higher 32 bits of the ICR.
++    #[verus_spec(returns (self.raw_spec() >> 32) as u32)]
+     pub fn upper(&self) -> u32 {
+         (self.0 >> 32) as u32
+     }
+ }
+ 
++verus! {
++
+ /// The core identifier. ApicId can be divided into Physical ApicId and Logical ApicId.
+ /// The Physical ApicId is the value read from the LAPIC ID Register, while the Logical ApicId has different
+ /// encoding modes in XApic and X2Apic.
+@@ -211,12 +318,36 @@ pub enum ApicId {
+     X2Apic(u32),
+ }
+ 
++impl ApicId {
++    /// The raw 32-bit local APIC ID value, regardless of the variant.
++    pub open spec fn raw_id_spec(self) -> u32 {
++        match self {
++            ApicId::XApic(id) => id as u32,
++            ApicId::X2Apic(id) => id,
++        }
++    }
++
++    /// The logical cluster ID: x2APIC ID\[19:4\].
++    pub open spec fn x2apic_logical_cluster_id_spec(self) -> u32 {
++        (self.raw_id_spec() >> 4) & 0xffff
++    }
++
++    /// The logical field ID: x2APIC ID\[3:0\].
++    pub open spec fn x2apic_logical_field_id_spec(self) -> u32 {
++        self.raw_id_spec() & 0xf
++    }
++}
++
++} // verus!
++#[verus_verify]
+ impl ApicId {
+     /// Returns the logical x2apic ID.
+     ///
+     /// In x2APIC mode, the 32-bit logical x2APIC ID, which can be read from
+     /// LDR, is derived from the 32-bit local x2APIC ID:
+     /// Logical x2APIC ID = [(x2APIC ID\[19:4\] << 16) | (1 << x2APIC ID\[3:0\])]
++    #[verus_spec(returns (self.x2apic_logical_cluster_id_spec() << 16)
++        | (1u32 << self.x2apic_logical_field_id_spec()))]
+     #[expect(unused)]
+     pub fn x2apic_logical_id(&self) -> u32 {
+         (self.x2apic_logical_cluster_id() << 16) | (1 << self.x2apic_logical_field_id())
+@@ -225,12 +356,25 @@ impl ApicId {
+     /// Returns the logical x2apic cluster ID.
+     ///
+     /// Logical cluster ID = x2APIC ID\[19:4\]
++    #[verus_spec(ret =>
++        ensures
++            ret == self.x2apic_logical_cluster_id_spec(),
++            ret < 0x10000,
++    )]
+     pub fn x2apic_logical_cluster_id(&self) -> u32 {
+         let apic_id = match *self {
+             ApicId::XApic(id) => id as u32,
+             ApicId::X2Apic(id) => id,
+         };
+-        apic_id.get_bits(4..=19)
++        /* `bit_field::BitField::get_bits` is a provided trait method, so it
++         * cannot be given a Verus specification; the bit extraction is
++         * rewritten in the equivalent arithmetic form.
++         * Origin Rust: apic_id.get_bits(4..=19)
++         */
++        proof! {
++            assert(((apic_id >> 4) & 0xffff) < 0x10000) by (bit_vector);
++        }
++        (apic_id >> 4) & 0xffff
+     }
+ 
+     /// Returns the logical x2apic field ID.
+@@ -238,15 +382,29 @@ impl ApicId {
+     /// Specifically, the 16-bit logical ID sub-field is derived by the lowest
+     /// 4 bits of the x2APIC ID, i.e.,
+     /// Logical field ID = x2APIC ID\[3:0\].
++    #[verus_spec(ret =>
++        ensures
++            ret == self.x2apic_logical_field_id_spec(),
++            ret < 0x10,
++    )]
+     pub fn x2apic_logical_field_id(&self) -> u32 {
+         let apic_id = match *self {
+             ApicId::XApic(id) => id as u32,
+             ApicId::X2Apic(id) => id,
+         };
+-        apic_id.get_bits(0..=3)
++        /* `bit_field::BitField::get_bits` is a provided trait method, so it
++         * cannot be given a Verus specification; the bit extraction is
++         * rewritten in the equivalent arithmetic form.
++         * Origin Rust: apic_id.get_bits(0..=3)
++         */
++        proof! {
++            assert((apic_id & 0xf) < 0x10) by (bit_vector);
++        }
++        apic_id & 0xf
+     }
+ }
+ 
++/*
+ impl From<u32> for ApicId {
+     fn from(value: u32) -> Self {
+         match APIC_TYPE.get().unwrap() {
+@@ -255,6 +413,9 @@ impl From<u32> for ApicId {
+         }
+     }
+ }
++*/
++
++verus! {
+ 
+ /// Indicates whether a shorthand notation is used to specify the destination of
+ /// the interrupt and, if so, which shorthand is used. Destination shorthands are
+@@ -264,6 +425,12 @@ impl From<u32> for ApicId {
+ /// Shorthands are defined for the following cases: software self interrupt, IPIs
+ /// to all processors in the system including the sender, IPIs to all processors
+ /// in the system excluding the sender.
++/* The derives below are added because enum-to-integer casts in `spec` mode
++ * require `Copy` (`vstd`'s `spec_cast_integer`); deriving `Copy` on these
++ * unit-only enums only adds trait impls.
++ * Origin Rust: <none; new derives on the six ICR field enums below>
++ */
++#[derive(Clone, Copy)]
+ #[repr(u64)]
+ pub enum DestinationShorthand {
+     NoShorthand = 0b00,
+@@ -273,12 +440,14 @@ pub enum DestinationShorthand {
+     AllExcludingSelf = 0b11,
+ }
+ 
++#[derive(Clone, Copy)]
+ #[repr(u64)]
+ pub enum TriggerMode {
+     Edge = 0,
+     Level = 1,
+ }
+ 
++#[derive(Clone, Copy)]
+ #[repr(u64)]
+ pub enum Level {
+     Deassert = 0,
+@@ -288,6 +457,7 @@ pub enum Level {
+ /// Indicates the IPI delivery status (read only), as follows:
+ /// **0 (Idle)**            Indicates that this local APIC has completed sending any previous IPIs.
+ /// **1 (Send Pending)**    Indicates that this local APIC has not completed sending the last IPI.
++#[derive(Clone, Copy)]
+ #[repr(u64)]
+ pub enum DeliveryStatus {
+     Idle = 0,
+@@ -295,6 +465,7 @@ pub enum DeliveryStatus {
+     SendPending = 1,
+ }
+ 
++#[derive(Clone, Copy)]
+ #[repr(u64)]
+ pub enum DestinationMode {
+     Physical = 0,
+@@ -302,6 +473,7 @@ pub enum DestinationMode {
+     Logical = 1,
+ }
+ 
++#[derive(Clone, Copy)]
+ #[repr(u64)]
+ pub enum DeliveryMode {
+     /// Delivers the interrupt specified in the vector field to the target processor or processors.
+@@ -332,7 +504,13 @@ pub enum ApicInitError {
+     NoApic,
+ }
+ 
+-#[derive(Debug)]
++/* `DivideConfig as u32` in `XApic::set_timer_div_config` needs `Copy` for the
++ * spec-mode enum-to-integer cast (`vstd`'s `spec_cast_integer`); deriving it
++ * on this unit-only enum only adds a trait impl.
++ * Origin Rust: <none; new derive on DivideConfig>
++ */
++
++#[derive(Debug, Clone, Copy)]
+ #[repr(u32)]
+ #[expect(dead_code)]
+ pub enum DivideConfig {
+@@ -346,6 +524,7 @@ pub enum DivideConfig {
+     Divide128 = 0b1010,
+ }
+ 
++/*
+ pub fn init(io_mem_builder: &IoMemAllocatorBuilder) -> Result<(), ApicInitError> {
+     if x2apic::X2Apic::has_x2apic() {
+         log::info!("x2APIC found!");
+@@ -366,3 +545,93 @@ pub fn init(io_mem_builder: &IoMemAllocatorBuilder) -> Result<(), ApicInitError>
+ pub fn exists() -> bool {
+     APIC_TYPE.is_completed()
+ }
++*/
++
++// Auxiliary lemmas for the ICR bit-field encoding proofs. Destination facts
++// stay named: `by (bit_vector)` cannot encode enum casts.
++/// Bit-level facts about the ICR field encoding, for a destination field that
++/// occupies bits 32 and above.
++proof fn lemma_icr_or_value_field_bits(
++    dest_shifted: u64,
++    sh: u64,
++    tm: u64,
++    lv: u64,
++    ds: u64,
++    dis: u64,
++    dm: u64,
++    v: u64,
++)
++    by (bit_vector)
++    requires
++        (dest_shifted & 0xffff_ffff) == 0,
++        sh <= 3,
++        tm <= 1,
++        lv <= 1,
++        ds <= 1,
++        dis <= 1,
++        dm <= 7,
++        v <= 0xff,
++    ensures
++        (icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) & 0xff) == v,
++        ((icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) >> 8) & 0x7) == dm,
++        ((icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) >> 11) & 0x1) == dis,
++        ((icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) >> 12) & 0x1) == ds,
++        ((icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) >> 14) & 0x1) == lv,
++        ((icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) >> 15) & 0x1) == tm,
++        ((icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) >> 18) & 0x3) == sh,
++        // Bit 13 and bits 16-17 are reserved and always zero.
++        (icr_or_value(dest_shifted, sh, tm, lv, ds, dis, dm, v) & 0x32000) == 0,
++{
++}
++
++/// The xAPIC destination occupies bits 56-63 of the ICR value.
++proof fn lemma_icr_or_value_xapic_dest(
++    d: u8,
++    sh: u64,
++    tm: u64,
++    lv: u64,
++    ds: u64,
++    dis: u64,
++    dm: u64,
++    v: u64,
++)
++    by (bit_vector)
++    requires
++        sh <= 3,
++        tm <= 1,
++        lv <= 1,
++        ds <= 1,
++        dis <= 1,
++        dm <= 7,
++        v <= 0xff,
++    ensures
++        (icr_or_value((d as u64) << 56, sh, tm, lv, ds, dis, dm, v) >> 56) == d as u64,
++{
++}
++
++/// The x2APIC destination occupies bits 32-63 of the ICR value.
++proof fn lemma_icr_or_value_x2apic_dest(
++    d: u32,
++    sh: u64,
++    tm: u64,
++    lv: u64,
++    ds: u64,
++    dis: u64,
++    dm: u64,
++    v: u64,
++)
++    by (bit_vector)
++    requires
++        sh <= 3,
++        tm <= 1,
++        lv <= 1,
++        ds <= 1,
++        dis <= 1,
++        dm <= 7,
++        v <= 0xff,
++    ensures
++        (icr_or_value((d as u64) << 32, sh, tm, lv, ds, dis, dm, v) >> 32) == d as u64,
++{
++}
++
++} // verus!
+diff --git a/ostd/src/arch/x86/kernel/apic/x2apic.rs b/ostd/src/arch/x86/kernel/apic/x2apic.rs
+index 34bd07421..07845b7b0 100644
+--- a/ostd/src/arch/x86/kernel/apic/x2apic.rs
++++ b/ostd/src/arch/x86/kernel/apic/x2apic.rs
+@@ -1,22 +1,43 @@
+ // SPDX-License-Identifier: MPL-2.0
+-use x86::msr::{
++use vstd::prelude::*;
++
++/* The `x86` crate's constants are unreferenceable in verified code, so they
++ * come from the `vstd_extra` mirror; `rdmsr`/`wrmsr` keep their crate paths.
++ * Origin Rust: use x86::msr::{
++ *     IA32_APIC_BASE, IA32_X2APIC_APICID, IA32_X2APIC_CUR_COUNT, IA32_X2APIC_DIV_CONF,
++ *     IA32_X2APIC_EOI, IA32_X2APIC_ESR, IA32_X2APIC_ICR, IA32_X2APIC_INIT_COUNT,
++ *     IA32_X2APIC_LVT_TIMER, IA32_X2APIC_SIVR, IA32_X2APIC_VERSION, rdmsr, wrmsr,
++ * };
++ */
++use x86::msr::{rdmsr, wrmsr};
++
++use vstd_extra::external::x86::{
+     IA32_APIC_BASE, IA32_X2APIC_APICID, IA32_X2APIC_CUR_COUNT, IA32_X2APIC_DIV_CONF,
+     IA32_X2APIC_EOI, IA32_X2APIC_ESR, IA32_X2APIC_ICR, IA32_X2APIC_INIT_COUNT,
+-    IA32_X2APIC_LVT_TIMER, IA32_X2APIC_SIVR, IA32_X2APIC_VERSION, rdmsr, wrmsr,
++    IA32_X2APIC_LVT_TIMER, IA32_X2APIC_SIVR, IA32_X2APIC_VERSION,
+ };
+ 
+ use super::ApicTimer;
+ 
++verus! {
++
+ #[derive(Debug)]
+ pub struct X2Apic {
+     _private: (),
+ }
+ 
++impl X2Apic {
++    /// Trusted: the CPUID.01H:ECX[21] x2APIC flag.
++    pub uninterp spec fn has_x2apic_spec() -> bool;
++}
++
++} // verus!
+ // The APIC instance can be shared among threads running on the same CPU, but not among those
+ // running on different CPUs. Therefore, it is not `Send`/`Sync`.
+ impl !Send for X2Apic {}
+ impl !Sync for X2Apic {}
+ 
++#[verus_verify]
+ impl X2Apic {
+     pub(crate) fn new() -> Option<Self> {
+         if !Self::has_x2apic() {
+@@ -25,6 +46,9 @@ impl X2Apic {
+         Some(Self { _private: () })
+     }
+ 
++    /* `__cpuid` has no verifier model; trusted body under `external_body`. */
++    #[verus_verify(external_body)]
++    #[verus_spec(ret => returns X2Apic::has_x2apic_spec())]
+     pub(super) fn has_x2apic() -> bool {
+         // x2apic::X2APIC::new()
+         let value = unsafe { core::arch::x86_64::__cpuid(1) };
+@@ -59,6 +83,7 @@ impl X2Apic {
+     }
+ }
+ 
++#[verus_verify]
+ impl super::Apic for X2Apic {
+     fn id(&self) -> u32 {
+         unsafe { rdmsr(IA32_X2APIC_APICID) as u32 }
+@@ -74,6 +99,8 @@ impl super::Apic for X2Apic {
+         }
+     }
+ 
++    /* The polling loop terminates only on hardware action; whole op unverified. */
++    #[verus_verify(external_body)]
+     unsafe fn send_ipi(&self, icr: super::Icr) {
+         let _guard = crate::trap::irq::disable_local();
+         // SAFETY: These `rdmsr` and `wrmsr` instructions write the interrupt command to APIC and
+@@ -94,6 +121,7 @@ impl super::Apic for X2Apic {
+     }
+ }
+ 
++#[verus_verify]
+ impl ApicTimer for X2Apic {
+     fn set_timer_init_count(&self, value: u64) {
+         unsafe {
+diff --git a/ostd/src/arch/x86/kernel/apic/xapic.rs b/ostd/src/arch/x86/kernel/apic/xapic.rs
+index 9fb8e579a..82cb95bd1 100644
+--- a/ostd/src/arch/x86/kernel/apic/xapic.rs
++++ b/ostd/src/arch/x86/kernel/apic/xapic.rs
+@@ -1,13 +1,26 @@
+ // SPDX-License-Identifier: MPL-2.0
+ #![expect(dead_code)]
+ 
+-use x86::apic::xapic;
++use vstd::prelude::*;
++use vstd_extra::debug_assert;
++
++/* use x86::apic::xapic; */
++use vstd_extra::external::x86 as xapic;
+ 
+ use super::ApicTimer;
+ use crate::mm;
+ 
++verus! {
++
++// `align_of` has no primitive axiom; pin it (compiler-checked, not trusted).
++global layout u32 is size == 4, align == 4;
++
+ const IA32_APIC_BASE_MSR: u32 = 0x1B;
+-const IA32_APIC_BASE_MSR_BSP: u32 = 0x100; // Processor is a BSP
++
++// Processor is a BSP
++const IA32_APIC_BASE_MSR_BSP: u32 = 0x100;
++
++// Enable bit
+ const IA32_APIC_BASE_MSR_ENABLE: u64 = 0x800;
+ 
+ const APIC_LVT_MASK_BITS: u32 = 1 << 16;
+@@ -17,12 +30,48 @@ pub struct XApic {
+     mmio_start: *mut u32,
+ }
+ 
++impl XApic {
++    // The register file fits in the address space and is u32-aligned.
++    #[verifier::type_invariant]
++    closed spec fn type_inv(self) -> bool {
++        self.mmio_start@.addr + 1024 <= usize::MAX && self.mmio_start@.addr % 4 == 0
++    }
++
++    /// The MMIO register-file base address, closed so `new`'s contract can
++    /// name it without exposing the private field.
++    pub closed spec fn mmio_addr(self) -> usize {
++        self.mmio_start@.addr
++    }
++
++    /// Trusted: the register-file vaddr, as `XApic::new` maps it.
++    pub uninterp spec fn apic_register_file_vaddr_spec() -> usize;
++
++    /// Trusted: the CPUID.01H:EDX[9] local-APIC flag.
++    pub uninterp spec fn has_xapic_spec() -> bool;
++}
++
++} // verus!
+ // The APIC instance can be shared among threads running on the same CPU, but not among those
+ // running on different CPUs. Therefore, it is not `Send`/`Sync`.
+ impl !Send for XApic {}
+ impl !Sync for XApic {}
+ 
++#[verus_verify]
+ impl XApic {
++    /// Creates an APIC instance for the local CPU's MMIO register file.
++    /* Trusted (external_body): the usize-to-`*mut u32` cast is rejected by
++     * the verifier; the address is pinned to the spec model and claimed
++     * in-bounds and page-aligned (the MSR base field is page-aligned). */
++    #[verus_verify(external_body)]
++    #[verus_spec(ret =>
++        ensures
++            ret.is_some() == XApic::has_xapic_spec(),
++            ret matches Some(x) ==> {
++                &&& x.mmio_addr() == XApic::apic_register_file_vaddr_spec()
++                &&& XApic::apic_register_file_vaddr_spec() + 1024 <= usize::MAX
++                &&& XApic::apic_register_file_vaddr_spec() % 4 == 0
++            },
++    )]
+     pub fn new() -> Option<Self> {
+         if !Self::has_xapic() {
+             return None;
+@@ -34,22 +83,45 @@ impl XApic {
+     }
+ 
+     /// Reads a register from the MMIO region.
++    #[verus_spec(
++        requires
++            offset % 4 == 0,
++            offset < 1024,
++    )]
+     fn read(&self, offset: u32) -> u32 {
+         assert!(offset as usize % 4 == 0);
+         let index = offset as usize / 4;
+         debug_assert!(index < 256);
++        proof! {
++            use_type_invariant(self);
++            assert(size_of::<u32>() == 4);
++            assert(align_of::<u32>() == 4);
++        }
+         unsafe { core::ptr::read_volatile(self.mmio_start.add(index)) }
+     }
+ 
+     /// Writes a register in the MMIO region.
++    #[verus_spec(
++        requires
++            offset % 4 == 0,
++            offset < 1024,
++    )]
+     fn write(&self, offset: u32, val: u32) {
+         assert!(offset as usize % 4 == 0);
+         let index = offset as usize / 4;
+         debug_assert!(index < 256);
++        proof! {
++            use_type_invariant(self);
++            assert(size_of::<u32>() == 4);
++            assert(align_of::<u32>() == 4);
++        }
+         unsafe { core::ptr::write_volatile(self.mmio_start.add(index), val) }
+     }
+ 
+     pub fn enable(&mut self) {
++        proof! {
++            use_type_invariant(&*self);
++        }
+         // Enable xAPIC
+         set_apic_base_address(get_xapic_base_address());
+ 
+@@ -58,25 +130,40 @@ impl XApic {
+         self.write(xapic::XAPIC_SVR, svr);
+     }
+ 
++    /* `__cpuid` has no verifier model; trusted body under `external_body`. */
++    #[verus_verify(external_body)]
++    #[verus_spec(ret => returns XApic::has_xapic_spec())]
+     pub(super) fn has_xapic() -> bool {
+         let value = unsafe { core::arch::x86_64::__cpuid(1) };
+         value.edx & 0x100 != 0
+     }
+ }
+ 
++#[verus_verify]
+ impl super::Apic for XApic {
+     fn id(&self) -> u32 {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.read(xapic::XAPIC_ID)
+     }
+ 
+     fn version(&self) -> u32 {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.read(xapic::XAPIC_VERSION)
+     }
+ 
+     fn eoi(&self) {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.write(xapic::XAPIC_EOI, 0);
+     }
+ 
++    /* The polling loop terminates only on hardware action; whole op unverified. */
++    #[verus_verify(external_body)]
+     unsafe fn send_ipi(&self, icr: super::Icr) {
+         let _guard = crate::trap::irq::disable_local();
+         self.write(xapic::XAPIC_ESR, 0);
+@@ -97,25 +184,39 @@ impl super::Apic for XApic {
+     }
+ }
+ 
++#[verus_verify]
+ impl ApicTimer for XApic {
+     fn set_timer_init_count(&self, value: u64) {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.write(xapic::XAPIC_TIMER_INIT_COUNT, value as u32);
+     }
+ 
+     fn timer_current_count(&self) -> u64 {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.read(xapic::XAPIC_TIMER_CURRENT_COUNT) as u64
+     }
+ 
+     fn set_lvt_timer(&self, value: u64) {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.write(xapic::XAPIC_LVT_TIMER, value as u32);
+     }
+ 
+     fn set_timer_div_config(&self, div_config: super::DivideConfig) {
++        proof! {
++            use_type_invariant(self);
++        }
+         self.write(xapic::XAPIC_TIMER_DIV_CONF, div_config as u32);
+     }
+ }
+ 
+ /// Sets APIC base address and enables it
++#[verus_verify]
+ fn set_apic_base_address(address: usize) {
+     unsafe {
+         x86_64::registers::model_specific::Msr::new(IA32_APIC_BASE_MSR)
+@@ -124,6 +225,7 @@ fn set_apic_base_address(address: usize) {
+ }
+ 
+ /// Gets xAPIC base address
++#[verus_verify]
+ pub(super) fn get_xapic_base_address() -> usize {
+     unsafe {
+         (x86_64::registers::model_specific::Msr::new(IA32_APIC_BASE_MSR).read() & 0xf_ffff_f000)
+diff --git a/ostd/src/arch/x86/kernel/mod.rs b/ostd/src/arch/x86/kernel/mod.rs
+index e3493e183..a762dc0f9 100644
+--- a/ostd/src/arch/x86/kernel/mod.rs
++++ b/ostd/src/arch/x86/kernel/mod.rs
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ pub(super) mod acpi;
+-/* pub(super) mod apic;
+-pub(super) mod irq;
++pub(super) mod apic;
++/* pub(super) mod irq;
+ pub(super) mod tsc;
+ 
+ pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
+diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
+index f56a9a62b..57d0cac99 100644
+--- a/verified_libs/vstd_extra/Cargo.toml
++++ b/verified_libs/vstd_extra/Cargo.toml
+@@ -18,3 +18,5 @@ vstd = { workspace = true }
+ bitvec.workspace = true
+ smallvec = "1.13.2"
+ acpi = "=5.2.0"
++x86 = "0.52.0"
++x86_64 = "0.14.13"
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index 34fb8f96d..8bd1f6fa3 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -19,6 +19,7 @@ pub mod smallvec;
+ pub mod smart_ptr;
+ pub mod str;
+ pub mod time;
++pub mod x86;
+ 
+ pub use acpi::*;
+ pub use bitvec::*;
+@@ -34,6 +35,7 @@ pub use smallvec::*;
+ pub use smart_ptr::*;
+ pub use str::*;
+ pub use time::*;
++pub use x86::*;
+ 
+ use vstd::prelude::*;
+ 
+diff --git a/verified_libs/vstd_extra/src/external/ptr.rs b/verified_libs/vstd_extra/src/external/ptr.rs
+index 5cfc0f865..589663ef7 100644
+--- a/verified_libs/vstd_extra/src/external/ptr.rs
++++ b/verified_libs/vstd_extra/src/external/ptr.rs
+@@ -107,4 +107,41 @@ pub assume_specification<T: PointeeSized>[ <*mut T>::is_null ](ptr: *mut T) -> b
+     no_unwind
+ ;
+ 
++/// [core::ptr::read_volatile](https://doc.rust-lang.org/std/ptr/fn.read_volatile.html)
++/// returns an unconstrained value; debug builds panic on misaligned `src`, so
++/// the alignment carries `no_unwind when`.
++pub assume_specification<T>[ core::ptr::read_volatile::<T> ](src: *const T) -> T
++    requires
++        src@.addr + size_of::<T>() <= usize::MAX,
++        src@.addr % align_of::<T>() == 0,
++    opens_invariants none
++    no_unwind when src@.addr % align_of::<T>() == 0
++;
++
++/// [core::ptr::write_volatile](https://doc.rust-lang.org/std/ptr/fn.write_volatile.html);
++/// debug builds panic on misaligned `dst`, so the alignment carries `no_unwind when`.
++pub assume_specification<T>[ core::ptr::write_volatile::<T> ](dst: *mut T, src: T)
++    requires
++        dst@.addr + size_of::<T>() <= usize::MAX,
++        dst@.addr % align_of::<T>() == 0,
++    opens_invariants none
++    no_unwind when dst@.addr % align_of::<T>() == 0
++;
++
++/// [<*mut T>::add](https://doc.rust-lang.org/std/primitive.pointer.html#method.add) preserves
++/// provenance and metadata; debug builds panic on offset overflow, so the no-overflow
++/// preconditions carry `no_unwind when`.
++pub assume_specification<T>[ <*mut T>::add ](ptr: *mut T, count: usize) -> (ret: *mut T)
++    requires
++        ptr@.addr + count * size_of::<T>() <= usize::MAX,
++        count * size_of::<T>() <= isize::MAX,
++    ensures
++        ret@.metadata == ptr@.metadata,
++        ret@.provenance == ptr@.provenance,
++        ret@.addr == ptr@.addr + count * size_of::<T>(),
++    opens_invariants none
++    no_unwind when ptr@.addr + count * size_of::<T>() <= usize::MAX && count * size_of::<T>()
++    <= isize::MAX
++;
++
+ } // verus!
+diff --git a/verified_libs/vstd_extra/src/external/x86.rs b/verified_libs/vstd_extra/src/external/x86.rs
+new file mode 100644
+index 000000000..a96b69061
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/x86.rs
+@@ -0,0 +1,91 @@
++//! Literal mirrors of the [`x86` crate](https://crates.io/crates/x86) (0.52.0)
++//! constants, which verified code cannot reference across the crate boundary;
++//! values are trusted byte-for-byte with the crate sources. Also models the
++//! [`x86_64` crate](https://crates.io/crates/x86_64) (0.14.13) MSR accessors.
++use vstd::prelude::*;
++
++use x86_64::registers::model_specific::Msr;
++
++verus! {
++
++pub const XAPIC_ID: u32 = 0x020;
++
++pub const XAPIC_VERSION: u32 = 0x030;
++
++pub const XAPIC_EOI: u32 = 0x0B0;
++
++pub const XAPIC_SVR: u32 = 0x0F0;
++
++pub const XAPIC_ESR: u32 = 0x280;
++
++pub const XAPIC_ICR0: u32 = 0x300;
++
++pub const XAPIC_ICR1: u32 = 0x310;
++
++pub const XAPIC_LVT_TIMER: u32 = 0x320;
++
++pub const XAPIC_TIMER_INIT_COUNT: u32 = 0x380;
++
++pub const XAPIC_TIMER_CURRENT_COUNT: u32 = 0x390;
++
++pub const XAPIC_TIMER_DIV_CONF: u32 = 0x3E0;
++
++pub const IA32_APIC_BASE: u32 = 0x1b;
++
++pub const IA32_X2APIC_APICID: u32 = 0x802;
++
++pub const IA32_X2APIC_VERSION: u32 = 0x803;
++
++pub const IA32_X2APIC_EOI: u32 = 0x80b;
++
++pub const IA32_X2APIC_SIVR: u32 = 0x80f;
++
++pub const IA32_X2APIC_ESR: u32 = 0x828;
++
++pub const IA32_X2APIC_ICR: u32 = 0x830;
++
++pub const IA32_X2APIC_LVT_TIMER: u32 = 0x832;
++
++pub const IA32_X2APIC_INIT_COUNT: u32 = 0x838;
++
++pub const IA32_X2APIC_CUR_COUNT: u32 = 0x839;
++
++pub const IA32_X2APIC_DIV_CONF: u32 = 0x83e;
++
++/// [x86::msr::rdmsr](https://docs.rs/x86/0.52.0/x86/msr/fn.rdmsr.html) returns an unconstrained value.
++pub assume_specification[ x86::msr::rdmsr ](msr: u32) -> u64
++    opens_invariants none
++    no_unwind
++;
++
++/// [x86::msr::wrmsr](https://docs.rs/x86/0.52.0/x86/msr/fn.wrmsr.html).
++pub assume_specification[ x86::msr::wrmsr ](msr: u32, value: u64)
++    opens_invariants none
++    no_unwind
++;
++
++/// Opaque external wrapper for the x86_64 crate's MSR handle.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExMsr(Msr);
++
++/// [`Msr::new`](https://docs.rs/x86_64/0.14.13/x86_64/registers/model_specific/struct.Msr.html#method.new).
++pub assume_specification[ Msr::new ](reg: u32) -> Msr
++    opens_invariants none
++    no_unwind
++;
++
++/// [`Msr::read`](https://docs.rs/x86_64/0.14.13/x86_64/registers/model_specific/struct.Msr.html#method.read)
++/// returns an unconstrained value.
++pub assume_specification[ Msr::read ](msr: &Msr) -> u64
++    opens_invariants none
++    no_unwind
++;
++
++/// [`Msr::write`](https://docs.rs/x86_64/0.14.13/x86_64/registers/model_specific/struct.Msr.html#method.write).
++pub assume_specification[ Msr::write ](msr: &mut Msr, value: u64)
++    opens_invariants none
++    no_unwind
++;
++
++} // verus!

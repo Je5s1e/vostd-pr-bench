@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-677-1de689b269f2",
+  "pr_number": 677,
+  "title": "Prove tlb flush functions",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/677",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d54378ad684ff897cdecfecb8770f70c5aa3cd7c",
+  "head_sha": "1de689b269f2699cbabe1415fe06b7c0d455db50",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/tlb.rs"
+  ],
+  "diff_sha256": "d2146b69de919fae41e614945892486e5e5137e0c9577d68402d7c00d0932744",
+  "versions": {
+    "before": {
+      "commit": "d54378ad684ff897cdecfecb8770f70c5aa3cd7c",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "1de689b269f2699cbabe1415fe06b7c0d455db50",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

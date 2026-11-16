@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-897-657bce05372e",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-897-657bce05372e:issue-4510608233",
+      "original_label_id": "4510608233",
+      "category": "guideline",
+      "description": "**Type:** defer-auxiliary-proof-functions\n**Problem:** The `FrameRawPermsRef` model block — struct (:295), `View` (:300-312), `Inv` (:314-318) — is defined below the `NonNullPtr for Frame` impl (:143-293) that binds it (`type RefPermission<'a> = FrameRawPermsRef<'a>` at :150) and below the proof fns that construct it (`borrow_ref_perm`/`borrow_perm_as_ref_perm`, :229-237), while the guideline puts types, public `spec fn`s, and `View`/`Inv` impls in the upper part of the file. Fix pointer: move the block above the impl — same layout as `BoxRef`/`ArcRef` preceding their impls (`non_null/mod.rs:161→:206, :333→:367`) and as this file already leads with `FrameRef` (:33-69).",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/frame_ref.rs",
+          "start_line": 295,
+          "end_line": 295
+        }
+      ],
+      "rationale": "Independent full context confirms exported FrameRawPermsRef model and View/Inv295 onward occur after NonNullPtr impl143-293 using the model. Guideline explicitly puts types/View/Inv in upper API section; reorder is supported without a semantic claim.",
+      "source_evidence": "288:             slot_perm: *frame.tracked_slot_perm.borrow(),\n289:             metadata_perm,\n290:         };\n291:         (NonNull::new(ptr_ref.inner.ptr.cast_mut()).unwrap().cast(), Tracked(permission))\n292:     }\n293: }\n294: \n295: pub tracked struct FrameRawPermsRef<'a> {\n296:     slot_perm: &'static ExposedPointsTo<MetaSlot>,\n297:     metadata_perm: Option<&'a FracMetadataPerm>,\n298: }\n299: \n300: impl View for FrameRawPermsRef<'_> {\n301:     type V = FrameRawPerms;\n302: \n303:     closed spec fn view(&self) -> FrameRawPerms {",
+      "rule_ids": [
+        "defer-auxiliary-proof-functions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/897#discussion_r4510608233",
+      "related_comment_ids": [
+        "4510608233"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-897-657bce05372e:issue-4510608239",
+      "original_label_id": "4510608239",
+      "category": "semantic",
+      "description": "**Type:** implement-inv-for-models; api-postconditions\n**Problem:** With the `Permission: Inv`/`RefPermission: Inv` bounds dropped, Box/Arc export permission validity unconditionally (`non_null/mod.rs:260, 276, 409, 424`; `either.rs` inherits via delegation), but Frame's compensation never exports it forward: `ptr_perm_match` (:205-209) is slot-only, `rel_perm` (:211-216) makes validity an antecedent only, and `ref_rel_perm` (:222-227) guards every conjunct under `r.inv()` — so the trait's sole postcondition (`raw_as_ref`'s `ensures Self::ref_rel_perm(ret, perm@)`, `non_null/mod.rs:135-143`) is vacuously satisfiable for Frame and no chain guard re-derives permission validity anymore (`rcu/mod.rs:88, 207, 363, 386, 462, 513, 1108`; the merge base carried `perm.resource().inv()` in the guard's `type_inv`). Fix pointer: lift onto the contract the implication `raw_as_ref`'s body already proves (extra ensures :243-244) — add `&&& perm.inv() ==> r.inv()` beside today's guard in `ref_rel_perm`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/frame_ref.rs",
+          "start_line": 222,
+          "end_line": 222
+        }
+      ],
+      "rationale": "Independent trait check: non_null/mod.rs:135-143 exports only ref_rel_perm; Frame implementation222-227 defines it as r.inv() ==> (perm.inv() && relationship). raw_as_ref239-244 adds permission.inv() ==> res.inv() only on concrete impl. FrameRef type invariant42-46 merely constrains ptr_inv and absence of owned metadata, not full Inv. Generic caller cannot derive forward invariant from trait guarantee.",
+      "source_evidence": "215:         &&& perm.inv() ==> self.inv()\n216:     }\n217: \n218:     open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {\n219:         perm@\n220:     }\n221: \n222:     open spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool {\n223:         r.inv() ==> {\n224:             &&& perm.inv()\n225:             &&& r@.rel_perm(perm@)\n226:         }\n227:     }\n228: \n229:     proof fn borrow_ref_perm<'a>(tracked perm: &Self::RefPermission<'a>) -> (tracked ret:\n230:         Self::RefPermission<'a>) {",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/897#discussion_r4510608239",
+      "related_comment_ids": [
+        "4510608239"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

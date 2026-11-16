@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-812-4121eb1c32b0",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-812-4121eb1c32b0:issue-4227403322",
+      "original_label_id": "4227403322",
+      "category": "guideline",
+      "description": "Contract queries Result shape through is_ok rather than the prescribed spec form.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/task/scheduler/info.rs",
+          "start_line": 65,
+          "end_line": 65
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: ret is Ok expresses the identical shape test and aligns with the adjacent matches Err clause.",
+      "source_evidence": "62:             Self::inv_value(old(perm).view().value),\n63:         ensures\n64:             self.patomic_id() == final(perm).view().patomic,\n65:             ret.is_ok() ==> final(perm).view().value == cpu_id.as_usize() as u32,\n66:             ret matches Err(prev) ==> prev@ == old(perm).view().value\n67:                 && final(perm).view().value == old(perm).view().value,\n68:             Self::inv_value(final(perm).view().value),\n69:     )]\n70:     pub fn set_if_is_none(&self, cpu_id: CpuId) -> core::result::Result<(), CpuId> {\n71:         proof! {\n72:             broadcast use {",
+      "rule_ids": [
+        "match-enum-results"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/812#discussion_r4227403322",
+      "related_comment_ids": [
+        "4227403322"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

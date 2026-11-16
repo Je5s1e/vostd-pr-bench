@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-913-57ebb24bd3c7",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-913-57ebb24bd3c7:issue-4535790416",
+      "original_label_id": "4535790416",
+      "category": "guideline",
+      "description": "Installed workflow retains an obsolete template installation instruction.",
+      "locations": [
+        {
+          "version": "after",
+          "path": ".github/workflows/ensures-coverage.yml",
+          "start_line": 1,
+          "end_line": 1
+        }
+      ],
+      "rationale": "Read workflow in installed repository path: line1 instructs copying this file to the exact directory where it already resides. This is a concrete stale template instruction. document-real-proof-debt is specifically about proof comments, so use historical maintenance convention instead.",
+      "source_evidence": "1: # ensures-coverage for vostd.  Copy this file to vostd's .github/workflows/.\n2: #\n3: # This workflow only prepares the machine: it checks out vostd, sets up\n4: # Verus and Racket, checks out ensures-coverage, and runs its ci/vostd.sh,\n5: # which decides everything else (what is checked, the report, when to\n6: # stop).  ensures-coverage is taken from its main branch, the released\n7: # version, so a release changes the CI without touching vostd.  For trying\n8: # an unreleased version, run the workflow by hand with `ec_ref: dev`.",
+      "rule_ids": [
+        "review-convention:remove-stale-installation-instructions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/913#discussion_r4535790416",
+      "related_comment_ids": [
+        "4535790416"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-723-d90d548c92ae",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-723-d90d548c92ae:issue-3848925745",
+      "original_label_id": "3848925745",
+      "category": "guideline",
+      "description": "Is it better to name it as `tracked_borrow`?",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/rcu_read_lease.rs",
+          "start_line": 102,
+          "end_line": 102
+        }
+      ],
+      "rationale": "Tracked borrowing helper is at line 102; comment anchored to closing brace 108. Name-proof-roles explicitly requires tracked_ prefix for ownership helpers.",
+      "source_evidence": "104:             *resource == self.resource(),\n105:     {\n106:         self.lease.borrow()\n107:     }\n108: }\n109: \n110: /// Sum of active lease fractions for `key` among record IDs below `upto`.\n111: pub open spec fn active_lease_fraction<K, W>(\n112:     active: Map<nat, RcuActiveReadLeaseRecord<K, W>>,\n113:     key: K,",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/723#discussion_r3848925745",
+      "related_comment_ids": [
+        "3848925745"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

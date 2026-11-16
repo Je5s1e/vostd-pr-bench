@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-659-77c06f3ce196",
+  "pr_number": 659,
+  "title": "Prove axioms in ostd/specs/mm/embedding/io.rs",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/659",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "41e666060c61eb656c5101b94ca77a753d604af3",
+  "head_sha": "77c06f3ce19652edeb2d3afbb0c9c9f2e8b05583",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/io.rs",
+    "ostd/specs/mm/embedding/mod.rs"
+  ],
+  "diff_sha256": "e43570086b4fc0d69f51d46bf09db92a525f92317e54ea1bd88ee9ecbad61fa1",
+  "versions": {
+    "before": {
+      "commit": "41e666060c61eb656c5101b94ca77a753d604af3",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "77c06f3ce19652edeb2d3afbb0c9c9f2e8b05583",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

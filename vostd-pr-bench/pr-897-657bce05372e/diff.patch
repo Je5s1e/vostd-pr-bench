@@ -1,0 +1,913 @@
+diff --git a/ostd/specs/mm/frame/meta_specs.rs b/ostd/specs/mm/frame/meta_specs.rs
+index aef12e790..591d9d38c 100644
+--- a/ostd/specs/mm/frame/meta_specs.rs
++++ b/ostd/specs/mm/frame/meta_specs.rs
+@@ -46,6 +46,7 @@ impl MetaSlot {
+         ensures
+             core::mem::size_of::<MetaSlot>() == META_SLOT_SIZE,
+             vstd::layout::size_of::<MetaSlot>() == META_SLOT_SIZE,
++            core::mem::align_of::<MetaSlot>() == 8,
+     {
+         broadcast use VERUS_layout_of_MetaSlot;
+ 
+diff --git a/ostd/src/mm/frame/frame_ref.rs b/ostd/src/mm/frame/frame_ref.rs
+index e89395324..2552093a5 100644
+--- a/ostd/src/mm/frame/frame_ref.rs
++++ b/ostd/src/mm/frame/frame_ref.rs
+@@ -9,7 +9,7 @@ use vstd_extra::{
+ use crate::specs::{
+     arch::valid_frame_paddr,
+     mm::frame::{
+-        frame_specs::FrameRawPerms,
++        frame_specs::{FrameRawPerms, valid_slot_vaddr},
+         mapping::meta_to_index,
+         meta_owners::{FracMetadataPerm, MetaSlotStorage, MetadataPerm, typed_meta_wf},
+         meta_region_owners::MetaRegionOwners,
+@@ -21,7 +21,10 @@ use super::{
+     meta::{AnyFrameMeta, MetaSlot},
+ };
+ use crate::mm::frame::meta::mapping::frame_to_meta;
+-use crate::mm::{Paddr, Vaddr};
++use crate::{
++    mm::{Paddr, Vaddr},
++    sync::non_null::NonNullPtr,
++};
+ use core::{marker::PhantomData, mem::ManuallyDrop, ops::Deref, ptr::NonNull};
+ 
+ verus! {
+@@ -135,101 +138,6 @@ impl<M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage>> Deref for FrameRef<'_, M>
+     }
+ }
+ 
+-// TODO: Use NonNullPtr in `sync`.
+-/// A trait that abstracts non-null pointers.
+-///
+-/// All common smart pointer types such as `Box<T>`,  `Arc<T>`, and `Weak<T>`
+-/// implement this trait as they can be converted to and from the raw pointer
+-/// type of `*const T`.
+-///
+-/// # Safety
+-///
+-/// This trait must be implemented correctly (according to the doc comments for
+-/// each method). Types like [`Rcu`] rely on this assumption to safely use the
+-/// raw pointers.
+-///
+-/// [`Rcu`]: super::Rcu
+-pub unsafe trait NonNullPtr: 'static + Sized {
+-    /// The target type that this pointer refers to.
+-    // TODO: Support `Target: ?Sized`.
+-    type Target;
+-
+-    #[cfg(not(feature = "irc11"))]
+-    type Permission: Inv;
+-
+-    #[cfg(feature = "irc11")]
+-    type Permission: Inv + vstd::thread_view::Objective;
+-
+-    /// A type that behaves just like a shared reference to the `NonNullPtr`.
+-    type Ref<'a>: Inv;
+-
+-    /// The power of two of the pointer alignment.
+-    const ALIGN_BITS: u32;
+-
+-    /// Converts to a raw pointer.
+-    ///
+-    /// Each call to `into_raw` must be paired with a call to `from_raw`
+-    /// in order to avoid memory leakage.
+-    ///
+-    /// The lower [`Self::ALIGN_BITS`] of the raw pointer is guaranteed to
+-    /// be zero. In other words, the pointer is guaranteed to be aligned to
+-    /// `1 << Self::ALIGN_BITS`.
+-    fn into_raw(self) -> ((res_ptr, perm): (NonNull<Self::Target>, Tracked<Self::Permission>))
+-        ensures
+-            Self::ptr_perm_match(res_ptr.as_ptr(), perm@),
+-            self.rel_perm(perm@),
+-            perm@.inv(),
+-            res_ptr.as_ptr().addr() % (1usize << Self::ALIGN_BITS) == 0,
+-    ;
+-
+-    /// Converts back from a raw pointer.
+-    ///
+-    /// # Safety
+-    ///
+-    /// 1. The raw pointer must have been previously returned by a call to
+-    ///    `into_raw`.
+-    /// 2. The raw pointer must not be used after calling `from_raw`.
+-    ///
+-    /// Note that the second point is a hard requirement: Even if the
+-    /// resulting value has not (yet) been dropped, the pointer cannot be
+-    /// used because it may break Rust aliasing rules (e.g., `Box<T>`
+-    /// requires the pointer to be unique and thus _never_ aliased).
+-    unsafe fn from_raw(ptr: NonNull<Self::Target>, perm: Tracked<Self::Permission>) -> (ret: Self)
+-        requires
+-            Self::ptr_perm_match(ptr.as_ptr(), perm@),
+-            perm@.inv(),
+-        ensures
+-            ret.rel_perm(perm@),
+-    ;
+-
+-    /// Obtains a shared reference to the original pointer.
+-    ///
+-    /// # Safety
+-    ///
+-    /// The original pointer must outlive the lifetime parameter `'a`, and during `'a`
+-    /// no mutable references to the pointer will exist.
+-    unsafe fn raw_as_ref<'a>(
+-        raw: NonNull<Self::Target>,
+-        permission: Tracked<&'a Self::Permission>,
+-    ) -> (res: Self::Ref<'a>)
+-        requires
+-            Self::ptr_perm_match(raw.as_ptr(), *permission@),
+-            permission@.inv(),
+-        ensures
+-            res.inv(),
+-    ;
+-
+-    /// Converts a shared reference to a raw pointer.
+-    fn ref_as_raw(ptr_ref: Self::Ref<'_>) -> NonNull<Self::Target>;
+-
+-    /// A specification function that constraints the nonnull pointer and the permission returned by `into_raw`.
+-    /// This design is to support the tagged pointer trick used in `Either`.
+-    spec fn ptr_perm_match(ptr: *mut Self::Target, perm: Self::Permission) -> bool;
+-
+-    /// A specification function that relates the original smart pointer and the permission.
+-    spec fn rel_perm(self, perm: Self::Permission) -> bool;
+-}
+-
+ // SAFETY: `Frame` is essentially a `*const MetaSlot` that could be used as a non-null
+ // `*const` pointer.
+ unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + 'static> NonNullPtr for Frame<M> {
+@@ -239,8 +147,13 @@ unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + 'static> NonNullPtr for Fr
+ 
+     type Ref<'a> = FrameRef<'a, M>;
+ 
+-    #[verifier::external_body]
+-    const ALIGN_BITS: u32 = core::mem::align_of::<MetaSlot>().trailing_zeros();
++    type RefPermission<'a> = FrameRawPermsRef<'a>;
++
++    /* Verus cannot verify the original trait-constant expression. `MetaSlot` has
++     * alignment 8 on the supported targets, as checked by `lemma_align_bits_range`.
++     * Origin Rust: const ALIGN_BITS: u32 = core::mem::align_of::<MetaSlot>().trailing_zeros();
++     */
++    const ALIGN_BITS: u32 = 3;
+ 
+     /* `mut` permits transferring the erased metadata permission out of the handle.
+      * Origin Rust: fn into_raw(self) -> NonNull<Self::Target> {
+@@ -255,7 +168,14 @@ unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + 'static> NonNullPtr for Fr
+         }
+         let ptr = NonNull::new(self.ptr.cast_mut()).unwrap();
+         let _ = ManuallyDrop::new(self);
+-        assume(ptr.as_ptr().addr() % (1usize << Self::ALIGN_BITS) == 0);
++        proof {
++            let addr = ptr.as_ptr().addr();
++            assert(addr % (1usize << Self::ALIGN_BITS) == 0) by (bit_vector)
++                requires
++                    addr % 64 == 0,
++                    Self::ALIGN_BITS == 3,
++            ;
++        }
+         (ptr.cast(), Tracked(perm))
+     }
+ 
+@@ -273,10 +193,56 @@ unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + 'static> NonNullPtr for Fr
+         }
+     }
+ 
++    proof fn lemma_align_bits_range()
++        ensures
++            Self::ALIGN_BITS < usize::BITS,
++            core::mem::align_of::<MetaSlot>() == 1usize << Self::ALIGN_BITS,
++    {
++        MetaSlot::lemma_layout();
++        assert(1usize << 3 == 8) by (bit_vector);
++    }
++
++    open spec fn ptr_perm_match(ptr: *mut Self::Target, perm: Self::Permission) -> bool {
++        &&& ptr.cast_const().cast::<MetaSlot>() == perm.slot_perm.ptr()
++        &&& valid_slot_vaddr(perm.slot_vaddr())
++        &&& perm.slot_perm.is_init()
++    }
++
++    open spec fn rel_perm(self, perm: Self::Permission) -> bool {
++        &&& perm.slot_perm == self.slot_perm()
++        &&& perm.metadata_perm == self.frac_metadata_perm()
++        &&& self.ptr_inv()
++        &&& perm.inv() ==> self.inv()
++    }
++
++    open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {
++        perm@
++    }
++
++    open spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool {
++        r.inv() ==> {
++            &&& perm.inv()
++            &&& r@.rel_perm(perm@)
++        }
++    }
++
++    proof fn borrow_ref_perm<'a>(tracked perm: &Self::RefPermission<'a>) -> (tracked ret:
++        Self::RefPermission<'a>) {
++        FrameRawPermsRef { slot_perm: perm.slot_perm, metadata_perm: perm.metadata_perm }
++    }
++
++    proof fn borrow_perm_as_ref_perm<'a>(tracked perm: &'a Self::Permission) -> (tracked ret:
++        Self::RefPermission<'a>) {
++        FrameRawPermsRef { slot_perm: perm.slot_perm, metadata_perm: Some(&perm.metadata_perm) }
++    }
++
+     unsafe fn raw_as_ref<'a>(
+         raw: NonNull<Self::Target>,
+-        Tracked(permission): Tracked<&'a Self::Permission>,
+-    ) -> Self::Ref<'a> {
++        Tracked(permission): Tracked<Self::RefPermission<'a>>,
++    ) -> (res: Self::Ref<'a>)
++        ensures
++            permission.inv() ==> res.inv(),
++    {
+         Self::Ref {
+             inner: ManuallyDrop::new(
+                 Frame {
+@@ -290,27 +256,64 @@ unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + 'static> NonNullPtr for Fr
+             ),
+             _marker: PhantomData,
+             #[cfg(verus_keep_ghost_body)]
+-            tracked_metadata_perm: Tracked(Some(&permission.metadata_perm)),
++            tracked_metadata_perm: Tracked(permission.metadata_perm),
+         }
+     }
+ 
+-    fn ref_as_raw(ptr_ref: Self::Ref<'_>) -> (res: NonNull<Self::Target>)
++    fn ref_as_raw<'a>(ptr_ref: Self::Ref<'a>) -> (res: (
++        NonNull<Self::Target>,
++        Tracked<Self::RefPermission<'a>>,
++    ))
+         ensures
+-            res.as_ptr().cast_const().cast::<MetaSlot>() == ptr_ref@.ptr,
++            res.0.as_ptr().cast_const().cast::<MetaSlot>() == ptr_ref@.ptr,
+     {
+         proof {
+             use_type_invariant(&ptr_ref);
++            assert(1usize << Self::ALIGN_BITS == 8) by (bit_vector)
++                requires
++                    Self::ALIGN_BITS == 3,
++            ;
++            let addr = ptr_ref@.ptr.addr();
++            assert(addr % 8 == 0) by (bit_vector)
++                requires
++                    addr % 64 == 0,
++            ;
+         }
+-        NonNull::new(ptr_ref.inner.ptr.cast_mut()).unwrap().cast()
++        /* Name the inner frame so its erased slot permission can be borrowed in proof mode.
++         * Origin Rust: NonNull::new(ptr_ref.inner.ptr.cast_mut()).unwrap().cast()
++         */
++        let frame = &*ptr_ref.inner;
++        let tracked metadata_perm = *ptr_ref.tracked_metadata_perm.borrow();
++        let tracked permission = FrameRawPermsRef {
++            slot_perm: *frame.tracked_slot_perm.borrow(),
++            metadata_perm,
++        };
++        (NonNull::new(ptr_ref.inner.ptr.cast_mut()).unwrap().cast(), Tracked(permission))
+     }
++}
+ 
+-    open spec fn ptr_perm_match(ptr: *mut Self::Target, perm: Self::Permission) -> bool {
+-        ptr.cast_const().cast::<MetaSlot>() == perm.slot_perm.ptr()
++pub tracked struct FrameRawPermsRef<'a> {
++    slot_perm: &'static ExposedPointsTo<MetaSlot>,
++    metadata_perm: Option<&'a FracMetadataPerm>,
++}
++
++impl View for FrameRawPermsRef<'_> {
++    type V = FrameRawPerms;
++
++    closed spec fn view(&self) -> FrameRawPerms {
++        FrameRawPerms {
++            slot_perm: self.slot_perm,
++            metadata_perm: match self.metadata_perm {
++                Some(permission) => *permission,
++                None => arbitrary(),
++            },
++        }
+     }
++}
+ 
+-    open spec fn rel_perm(self, perm: Self::Permission) -> bool {
+-        &&& perm.slot_perm == self.slot_perm()
+-        &&& perm.metadata_perm == self.frac_metadata_perm()
++impl Inv for FrameRawPermsRef<'_> {
++    closed spec fn inv(self) -> bool {
++        self.metadata_perm is Some && self@.inv()
+     }
+ }
+ 
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index 705d11e4c..f14a8cda5 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -30,7 +30,7 @@ use core::{
+     */
+ };
+ 
+-use non_null::{NonNullPtr, NonNullPtrRef};
++use non_null::NonNullPtr;
+ // use spin::once::Once;
+ 
+ use self::monitor::{RcuMonitor, RcuMonitorInvariant, RcuMonitorPred};
+@@ -86,7 +86,6 @@ closed spec fn retired_pools_inv<P: NonNullPtr>(retired: RcuRetiredPools<P>) ->
+             &&& !(entry.0@).is_null()
+             &&& entry.1.id() == id
+             &&& P::ptr_perm_match(entry.0@, entry.1@)
+-            &&& entry.1@.inv()
+             &&& entry.1.wf()
+             &&& entry.1.not_empty()
+         }
+@@ -97,7 +96,6 @@ closed spec fn returned_tokens_inv<P: NonNullPtr>(returned: RcuReturnedTokens<P>
+         returned.contains_key(id) ==> {
+             let token = returned[id];
+             &&& token.id() == id
+-            &&& token.resource().inv()
+             &&& token.frac() > 0
+         }
+ }
+@@ -207,7 +205,6 @@ closed spec fn wf(self) -> bool {
+             Some(perm) => {
+                 &&& !v.is_null()
+                 &&& P::ptr_perm_match(v, perm@)
+-                &&& perm@.inv()
+                 &&& perm.wf()
+                 &&& perm.not_empty()
+             },
+@@ -364,7 +361,6 @@ impl<P: NonNullPtr + Send> RcuInner<P> {
+                 Some(perm) => {
+                     &&& !obj_ptr.is_null()
+                     &&& P::ptr_perm_match(obj_ptr, perm.resource())
+-                    &&& perm.resource().inv()
+                     &&& perm.frac() == 1
+                 },
+                 None => obj_ptr.is_null(),
+@@ -388,7 +384,6 @@ impl<P: NonNullPtr + Send> RcuInner<P> {
+                         assert(loaded == prev);
+                         assert(!loaded.is_null());
+                         assert(P::ptr_perm_match(loaded, perm@));
+-                        assert(perm@.inv());
+                     let ghost perm_snapshot = perm@;
+ 
+                     // Verification-only admission for the bounded read-token pool.
+@@ -436,7 +431,7 @@ impl<P: NonNullPtr + Send> RcuInner<P> {
+     pub fn read_with<'a, A: InAtomicMode>(
+         &'a self,
+         _guard: &'a A,  // &'a dyn InAtomicMode is not well-supported in Verus.
+-    ) -> Option<<P as NonNullPtrRef<'a>>::Ref> where P: NonNullPtrRef<'a> {
++    ) -> Option<P::Ref<'a>> {
+         proof_decl! {
+             let tracked mut tracked_ref_perm: Option<RcuReadToken<P>> = None;
+         }
+@@ -453,7 +448,7 @@ impl<P: NonNullPtr + Send> RcuInner<P> {
+             // atomic-mode/CPU epoch state instead.
+             let tracked tracked_ref_perm = tracked_ref_perm.tracked_unwrap();
+             let tracked tracked_ref_perm = tracked_static_ref(tracked_ref_perm);
+-            let tracked tracked_ref_perm: <P as NonNullPtrRef<'a>>::RefPermission =
++            let tracked tracked_ref_perm: P::RefPermission<'a> =
+                 P::borrow_perm_as_ref_perm(tracked_ref_perm.tracked_borrow());
+         }
+         // SAFETY:
+@@ -503,7 +498,7 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+         ensures
+             self.tracked_ref_perm@ is Some ==> r is Some,
+     )]
+-    fn get<'b>(&'b self) -> Option<<P as NonNullPtrRef<'b>>::Ref> where P: NonNullPtrRef<'b> {
++    fn get<'b>(&'b self) -> Option<P::Ref<'b>> {
+         proof {
+             use_type_invariant(self);
+         }
+@@ -660,15 +655,12 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+                         if prev == obj_ptr && pool.id() == id {
+                             assert(!obj_ptr.is_null());
+                             assert(P::ptr_perm_match(obj_ptr, token.resource()));
+-                            assert(token.resource().inv());
+                             assert(token.frac() == 1);
+                             assert(P::ptr_perm_match(prev, pool@));
+-                            assert(pool@.inv());
+                             assert(pool.wf());
+                             assert(pool.not_empty());
+                             pool.combine(token);
+                             assert(P::ptr_perm_match(prev, pool@));
+-                            assert(pool@.inv());
+                             assert(pool.wf());
+                             assert(pool.not_empty());
+                             g.current = Some(pool);
+@@ -679,12 +671,10 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+                                 let tracked mut pool = entry.1;
+                                 assert(pool.id() == id);
+                                 assert(P::ptr_perm_match(entry.0@, pool@));
+-                                assert(pool@.inv());
+                                 assert(pool.wf());
+                                 assert(pool.not_empty());
+                                 pool.combine(token);
+                                 assert(P::ptr_perm_match(entry.0@, pool@));
+-                                assert(pool@.inv());
+                                 assert(pool.wf());
+                                 assert(pool.not_empty());
+                                 g.retired.tracked_insert(id, (entry.0, pool));
+@@ -698,12 +688,10 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+                             let tracked mut pool = entry.1;
+                             assert(pool.id() == id);
+                             assert(P::ptr_perm_match(entry.0@, pool@));
+-                            assert(pool@.inv());
+                             assert(pool.wf());
+                             assert(pool.not_empty());
+                             pool.combine(token);
+                             assert(P::ptr_perm_match(entry.0@, pool@));
+-                            assert(pool@.inv());
+                             assert(pool.wf());
+                             assert(pool.not_empty());
+                             g.retired.tracked_insert(id, (entry.0, pool));
+@@ -716,7 +704,6 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+                     Some(pool) => {
+                         assert(!prev.is_null());
+                         assert(P::ptr_perm_match(prev, pool@));
+-                        assert(pool@.inv());
+                         assert(pool.wf());
+                         assert(pool.not_empty());
+                     },
+@@ -769,7 +756,7 @@ impl<P: NonNullPtr + Send> Rcu<P> {
+     }
+     // #[inline]
+     // pub fn read_with<'a, G: AsAtomicModeGuard + ?Sized>(&'a self, guard: &'a G) -> P::Ref<'a> where
+-    //     P: NonNullPtrRef<'a>,
++    //     P: NonNullPtr,
+     // {
+     //     self.0.read_with(guard.as_atomic_mode_guard()).unwrap()
+     // }
+@@ -844,7 +831,7 @@ impl<P: NonNullPtr + Send> RcuReadGuard<'_, P> {
+ 
+     /// Gets the reference of the protected data.
+     #[inline]
+-    pub fn get<'a>(&'a self) -> <P as NonNullPtrRef<'a>>::Ref where P: NonNullPtrRef<'a> {
++    pub fn get<'a>(&'a self) -> P::Ref<'a> {
+         proof {
+             use_type_invariant(self);
+         }
+@@ -891,7 +878,7 @@ impl<P: NonNullPtr + Send> RcuOptionReadGuard<'_, P> {
+     }
+ 
+     #[inline]
+-    pub fn get<'a>(&'a self) -> Option<<P as NonNullPtrRef<'a>>::Ref> where P: NonNullPtrRef<'a> {
++    pub fn get<'a>(&'a self) -> Option<P::Ref<'a>> {
+         self.0.get()
+     }
+ 
+@@ -1119,7 +1106,6 @@ impl<'a, P: NonNullPtr> RcuReadGuardInner<'a, P> {
+             Some(perm) => {
+                 &&& !self.obj_ptr.is_null()
+                 &&& P::ptr_perm_match(self.obj_ptr, perm.resource())
+-                &&& perm.resource().inv()
+                 &&& perm.frac() == 1
+             },
+             None => self.obj_ptr.is_null(),
+diff --git a/ostd/src/sync/rcu/non_null/either.rs b/ostd/src/sync/rcu/non_null/either.rs
+index a4cea908c..f5f8f807b 100644
+--- a/ostd/src/sync/rcu/non_null/either.rs
++++ b/ostd/src/sync/rcu/non_null/either.rs
+@@ -7,7 +7,7 @@ use vstd::{
+ };
+ use vstd_extra::{prelude::*, sum::Sum};
+ 
+-use super::{NonNullPtr, NonNullPtrRef};
++use super::NonNullPtr;
+ use crate::util::Either;
+ use core::num::NonZeroUsize;
+ use core::{marker::PhantomData, ptr::NonNull};
+@@ -22,12 +22,12 @@ broadcast use {group_nonull_axioms, group_nonzero_axioms, group_raw_ptr_axioms};
+ unsafe impl<L: NonNullPtr, R: NonNullPtr> NonNullPtr for Either<L, R> {
+     type Target = PhantomData<Self>;
+ 
+-    // type Ref<'a>
+-    //     = Either<L::Ref<'a>, R::Ref<'a>>
+-    // where
+-    //     Self: 'a;
+     type Permission = Sum<L::Permission, R::Permission>;
+ 
++    type Ref<'a> = Either<L::Ref<'a>, R::Ref<'a>>;
++
++    type RefPermission<'a> = Sum<L::RefPermission<'a>, R::RefPermission<'a>>;
++
+     #[verifier::external_body]
+     const ALIGN_BITS: u32 = min(L::ALIGN_BITS, R::ALIGN_BITS).checked_sub(1).expect(
+         "`L` and `R` alignments should be at least 2 to pack `Either` into one pointer",
+@@ -230,33 +230,24 @@ unsafe impl<L: NonNullPtr, R: NonNullPtr> NonNullPtr for Either<L, R> {
+                 R::ALIGN_BITS - 1
+             },
+     ;
+-}
+-
+-unsafe impl<'a, L: NonNullPtrRef<'a>, R: NonNullPtrRef<'a>> NonNullPtrRef<'a> for Either<L, R> {
+-    type Ref = Either<L::Ref, R::Ref>;
+-
+-    type RefPermission = Sum<L::RefPermission, R::RefPermission>;
+ 
+-    open spec fn ref_perm_view_permission(perm: Self::RefPermission) -> Self::Permission {
++    open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {
+         match perm {
+             Sum::Left(left) => Sum::Left(L::ref_perm_view_permission(left)),
+             Sum::Right(right) => Sum::Right(R::ref_perm_view_permission(right)),
+         }
+     }
+ 
+-    open spec fn ref_rel_perm(r: Self::Ref, perm: Self::RefPermission) -> bool {
+-        true
+-    }
+-
+-    proof fn lemma_ref_perm_inv_impl_perm_inv(perm: Self::RefPermission) {
+-        match perm {
+-            Sum::Left(left) => L::lemma_ref_perm_inv_impl_perm_inv(left),
+-            Sum::Right(right) => R::lemma_ref_perm_inv_impl_perm_inv(right),
++    open spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool {
++        match (r, perm) {
++            (Either::Left(r), Sum::Left(perm)) => L::ref_rel_perm(r, perm),
++            (Either::Right(r), Sum::Right(perm)) => R::ref_rel_perm(r, perm),
++            _ => false,
+         }
+     }
+ 
+-    proof fn borrow_ref_perm(tracked perm: &Self::RefPermission) -> (tracked ret:
+-        Self::RefPermission) {
++    proof fn borrow_ref_perm<'a>(tracked perm: &Self::RefPermission<'a>) -> (tracked ret:
++        Self::RefPermission<'a>) {
+         if perm is Left {
+             Sum::Left(L::borrow_ref_perm(perm.tracked_borrow_left()))
+         } else {
+@@ -264,8 +255,8 @@ unsafe impl<'a, L: NonNullPtrRef<'a>, R: NonNullPtrRef<'a>> NonNullPtrRef<'a> fo
+         }
+     }
+ 
+-    proof fn borrow_perm_as_ref_perm(tracked perm: &'a Self::Permission) -> (tracked ret:
+-        Self::RefPermission) {
++    proof fn borrow_perm_as_ref_perm<'a>(tracked perm: &'a Self::Permission) -> (tracked ret:
++        Self::RefPermission<'a>) {
+         if perm is Left {
+             Sum::Left(L::borrow_perm_as_ref_perm(perm.tracked_borrow_left()))
+         } else {
+@@ -273,10 +264,10 @@ unsafe impl<'a, L: NonNullPtrRef<'a>, R: NonNullPtrRef<'a>> NonNullPtrRef<'a> fo
+         }
+     }
+ 
+-    unsafe fn raw_as_ref(
++    unsafe fn raw_as_ref<'a>(
+         raw: NonNull<Self::Target>,
+-        Tracked(perm): Tracked<Self::RefPermission>,
+-    ) -> Self::Ref {
++        Tracked(perm): Tracked<Self::RefPermission<'a>>,
++    ) -> Self::Ref<'a> {
+         proof_decl! {
+             let ghost align_bits = Self::ALIGN_BITS;
+             let ghost tag = 1usize << align_bits;
+@@ -327,7 +318,10 @@ unsafe impl<'a, L: NonNullPtrRef<'a>, R: NonNullPtrRef<'a>> NonNullPtrRef<'a> fo
+     }
+ 
+     #[verifier::spinoff_prover]
+-    fn ref_as_raw(ptr_ref: Self::Ref) -> (NonNull<Self::Target>, Tracked<Self::RefPermission>) {
++    fn ref_as_raw<'a>(ptr_ref: Self::Ref<'a>) -> (
++        NonNull<Self::Target>,
++        Tracked<Self::RefPermission<'a>>,
++    ) {
+         proof!{
+             Self::lemma_align_bits_range();
+         }
+@@ -353,7 +347,6 @@ unsafe impl<'a, L: NonNullPtrRef<'a>, R: NonNullPtrRef<'a>> NonNullPtrRef<'a> fo
+                 let (ptr, Tracked(perm)) = L::ref_as_raw(left);
+                 proof! {
+                     let ghost ptr_addr = ptr.as_ptr().addr();
+-                    L::lemma_ref_perm_inv_impl_perm_inv(perm);
+                     let extra_bits: u32 = (l_align_bits - align_bits) as u32;
+                     let scale = 1usize << extra_bits;
+                     vstd::bits::lemma_usize_pow2_no_overflow(extra_bits as nat);
+@@ -401,7 +394,6 @@ unsafe impl<'a, L: NonNullPtrRef<'a>, R: NonNullPtrRef<'a>> NonNullPtrRef<'a> fo
+                 proof! {
+                     let ghost ptr_addr = ptr.as_ptr().addr();
+                     let ghost tagged_addr = tagged_ptr.as_ptr().addr();
+-                    R::lemma_ref_perm_inv_impl_perm_inv(perm);
+                     assert(tagged_addr & tag == tag) by (bit_vector)
+                     requires
+                         tagged_addr == ptr_addr | tag,
+diff --git a/ostd/src/sync/rcu/non_null/mod.rs b/ostd/src/sync/rcu/non_null/mod.rs
+index dfa616779..53eb4e6b6 100644
+--- a/ostd/src/sync/rcu/non_null/mod.rs
++++ b/ostd/src/sync/rcu/non_null/mod.rs
+@@ -37,18 +37,20 @@ pub unsafe trait NonNullPtr: Sized + 'static {
+     // TODO: Support `Target: ?Sized`.
+     type Target;
+ 
+-    // VERUS LIMITATION: Verus does not support generic associated type with lifetime yet,
+-    // so we put all methods related to the Ref associated type in the `NonNullPtrRef` trait.
+-    /*/// A type that behaves just like a shared reference to the `NonNullPtr`.
+-    type Ref<'a>
+-    where
+-        Self: 'a;*/
++    /// A type that behaves just like a shared reference to the owning pointer.
++    /// `Self: 'a` is implied by `Self: 'static`; omit that redundant GAT where-clause
++    /// because the current Verus translator rejects it in associated-type impls.
++    type Ref<'a>: 'a;
++
+     /// A verification-only permission type that represents the ownership of the memory managed by the pointer.
+     #[cfg(not(feature = "irc11"))]
+-    type Permission: Inv;
++    type Permission;
+ 
+     #[cfg(feature = "irc11")]
+-    type Permission: Inv + Objective;
++    type Permission: Objective;
++
++    /// A verification-only permission type that represents the reading permission of the memory managed by the pointer.
++    type RefPermission<'a>;
+ 
+     /// The power of two of the pointer alignment.
+     const ALIGN_BITS: u32;
+@@ -66,7 +68,6 @@ pub unsafe trait NonNullPtr: Sized + 'static {
+         ensures
+             Self::ptr_perm_match(res_ptr.as_ptr(), perm@),
+             self.rel_perm(perm@),
+-            perm@.inv(),
+             res_ptr.as_ptr().addr() % (1usize << Self::ALIGN_BITS) == 0,
+     ;
+ 
+@@ -88,20 +89,10 @@ pub unsafe trait NonNullPtr: Sized + 'static {
+     unsafe fn from_raw(ptr: NonNull<Self::Target>, perm: Tracked<Self::Permission>) -> (ret: Self)
+         requires
+             Self::ptr_perm_match(ptr.as_ptr(), perm@),
+-            perm@.inv(),
+         ensures
+             ret.rel_perm(perm@),
+     ;
+ 
+-    /*/// Obtains a shared reference to the original pointer.
+-    ///
+-    /// # Safety
+-    ///
+-    /// The original pointer must outlive the lifetime parameter `'a`, and during `'a`
+-    /// no mutable references to the pointer will exist.
+-    //unsafe fn raw_as_ref<'a>(raw: NonNull<Self::Target>) -> Self::Ref<'a>;*/
+-    /*/// Converts a shared reference to a raw pointer.
+-    fn ref_as_raw(ptr_ref: Self::Ref<'_>) -> NonNull<Self::Target>;*/
+     /// A specification function that constraints the nonnull pointer and the permission returned by `into_raw`.
+     /// This design is to support the tagged pointer trick used in `Either`.
+     spec fn ptr_perm_match(ptr: *mut Self::Target, perm: Self::Permission) -> bool;
+@@ -114,48 +105,24 @@ pub unsafe trait NonNullPtr: Sized + 'static {
+         ensures
+             Self::ALIGN_BITS < usize::BITS,
+     ;
+-}
+-
+-/// The trait for the associated Ref type of `NonNullPtr`, which is separated from the `NonNullPtr` trait.
+-/// FIXME: This is a workaround for the lack of GAT with lifetime in Verus. We can merge this trait back to `NonNullPtr`
+-/// once it is supported.
+-pub unsafe trait NonNullPtrRef<'a>: NonNullPtr {
+-    type Ref: 'a;
+-
+-    /// A verification-only permission type that represents the reading permission of the memory managed by the pointer.
+-    type RefPermission: Inv;
+ 
+     /// The RefPermission must be able to be viewed as the owned Permission.
+-    spec fn ref_perm_view_permission(perm: Self::RefPermission) -> Self::Permission;
++    spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission;
+ 
+     /// A specification function that relates the `Ref` type and the `RefPermission`.
+-    spec fn ref_rel_perm(r: Self::Ref, perm: Self::RefPermission) -> bool;
+-
+-    /// The `RefPermission` must present the invariant of the `Permission`.
+-    proof fn lemma_ref_perm_inv_impl_perm_inv(perm: Self::RefPermission)
+-        requires
+-            perm.inv(),
+-        ensures
+-            Self::ref_perm_view_permission(perm).inv(),
+-    ;
++    spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool;
+ 
+     /// Borrows a reusable reading permission from an existing reading permission.
+-    proof fn borrow_ref_perm(tracked perm: &Self::RefPermission) -> (tracked ret:
+-        Self::RefPermission)
+-        requires
+-            perm.inv(),
++    proof fn borrow_ref_perm<'a>(tracked perm: &Self::RefPermission<'a>) -> (tracked ret:
++        Self::RefPermission<'a>)
+         ensures
+-            ret.inv(),
+             Self::ref_perm_view_permission(ret) == Self::ref_perm_view_permission(*perm),
+     ;
+ 
+     /// Borrows a reusable reading permission from the owned permission.
+-    proof fn borrow_perm_as_ref_perm(tracked perm: &'a Self::Permission) -> (tracked ret:
+-        Self::RefPermission)
+-        requires
+-            perm.inv(),
++    proof fn borrow_perm_as_ref_perm<'a>(tracked perm: &'a Self::Permission) -> (tracked ret:
++        Self::RefPermission<'a>)
+         ensures
+-            ret.inv(),
+             Self::ref_perm_view_permission(ret) == *perm,
+     ;
+ 
+@@ -165,24 +132,24 @@ pub unsafe trait NonNullPtrRef<'a>: NonNullPtr {
+     ///
+     /// The original pointer must outlive the lifetime parameter `'a`, and during `'a`
+     /// no mutable references to the pointer will exist.
+-    unsafe fn raw_as_ref(raw: NonNull<Self::Target>, perm: Tracked<Self::RefPermission>) -> (ret:
+-        Self::Ref)
++    unsafe fn raw_as_ref<'a>(
++        raw: NonNull<Self::Target>,
++        perm: Tracked<Self::RefPermission<'a>>,
++    ) -> (ret: Self::Ref<'a>)
+         requires
+             Self::ptr_perm_match(raw.as_ptr(), Self::ref_perm_view_permission(perm@)),
+-            perm@.inv(),
+         ensures
+             Self::ref_rel_perm(ret, perm@),
+     ;
+ 
+     /// Converts a shared reference to a raw pointer.
+-    fn ref_as_raw(ptr_ref: Self::Ref) -> ((res_ptr, perm): (
++    fn ref_as_raw<'a>(ptr_ref: Self::Ref<'a>) -> ((res_ptr, perm): (
+         NonNull<Self::Target>,
+-        Tracked<Self::RefPermission>,
++        Tracked<Self::RefPermission<'a>>,
+     ))
+         ensures
+             Self::ref_rel_perm(ptr_ref, perm@),
+             Self::ptr_perm_match(res_ptr.as_ptr(), Self::ref_perm_view_permission(perm@)),
+-            perm@.inv(),
+             res_ptr.as_ptr().addr() % (1usize << Self::ALIGN_BITS) == 0,
+     ;
+ }
+@@ -241,10 +208,10 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+ 
+     type Permission = BoxPointsTo<T>;
+ 
+-    /*type Ref<'a>
+-        = BoxRef<'a, T>
+-    where
+-        Self: 'a;*/
++    type Ref<'a> = BoxRef<'a, T>;
++
++    type RefPermission<'a> = BoxPointsToRef<'a, T>;
++
+     #[verifier::external_body]
+     const ALIGN_BITS: u32 = core::mem::align_of::<T>().trailing_zeros();
+ 
+@@ -289,7 +256,8 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+     }
+ 
+     open spec fn ptr_perm_match(ptr: *mut Self::Target, perm: Self::Permission) -> bool {
+-        ptr == perm.ptr()
++        &&& ptr == perm.ptr()
++        &&& perm.inv()
+     }
+ 
+     open spec fn rel_perm(self, perm: Self::Permission) -> bool {
+@@ -297,43 +265,38 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+     }
+ 
+     axiom fn lemma_align_bits_range();
+-}
+-
+-unsafe impl<'a, T: 'static> NonNullPtrRef<'a> for Box<T> {
+-    type Ref = BoxRef<'a, T>;
+ 
+-    type RefPermission = BoxPointsToRef<'a, T>;
+-
+-    open spec fn ref_perm_view_permission(perm: Self::RefPermission) -> Self::Permission {
++    open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {
+         perm@
+     }
+ 
+-    open spec fn ref_rel_perm(r: Self::Ref, perm: Self::RefPermission) -> bool {
++    open spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool {
+         &&& r.value() == perm@.value()
+         &&& r.ptr() == perm@.ptr()
++        &&& perm.inv()
+     }
+ 
+-    proof fn lemma_ref_perm_inv_impl_perm_inv(perm: Self::RefPermission) {
+-    }
+-
+-    proof fn borrow_ref_perm(tracked perm: &Self::RefPermission) -> (tracked ret:
+-        Self::RefPermission) {
++    proof fn borrow_ref_perm<'a>(tracked perm: &Self::RefPermission<'a>) -> (tracked ret:
++        Self::RefPermission<'a>) {
+         BoxPointsToRef(perm.0)
+     }
+ 
+-    proof fn borrow_perm_as_ref_perm(tracked perm: &'a Self::Permission) -> (tracked ret:
+-        Self::RefPermission) {
++    proof fn borrow_perm_as_ref_perm<'a>(tracked perm: &'a Self::Permission) -> (tracked ret:
++        Self::RefPermission<'a>) {
+         BoxPointsToRef(perm)
+     }
+ 
+-    unsafe fn raw_as_ref(
++    unsafe fn raw_as_ref<'a>(
+         raw: NonNull<Self::Target>,
+-        perm: Tracked<Self::RefPermission>,
+-    ) -> Self::Ref {
++        perm: Tracked<Self::RefPermission<'a>>,
++    ) -> Self::Ref<'a> {
+         BoxRef { inner: raw.as_ptr(), _marker: PhantomData, tracked_perm: perm }
+     }
+ 
+-    fn ref_as_raw(ptr_ref: Self::Ref) -> (NonNull<Self::Target>, Tracked<Self::RefPermission>) {
++    fn ref_as_raw<'a>(ptr_ref: Self::Ref<'a>) -> (
++        NonNull<Self::Target>,
++        Tracked<Self::RefPermission<'a>>,
++    ) {
+         proof!{
+             use_type_invariant(&ptr_ref);
+             assume(ptr_ref.ptr().addr() % (1usize << Self::ALIGN_BITS) == 0);
+@@ -406,11 +369,10 @@ unsafe impl<T: 'static> NonNullPtr for Arc<T> {
+ 
+     type Permission = ArcPointsTo<T>;
+ 
+-    /*
+-    type Ref<'a>
+-        = ArcRef<'a, T>
+-    where
+-        Self: 'a;*/
++    type Ref<'a> = ArcRef<'a, T>;
++
++    type RefPermission<'a> = ArcPointsTo<T>;
++
+     #[verifier::external_body]
+     const ALIGN_BITS: u32 = core::mem::align_of::<T>().trailing_zeros();
+ 
+@@ -443,7 +405,8 @@ unsafe impl<T: 'static> NonNullPtr for Arc<T> {
+     }
+ 
+     open spec fn ptr_perm_match(ptr: *mut Self::Target, perm: Self::Permission) -> bool {
+-        ptr == perm.ptr()
++        &&& ptr == perm.ptr()
++        &&& perm.inv()
+     }
+ 
+     open spec fn rel_perm(self, perm: Self::Permission) -> bool {
+@@ -451,38 +414,30 @@ unsafe impl<T: 'static> NonNullPtr for Arc<T> {
+     }
+ 
+     axiom fn lemma_align_bits_range();
+-}
+-
+-unsafe impl<'a, T: 'static> NonNullPtrRef<'a> for Arc<T> {
+-    type Ref = ArcRef<'a, T>;
+ 
+-    type RefPermission = ArcPointsTo<T>;
+-
+-    open spec fn ref_perm_view_permission(perm: Self::RefPermission) -> Self::Permission {
++    open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {
+         perm
+     }
+ 
+-    open spec fn ref_rel_perm(r: Self::Ref, perm: Self::RefPermission) -> bool {
+-        perm.view_target() == *r@
+-    }
+-
+-    proof fn lemma_ref_perm_inv_impl_perm_inv(perm: Self::RefPermission) {
++    open spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool {
++        &&& perm.view_target() == *r@
++        &&& perm.inv()
+     }
+ 
+-    proof fn borrow_ref_perm(tracked perm: &Self::RefPermission) -> (tracked ret:
+-        Self::RefPermission) {
++    proof fn borrow_ref_perm<'a>(tracked perm: &Self::RefPermission<'a>) -> (tracked ret:
++        Self::RefPermission<'a>) {
+         ArcPointsTo { perm: perm.perm }
+     }
+ 
+-    proof fn borrow_perm_as_ref_perm(tracked perm: &'a Self::Permission) -> (tracked ret:
+-        Self::RefPermission) {
++    proof fn borrow_perm_as_ref_perm<'a>(tracked perm: &'a Self::Permission) -> (tracked ret:
++        Self::RefPermission<'a>) {
+         ArcPointsTo { perm: perm.perm }
+     }
+ 
+-    unsafe fn raw_as_ref(
++    unsafe fn raw_as_ref<'a>(
+         raw: NonNull<Self::Target>,
+-        perm: Tracked<Self::RefPermission>,
+-    ) -> Self::Ref {
++        perm: Tracked<Self::RefPermission<'a>>,
++    ) -> Self::Ref<'a> {
+         unsafe {
+             ArcRef {
+                 inner: ManuallyDrop::new(
+@@ -494,7 +449,10 @@ unsafe impl<'a, T: 'static> NonNullPtrRef<'a> for Arc<T> {
+         }
+     }
+ 
+-    fn ref_as_raw(ptr_ref: Self::Ref) -> (NonNull<Self::Target>, Tracked<Self::RefPermission>) {
++    fn ref_as_raw<'a>(ptr_ref: Self::Ref<'a>) -> (
++        NonNull<Self::Target>,
++        Tracked<Self::RefPermission<'a>>,
++    ) {
+         NonNullPtr::into_raw(ManuallyDrop::into_inner(ptr_ref.inner))
+     }
+ }

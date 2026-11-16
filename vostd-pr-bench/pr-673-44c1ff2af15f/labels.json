@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-673-44c1ff2af15f",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-673-44c1ff2af15f:issue-3663184125",
+      "original_label_id": "3663184125",
+      "category": "guideline",
+      "description": "Weird indentation here.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "start_line": 399,
+          "end_line": 399
+        }
+      ],
+      "rationale": "Inspected proof_decl lines397-406: if statement is overindented one level between sibling let declarations with no enclosing block. Formatting-only defect, no claim formatter executed.",
+      "source_evidence": "392:             old(regions).inv(),\n393:         ensures\n394:             old(owner).list_id != 0 ==> *final(owner) == *old(owner),\n395:     )]\n396:     pub fn contains(&mut self, frame: Paddr) -> bool {\n397:         proof_decl! {\n398:             let ghost idx = frame_to_index(frame);\n399:                 if valid_frame_paddr(frame) {\n400:                     regions.inv_implies_correct_addr(frame);\n401:                 }\n402:             let tracked slot_perm = if valid_frame_paddr(frame) {\n403:                 Some(*regions.slots.tracked_borrow(idx))\n404:             } else {\n405:                 None\n406:             };\n407:         }",
+      "rule_ids": [
+        "repository-formatting"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/673#discussion_r3663184125",
+      "related_comment_ids": [
+        "3663184125"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

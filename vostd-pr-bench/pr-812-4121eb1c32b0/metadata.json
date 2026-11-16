@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-812-4121eb1c32b0",
+  "pr_number": 812,
+  "title": "prove: verify AtomicCpuId exec methods",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/812",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "7e53bd1223e5c3f958c863ad48dcb917cd8e9b3e",
+  "head_sha": "4121eb1c32b08f2490e010d3c350f2af9ec17618",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/cpu/mod.rs",
+    "ostd/src/task/scheduler/info.rs",
+    "ostd/src/task/scheduler/mod.rs"
+  ],
+  "diff_sha256": "ddb9281af84cad9e7d661fda0b46b77bffcbe115d1da9c5608c3451d5af4f690",
+  "versions": {
+    "before": {
+      "commit": "7e53bd1223e5c3f958c863ad48dcb917cd8e9b3e",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "4121eb1c32b08f2490e010d3c350f2af9ec17618",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

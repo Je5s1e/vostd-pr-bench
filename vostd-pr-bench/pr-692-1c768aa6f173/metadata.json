@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-692-1c768aa6f173",
+  "pr_number": 692,
+  "title": "Prove timer frequency and jiffies",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/692",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "ed66ac71690ef3ba7f6a29a7316bbf91a8e1cf33",
+  "head_sha": "1c768aa6f17362f76307a5822ba5fb4349759058",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/mod.rs",
+    "ostd/src/arch/x86/timer/mod.rs",
+    "ostd/src/lib.rs",
+    "ostd/src/timer/jiffies.rs",
+    "ostd/src/timer/mod.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/external/time.rs"
+  ],
+  "diff_sha256": "3b45b28127c4c3da9e29a543598b46ed44bba2050a50e4eccc6ac432c088cfba",
+  "versions": {
+    "before": {
+      "commit": "ed66ac71690ef3ba7f6a29a7316bbf91a8e1cf33",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "1c768aa6f17362f76307a5822ba5fb4349759058",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

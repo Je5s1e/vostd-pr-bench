@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-887-431e3c7c0000",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-887-431e3c7c0000:issue-4450700494",
+      "original_label_id": "4450700494",
+      "category": "guideline",
+      "description": "Executable bitflags implementation/API changes lack their own adjacent divergence marker.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/x86/cpu/context/mod.rs",
+          "start_line": 18,
+          "end_line": 18
+        }
+      ],
+      "rationale": "Checked diff: changed import bitflags_upstream::bitflags to bitflags::bitflags resolves the unchanged macro invocation to a different implementation; changed API docs and literals confirm adaptation. No adjacent reason/original marker covers this replacement. Gold anchor corrected to changed import18.",
+      "source_evidence": "15: use core::arch::x86_64::{_fxrstor64, _fxsave64, _xrstor64, _xsave64};\n16: */\n17: \n18: use bitflags::bitflags;\n19: use x86::bits64::segmentation::wrfsbase;\n20: /* Execution and FPU imports await their hardware and scheduling contracts.\n21:  * Origin Rust:\n22: use cfg_if::cfg_if;\n23: use log::debug;\n24: use ostd_pod::Pod;\n25: use spin::Once;",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/887#discussion_r4450700494",
+      "related_comment_ids": [
+        "4450700494"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-887-431e3c7c0000:issue-4450700498",
+      "original_label_id": "4450700498",
+      "category": "guideline",
+      "description": "New getter contracts express exact results using named ensures equalities.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/user.rs",
+          "start_line": 45,
+          "end_line": 45
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The four getters can use returns without changing their semantic guarantees. This finding groups their repeated pattern.",
+      "source_evidence": "42:     spec fn stack_pointer_spec(&self) -> usize;\n43: \n44:     /// Gets the trap number of this interrupt.\n45:     fn trap_number(&self) -> (r: usize)\n46:         ensures\n47:             r == self.trap_number_spec(),\n48:     ;\n49: \n50:     /// Gets the trap error code of this interrupt.\n51:     fn trap_error_code(&self) -> (r: usize)\n52:         ensures",
+      "rule_ids": [
+        "use-returns-for-exact-results"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/887#discussion_r4450700498",
+      "related_comment_ids": [
+        "4450700498"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-809-9d1b88dd7b02",
+  "pr_number": 809,
+  "title": "prove: range allocator state tracking",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/809",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "bd9a25ddace74af5b0529f3ed4d005fe0bd1705d",
+  "head_sha": "9d1b88dd7b02cbe0be5e3cf02c630a8ff2b006ed",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/util/range_alloc.rs",
+    "verified_libs/vstd_extra/src/resource/mod.rs",
+    "verified_libs/vstd_extra/src/resource/range.rs"
+  ],
+  "diff_sha256": "9fad956ec82425edbd29b63ba438099668b5f932c3ea3c3b2a8e987df59a89b9",
+  "versions": {
+    "before": {
+      "commit": "bd9a25ddace74af5b0529f3ed4d005fe0bd1705d",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "9d1b88dd7b02cbe0be5e3cf02c630a8ff2b006ed",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 3
+}

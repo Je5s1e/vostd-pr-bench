@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-699-6f1ed3a06cce",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-699-6f1ed3a06cce:issue-3819323206",
+      "original_label_id": "3819323206",
+      "category": "guideline",
+      "description": "Adjacent verification imports from one crate are unnecessarily split.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 3,
+          "end_line": 3
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: Lines 3–5 introduce three vstd_extra imports within the same verification group; no inherited-exec separation exception applies.",
+      "source_evidence": "1: // SPDX-License-Identifier: MPL-2.0\n2: use vstd::prelude::*;\n3: use vstd_extra::debug_assert;\n4: use vstd_extra::external::btree::*;\n5: use vstd_extra::panic::{UnwrapOrPanic, may_panic};\n6: \n7: use alloc::collections::btree_map::BTreeMap;\n8: use core::ops::Range;\n9: \n10: use crate::sync::{PreemptDisabled, SpinLock, SpinLockGuard};",
+      "rule_ids": [
+        "group-imports-by-crate"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/699#discussion_r3819323206",
+      "related_comment_ids": [
+        "3819323206"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-699-6f1ed3a06cce:issue-3819449416",
+      "original_label_id": "3819449416",
+      "category": "guideline",
+      "description": "A contiguous four-endpoint bound is split into three clauses.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 64,
+          "end_line": 64
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: The existing clauses are equivalent to self@.start <= allocate_range.start < allocate_range.end <= self@.end.",
+      "source_evidence": "61:     /// Allocates a specific kernel virtual area.\n62:     #[verus_spec(res =>\n63:         requires\n64:             allocate_range.start < allocate_range.end,\n65:             self@.start <= allocate_range.start,\n66:             allocate_range.end <= self@.end,\n67:         ensures\n68:             res is Ok ==> (self@.start <= allocate_range.start\n69:                 && allocate_range.end <= self@.end),\n70:     )]\n71:     pub fn alloc_specific(&self, allocate_range: &Range<usize>) -> Result<(), RangeAllocError> {",
+      "rule_ids": [
+        "use-chained-comparisons"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/699#discussion_r3819449416",
+      "related_comment_ids": [
+        "3819449416"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

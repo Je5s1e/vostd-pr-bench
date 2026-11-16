@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-892-34407c0508d2",
+  "pr_number": 892,
+  "title": "Use raw pointer in `Frame`",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/892",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "6686001fc39720b71d8b79c96246150924ed4d5a",
+  "head_sha": "34407c0508d29986bb36209aeb6c2795bcf1b487",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/frame_specs.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "verified_libs/vstd_extra/src/lib.rs",
+    "verified_libs/vstd_extra/src/raw_ptr.rs"
+  ],
+  "diff_sha256": "82a9320169a6727e2d8d282c3ff1fcc9c56c9e31d8fb789d27820aa8c1f91a31",
+  "versions": {
+    "before": {
+      "commit": "6686001fc39720b71d8b79c96246150924ed4d5a",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "34407c0508d29986bb36209aeb6c2795bcf1b487",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

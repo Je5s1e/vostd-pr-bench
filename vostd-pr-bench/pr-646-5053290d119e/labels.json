@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-646-5053290d119e",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-646-5053290d119e:issue-3600750301",
+      "original_label_id": "3600750301",
+      "category": "guideline",
+      "description": "Do we need this broadcast use? It is already included in the `broadcast use group_ghost_tree_lemmas` at the beginning of the file.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/owners.rs",
+          "start_line": 121,
+          "end_line": 121
+        }
+      ],
+      "rationale": "owners.rs34 activates group_ghost_tree_lemmas at module scope. ghost_tree.rs1668-1679 group explicitly includes all three facts re-broadcast in function117-121. They are already in scope; local declaration adds no fact.",
+      "source_evidence": "117:     broadcast use {\n118:         TreePath::lemma_index_satisfies_elem_inv,\n119:         TreePath::lemma_push_tail_len,\n120:         TreePath::lemma_push_tail_preserves_inv,\n121:     };\n122: \n123:     vstd::arithmetic::power2::lemma2_to64();\n124:     vstd::arithmetic::power2::lemma2_to64_rest();\n125:     if path.len() == 0 {\n126:     } else if path.len() == 1 {",
+      "rule_ids": [
+        "attach-broadcast-axioms-once"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/646#discussion_r3600750301",
+      "related_comment_ids": [
+        "3600750301"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-557-ecbc4c879c4b",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-557-ecbc4c879c4b:issue-3472620882",
+      "original_label_id": "3472620882",
+      "category": "guideline",
+      "description": "Read function-level allow(deprecated)1375 and actual deprecated Set::new_assuming_finite1387; corresponding second function1661 uses same workaround. KVerus postprocess static rule no-warning-bypass explicitly rejects this suppression. Group both locations as one root; do not infer language soundness solely from deprecation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/list_store.rs",
+          "start_line": 1661,
+          "end_line": 1661
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/list_store.rs",
+          "start_line": 1375,
+          "end_line": 1375
+        }
+      ],
+      "rationale": "Read function-level allow(deprecated)1375 and actual deprecated Set::new_assuming_finite1387; corresponding second function1661 uses same workaround. KVerus postprocess static rule no-warning-bypass explicitly rejects this suppression. Group both locations as one root; do not infer language soundness solely from deprecation.",
+      "source_evidence": "1658:     /// loose handle `lid` into list `id` at index `n` (`0 <= n <= len`).\n1659:     /// The general form of [`Self::step_push_front`] /\n1660:     /// [`Self::step_push_back`]; same global effect.\n1661:     #[allow(deprecated)]\n1662:     pub proof fn step_insert_before_at(tracked &mut self, id: ListId, n: int, lid: LooseId)\n1663:         requires\n1664:             old(self).inv(),\n1665:             old(self).lists.dom().contains(id),\n1666:             old(self).loose.dom().contains(lid),\n1667:             0 <= n <= old(self).lists[id].list.len(),\n1668:         ensures",
+      "rule_ids": [
+        "kverus-postprocess:no-warning-bypass"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/557#discussion_r3472620882",
+      "related_comment_ids": [
+        "3472620882",
+        "3472620064"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

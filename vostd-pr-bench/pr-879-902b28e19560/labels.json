@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-879-902b28e19560",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-879-902b28e19560:issue-4419677610",
+      "original_label_id": "4419677610",
+      "category": "guideline",
+      "description": "A newly added private roundtrip lemma has no consumer.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/task/irq.rs",
+          "start_line": 161,
+          "end_line": 161
+        }
+      ],
+      "rationale": "Repository-wide search finds only private lemma_nested_restore declaration161, no caller. This supports removing that helper, not blanket deletion of protocol models.",
+      "source_evidence": "158: }\n159: \n160: /// Nested restoration keeps IRQs disabled until the outer permission is consumed.\n161: proof fn lemma_nested_restore(\n162:     tracked state: &mut LocalIrqState,\n163:     tracked auth: &mut CpuLocalAuth<bool>,\n164: )\n165:     requires\n166:         old(state).inv(),\n167:         old(state).id() == old(auth).id(),\n168:     ensures",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/879#discussion_r4419677610",
+      "related_comment_ids": [
+        "4419677610"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

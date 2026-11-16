@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-632-1be8099780ff",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-632-1be8099780ff:issue-3594255389",
+      "original_label_id": "3594255389",
+      "category": "semantic",
+      "description": "@DID-Lab-SZU @hiroki-chen @Marsman1996. I find this modification is unsound. `frame_obligations` is used to track the `DropObligations` (which is also tracked) that are given to frames. If we change this field to ghost, then `MetaRegionOwners` will lose this track because it can be arbitrarily modified.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/meta_region_owners.rs",
+          "start_line": 57,
+          "end_line": 57
+        }
+      ],
+      "rationale": "Public ghost frame_obligations:Multiset is freely mutable without consuming outstanding DropObligation tokens. inv() does not constrain the ledger; clean_inv only checks it is empty. A caller can empty the ghost ledger while retaining linear tokens, defeating the claimed clean-boundary accounting. Source even marks machinery unsound at274. This is accounting-model unsoundness, not a claim of SMT logical inconsistency.",
+      "source_evidence": "53:     /// redeem one. A `Segment<M>` records one entry per frame it holds (see\n54:     /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).\n55:     /// Multiset semantics — multiple outstanding obligations at the same slot\n56:     /// are counted individually.\n57:     pub ghost frame_obligations: vstd::multiset::Multiset<usize>,\n58: }\n59: \n60: pub ghost struct MetaRegionModel {\n61:     pub slots: Map<usize, MetaSlotModel>,\n62: }",
+      "rule_ids": [
+        "linear-resource-model-soundness"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/632#discussion_r3594255389",
+      "related_comment_ids": [
+        "3594255389"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

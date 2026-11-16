@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-887-431e3c7c0000",
+  "pr_number": 887,
+  "title": "prove x86 context data exceptions",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/887",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
+  "head_sha": "431e3c7c0000787a1cdc3abd702638b3a7140716",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/cpu.rs",
+    "ostd/specs/mod.rs",
+    "ostd/src/arch/x86/cpu/context/mod.rs",
+    "ostd/src/arch/x86/cpu/mod.rs",
+    "ostd/src/arch/x86/mod.rs",
+    "ostd/src/arch/x86/trap/mod.rs",
+    "ostd/src/cpu/mod.rs",
+    "ostd/src/lib.rs",
+    "ostd/src/user.rs"
+  ],
+  "diff_sha256": "305b33df2cc592b43940765e6f08894a8e1a6cd5d0cfa2df5a1c406f2065c1f3",
+  "versions": {
+    "before": {
+      "commit": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "431e3c7c0000787a1cdc3abd702638b3a7140716",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

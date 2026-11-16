@@ -1,0 +1,168 @@
+diff --git a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+index 3dd820a62..59cdb27bc 100644
+--- a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
++++ b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+@@ -1157,8 +1157,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorOwner<M> {
+         }
+     }
+ 
+-    #[verifier::external_body]
+-    pub proof fn tracked_back_owner(list_own: LinkedListOwner<M>) -> (tracked res: Self)
++    pub proof fn tracked_back_owner(tracked list_own: LinkedListOwner<M>) -> (tracked res: Self)
+         ensures
+             res == Self::back_owner(list_own),
+     {
+@@ -1176,8 +1175,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorOwner<M> {
+         CursorOwner::<M> { list_own: list_own, index: list_own.list.len() as int }
+     }
+ 
+-    #[verifier::external_body]
+-    pub proof fn tracked_ghost_owner(list_own: LinkedListOwner<M>) -> (tracked res: Self)
++    pub proof fn tracked_ghost_owner(tracked list_own: LinkedListOwner<M>) -> (tracked res: Self)
+         ensures
+             res == Self::ghost_owner(list_own),
+     {
+diff --git a/ostd/specs/mm/page_table/node/owners.rs b/ostd/specs/mm/page_table/node/owners.rs
+index 387a61a48..f2292c77f 100644
+--- a/ostd/specs/mm/page_table/node/owners.rs
++++ b/ostd/specs/mm/page_table/node/owners.rs
+@@ -236,6 +236,7 @@ impl<C: PageTableConfig> Inv for NodeOwner<C> {
+         &&& self.meta_own.inv()
+         &&& 0 <= self.meta_own.nr_children.value() <= NR_ENTRIES
+         &&& 1 <= self.level <= NR_LEVELS
++        &&& self.children_perm.wf()
+         &&& self.children_perm.is_init_all()
+         &&& self.children_perm.addr() == paddr_to_vaddr(
+             meta_to_frame(index_to_meta(self.slot_index)),
+diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
+index 5d2d9bd6b..2fa5045d9 100644
+--- a/ostd/src/mm/frame/linked_list.rs
++++ b/ostd/src/mm/frame/linked_list.rs
+@@ -315,7 +315,8 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> LinkedList<M> {
+     )]
+     pub fn push_back(&mut self, frame: UniqueFrame<Link<M>>) {
+         let current = self.back;
+-        let tracked mut cursor_own = CursorOwner::tracked_back_owner(*owner);
++        let tracked owner0 = LinkedListOwner::tracked_take(owner);
++        let tracked mut cursor_own = CursorOwner::tracked_back_owner(owner0);
+         let mut cursor = CursorMut { list: self, current };
+ 
+         #[verus_spec(with Tracked(regions), Tracked(&mut cursor_own), Tracked(frame_own))]
+diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
+index c5d66bd19..27c61684f 100644
+--- a/ostd/src/mm/kspace/kvirt_area.rs
++++ b/ostd/src/mm/kspace/kvirt_area.rs
+@@ -56,14 +56,13 @@ pub open spec fn frame_as_dynframe<T: AnyFrameMeta + Repr<MetaSlotStorage>>(
+ }
+ 
+ /// Converts `Frame<T>` to `DynFrame`, with a spec postcondition connecting the result
+-/// to the spec function `frame_as_dynframe`. The `Into` impl uses `transmute`, so the
+-/// function is marked `external_body` — same trust boundary as the underlying conversion.
+-#[verifier::external_body]
++/// to the spec function `frame_as_dynframe`.
+ fn frame_into_dynframe<T: AnyUFrameMeta>(frame: Frame<T>) -> (res: DynFrame)
+     ensures
+         res == frame_as_dynframe(frame),
+ {
+-    frame.into()
++    /* frame.into() */
++    DynFrame { ptr: frame.ptr, _marker: PhantomData }
+ }
+ 
+ /// Spec function: the entry owner correctly matches the frame and property for mapping.
+diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
+index 2ef84233a..1d97ededd 100644
+--- a/ostd/src/mm/page_table/mod.rs
++++ b/ostd/src/mm/page_table/mod.rs
+@@ -1830,26 +1830,34 @@ pub unsafe fn load_pte<E: PageTableEntryTrait>(
+     unimplemented!()
+ }
+ 
++/// Verus specification for reconstructing an atomic reference from an aligned `usize` pointer.
++#[doc(hidden)]
++pub assume_specification<'a>[ AtomicUsize::from_ptr ](ptr: *mut usize) -> &'a AtomicUsize
++;
++
+ /// Stores a page table entry with an atomic instruction.
+ ///
+ /// # Verification Design
+-/// We axiomatize this function as a store operation in the array that represents the page table node.
++/// The executable body performs an atomic store, while the tracked array permission records the
++/// corresponding element update.
+ /// ## Preconditions
+ /// - The pointer must be a valid pointer to the array that represents the page table node.
++/// - The permission token must be well-formed.
+ /// - The array must be initialized so that the verifier knows that it remains initialized after the store.
+ /// ## Postconditions
+ /// - The new value is stored in the array at the given index.
+ /// ## Safety
+ /// - We require the caller to provide a permission token to ensure that this function is only called on a valid array
+ /// and the pointer is in bounds.
+-#[verifier::external_body]
+ #[verus_spec(
+     with Tracked(perm): Tracked<&mut vstd_extra::array_ptr::PointsTo<E, NR_ENTRIES>>
+     requires
++        old(perm).wf(),
+         old(perm).addr() == ptr.addr(),
+         0 <= ptr.index < NR_ENTRIES,
+         old(perm).is_init_all(),
+     ensures
++        final(perm).wf(),
+         final(perm).value()[ptr.index as int] == new_val,
+         final(perm).value() == old(perm).value().update(ptr.index as int, new_val),
+         final(perm).addr() == old(perm).addr(),
+@@ -1859,6 +1867,14 @@ pub unsafe fn store_pte<E: PageTableEntryTrait>(
+     ptr: vstd_extra::array_ptr::ArrayPtr<E, NR_ENTRIES>,
+     new_val: E,
+     ordering: Ordering,
+-);
++) {
++    proof {
++        ptr.tracked_overwrite(perm, ptr.index, new_val);
++    }
++    let ptr = ptr.as_mut_ptr(Tracked(&*perm));
++    let new_raw = new_val.as_usize();
++    let atomic = unsafe { AtomicUsize::from_ptr(ptr.cast()) };
++    atomic.store(new_raw, ordering);
++}
+ 
+ } // verus!
+diff --git a/ostd/src/mm/page_table/node/mod.rs b/ostd/src/mm/page_table/node/mod.rs
+index 04e4ed19d..26cdca56e 100644
+--- a/ostd/src/mm/page_table/node/mod.rs
++++ b/ostd/src/mm/page_table/node/mod.rs
+@@ -896,6 +896,9 @@ impl<'rcu, C: PageTableConfig> PageTableGuard<'rcu, C> {
+             #[verus_spec(with Tracked(&mut owner.children_perm))]
+             store_pte(ptr.add(idx), pte, Ordering::Release)
+         }
++        proof {
++            assert(owner.children_perm.wf());
++        }
+     }
+ 
+     /// Gets the mutable reference to the number of valid PTEs in the node.
+diff --git a/verified_libs/vstd_extra/src/array_ptr.rs b/verified_libs/vstd_extra/src/array_ptr.rs
+index fd0bfe24b..32cf70558 100644
+--- a/verified_libs/vstd_extra/src/array_ptr.rs
++++ b/verified_libs/vstd_extra/src/array_ptr.rs
+@@ -529,6 +529,20 @@ pub exec fn layout_for_array_is_valid<V: Sized, const N: usize>()
+ }
+ 
+ impl<V, const N: usize> ArrayPtr<V, N> {
++    /// Reconstructs a pointer to the selected array element.
++    #[inline(always)]
++    pub exec fn as_mut_ptr(&self, Tracked(perm): Tracked<&PointsTo<V, N>>) -> (res: *mut V)
++        requires
++            perm.wf(),
++            perm.is_pptr(*self),
++            self.index < N,
++    {
++        raw_ptr::with_exposed_provenance(
++            self.addr.wrapping_add(self.index.wrapping_mul(core::mem::size_of::<V>())),
++            Tracked(perm.exposed),
++        )
++    }
++
+     pub exec fn empty() -> ((res, perm): (ArrayPtr<V, N>, Tracked<PointsTo<V, N>>))
+         requires
+             layout::size_of::<[V; N]>() > 0,

@@ -1,0 +1,3409 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 878f67f7c..197a5720b 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -682,6 +682,7 @@ dependencies = [
+  "bitvec",
+  "smallvec",
+  "vstd",
++ "x86_64 0.15.5",
+ ]
+ 
+ [[package]]
+diff --git a/README.md b/README.md
+index 5f20d88b1..591967735 100644
+--- a/README.md
++++ b/README.md
+@@ -5,7 +5,7 @@
+ [![verify (verus-lang/verus)](https://img.shields.io/github/actions/workflow/status/asterinas/vostd/ci-upstream-verus.yml?branch=main&label=verify%20(verus-lang%2Fverus))](https://github.com/asterinas/vostd/actions/workflows/ci-upstream-verus.yml)
+ 
+ > [!NOTE]
+-> This repository is currently in a transitional state: the components under `ostd/src/sync` and `ostd/libs/id-alloc` track Asterinas [v0.19.0](https://github.com/asterinas/asterinas/releases/tag/v0.19.0), while every other OSTD component is still based on [v0.16.0](https://github.com/asterinas/asterinas/releases/tag/v0.16.0).
++> This repository is currently in a transitional state: the components under `ostd/src/sync`, `ostd/libs/id-alloc` and `ostd/src/io/io_port` track Asterinas [v0.19.0](https://github.com/asterinas/asterinas/releases/tag/v0.19.0), while every other OSTD component is still based on [v0.16.0](https://github.com/asterinas/asterinas/releases/tag/v0.16.0).
+ 
+ ## Overview
+ 
+diff --git a/ostd/src/arch/riscv/mod.rs b/ostd/src/arch/riscv/mod.rs
+index 3d0c430d2..88582b273 100644
+--- a/ostd/src/arch/riscv/mod.rs
++++ b/ostd/src/arch/riscv/mod.rs
+@@ -6,8 +6,8 @@ pub mod device;
+ pub(crate) mod iommu;*/
+ pub(crate) mod irq;
+ pub(crate) mod mm;
+-/*pub(crate) mod pci;
+-pub mod qemu;
++pub(crate) mod pci;
++/*pub mod qemu;
+ pub(crate) mod serial;
+ pub(crate) mod task; */
+ pub mod timer;
+diff --git a/ostd/src/arch/riscv/pci.rs b/ostd/src/arch/riscv/pci.rs
+index 0fac683de..a9b9ed7da 100644
+--- a/ostd/src/arch/riscv/pci.rs
++++ b/ostd/src/arch/riscv/pci.rs
+@@ -1,13 +1,23 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! PCI bus access
+-use log::warn;
++use vstd::prelude::*;
++
++/*use log::warn;
++use super::boot::DEVICE_TREE;*/
+ use spin::Once;
+ 
+-use super::boot::DEVICE_TREE;
+ use crate::{Error, bus::pci::PciDeviceLocation, io::IoMem, mm::VmIoOnce, prelude::*};
+ 
+ static PCI_BASE_ADDR: Once<IoMem> = Once::new();
+ 
++verus! {
++
++/// Whether the PCI MMIO base address (`PCI_BASE_ADDR`) has been initialized.
++pub uninterp spec fn pci_base_addr_initialized() -> bool;
++
++} // verus!
++#[verus_verify(external_body)]
++#[verus_spec(requires pci_base_addr_initialized(),)]
+ pub(crate) fn write32(location: &PciDeviceLocation, offset: u32, value: u32) -> Result<()> {
+     PCI_BASE_ADDR.get().ok_or(Error::IoError)?.write_once(
+         (encode_as_address_offset(location) | (offset & 0xfc)) as usize,
+@@ -15,6 +25,8 @@ pub(crate) fn write32(location: &PciDeviceLocation, offset: u32, value: u32) ->
+     )
+ }
+ 
++#[verus_verify(external_body)]
++#[verus_spec(requires pci_base_addr_initialized(),)]
+ pub(crate) fn read32(location: &PciDeviceLocation, offset: u32) -> Result<u32> {
+     PCI_BASE_ADDR
+         .get()
+@@ -22,6 +34,7 @@ pub(crate) fn read32(location: &PciDeviceLocation, offset: u32) -> Result<u32> {
+         .read_once((encode_as_address_offset(location) | (offset & 0xfc)) as usize)
+ }
+ 
++/*
+ pub(crate) fn has_pci_bus() -> bool {
+     PCI_BASE_ADDR.is_completed()
+ }
+@@ -63,8 +76,11 @@ pub(crate) const MSIX_DEFAULT_MSG_ADDR: u32 = 0x2400_0000;
+ pub(crate) fn construct_remappable_msix_address(remapping_index: u32) -> u32 {
+     unimplemented!()
+ }
++*/
+ 
+ /// Encodes the bus, device, and function into an address offset in the PCI MMIO region.
++#[verus_verify(dual_spec)]
++#[verus_spec(returns encode_as_address_offset(location))]
+ fn encode_as_address_offset(location: &PciDeviceLocation) -> u32 {
+     ((location.bus as u32) << 16)
+         | ((location.device as u32) << 11)
+diff --git a/ostd/src/arch/x86/device/io_port.rs b/ostd/src/arch/x86/device/io_port.rs
+index 74f7bbadf..c2d0399b6 100644
+--- a/ostd/src/arch/x86/device/io_port.rs
++++ b/ostd/src/arch/x86/device/io_port.rs
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O port access.
++pub use vstd_extra::external::{group_io_port_models, valid_io_port_access};
++
+ pub use x86_64::{
+     instructions::port::{
+         PortReadAccess as IoPortReadAccess, PortWriteAccess as IoPortWriteAccess, ReadOnlyAccess,
+diff --git a/ostd/src/arch/x86/device/mod.rs b/ostd/src/arch/x86/device/mod.rs
+index 5d3b7fe3c..5e260d494 100644
+--- a/ostd/src/arch/x86/device/mod.rs
++++ b/ostd/src/arch/x86/device/mod.rs
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Device-related APIs.
+ //! This module mainly contains the APIs that should exposed to the device driver like PCI, RTC
+-pub mod cmos;
++/*pub mod cmos;*/
+ pub mod io_port;
+-pub mod serial;
++/*pub mod serial;*/
+diff --git a/ostd/src/arch/x86/io.rs b/ostd/src/arch/x86/io.rs
+index b78d04f26..36fe128a4 100644
+--- a/ostd/src/arch/x86/io.rs
++++ b/ostd/src/arch/x86/io.rs
+@@ -1,4 +1,6 @@
+ // SPDX-License-Identifier: MPL-2.0
++use vstd::prelude::*;
++
+ use alloc::vec::Vec;
+ 
+ use align_ext::AlignExt;
+@@ -55,6 +57,6 @@ pub(super) fn construct_io_mem_allocator_builder() -> IoMemAllocatorBuilder {
+     // SAFETY: The range is guaranteed not to access physical memory.
+     unsafe { IoMemAllocatorBuilder::new(ranges) }
+ }
+-
+ /// Port I/O definition reference: <https://bochs.sourceforge.io/techspec/PORTS.LST>.
++#[verus_verify]
+ pub const MAX_IO_PORT: u16 = u16::MAX;
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index 30ddccb5e..24f078615 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -1,16 +1,16 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Platform-specific code for the x86 platform.
+ /*pub mod boot;
+-pub(crate) mod cpu;
++pub(crate) mod cpu;*/
+ pub mod device;
+-pub(crate) mod ex_table;
++/*pub(crate) mod ex_table;*/
+ pub(crate) mod io;
+-pub(crate) mod iommu;*/
++/*pub(crate) mod iommu;*/
+ pub(crate) mod irq;
+ pub(crate) mod kernel;
+ pub(crate) mod mm;
+-/*pub(crate) mod pci;
+-pub mod qemu;
++pub(crate) mod pci;
++/*pub mod qemu;
+ pub(crate) mod serial;
+ pub(crate) mod task; */
+ pub mod timer;
+@@ -212,7 +212,7 @@ pub(crate) fn enable_cpu_features() {
+             *efer |= EferFlags::NO_EXECUTE_ENABLE;
+         });
+     }
+-}
++}*/
+ 
+ /// Inserts a TDX-specific code block.
+ ///
+@@ -251,4 +251,3 @@ macro_rules! if_tdx_enabled {
+ }
+ 
+ pub use if_tdx_enabled;
+-*/
+diff --git a/ostd/src/arch/x86/pci.rs b/ostd/src/arch/x86/pci.rs
+index e212be1f7..dab1e27fb 100644
+--- a/ostd/src/arch/x86/pci.rs
++++ b/ostd/src/arch/x86/pci.rs
+@@ -1,30 +1,54 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! PCI bus access
++use vstd::prelude::*;
++
+ use super::device::io_port::{ReadWriteAccess, WriteOnlyAccess};
+ use crate::{bus::pci::PciDeviceLocation, io::IoPort, prelude::*};
+ 
+-static PCI_ADDRESS_PORT: IoPort<u32, WriteOnlyAccess> = unsafe { IoPort::new(0x0CF8) };
+-static PCI_DATA_PORT: IoPort<u32, ReadWriteAccess> = unsafe { IoPort::new(0x0CFC) };
++verus! {
++
++broadcast use super::device::io_port::group_io_port_models;
++// Original Rust: static PCI_ADDRESS_PORT: IoPort<u32, WriteOnlyAccess> = unsafe { IoPort::new(0x0CF8) };
++
++exec static PCI_ADDRESS_PORT: IoPort<u32, WriteOnlyAccess> = unsafe { IoPort::new(0x0CF8) };
++
++// Original Rust: static PCI_DATA_PORT: IoPort<u32, ReadWriteAccess> = unsafe { IoPort::new(0x0CFC) };
++exec static PCI_DATA_PORT: IoPort<u32, ReadWriteAccess> = unsafe { IoPort::new(0x0CFC) };
+ 
++} // verus!
++#[verus_verify]
+ const BIT32_ALIGN_MASK: u32 = 0xFFFC;
+ 
++#[verus_verify]
++#[verus_spec(returns Ok::<(), crate::Error>(()))]
+ pub(crate) fn write32(location: &PciDeviceLocation, offset: u32, value: u32) -> Result<()> {
+     PCI_ADDRESS_PORT.write(encode_as_port(location) | (offset & BIT32_ALIGN_MASK));
+     PCI_DATA_PORT.write(value.to_le());
+     Ok(())
+ }
+ 
++#[verus_verify]
++#[verus_spec(result => ensures result is Ok)]
+ pub(crate) fn read32(location: &PciDeviceLocation, offset: u32) -> Result<u32> {
+     PCI_ADDRESS_PORT.write(encode_as_port(location) | (offset & BIT32_ALIGN_MASK));
+     Ok(PCI_DATA_PORT.read().to_le())
+ }
+ 
++#[verus_verify]
++#[verus_spec(returns true)]
+ pub(crate) fn has_pci_bus() -> bool {
+     true
+ }
+ 
++#[verus_verify]
+ pub(crate) const MSIX_DEFAULT_MSG_ADDR: u32 = 0xFEE0_0000;
+ 
++#[verus_verify]
++#[verus_spec(returns
++    MSIX_DEFAULT_MSG_ADDR | 0b1_1000
++        | ((remapping_index & 0x7FFF) << 5)
++        | ((remapping_index & 0x8000) >> 13),
++)]
+ pub(crate) fn construct_remappable_msix_address(remapping_index: u32) -> u32 {
+     // Use remappable format. The bits[4:3] should be always set to 1 according to the manual.
+     let mut address = MSIX_DEFAULT_MSG_ADDR | 0b1_1000;
+@@ -37,6 +61,8 @@ pub(crate) fn construct_remappable_msix_address(remapping_index: u32) -> u32 {
+ }
+ 
+ /// Encodes the bus, device, and function into a port address for use with the PCI I/O port.
++#[verus_verify(dual_spec)]
++#[verus_spec(returns encode_as_port(location))]
+ fn encode_as_port(location: &PciDeviceLocation) -> u32 {
+     // 1 << 31: Configuration enable
+     (1 << 31)
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index 56e900316..595a97efd 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -272,6 +272,7 @@ impl<const LEN: usize> Default for MemoryRegionArray<LEN> {
+         Self::new()
+     }
+ }
++
+ #[verus_verify]
+ impl<const LEN: usize> Deref for MemoryRegionArray<LEN> {
+     type Target = [MemoryRegion];
+diff --git a/ostd/src/bus/mod.rs b/ostd/src/bus/mod.rs
+index 7b81924ce..b8898deb6 100644
+--- a/ostd/src/bus/mod.rs
++++ b/ostd/src/bus/mod.rs
+@@ -11,7 +11,7 @@ pub enum BusProbeError {
+     ConfigurationSpaceError,
+ }
+ 
+-/// Initializes the bus
++/*/// Initializes the bus
+ pub(crate) fn init() {
+     pci::init();
+-}
++}*/
+diff --git a/ostd/src/bus/pci/device_info.rs b/ostd/src/bus/pci/device_info.rs
+index 3d415c987..3bcc6c1a0 100644
+--- a/ostd/src/bus/pci/device_info.rs
++++ b/ostd/src/bus/pci/device_info.rs
+@@ -1,9 +1,12 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! PCI device Information
++use vstd::prelude::*;
++
+ use core::iter;
+ 
+-use super::cfg_space::PciDeviceCommonCfgOffset;
++/*use super::cfg_space::PciDeviceCommonCfgOffset;*/
+ 
++/*
+ /// PCI device ID
+ #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+ pub struct PciDeviceId {
+@@ -48,8 +51,10 @@ impl PciDeviceId {
+         }
+     }
+ }
++*/
+ 
+ /// PCI device Location
++#[verus_verify]
+ #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+ pub struct PciDeviceLocation {
+     /// Bus number
+diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
+index 0de48b517..261ab6202 100644
+--- a/ostd/src/bus/pci/mod.rs
++++ b/ostd/src/bus/pci/mod.rs
+@@ -48,14 +48,15 @@
+ //!     PCI_BUS.lock().register_driver(driver_a);
+ //! }
+ //! ```
+-pub mod bus;
++/*pub mod bus;
+ pub mod capability;
+ pub mod cfg_space;
+-pub mod common_device;
++pub mod common_device;*/
+ mod device_info;
+ 
+-pub use device_info::{PciDeviceId, PciDeviceLocation};
++pub use device_info::{/* PciDeviceId, */ PciDeviceLocation};
+ 
++/*
+ use self::{bus::PciBus, common_device::PciCommonDevice};
+ use crate::{arch::pci::has_pci_bus, sync::Mutex};
+ 
+@@ -74,4 +75,4 @@ pub(crate) fn init() {
+         };
+         lock.register_common_device(device);
+     }
+-}
++}*/
+diff --git a/ostd/src/io/io_mem/allocator.rs b/ostd/src/io/io_mem/allocator.rs
+index 0cd42a4e9..9e6003537 100644
+--- a/ostd/src/io/io_mem/allocator.rs
++++ b/ostd/src/io/io_mem/allocator.rs
+@@ -1,10 +1,33 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O Memory allocator.
++//!
++//! # Verified Properties
++//!
++//! The allocatable windows are the boot-time registered MMIO windows, handed
++//! to [`IoMemAllocatorBuilder::new`] in their registered order; every
++//! allocator built from a builder inherits them. Construction returns one
++//! splittable free-address permission per window. A builder removal consumes
++//! the requested portion of the corresponding permission, proving that the
++//! underlying range allocation cannot panic. The registered-window registry
++//! is trusted boot-time data.
++use vstd::{
++    arithmetic::power2::is_pow2,
++    prelude::*,
++    resource::{Loc, set::GhostSubset},
++};
++use vstd_extra::{
++    once::OnceImpl, range::RangeExtraFns, resource::range::GhostSubRange,
++    resource_invariant::TrivialResourceInvariant,
++};
++
++use crate::specs::arch::PAGE_SIZE;
++use crate::util::range_alloc::{AllocRangePermit, FreePermit, RangeAllocatorPermits};
++
+ use alloc::vec::Vec;
+ use core::ops::Range;
+ 
+ use log::{debug, info};
+-use spin::Once;
++/*use spin::Once;*/
+ 
+ use crate::{
+     io::io_mem::IoMem,
+@@ -13,23 +36,58 @@ use crate::{
+ };
+ 
+ /// I/O memory allocator that allocates memory I/O access to device drivers.
++#[verus_verify]
+ pub struct IoMemAllocator {
+     allocators: Vec<RangeAllocator>,
+ }
+ 
++#[verus_verify]
+ impl IoMemAllocator {
+     /// Acquires the I/O memory access for `range`.
+     ///
+     /// If the range is not available, then the return value will be `None`.
++    #[verus_spec(result =>
++        with
++            Tracked(permit): Tracked<AllocRangePermit>,
++        requires
++            range.start < range.end <= usize::MAX - (PAGE_SIZE - 1),
++            io_mem_range_registered(range),
++            permit.range() == range,
++            self.has_free_permission(permit.id(), range),
++        ensures
++            result matches Some(io_mem) ==> {
++                &&& io_mem.paddr() == range.start
++                &&& io_mem.length() == range.end - range.start
++            },
++            result is Some,
++    )]
+     pub fn acquire(&self, range: Range<usize>) -> Option<IoMem> {
++        /* Original Rust:
+         find_allocator(&self.allocators, &range)?
+             .alloc_specific(&range)
+             .ok()?;
++        */
++        let allocator = find_allocator(&self.allocators, &range)?;
++        proof! {
++            use_type_invariant(self);
++        }
++        proof_decl! {
++            let tracked allocated: FreePermit;
++        }
++        let result = #[verus_spec(with Tracked(permit) => Tracked(allocated))]
++        allocator.alloc_specific(&range);
++        result.ok()?;
+ 
+-        debug!("Acquiring MMIO range:{:x?}..{:x?}", range.start, range.end);
++        /* debug!("Acquiring MMIO range:{:x?}..{:x?}", range.start, range.end); */
++
++        proof! {
++            // PAGE_SIZE = 4096 = 2^12: 13 unfoldings of the opaque `is_pow2`.
++            reveal_with_fuel(is_pow2, 13);
++        }
+ 
+         // SAFETY: The created `IoMem` is guaranteed not to access physical memory or system device I/O.
+-        unsafe { Some(IoMem::new(range, PageFlags::RW, CachePolicy::Uncacheable)) }
++        /* Original Rust: PageFlags::RW */
++        unsafe { Some(IoMem::new(range, PageFlags::RW(), CachePolicy::Uncacheable)) }
+     }
+ 
+     /// Recycles an MMIO range.
+@@ -38,10 +96,20 @@ impl IoMemAllocator {
+     ///
+     /// The caller must have ownership of the MMIO region through the `IoMemAllocator::get` interface.
+     #[expect(dead_code)]
++    #[verifier::external_body]
++    #[verus_spec(
++        with
++            Tracked(allocated): Tracked<FreePermit>,
++        requires
++            range.start < range.end,
++            self.covers_range(range),
++            allocated.range() == range,
++            self.has_allocation(allocated.id()),
++    )]
+     pub(in crate::io) unsafe fn recycle(&self, range: Range<usize>) {
+         let allocator = find_allocator(&self.allocators, &range).unwrap();
+ 
+-        debug!("Recycling MMIO range:{:x}..{:x}", range.start, range.end);
++        /* debug!("Recycling MMIO range:{:x}..{:x}", range.start, range.end); */
+ 
+         allocator.free(range);
+     }
+@@ -51,6 +119,11 @@ impl IoMemAllocator {
+     /// # Safety
+     ///
+     /// User must ensure the range doesn't belong to physical memory or system device I/O.
++    #[verus_spec(ret =>
++        requires
++            windows_ordered(allocators@),
++            windows_match_registered(allocators@),
++    )]
+     unsafe fn new(allocators: Vec<RangeAllocator>) -> Self {
+         Self { allocators }
+     }
+@@ -60,73 +133,346 @@ impl IoMemAllocator {
+ ///
+ /// The builder must contains the memory I/O regions that don't belong to the physical memory. Also, OSTD
+ /// must exclude the memory I/O regions of the system device before building the `IoMemAllocator`.
++#[verus_verify]
+ pub(crate) struct IoMemAllocatorBuilder {
+     allocators: Vec<RangeAllocator>,
+ }
+ 
++#[verus_verify]
+ impl IoMemAllocatorBuilder {
+     /// Initializes memory I/O region for devices.
+     ///
+     /// # Safety
+     ///
+     /// User must ensure the range doesn't belong to physical memory.
++    #[verus_spec(ret =>
++        with
++            -> state_out: Tracked<RangeAllocatorPermits>,
++        requires
++            usize_ranges_ordered(ranges@),
++            usize_ranges_match_registered(ranges@),
++        ensures
++            ret.type_inv(),
++            ret.state_matches(state_out@),
++    )]
+     pub(crate) unsafe fn new(ranges: Vec<Range<usize>>) -> Self {
+-        info!(
++        /* info!(
+             "Creating new I/O memory allocator builder, ranges: {:#x?}",
+             ranges
+-        );
+-        let mut allocators = Vec::with_capacity(ranges.len());
++        ); */
++        let mut allocators: Vec<RangeAllocator> = Vec::with_capacity(ranges.len());
++        proof_decl! {
++            let tracked mut state = Seq::tracked_empty();
++        }
++        #[verus_spec(it =>
++            invariant
++                allocators@.len() == it.index(),
++                forall|j: int| #![trigger it.seq()[j]] 0 <= j < it.index() ==> {
++                    &&& allocators@[j]@.start == it.seq()[j].start
++                    &&& allocators@[j]@.end == it.seq()[j].end
++                },
++                usize_ranges_ordered(it.seq()),
++                usize_ranges_match_registered(it.seq()),
++                forall|j: int| #![trigger registered_io_mem_windows()[j]] 0 <= j < it.index() ==>
++                    allocators@[j]@ == registered_io_mem_windows()[j],
++                windows_ordered(allocators@),
++                allocator_states_match(allocators@, state),
++                state.len() == it.index(),
++        )]
+         for range in ranges {
+-            allocators.push(RangeAllocator::new(range));
++            proof_decl! {
++                let tracked permit: GhostSubset<usize>;
++            }
++            allocators.push(
++                #[verus_spec(with => Tracked(permit))]
++                RangeAllocator::new(range),
++            );
++            proof! {
++                state.tracked_push(permit);
++                assert forall|i: int| #![trigger allocators@[i]]
++                    0 <= i < allocators@.len() - 1
++                    implies allocators@[i]@.end <= range.start by {
++                    assert(it.seq()[i].end <= it.seq()[i + 1].start);
++                }
++            }
+         }
++        proof_with!(|= Tracked(state));
+         Self { allocators }
+     }
+ 
+     /// Removes access to a specific memory I/O range.
+     ///
+     /// All drivers in OSTD must use this method to prevent peripheral drivers from accessing illegal memory I/O range.
++    ///
++    /// # Verified Properties
++    ///
++    /// ## Safety
++    /// - No unsafe code; panics are proved impossible whenever the supplied
++    ///   permission covers the requested range ([`Self::can_remove`]).
++    ///
++    /// ## Preconditions
++    /// - The range is non-empty and registered as a boot-time MMIO window.
++    /// - The permission sequence matches this builder's allocator windows.
++    ///
++    /// ## Postconditions
++    /// - The permit sequence keeps its length and still matches every window.
++    /// - Exactly `range` is removed from its window's permission, preserving
++    ///   the permission's identity; every other window's permission is
++    ///   unchanged.
++    #[verus_spec(
++        with Tracked(state): Tracked<&mut RangeAllocatorPermits>,
++        requires
++            range.start < range.end,
++            self.can_remove(*old(state), range),
++            io_mem_range_registered(range),
++            self.state_matches(*old(state)),
++        ensures
++            self.state_matches(*final(state)),
++            final(state).len() == old(state).len(),
++            exists|window: int|
++                #![trigger final(state)[window]]
++                0 <= window < old(state).len() && {
++                    let permit = final(state)[window];
++                    let old_permit = old(state)[window];
++                    &&& permit.id() == old_permit.id()
++                    &&& permit@ == old_permit@ - range.view_set()
++                    &&& forall|j: int| 0 <= j < old(state).len() && j != window
++                        ==> final(state)[j] == old(state)[j]
++                },
++    )]
+     pub(crate) fn remove(&self, range: Range<usize>) {
+         let Some(allocator) = find_allocator(&self.allocators, &range) else {
+-            panic!(
++            vstd_extra::panic!(
+                 "Allocator for the system device's MMIO was not found. Range: {:x?}",
+                 range
+             );
+         };
+ 
+-        if let Err(err) = allocator.alloc_specific(&range) {
+-            panic!(
++        proof_decl! {
++            let ghost state_before = *state;
++            let ghost k = choose|k: int|
++                #![trigger self.allocators@[k]]
++                0 <= k < self.allocators@.len() && k < state_before.len() && {
++                    let candidate = self.allocators@[k];
++                    &&& candidate@.start <= range.start < range.end <= candidate@.end
++                    &&& state_before[k].id() == candidate.free_id()
++                    &&& range.view_set() <= state_before[k]@
++                };
++            let tracked mut window_permit = state.tracked_borrow_mut(k);
++            let tracked range_permit = window_permit.split(range.view_set());
++            let tracked permit = GhostSubRange::tracked_new(range_permit, range);
++        }
++        proof! {
++            use_type_invariant(self);
++        }
++        proof_decl! {
++            let tracked allocated: FreePermit;
++        }
++
++        if let Err(err) = #[verus_spec(with Tracked(permit) => Tracked(allocated))]
++        allocator.alloc_specific(&range)
++        {
++            vstd_extra::panic!(
+                 "An error occurred while trying to remove access to the system device's MMIO. Range: {:x?}. Error: {:?}",
+-                range, err
++                range,
++                err
+             );
+         }
+     }
+ }
+ 
+ /// The I/O Memory allocator of the system.
+-pub static IO_MEM_ALLOCATOR: Once<IoMemAllocator> = Once::new();
++// Original Rust: pub static IO_MEM_ALLOCATOR: Once<IoMemAllocator> = Once::new();
++verus! {
++
++broadcast use vstd::std_specs::vec::group_vec_axioms;
++
++/// The registered MMIO windows are pairwise ordered: every window ends at or before the start
++/// of the next one, so no window can partially cover a range that is contained in another one.
++pub open spec fn windows_ordered(allocators: Seq<RangeAllocator>) -> bool {
++    forall|i: int, j: int|
++        #![trigger allocators[i], allocators[j]]
++        0 <= i < j < allocators.len() ==> allocators[i]@.end <= allocators[j]@.start
++}
++
++/// The ranges handed to [`IoMemAllocatorBuilder::new`] are pairwise ordered.
++pub open spec fn usize_ranges_ordered(ranges: Seq<Range<usize>>) -> bool {
++    forall|i: int, j: int|
++        #![trigger ranges[i], ranges[j]]
++        0 <= i < j < ranges.len() ==> ranges[i].end <= ranges[j].start
++}
++
++/// The abstract MMIO windows registered by platform boot code.
++pub uninterp spec fn registered_io_mem_windows() -> Seq<Range<usize>>;
++
++/// The concrete range allocators represent the abstract boot-time windows exactly.
++pub open spec fn windows_match_registered(allocators: Seq<RangeAllocator>) -> bool {
++    &&& allocators.len() == registered_io_mem_windows().len()
++    &&& forall|i: int|
++        #![trigger registered_io_mem_windows()[i]]
++        0 <= i < allocators.len() ==> allocators[i]@ == registered_io_mem_windows()[i]
++}
++
++/// The ranges passed across the unsafe builder boundary represent the abstract windows.
++pub open spec fn usize_ranges_match_registered(ranges: Seq<Range<usize>>) -> bool {
++    &&& ranges.len() == registered_io_mem_windows().len()
++    &&& forall|i: int|
++        #![trigger ranges[i]]
++        0 <= i < ranges.len() ==> {
++            &&& ranges[i].start <= ranges[i].end
++            &&& ranges[i].start == registered_io_mem_windows()[i].start
++            &&& ranges[i].end == registered_io_mem_windows()[i].end
++        }
++}
++
++/// Every window has a matching free-address permission.
++closed spec fn allocator_states_match(
++    allocators: Seq<RangeAllocator>,
++    state: RangeAllocatorPermits,
++) -> bool {
++    &&& state.len() == allocators.len()
++    &&& forall|i: int|
++        #![trigger allocators[i]]
++        0 <= i < allocators.len() ==> {
++            &&& state[i].id() == allocators[i].free_id()
++            &&& state[i]@ <= allocators[i]@.view_set()
++        }
++}
++
++impl IoMemAllocatorBuilder {
++    /// Whether some matching window permission covers `range`, proving that
++    /// `remove` succeeds without panicking.
++    pub closed spec fn can_remove(self, state: RangeAllocatorPermits, range: Range<usize>) -> bool {
++        exists|i: int|
++            #![trigger self.allocators@[i]]
++            0 <= i < self.allocators@.len() && i < state.len() && {
++                let allocator = self.allocators@[i];
++                &&& allocator@.start <= range.start < range.end <= allocator@.end
++                &&& state[i].id() == allocator.free_id()
++                &&& range.view_set() <= state[i]@
++            }
++    }
++
++    /// Whether every window has a permission with the matching identity.
++    pub closed spec fn state_matches(self, state: RangeAllocatorPermits) -> bool {
++        allocator_states_match(self.allocators@, state)
++    }
++
++    /// The builder always holds the ordered windows handed to [`IoMemAllocatorBuilder::new`].
++    #[verifier::type_invariant]
++    pub closed spec fn type_inv(self) -> bool {
++        windows_ordered(self.allocators@) && windows_match_registered(self.allocators@)
++    }
++}
++
++impl IoMemAllocator {
++    /// Whether `id` is the free-permission identity of a window containing `range`.
++    pub closed spec fn has_free_permission(self, id: Loc, range: Range<usize>) -> bool {
++        exists|i: int|
++            #![trigger self.allocators@[i]]
++            0 <= i < self.allocators@.len() && self.allocators@[i].free_id() == id
++                && self.allocators@[i]@.start <= range.start < range.end <= self.allocators@[i]@.end
++    }
+ 
++    /// Whether `id` is the allocation-token identity of one of the windows.
++    pub closed spec fn has_allocation(self, id: Loc) -> bool {
++        exists|i: int|
++            #![trigger self.allocators@[i]]
++            0 <= i < self.allocators@.len() && self.allocators@[i].allocated_id() == id
++    }
++
++    /// Whether some window wholly covers `range`.
++    pub closed spec fn covers_range(self, range: Range<usize>) -> bool {
++        exists|k: int|
++            #![trigger self.allocators@[k]]
++            0 <= k < self.allocators@.len() && {
++                let window = self.allocators@[k]@;
++                &&& window.start <= range.start
++                &&& range.end <= window.end
++            }
++    }
++
++    /// The allocator inherits the ordered windows of the builder it was built from.
++    #[verifier::type_invariant]
++    pub closed spec fn type_inv(self) -> bool {
++        windows_ordered(self.allocators@) && windows_match_registered(self.allocators@)
++    }
++}
++
++/// A range is registered when one abstract boot-time MMIO window contains it.
++pub open spec fn io_mem_range_registered(range: Range<usize>) -> bool {
++    exists|m: int|
++        #![trigger registered_io_mem_windows()[m]]
++        0 <= m < registered_io_mem_windows().len() && registered_io_mem_windows()[m].start
++            <= range.start && range.end <= registered_io_mem_windows()[m].end
++}
++
++/// Whether the global I/O memory allocator has been initialized.
++pub uninterp spec fn io_mem_allocator_initialized() -> bool;
++
++pub exec static IO_MEM_ALLOCATOR: OnceImpl<IoMemAllocator, TrivialResourceInvariant>
++    ensures
++        IO_MEM_ALLOCATOR.wf(),
++{
++    OnceImpl::new(Ghost(TrivialResourceInvariant))
++}
++
++} // verus!
+ /// Initializes the static `IO_MEM_ALLOCATOR` based on builder.
+ ///
+ /// # Safety
+ ///
+ /// User must ensure all the memory I/O regions that belong to the system device have been removed by calling the
+ /// `remove` function.
++#[verifier::external_body]
++#[verus_spec(
++    ensures
++        io_mem_allocator_initialized(),
++)]
+ pub(crate) unsafe fn init(io_mem_builder: IoMemAllocatorBuilder) {
++    proof! {
++        use_type_invariant(&io_mem_builder);
++    }
+     // SAFETY: The safety is upheld by the caller.
+-    IO_MEM_ALLOCATOR.call_once(|| unsafe { IoMemAllocator::new(io_mem_builder.allocators) });
++    // Original Rust: IO_MEM_ALLOCATOR.call_once(|| unsafe { IoMemAllocator::new(io_mem_builder.allocators) });
++    IO_MEM_ALLOCATOR.init(unsafe { IoMemAllocator::new(io_mem_builder.allocators) });
+ }
+ 
++#[verus_verify]
++#[verus_spec(ret =>
++    ensures
++        ret matches Some(res) ==> {
++            &&& res@.start < range.end
++            &&& res@.end > range.start
++            &&& exists|k: int| #![trigger allocators@[k]]
++                0 <= k < allocators@.len()
++                    && allocators@[k]@ == res@
++                    && allocators@[k].free_id() == res.free_id()
++        },
++        ret is None ==> forall|i: int| #![trigger allocators@[i]] 0 <= i < allocators@.len()
++            ==> allocators@[i]@.start >= range.end || allocators@[i]@.end <= range.start,
++)]
+ fn find_allocator<'a>(
+     allocators: &'a [RangeAllocator],
+     range: &Range<usize>,
+ ) -> Option<&'a RangeAllocator> {
++    #[verus_spec(it => invariant
++        forall|i: int| #![trigger allocators@[i]] 0 <= i < it.index()
++            ==> allocators@[i]@.start >= range.end || allocators@[i]@.end <= range.start,
++    )]
+     for allocator in allocators.iter() {
+         let allocator_range = allocator.fullrange();
++        /* Verus does not yet support `continue` in `for` loops.
++        Original Rust:
+         if allocator_range.start >= range.end || allocator_range.end <= range.start {
+             continue;
+         }
+ 
+         return Some(allocator);
++        */
++        if allocator_range.start < range.end && allocator_range.end > range.start {
++            return Some(allocator);
++        }
+     }
+     None
+ }
+diff --git a/ostd/src/io/io_mem/mod.rs b/ostd/src/io/io_mem/mod.rs
+index 3afa2d077..7b3032882 100644
+--- a/ostd/src/io/io_mem/mod.rs
++++ b/ostd/src/io/io_mem/mod.rs
+@@ -1,5 +1,13 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O memory and its allocator that allocates memory I/O (MMIO) to device drivers.
++use vstd::{arithmetic::power2::is_pow2, prelude::*};
++
++use crate::specs::{
++    arch::PAGE_SIZE,
++    mm::{io::VmIoOwner, virt_mem::VirtPtr},
++    task::AnyAtomicGuard,
++};
++
+ mod allocator;
+ 
+ use core::ops::{Deref, Range};
+@@ -7,12 +15,12 @@ use core::ops::{Deref, Range};
+ use align_ext::AlignExt;
+ 
+ pub(crate) use self::allocator::IoMemAllocatorBuilder;
+-pub(super) use self::allocator::init;
++pub(super) use self::allocator::{init, io_mem_allocator_initialized};
+ use crate::{
+     Error,
+     mm::{
+-        FallibleVmRead, FallibleVmWrite, HasPaddr, Infallible, PAGE_SIZE, Paddr, PodOnce, VmIo,
+-        VmIoOnce, VmReader, VmWriter,
++        FallibleVmRead, FallibleVmWrite, HasPaddr, Infallible, /*PAGE_SIZE,*/ Paddr, PodOnce,
++        VmIo, VmIoOnce, VmReader, VmWriter,
+         kspace::kvirt_area::KVirtArea,
+         page_prop::{CachePolicy, PageFlags, PageProperty, PrivilegedPageFlags},
+     },
+@@ -21,6 +29,7 @@ use crate::{
+ 
+ /// I/O memory.
+ #[derive(Debug, Clone)]
++#[verus_verify]
+ pub struct IoMem {
+     kvirt_area: Arc<KVirtArea>,
+     // The actually used range for MMIO is `kvirt_area.start + offset..kvirt_area.start + offset + limit`
+@@ -29,14 +38,61 @@ pub struct IoMem {
+     pa: Paddr,
+ }
+ 
++verus! {
++
++#[verus_verify]
++impl IoMem {
++    /// Logical offset into the page-aligned mapping.
++    pub closed spec fn offset_spec(&self) -> usize {
++        self.offset
++    }
++}
++
++} // verus!
++#[verus_verify]
+ impl HasPaddr for IoMem {
++    #[verus_spec(returns IoMem::paddr(self))]
+     fn paddr(&self) -> Paddr {
+         self.pa
+     }
+ }
+ 
++#[verus_verify]
+ impl IoMem {
+     /// Acquires an `IoMem` instance for the given range.
++    ///
++    /// # Verified Properties
++    ///
++    /// ## Safety
++    /// - The body is trusted (`external_body`): it looks up the initialized
++    ///   global allocator and forwards to its verified acquire; only the
++    ///   registered MMIO windows can be handed out.
++    ///
++    /// ## Preconditions
++    /// - The range is non-empty and bounded:
++    ///   `range.start < range.end <= usize::MAX - (PAGE_SIZE - 1)`.
++    /// - The range lies within a boot-time registered MMIO window.
++    /// - The global I/O memory allocator has been initialized.
++    /// - The caller supplies a tracked permission exactly covering `range`.
++    ///
++    /// ## Postconditions
++    /// - On success, the returned `IoMem` covers exactly the requested range:
++    ///   `paddr() == range.start` and `length() == range.end - range.start`.
++    #[verifier::external_body]
++    #[verus_spec(result =>
++        with
++            Tracked(permit): Tracked<vstd_extra::resource::range::GhostSubRange<usize>>,
++        requires
++            range.start < range.end <= usize::MAX - (PAGE_SIZE - 1),
++            allocator::io_mem_range_registered(range),
++            allocator::io_mem_allocator_initialized(),
++            permit.range() == range,
++        ensures
++            result matches Ok(io_mem) ==> {
++                &&& io_mem.paddr() == range.start
++                &&& io_mem.length() == range.end - range.start
++            },
++    )]
+     pub fn acquire(range: Range<Paddr>) -> Result<IoMem> {
+         allocator::IO_MEM_ALLOCATOR
+             .get()
+@@ -46,11 +102,13 @@ impl IoMem {
+     }
+ 
+     /// Returns the physical address of the I/O memory.
++    #[verus_verify(dual_spec)]
+     pub fn paddr(&self) -> Paddr {
+         self.pa
+     }
+ 
+     /// Returns the length of the I/O memory region.
++    #[verus_verify(dual_spec)]
+     pub fn length(&self) -> usize {
+         self.limit
+     }
+@@ -60,9 +118,23 @@ impl IoMem {
+     /// # Panics
+     ///
+     /// This method will panic if the range is empty or out of bounds.
++    #[verus_verify]
++    #[verus_spec(result =>
++        requires
++            range.start < range.end <= self.length(),
++            self.offset_spec() + range.start <= usize::MAX,
++            self.paddr() + range.start <= usize::MAX,
++        ensures
++            result.offset_spec() == self.offset_spec() + range.start,
++            result.length() == range.end - range.start,
++            result.paddr() == self.paddr() + range.start,
++    )]
+     pub fn slice(&self, range: Range<usize>) -> Self {
+         // This ensures `range.start < range.end` and `range.end <= limit`.
++        /*
+         assert!(!range.is_empty() && range.end <= self.limit);
++        */
++        vstd_extra::assert!(range.start < range.end && range.end <= self.limit);
+ 
+         // We've checked the range is in bounds, so we can construct the new `IoMem` safely.
+         Self {
+@@ -80,6 +152,17 @@ impl IoMem {
+     /// - The given physical address range must be in the I/O memory region.
+     /// - Reading from or writing to I/O memory regions may have side effects. Those side effects
+     ///   must not cause soundness problems (e.g., they must not corrupt the kernel memory).
++    #[verifier::external_body]
++    #[verus_spec(result =>
++        requires
++            is_pow2(PAGE_SIZE as int),
++            range.start <= range.end <= usize::MAX - (PAGE_SIZE - 1),
++        ensures
++            result.paddr() == range.start,
++            result.length()
++                == range.end - range.start,
++            result.offset_spec() < PAGE_SIZE,
++    )]
+     pub(crate) unsafe fn new(range: Range<Paddr>, flags: PageFlags, cache: CachePolicy) -> Self {
+         let first_page_start = range.start.align_down(PAGE_SIZE);
+         let last_page_end = range.end.align_up(PAGE_SIZE);
+@@ -123,7 +206,11 @@ impl IoMem {
+ 
+         // SAFETY: The caller of `IoMem::new()` ensures that the given
+         // physical address range is I/O memory, so it is safe to map.
+-        let kva = unsafe { KVirtArea::map_untracked_frames(area_size, 0, frames_range, prop) };
++        // Original Rust:
++        // let kva = unsafe { KVirtArea::map_untracked_frames(area_size, 0, frames_range, prop) };
++        let kva = unsafe {
++            KVirtArea::map_untracked_frames::<AnyAtomicGuard>(area_size, 0, frames_range, prop)
++        };
+ 
+         Self {
+             kvirt_area: Arc::new(kva),
+@@ -147,7 +234,9 @@ impl IoMem {
+         // safety of reading from the mapped physical address, and the mapping is valid.
+         unsafe {
+             VmReader::from_kernel_space(
+-                (self.kvirt_area.deref().start() + self.offset) as *mut u8,
++                /* Original Rust:
++                (self.kvirt_area.deref().start() + self.offset) as *mut u8, */
++                VirtPtr::from_vaddr(self.kvirt_area.deref().start() + self.offset, self.limit),
+                 self.limit,
+             )
+         }
+@@ -158,47 +247,95 @@ impl IoMem {
+         // safety of writing to the mapped physical address, and the mapping is valid.
+         unsafe {
+             VmWriter::from_kernel_space(
+-                (self.kvirt_area.deref().start() + self.offset) as *mut u8,
++                /* Original Rust:
++                (self.kvirt_area.deref().start() + self.offset) as *mut u8, */
++                VirtPtr::from_vaddr(self.kvirt_area.deref().start() + self.offset, self.limit),
+                 self.limit,
+             )
+         }
+     }
+ }
+ 
+-impl VmIo for IoMem {
+-    fn read(&self, offset: usize, writer: &mut VmWriter) -> Result<()> {
++verus! {
++
++/* Original Rust: impl VmIo for IoMem { */
++impl VmIo<()> for IoMem {
++    closed spec fn obeys_vmio_spec() -> bool {
++        false
++    }
++
++    closed spec fn obeys_vmio_read_spec() -> bool {
++        false
++    }
++
++    closed spec fn obeys_vmio_write_spec() -> bool {
++        false
++    }
++
++    open spec fn read_spec(
++        self,
++        offset: usize,
++        old_writer: VmWriter<'_>,
++        new_writer: VmWriter<'_>,
++        old_writer_own: VmIoOwner,
++        new_writer_own: VmIoOwner,
++        old_owner: (),
++        new_owner: (),
++        r: Result<()>,
++    ) -> bool {
++        false
++    }
++
++    open spec fn write_spec(
++        self,
++        offset: usize,
++        old_reader: VmReader<'_>,
++        new_reader: VmReader<'_>,
++        old_reader_own: VmIoOwner,
++        new_reader_own: VmIoOwner,
++        old_owner: (),
++        new_owner: (),
++        r: Result<()>,
++    ) -> bool {
++        false
++    }
++
++    /// Device reads are a trusted hardware boundary; the range checks and cursor updates remain
++    /// identical to the original implementation.
++    #[verifier::external_body]
++    /* Original Rust: fn read(&self, offset: usize, writer: &mut VmWriter) -> Result<()> { */
++    fn read(
++        &self,
++        offset: usize,
++        writer: &mut VmWriter,
++        Tracked(_writer_own): Tracked<&mut VmIoOwner>,
++        Tracked(_owner): Tracked<&mut ()>,
++    ) -> Result<()> {
+         let offset = offset + self.offset;
+-        if self
+-            .limit
+-            .checked_sub(offset)
+-            .is_none_or(|remain| remain < writer.avail())
+-        {
++        if self.limit.checked_sub(offset).is_none_or(|remain| remain < writer.avail()) {
+             return Err(Error::InvalidArgs);
+         }
+-
+-        self.reader()
+-            .skip(offset)
+-            .read_fallible(writer)
+-            .map_err(|(e, _)| e)?;
++        self.reader().skip(offset).read_fallible(writer).map_err(|(e, _)| e)?;
+         debug_assert!(!writer.has_avail());
+ 
+         Ok(())
+     }
+ 
+-    fn write(&self, offset: usize, reader: &mut VmReader) -> Result<()> {
++    /// Device writes are a trusted hardware boundary for the same reason as [`Self::read`].
++    #[verifier::external_body]
++    /* Original Rust: fn write(&self, offset: usize, reader: &mut VmReader) -> Result<()> { */
++    fn write(
++        &self,
++        offset: usize,
++        reader: &mut VmReader,
++        Tracked(_reader_own): Tracked<&mut VmIoOwner>,
++        Tracked(_owner): Tracked<&mut ()>,
++    ) -> Result<()> {
+         let offset = offset + self.offset;
+-        if self
+-            .limit
+-            .checked_sub(offset)
+-            .is_none_or(|remain| remain < reader.remain())
+-        {
++        if self.limit.checked_sub(offset).is_none_or(|remain| remain < reader.remain()) {
+             return Err(Error::InvalidArgs);
+         }
+-
+-        self.writer()
+-            .skip(offset)
+-            .write_fallible(reader)
+-            .map_err(|(e, _)| e)?;
++        self.writer().skip(offset).write_fallible(reader).map_err(|(e, _)| e)?;
+         debug_assert!(!reader.has_remain());
+ 
+         Ok(())
+@@ -206,15 +343,34 @@ impl VmIo for IoMem {
+ }
+ 
+ impl VmIoOnce for IoMem {
++    closed spec fn obeys_vmio_once_read_requires() -> bool {
++        false
++    }
++
++    closed spec fn obeys_vmio_once_write_requires() -> bool {
++        false
++    }
++
++    closed spec fn obeys_vmio_once_read_ensures() -> bool {
++        false
++    }
++
++    closed spec fn obeys_vmio_once_write_ensures() -> bool {
++        false
++    }
++
++    #[verifier::external_body]
+     fn read_once<T: PodOnce>(&self, offset: usize) -> Result<T> {
+         self.reader().skip(offset).read_once()
+     }
+ 
++    #[verifier::external_body]
+     fn write_once<T: PodOnce>(&self, offset: usize, new_val: &T) -> Result<()> {
+         self.writer().skip(offset).write_once(new_val)
+     }
+ }
+ 
++} // verus!
+ impl Drop for IoMem {
+     fn drop(&mut self) {
+         // TODO: Multiple `IoMem` instances should not overlap, we should refactor the driver code and
+diff --git a/ostd/src/io/io_port/allocator.rs b/ostd/src/io/io_port/allocator.rs
+index 0e5b85e9a..a4043ed0c 100644
+--- a/ostd/src/io/io_port/allocator.rs
++++ b/ostd/src/io/io_port/allocator.rs
+@@ -1,5 +1,17 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O port allocator.
++#[cfg(feature = "irc11")]
++use vstd::thread_view::Objective;
++use vstd::{
++    assert_seqs_equal,
++    prelude::*,
++    resource::set::{GhostSetAuth, GhostSubset},
++    tokens::InstanceId,
++};
++use vstd_extra::{ownership::Inv, resource_invariant::SimpleResourceInvariant};
++
++use crate::arch::device::io_port::valid_io_port_access;
++
+ use core::ops::Range;
+ 
+ use id_alloc::IdAlloc;
+@@ -12,30 +24,357 @@ use crate::{
+     sync::{LocalIrqDisabled, SpinLock},
+ };
+ 
++verus! {
++
++/// Identity assigned to the single global PIO allocator during trusted boot initialization.
++pub uninterp spec fn io_port_allocator_instance_id() -> InstanceId;
++
++/// Allocated ids of a bitmap prefix `[0, end)`: `i` is in iff `s[i]`.
++pub(crate) closed spec fn id_alloc_bits(s: Seq<bool>, end: int) -> Set<usize> {
++    Seq::new(
++        if 0 <= end {
++            end as nat
++        } else {
++            0
++        },
++        |i: int| i as usize,
++    ).fold_left(
++        Set::empty(),
++        |acc: Set<usize>, i: usize|
++            if s[i as int] {
++                acc.insert(i)
++            } else {
++                acc
++            },
++    )
++}
++
++/// Set of ids currently allocated by `allocator`.
++spec fn id_alloc_view(allocator: &IdAlloc) -> Set<usize> {
++    id_alloc_bits(allocator@, allocator@.len() as int)
++}
++
++/// Number of ids `allocator` can hold.
++spec fn id_alloc_capacity(allocator: &IdAlloc) -> usize {
++    allocator@.len() as usize
++}
++
++spec fn io_port_inner_inv_values(
++    allocated_instance_id: InstanceId,
++    allocated: Set<usize>,
++    allocator: &IdAlloc,
++) -> bool {
++    &&& allocated_instance_id == io_port_allocator_instance_id()
++    &&& allocator.inv()
++    &&& allocator@.len() == crate::arch::io::MAX_IO_PORT
++    &&& allocated.subset_of(id_alloc_view(allocator))
++    &&& id_alloc_capacity(allocator) == crate::arch::io::MAX_IO_PORT as usize
++}
++
++/// Authority over the set of PIO ids currently allocated by the global allocator.
++///
++/// The `Loc` of `auth` identifies the protocol instance and `auth@` is the set of allocated
++/// ids. [`GhostSubset`] fragments minted by [`IoPortAllocation::tracked_allocate`] transfer the
++/// ownership of an acquired PIO range to the caller.
++pub(super) tracked struct IoPortAllocation {
++    auth: GhostSetAuth<usize>,
++}
++
++impl IoPortAllocation {
++    /// Instance identity of the protocol.
++    pub closed spec fn instance_id(self) -> InstanceId {
++        self.auth.id()
++    }
++
++    /// Ids currently allocated.
++    pub closed spec fn value(self) -> Set<usize> {
++        self.auth@
++    }
++
++    /// Creates a fresh protocol instance with an empty allocated set.
++    pub proof fn tracked_initialize() -> (tracked result: Self) {
++        let tracked (auth, _empty_claims) = GhostSetAuth::new(Set::empty());
++        Self { auth }
++    }
++
++    /// Allocates `ids`, requiring them to be currently free, and mints the matching claim
++    /// fragment.
++    pub proof fn tracked_allocate(tracked &mut self, ids: Set<usize>) -> (tracked claim:
++        GhostSubset<usize>)
++        requires
++            old(self).value().disjoint(ids),
++        ensures
++            final(self).instance_id() == old(self).instance_id(),
++            final(self).value() == old(self).value().union(ids),
++            claim.id() == final(self).instance_id(),
++            claim@ == ids,
++    {
++        self.auth.insert_set(ids)
++    }
++
++    /// Consumes `claim`, removing its ids from the allocated set.
++    pub proof fn tracked_release(tracked &mut self, tracked claim: GhostSubset<usize>)
++        requires
++            claim.id() == old(self).instance_id(),
++        ensures
++            final(self).instance_id() == old(self).instance_id(),
++            final(self).value() == old(self).value().difference(claim@),
++    {
++        self.auth.delete(claim);
++    }
++
++    /// Certifies `claim@ <= self.value()` (the claim's ids are currently allocated).
++    pub proof fn lemma_claim_includes(tracked &self, tracked claim: &GhostSubset<usize>)
++        requires
++            claim.id() == self.instance_id(),
++        ensures
++            claim@ <= self.value(),
++    {
++        claim.agree(&self.auth);
++    }
++}
++
++ghost struct IoPortAllocInvariant;
++
++#[cfg(feature = "irc11")]
++unsafe impl Objective for IoPortAllocation {
++
++}
++
++impl SimpleResourceInvariant<IdAlloc> for IoPortAllocInvariant {
++    type Resource = IoPortAllocation;
++
++    closed spec fn inv(alloc: IdAlloc, r: IoPortAllocation) -> bool {
++        io_port_inner_inv_values(r.instance_id(), r.value(), &alloc)
++    }
++}
++
++} // verus!
+ /// I/O port allocator that allocates port I/O access to device drivers.
+-pub struct IoPortAllocator {
++#[verus_verify]
++pub(super) struct IoPortAllocator {
+     /// Each ID indicates whether a Port I/O (1B) is allocated.
+     ///
+     /// Instead of using `RangeAllocator` like `IoMemAllocator` does, it is more reasonable to use `IdAlloc`,
+     /// as PIO space includes only a small region; for example, x86 module in OSTD allows just 65536 I/O ports.
+-    allocator: SpinLock<IdAlloc, LocalIrqDisabled>,
++    allocator: SpinLock<IdAlloc, LocalIrqDisabled, IoPortAllocInvariant>,
+ }
+ 
++#[verus_verify]
+ impl IoPortAllocator {
+-    /// Acquires the `IoPort`. Return None if any region in `port` cannot be allocated.
+-    pub fn acquire<T, A>(&self, port: u16) -> Option<IoPort<T, A>> {
++    /// Acquires an `IoPort`. Returns `None` if the PIO range is unavailable.
++    ///
++    /// `is_overlapping` indicates whether another `IoPort` can have a PIO range that overlaps with
++    /// this one. If it is true, only the first port in the PIO range will be marked as occupied;
++    /// otherwise, all ports in the PIO range will be marked as occupied.
++    #[verus_spec(result =>
++        requires
++            size_of::<T>() <= u16::MAX,
++            is_overlapping ==> port + size_of::<T>() <= u16::MAX,
++            valid_io_port_access::<T>(port),
++            io_port_allocator_initialized(),
++        ensures
++            result matches Some(io_port) ==> {
++                &&& io_port@ == port
++                &&& io_port.is_overlapping() == is_overlapping
++                &&& io_port.is_allocated()
++            },
++    )]
++    pub(super) fn acquire<T, A>(&self, port: u16, is_overlapping: bool) -> Option<IoPort<T, A>> {
++        let range = if !is_overlapping {
++            port..port.checked_add(size_of::<T>().try_into().ok()?)?
++        } else {
++            port..port.checked_add(1)?
++        };
++        /* debug!("Try to acquire PIO range: {:#x?}", range); */
+         let mut allocator = self.allocator.lock();
+-        let mut range = port..(port + size_of::<T>() as u16);
+-        if range.any(|i| allocator.is_allocated(i as usize)) {
++        proof_decl! {
++            let ghost instance_id = allocator.resource().instance_id();
++            let ghost preserved = allocator.resource().value();
++        }
++        proof! {
++            assert(io_port_inner_inv_values(instance_id, preserved, &allocator.value()));
++        }
++        let allocator_inner = &mut *allocator;
++        // `Iterator::any` with a capturing closure is not supported by Verus.
++        // Original Rust:
++        // if range.any(|i| allocator.is_allocated(i as usize)) { return None; }
++        let mut already_allocated = false;
++        #[verus_spec(scan_iter =>
++            invariant
++                allocator_inner.inv(),
++                allocator_inner@.len()
++                    == crate::arch::io::MAX_IO_PORT,
++                !already_allocated ==> forall|id: usize|
++                    range.start as usize <= id <
++                        (range.start as int + scan_iter.index()) as usize ==>
++                        !id_alloc_view(&allocator_inner).contains(id),
++        )]
++        for i in range.clone() {
++            proof! {
++                assert((i as usize) < allocator_inner@.len()) by {
++                    assert((i as usize) < range.end as usize);
++                    assert((range.end as usize) <= u16::MAX as usize);
++                    assert((u16::MAX as usize) <= crate::arch::io::MAX_IO_PORT as usize);
++                    assert(allocator_inner@.len()
++                        == crate::arch::io::MAX_IO_PORT);
++                }
++            }
++            if allocator_inner.is_allocated(i as usize) {
++                already_allocated = true;
++            }
++            proof! {
++                lemma_id_alloc_view_contains(&allocator_inner, i as usize);
++            }
++        }
++        proof_decl! {
++            let tracked range_claim: GhostSubset<usize>;
++        }
++        if already_allocated {
++            allocator.drop();
+             return None;
+         }
+ 
++        proof_decl! {
++            let ghost ids = Set::<usize>::range(range.start as usize, range.end as usize);
++            let ghost allocation_start_view = id_alloc_view(&allocator_inner);
++        }
++        proof! {
++            assert(ids.disjoint(id_alloc_view(&allocator_inner))) by {
++                assert forall|id: usize| #[trigger] ids.contains(id) implies
++                    !id_alloc_view(&allocator_inner).contains(id) by {
++                }
++            }
++            assert forall|id: usize| ids.contains(id) implies
++                id < id_alloc_capacity(&allocator_inner) by {
++            }
++            assert forall|id: usize|
++                range.start as usize <= id < range.end as usize implies
++                !id_alloc_view(&allocator_inner).contains(id) by {
++            }
++        }
++        #[verus_spec(allocation_iter =>
++            invariant
++                allocator_inner.inv(),
++                allocator_inner@.len()
++                    == crate::arch::io::MAX_IO_PORT,
++                range.end as usize <= id_alloc_capacity(&allocator_inner),
++                instance_id == io_port_allocator_instance_id(),
++                preserved.subset_of(allocation_start_view),
++                preserved.subset_of(id_alloc_view(&allocator_inner)),
++                id_alloc_capacity(&allocator_inner) ==
++                    crate::arch::io::MAX_IO_PORT as usize,
++                id_alloc_view(&allocator_inner) ==
++                    allocation_start_view.union(
++                        Set::<usize>::range(
++                            range.start as usize,
++                            (range.start as int + allocation_iter.index()) as usize,
++                        ),
++                    ),
++                forall|id: usize|
++                    (range.start as int + allocation_iter.index()) as usize <= id <
++                        range.end as usize ==>
++                    !id_alloc_view(&allocator_inner).contains(id),
++        )]
+         for i in range.clone() {
+-            allocator.alloc_specific(i as usize);
++            proof_decl! {
++                let ghost old_view = id_alloc_view(&allocator_inner);
++                let ghost old_seq = allocator_inner@;
++                let ghost old_len = (allocator_inner@.len()) as int;
++            }
++            proof! {
++                assert((i as usize) ==
++                    (range.start as int + allocation_iter.index()) as usize);
++                assert((i as usize) < id_alloc_capacity(&allocator_inner));
++                assert(allocator_inner.inv());
++                assert(!id_alloc_view(&allocator_inner).contains(i as usize));
++                assert(preserved.subset_of(old_view.insert(i as usize))) by {
++                    assert forall|id: usize|
++                        preserved.contains(id) implies
++                        old_view.insert(i as usize).contains(id) by {
++                    }
++                }
++            }
++            /* Original Rust: allocator.alloc_specific(i as usize); */
++            let _res = allocator_inner.alloc_specific(i as usize);
++            proof! {
++                assert(allocator_inner@.len() == old_len);
++                assert(id_alloc_view(&allocator_inner) == old_view.insert(i as usize)) by {
++                    // Extending the interval by one byte. vstd exposes no range-extension
++                    // lemma, so the step goes through set extensionality here; membership
++                    // comes from the default `range_set_properties` broadcast.
++                    assert(Set::<usize>::range(range.start as usize, i as usize).insert(i as usize)
++                        =~= Set::<usize>::range(
++                            range.start as usize,
++                            (i as usize + 1) as usize,
++                        )) by {
++                        assert forall|j: usize|
++                            #![trigger Set::<usize>::range(
++                                range.start as usize,
++                                (i as usize + 1) as usize,
++                            ).contains(j)]
++                            Set::<usize>::range(
++                                range.start as usize,
++                                (i as usize + 1) as usize,
++                            ).contains(j)
++                                == Set::<usize>::range(
++                                    range.start as usize,
++                                    i as usize,
++                                ).insert(i as usize).contains(j) by {
++                        }
++                    }
++                    assert forall|j: usize|
++                        #![trigger id_alloc_view(&allocator_inner).contains(j)]
++                        id_alloc_view(&allocator_inner).contains(j)
++                        == old_view.insert(i as usize).contains(j) by {
++                        lemma_id_alloc_bits_char(old_seq, old_len, j);
++                        lemma_id_alloc_bits_char(allocator_inner@, old_len, j);
++                        if _res is Some {
++                            assert(allocator_inner@ == old_seq.update(i as int, true));
++                            assert(allocator_inner@[j as int] == (if j == i {
++                                true
++                            } else {
++                                old_seq[j as int]
++                            }));
++                        } else {
++                            assert(old_seq[i as int]);
++                            assert(allocator_inner@ == old_seq);
++                        }
++                    }
++                }
++                assert(preserved.subset_of(id_alloc_view(&allocator_inner)));
++                assert(io_port_inner_inv_values(instance_id, preserved, &allocator_inner));
++            }
++        }
++        proof! {
++            assert(ids.disjoint(preserved)) by {
++                assert forall|id: usize| #[trigger] ids.contains(id) implies
++                    !preserved.contains(id) by {
++                }
++            }
++            assert(preserved.disjoint(ids));
++            range_claim = allocator.tracked_borrow_mut_resource().tracked_allocate(ids);
+         }
+ 
+-        // SAFETY: The created IoPort is guaranteed not to access system device I/O
+-        unsafe { Some(IoPort::new(port)) }
++        // SAFETY: The created `IoPort` is guaranteed not to access system device I/O.
++        /* The optional claim records allocator ownership in the existing constructor.
++         * Origin Rust: unsafe { Some(IoPort::new_overlapping(port, is_overlapping)) }
++         */
++        let tracked_claim = verus_exec_expr! { Some(Tracked(range_claim)) };
++        let io_port = unsafe { IoPort::new_overlapping(port, is_overlapping, tracked_claim) };
++        let result = Some(io_port);
++        proof! {
++            assert(id_alloc_view(&allocator.value()) == allocation_start_view.union(ids));
++            assert(preserved.subset_of(allocation_start_view));
++            assert(allocator.resource().value() == preserved.union(ids));
++            assert(io_port_inner_inv_values(
++                allocator.resource().instance_id(),
++                allocator.resource().value(),
++                &allocator.value(),
++            ));
++        }
++        allocator.drop();
++        result
+     }
+ 
+     /// Recycles an PIO range.
+@@ -43,15 +382,152 @@ impl IoPortAllocator {
+     /// # Safety
+     ///
+     /// The caller must have ownership of the PIO region through the `IoPortAllocator::acquire` interface.
+-    pub(in crate::io) unsafe fn recycle(&self, range: Range<u16>) {
+-        debug!("Recycling MMIO range: {:#x?}", range);
++    #[verus_spec(
++        with
++            Tracked(claim): Tracked<GhostSubset<usize>>,
++        requires
++            claim.id() == io_port_allocator_instance_id(),
++            claim@ =~= Set::<usize>::range(range.start as usize, range.end as usize),
++            range.start <= range.end,
++            io_port_allocator_initialized(),
++    )]
++    pub(super) unsafe fn recycle(&self, range: Range<u16>) {
++        /* debug!("Recycling PIO range: {:#x?}", range); */
++        /* Original Rust:
++        self.allocator
++            .lock()
++            .free_consecutive(range.start as usize..range.end as usize);
++        */
+ 
++        let mut allocator = self.allocator.lock();
++        proof_decl! {
++            let ghost instance_id: InstanceId;
++            let ghost preserved: Set<usize>;
++            let ghost bitmap_view: Set<usize>;
++            let ghost token_released: Set<usize>;
++            let ghost pre_seq: Seq<bool>;
++            let ghost pre_len: int;
++        }
++        proof! {
++            assert(range.start as usize <= range.end as usize);
++            instance_id = allocator.resource().instance_id();
++            preserved = allocator.resource().value();
++            pre_seq = allocator.value()@;
++            pre_len = allocator.value()@.len() as int;
++            bitmap_view = id_alloc_view(&allocator.value());
++            assert(io_port_inner_inv_values(instance_id, preserved, &allocator.value()));
++            assert(preserved.subset_of(bitmap_view));
++            assert(bitmap_view == id_alloc_bits(pre_seq, pre_len));
++            assert(pre_len == crate::arch::io::MAX_IO_PORT);
++            assert(crate::arch::io::MAX_IO_PORT <= usize::MAX);
++            assert(pre_len <= usize::MAX);
++            assert(claim.id() == instance_id);
++            assert((range.end as usize) <= allocator.value()@.len()) by {
++                assert((range.end as usize) <= u16::MAX as usize);
++                assert((u16::MAX as usize) <= crate::arch::io::MAX_IO_PORT as usize);
++                assert(allocator.value()@.len()
++                    == crate::arch::io::MAX_IO_PORT);
++            }
++        }
++        proof! {
++            let tracked r = allocator.tracked_borrow_mut_resource();
++            r.lemma_claim_includes(&claim);
++            assert(Set::<usize>::range(range.start as usize, range.end as usize) <= r.value());
++            assert(r.value() == preserved);
++            assert(Set::<usize>::range(range.start as usize, range.end as usize) <= preserved);
++            r.tracked_release(claim);
++            token_released = r.value();
++            assert(token_released
++                == preserved.difference(Set::<usize>::range(
++                    range.start as usize,
++                    range.end as usize,
++                )));
++            assert forall|id: usize|
++                #![trigger token_released.contains(id)]
++                token_released.contains(id) implies {
++                &&& bitmap_view.contains(id)
++                &&& !(range.start as usize <= id < range.end as usize)
++            } by {
++            }
++        }
++        let allocator_inner = &mut *allocator;
++        /* Original Rust:
+         self.allocator
+             .lock()
+             .free_consecutive(range.start as usize..range.end as usize);
++        */
++        proof! {
++            assert(allocator_inner@.len() == crate::arch::io::MAX_IO_PORT);
++            assert(id_alloc_capacity(&allocator_inner)
++                == crate::arch::io::MAX_IO_PORT as usize);
++            assert(allocator_inner@ == pre_seq);
++            assert((range.end as usize) <= id_alloc_capacity(&allocator_inner));
++            assert(io_port_inner_inv_values(instance_id, preserved, &allocator_inner));
++            assert(id_alloc_view(&allocator_inner) == bitmap_view);
++            assert forall|i: int|
++                range.start as usize <= i
++                    && i < allocator_inner@.len()
++                    && i < range.end as usize implies
++                allocator_inner@[i]
++            by {
++                assert(Set::<usize>::range(range.start as usize, range.end as usize)
++                    <= preserved);
++                assert(preserved.subset_of(bitmap_view));
++                assert(bitmap_view == id_alloc_view(&allocator_inner));
++                assert(Set::<usize>::range(range.start as usize, range.end as usize)
++                    .contains(i as usize));
++                lemma_id_alloc_view_contains(&allocator_inner, i as usize);
++            }
++        }
++        allocator_inner.free_consecutive(range.start as usize..range.end as usize);
++        proof! {
++            assert(allocator.value() == *allocator_inner);
++            let final_llen: int = allocator_inner@.len() as int;
++            assert(final_llen == pre_len);
++            assert(final_llen <= usize::MAX);
++            assert forall|id: usize|
++                #![trigger allocator.resource().value().contains(id)]
++                allocator.resource().value().contains(id) implies
++                id_alloc_view(&allocator_inner).contains(id) by {
++                lemma_id_alloc_bits_char(pre_seq, pre_len, id);
++                lemma_id_alloc_bits_char(allocator_inner@, final_llen, id);
++                assert(allocator.resource().value().contains(id)
++                    == (preserved.contains(id)
++                        && !Set::<usize>::range(
++                            range.start as usize,
++                            range.end as usize,
++                        ).contains(id)));
++                assert(Set::<usize>::range(range.start as usize, range.end as usize)
++                    <= preserved);
++                assert(preserved.subset_of(bitmap_view));
++                assert(bitmap_view == id_alloc_bits(pre_seq, pre_len));
++                assert(id_alloc_view(&allocator_inner)
++                    == id_alloc_bits(allocator_inner@, final_llen));
++            }
++            assert(allocator_inner.inv());
++            assert(allocator_inner@.len() == crate::arch::io::MAX_IO_PORT);
++            assert(id_alloc_capacity(&allocator_inner)
++                == crate::arch::io::MAX_IO_PORT as usize);
++            assert(allocator.resource().instance_id() == instance_id);
++            assert(io_port_inner_inv_values(
++                allocator.resource().instance_id(),
++                allocator.resource().value(),
++                &allocator_inner,
++            ));
++        }
++        allocator.drop();
+     }
+ }
+ 
++verus! {
++
++/// Trusted boot-state fact required before accessing the global PIO allocator.
++///
++/// Verus cannot currently mention an `exec static` in a specification, so this predicate is the
++/// explicit specification boundary for the architecture's guarantee that [`init`] ran first.
++pub uninterp spec fn io_port_allocator_initialized() -> bool;
++
++} // verus!
+ pub(super) static IO_PORT_ALLOCATOR: Once<IoPortAllocator> = Once::new();
+ 
+ /// Initializes the static `IO_PORT_ALLOCATOR` and removes the system device I/O port regions.
+@@ -65,22 +541,25 @@ pub(super) static IO_PORT_ALLOCATOR: Once<IoPortAllocator> = Once::new();
+ ///
+ /// 2. `MAX_IO_PORT` defined in `crate::arch::io` is guaranteed not to exceed the maximum
+ ///    value specified by architecture.
+-pub(crate) unsafe fn init() {
++#[verifier::external_body]
++#[verus_spec(ensures io_port_allocator_initialized())]
++pub(in crate::io) unsafe fn init() {
+     // SAFETY: `MAX_IO_PORT` is guaranteed not to exceed the maximum value specified by architecture.
+     let mut allocator = IdAlloc::with_capacity(crate::arch::io::MAX_IO_PORT as usize);
+ 
+-    extern "C" {
++    unsafe extern "C" {
+         fn __sensitive_io_ports_start();
+         fn __sensitive_io_ports_end();
+     }
+-    let start = __sensitive_io_ports_start as usize;
+-    let end = __sensitive_io_ports_end as usize;
+-    assert!((end - start) % size_of::<RawIoPortRange>() == 0);
++    let start = __sensitive_io_ports_start as *const () as usize;
++    let end = __sensitive_io_ports_end as *const () as usize;
++    assert!((end - start).is_multiple_of(size_of::<RawIoPortRange>()));
+ 
+     // Iterate through the sensitive I/O port ranges and remove them from the allocator.
+     let io_port_range_count = (end - start) / size_of::<RawIoPortRange>();
+     for i in 0..io_port_range_count {
+-        let range_base_addr = __sensitive_io_ports_start as usize + i * size_of::<RawIoPortRange>();
++        let range_base_addr =
++            __sensitive_io_ports_start as *const () as usize + i * size_of::<RawIoPortRange>();
+         // SAFETY: The range is guaranteed to be valid as it is defined in the `.sensitive_io_ports` section.
+         let port_range = unsafe { *(range_base_addr as *const RawIoPortRange) };
+ 
+@@ -92,7 +571,67 @@ pub(crate) unsafe fn init() {
+         }
+     }
+ 
++    /* Original Rust:
+     IO_PORT_ALLOCATOR.call_once(|| IoPortAllocator {
+         allocator: SpinLock::new(allocator),
++    }); */
++    IO_PORT_ALLOCATOR.call_once(|| IoPortAllocator {
++        allocator: SpinLock::new(
++            allocator,
++            Ghost::new(()),
++            Tracked::new(IoPortAllocation::tracked_initialize()),
++        ),
+     });
+ }
++
++// Auxiliary proof lemmas for the id-alloc bitmap model.
++verus! {
++
++/// Characterizes `id_alloc_bits`: `id_alloc_bits(s, end).contains(j)` holds exactly when
++/// `0 <= j < end` and `s[j]` is `true`.
++pub(crate) proof fn lemma_id_alloc_bits_char(s: Seq<bool>, end: int, j: usize)
++    requires
++        0 <= end <= usize::MAX,
++        s.len() >= end,
++        0 <= j,
++    ensures
++        id_alloc_bits(s, end).contains(j) == (j < end && s[j as int]),
++    decreases end,
++{
++    reveal(id_alloc_bits);
++    if end <= 0 {
++        assert(Seq::new(end as nat, |i: int| i as usize).len() == 0);
++        assert(id_alloc_bits(s, end) =~= Set::empty());
++    } else {
++        lemma_id_alloc_bits_char(s, end - 1, j);
++        assert_seqs_equal!(
++            Seq::new(end as nat, |i: int| i as usize).drop_last()
++                == Seq::new((end - 1) as nat, |i: int| i as usize)
++        );
++        assert(Seq::new(end as nat, |i: int| i as usize).last() == (end - 1) as usize);
++        assert(((end - 1) as usize) == end - 1);
++        if s[end - 1] {
++            if j == (end - 1) as usize {
++                assert(id_alloc_bits(s, end).contains(j));
++            } else {
++                assert(j != (end - 1) as usize);
++                assert(id_alloc_bits(s, end).contains(j) == id_alloc_bits(s, end - 1).contains(j));
++            }
++        } else {
++            assert(id_alloc_bits(s, end).contains(j) == id_alloc_bits(s, end - 1).contains(j));
++        }
++    }
++}
++
++/// For an in-bounds id, `id_alloc_view` membership coincides with the allocated bitmap bit.
++proof fn lemma_id_alloc_view_contains(allocator: &IdAlloc, id: usize)
++    requires
++        allocator.inv(),
++        id < allocator@.len() <= usize::MAX,
++    ensures
++        id_alloc_view(allocator).contains(id) == allocator@[id as int],
++{
++    lemma_id_alloc_bits_char(allocator@, allocator@.len() as int, id);
++}
++
++} // verus!
+diff --git a/ostd/src/io/io_port/mod.rs b/ostd/src/io/io_port/mod.rs
+index 731ed3571..abbff6451 100644
+--- a/ostd/src/io/io_port/mod.rs
++++ b/ostd/src/io/io_port/mod.rs
+@@ -1,13 +1,22 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O port and its allocator that allocates port I/O (PIO) to device drivers.
++use vstd::{prelude::*, resource::set::GhostSubset};
++
++use crate::arch::device::io_port::valid_io_port_access;
++
+ use crate::arch::device::io_port::{IoPortReadAccess, IoPortWriteAccess, PortRead, PortWrite};
+ mod allocator;
+ 
+ use core::{marker::PhantomData, mem::size_of};
+ 
+-pub(super) use self::allocator::init;
++pub(super) use self::allocator::{init, io_port_allocator_initialized};
+ use crate::{Error, prelude::*};
+ 
++verus! {
++
++broadcast use crate::arch::device::io_port::group_io_port_models;
++
++} // verus!
+ /// An I/O port, representing a specific address in the I/O address of x86.
+ ///
+ /// The following code shows and example to read and write u32 value to an I/O port:
+@@ -20,23 +29,139 @@ use crate::{Error, prelude::*};
+ /// }
+ /// ```
+ ///
++#[derive(Debug)]
++#[verus_verify]
+ pub struct IoPort<T, A> {
+     port: u16,
++    is_overlapping: bool,
++    tracked_claim: Option<Tracked<GhostSubset<usize>>>,
+     value_marker: PhantomData<T>,
+     access_marker: PhantomData<A>,
+ }
+ 
++verus! {
++
++impl<T, A> View for IoPort<T, A> {
++    type V = u16;
++
++    closed spec fn view(&self) -> u16 {
++        self.port
++    }
++}
++
++impl<T, A> IoPort<T, A> {
++    /// The complete byte range occupied by this typed port lies in the x86 PIO address space.
++    #[verifier::type_invariant]
++    pub open spec fn type_inv(&self) -> bool {
++        &&& valid_io_port_access::<T>(self@)
++        &&& self@ + size_of::<T>() <= u16::MAX
++        &&& self.is_overlapping() ==> self@ + 1 <= u16::MAX
++        &&& self.allocator_claim_inv()
++    }
++
++    /// Whether this port owns a claim minted by the allocator.
++    pub closed spec fn is_allocated(&self) -> bool {
++        self.tracked_claim is Some
++    }
++
++    /// The invariant relating the runtime allocation marker to its tracked claim.
++    pub closed spec fn allocator_claim_inv(&self) -> bool {
++        self.tracked_claim matches Some(claim) ==> {
++            &&& allocator::io_port_allocator_initialized()
++            &&& self.claim_matches_set(claim@@)
++            &&& claim@.id() == allocator::io_port_allocator_instance_id()
++        }
++    }
++
++    /// Whether the port was acquired as overlapping: it occupies only its first port.
++    ///
++    /// Marks the occupied range of [`Self::claim_matches_set`] and the released range of
++    /// [`Self::drop`].
++    pub closed spec fn is_overlapping(&self) -> bool {
++        self.is_overlapping
++    }
++
++    /// Whether `claim` is the allocator-issued ownership token for this port's occupied range:
++    /// the complete typed range, or only the first port if the port was acquired as
++    /// overlapping.
++    pub open spec fn claim_matches_set(&self, claim: Set<usize>) -> bool {
++        claim == Set::<usize>::range(
++            self@ as usize,
++            if self.is_overlapping() {
++                (self@ as usize + 1) as usize
++            } else {
++                (self@ as usize + size_of::<T>()) as usize
++            },
++        )
++    }
++}
++
++} // verus!
++/// Returns the initialized global PIO allocator.
++///
++/// The executable body intentionally preserves the original `get().unwrap()` behavior. This
++/// helper is trusted only because Verus cannot connect an `exec static` to a spec-level boot-state
++/// predicate.
++#[verifier::external_body]
++#[verus_spec(
++    requires allocator::io_port_allocator_initialized(),
++)]
++fn initialized_allocator() -> &'static allocator::IoPortAllocator {
++    allocator::IO_PORT_ALLOCATOR.get().unwrap()
++}
++
++#[verus_verify]
+ impl<T, A> IoPort<T, A> {
+     /// Acquires an `IoPort` instance for the given range.
++    ///
++    /// This method will mark all ports in the PIO range as occupied.
++    #[verus_spec(result =>
++        requires
++            size_of::<T>() <= u16::MAX,
++            port + size_of::<T>() <= u16::MAX,
++            valid_io_port_access::<T>(port),
++            allocator::io_port_allocator_initialized(),
++        ensures
++            result matches Ok(io_port) ==> {
++                &&& io_port@ == port
++                &&& !io_port.is_overlapping()
++                &&& io_port.is_allocated()
++            },
++    )]
+     pub fn acquire(port: u16) -> Result<IoPort<T, A>> {
+-        allocator::IO_PORT_ALLOCATOR
+-            .get()
+-            .unwrap()
+-            .acquire(port)
+-            .ok_or(Error::AccessDenied)
++        let port = {
++            /* Original Rust: allocator::IO_PORT_ALLOCATOR.get().unwrap() */
++            initialized_allocator().acquire(port, false)
++        };
++        port.ok_or(Error::AccessDenied)
++    }
++
++    /// Acquires an `IoPort` instance that may overlap with other `IoPort`s.
++    ///
++    /// This method will only mark the first port in the PIO range as occupied.
++    #[verus_spec(result =>
++        requires
++            size_of::<T>() <= u16::MAX,
++            port + size_of::<T>() <= u16::MAX,
++            valid_io_port_access::<T>(port),
++            allocator::io_port_allocator_initialized(),
++        ensures
++            result matches Ok(io_port) ==> {
++                &&& io_port@ == port
++                &&& io_port.is_overlapping()
++                &&& io_port.is_allocated()
++            },
++    )]
++    pub fn acquire_overlapping(port: u16) -> Result<IoPort<T, A>> {
++        let port = {
++            /* Original Rust: allocator::IO_PORT_ALLOCATOR.get().unwrap() */
++            initialized_allocator().acquire(port, true)
++        };
++        port.ok_or(Error::AccessDenied)
+     }
+ 
+     /// Returns the port number.
++    #[verus_spec(returns self@)]
+     pub const fn port(&self) -> u16 {
+         self.port
+     }
+@@ -46,49 +171,133 @@ impl<T, A> IoPort<T, A> {
+         size_of::<T>() as u16
+     }
+ 
+-    /// Create an I/O port.
++    /// Creates an I/O port.
++    ///
++    /// # Safety
++    ///
++    /// Reading from or writing to the I/O port may have side effects. Those side effects must
++    /// not cause soundness problems (e.g., they must not corrupt the kernel memory).
++    #[verus_spec(ret =>
++        requires
++            size_of::<T>() <= u16::MAX,
++            port + size_of::<T>() <= u16::MAX,
++            valid_io_port_access::<T>(port),
++        ensures
++            ret@ == port,
++            !ret.is_overlapping(),
++    )]
++    pub(crate) const unsafe fn new(port: u16) -> Self {
++        // SAFETY: The safety is upheld by the caller.
++        /* The optional claim distinguishes statically reserved ports from allocator-owned ports.
++         * Origin Rust: unsafe { Self::new_overlapping(port, false) }
++         */
++        unsafe { Self::new_overlapping(port, false, None) }
++    }
++
++    /// Creates an I/O port.
++    ///
++    /// See [`allocator::IoPortAllocator::acquire`] for an explanation of the `is_overlapping`
++    /// argument.
+     ///
+     /// # Safety
+     ///
+-    /// This function is marked unsafe as creating an I/O port is considered
+-    /// a privileged operation.
+-    pub const unsafe fn new(port: u16) -> Self {
++    /// Reading from or writing to the I/O port may have side effects. Those side effects must
++    /// not cause soundness problems (e.g., they must not corrupt the kernel memory).
++    #[verus_spec(ret =>
++        requires
++            size_of::<T>() <= u16::MAX,
++            port + size_of::<T>() <= u16::MAX,
++            is_overlapping ==> port + 1 <= u16::MAX,
++            valid_io_port_access::<T>(port),
++            tracked_claim matches Some(claim) ==> {
++                &&& allocator::io_port_allocator_initialized()
++                &&& claim@.id() == allocator::io_port_allocator_instance_id()
++                &&& claim@@ == Set::<usize>::range(
++                    port as usize,
++                    if is_overlapping {
++                        (port as usize + 1) as usize
++                    } else {
++                        (port as usize + size_of::<T>()) as usize
++                    },
++                )
++            },
++        ensures
++            ret@ == port,
++            ret.is_overlapping() == is_overlapping,
++            ret.is_allocated() == (tracked_claim is Some),
++    )]
++    const unsafe fn new_overlapping(
++        port: u16,
++        is_overlapping: bool,
++        tracked_claim: Option<Tracked<GhostSubset<usize>>>,
++    ) -> Self {
+         Self {
+             port,
++            is_overlapping,
++            tracked_claim,
+             value_marker: PhantomData,
+             access_marker: PhantomData,
+         }
+     }
++
++    /// Releases this port's allocator claim, if it was dynamically acquired.
++    /* VERUS LIMITATION: Verus cannot verify a lock-taking `Drop` implementation under
++     * `opens_invariants none`.
++     * Origin Rust:
++     * impl<T, A> Drop for IoPort<T, A> {
++     *     fn drop(&mut self) {
++     *         let range = if !self.is_overlapping {
++     *             self.port..(self.port + size_of::<T>() as u16)
++     *         } else {
++     *             self.port..(self.port + 1)
++     *         };
++     *
++     *         // SAFETY: We have ownership of the PIO region.
++     *         unsafe { allocator::IO_PORT_ALLOCATOR.get().unwrap().recycle(range) };
++     *     }
++     * }
++     */
++    pub fn drop(self) {
++        proof! { use_type_invariant(&self); }
++        let Some(claim) = self.tracked_claim else {
++            return;
++        };
++        let range = if self.is_overlapping {
++            self.port..(self.port + 1)
++        } else {
++            self.port..(self.port + size_of::<T>() as u16)
++        };
++
++        proof_decl! {
++            let tracked claim = claim.get();
++        }
++        unsafe {
++            #[verus_spec(with Tracked(claim))]
++            initialized_allocator().recycle(range);
++        }
++    }
+ }
+ 
++#[verus_verify]
++#[verifier::allow(undeclared_external_trait)]
+ impl<T: PortRead, A: IoPortReadAccess> IoPort<T, A> {
+     /// Reads from the I/O port
+-    #[inline]
+     pub fn read(&self) -> T {
++        proof! { use_type_invariant(self); }
+         unsafe { PortRead::read_from_port(self.port) }
+     }
+ }
+ 
++#[verus_verify]
++#[verifier::allow(undeclared_external_trait)]
+ impl<T: PortWrite, A: IoPortWriteAccess> IoPort<T, A> {
+     /// Writes to the I/O port
+-    #[inline]
+     pub fn write(&self, value: T) {
++        proof! { use_type_invariant(self); }
+         unsafe { PortWrite::write_to_port(self.port, value) }
+     }
+ }
+ 
+-impl<T, A> Drop for IoPort<T, A> {
+-    fn drop(&mut self) {
+-        // SAFETY: The caller have ownership of the PIO region.
+-        unsafe {
+-            allocator::IO_PORT_ALLOCATOR
+-                .get()
+-                .unwrap()
+-                .recycle(self.port..(self.port + size_of::<T>() as u16));
+-        }
+-    }
+-}
+-
+ /// Reserves an I/O port range which may refer to the port I/O range used by the
+ /// system device driver.
+ ///
+@@ -105,7 +314,8 @@ macro_rules! reserve_io_port_range {
+ 
+         const _: () = {
+             #[used]
+-            #[link_section = ".sensitive_io_ports"]
++            // SAFETY: This is properly handled in the linker script.
++            #[unsafe(link_section = ".sensitive_io_ports")]
+             static _RANGE: crate::io::RawIoPortRange = crate::io::RawIoPortRange {
+                 begin: $range.start,
+                 end: $range.end,
+@@ -142,15 +352,14 @@ macro_rules! sensitive_io_port {
+             $(#[$meta])*
+             $vis static $name: IoPort<$size, $access> = {
+                 #[used]
+-                #[link_section = ".sensitive_io_ports"]
++                // SAFETY: This is properly handled in the linker script.
++                #[unsafe(link_section = ".sensitive_io_ports")]
+                 static _RESERVED_IO_PORT_RANGE: crate::io::RawIoPortRange = crate::io::RawIoPortRange {
+                     begin: $name.port(),
+                     end: $name.port() + $name.size(),
+                 };
+ 
+-            	unsafe {
+-                     IoPort::new($port)
+-            	}
++                unsafe { IoPort::new($port) }
+             };
+         )*
+     };
+@@ -160,8 +369,9 @@ pub(crate) use reserve_io_port_range;
+ pub(crate) use sensitive_io_port;
+ 
+ #[doc(hidden)]
+-#[derive(Debug, Clone, Copy)]
+ #[repr(C)]
++#[derive(Clone, Copy, Debug)]
++#[verus_verify]
+ pub(crate) struct RawIoPortRange {
+     pub(crate) begin: u16,
+     pub(crate) end: u16,
+diff --git a/ostd/src/io/mod.rs b/ostd/src/io/mod.rs
+index a87940453..8ac37ffd0 100644
+--- a/ostd/src/io/mod.rs
++++ b/ostd/src/io/mod.rs
+@@ -5,7 +5,9 @@
+ //! through _allocators_. There are two types of device I/O:
+ //!  - `IoMem` for memory I/O (MMIO).
+ //!  - `IoPort` for port I/O (PIO).
+-mod io_mem;
++use vstd::prelude::*;
++
++pub(crate) mod io_mem;
+ 
+ use cfg_if::cfg_if;
+ 
+@@ -15,7 +17,8 @@ pub(crate) use self::io_mem::IoMemAllocatorBuilder;
+ cfg_if!(
+     if #[cfg(target_arch = "x86_64")] {
+         mod io_port;
+-        pub use io_port::IoPort;
++
++        pub use self::io_port::IoPort;
+         pub(crate) use self::io_port::{reserve_io_port_range, sensitive_io_port, RawIoPortRange};
+     }
+ );
+@@ -34,13 +37,22 @@ cfg_if!(
+ ///
+ /// 3. `MAX_IO_PORT` defined in `crate::arch::io` is guaranteed not to
+ ///    exceed the maximum value specified by architecture.
++#[cfg_attr(target_arch = "x86_64", verus_spec(
++    ensures
++        io_mem::io_mem_allocator_initialized(),
++        io_port::io_port_allocator_initialized(),
++))]
++#[cfg_attr(not(target_arch = "x86_64"), verus_spec(
++    ensures
++        io_mem::io_mem_allocator_initialized(),
++))]
+ pub(crate) unsafe fn init(io_mem_builder: IoMemAllocatorBuilder) {
+     // SAFETY: The safety is upheld by the caller.
+-    unsafe { self::io_mem::init(io_mem_builder) };
++    unsafe { io_mem::init(io_mem_builder) };
+ 
+     // SAFETY: The safety is upheld by the caller.
+     #[cfg(target_arch = "x86_64")]
+     unsafe {
+-        self::io_port::init()
++        io_port::init()
+     };
+ }
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 0f5c041c3..8bf12b025 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -41,16 +41,16 @@ pub mod arch;
+ #[path = "arch/loongarch/mod.rs"]
+ pub mod arch;
+ pub mod boot;
+-/*pub mod bus;
+-pub mod console;*/
++pub mod bus;
++/* pub mod console; */
+ pub mod cpu;
+ pub mod error;
+-/*pub mod io;
+-pub mod logger;*/
++pub mod io;
++/*pub mod logger;*/
+ pub mod mm;
+-/*pub mod panic;
++/*pub mod panic;*/
+ pub mod prelude;
+-pub mod smp;*/
++/*pub mod smp;*/
+ pub mod sync;
+ pub mod task;
+ pub mod timer;
+@@ -67,9 +67,9 @@ pub use ostd_macros::{
+     panic_handler,
+ };*/
+ pub use ostd_pod::Pod;
+-/*
+-pub use self::{error::Error, prelude::Result};
+ 
++pub use self::{error::Error, prelude::Result};
++/*
+ /// Initializes OSTD.
+ ///
+ /// This function represents the first phase booting up the system. It makes
+diff --git a/ostd/src/prelude.rs b/ostd/src/prelude.rs
+index f9ab829ef..bb1eeaf17 100644
+--- a/ostd/src/prelude.rs
++++ b/ostd/src/prelude.rs
+@@ -6,7 +6,7 @@
+ pub type Result<T> = core::result::Result<T, crate::error::Error>;
+ 
+ pub(crate) use alloc::{boxed::Box, sync::Arc, vec::Vec};
+-
++/*
+ #[cfg(ktest)]
+ pub use ostd_macros::ktest;
+ 
+@@ -14,4 +14,4 @@ pub use crate::{
+     early_print as print, early_println as println,
+     mm::{Paddr, UntypedMem, Vaddr},
+     panic::abort,
+-};
++}; */
+diff --git a/ostd/src/util/range_alloc.rs b/ostd/src/util/range_alloc.rs
+index d9a269a43..a98b0767f 100644
+--- a/ostd/src/util/range_alloc.rs
++++ b/ostd/src/util/range_alloc.rs
+@@ -3,10 +3,10 @@
+ //!
+ //! # Verified Properties
+ //!
+-//! The free list is hidden behind a spin lock and mirrored by a [`GhostSubset`]
+-//! retained alongside its [`GhostSetAuth`]. Successful allocations return a
+-//! [`GhostSubRange`] token to the caller, and freeing a range consumes that
+-//! token.
++//! The free list is hidden behind a spin lock and modeled as an abstract set of
++//! addresses. Construction returns a splittable [`AllocPermit`] permission.
++//! Allocating a specific range consumes the corresponding [`AllocRangePermit`]
++//! and returns a [`FreePermit`]; freeing performs the inverse transition.
+ #[cfg(feature = "irc11")]
+ use vstd::thread_view::Objective;
+ use vstd::{
+@@ -16,6 +16,11 @@ use vstd::{
+         set::{GhostSetAuth, GhostSubset},
+     },
+     seq_lib::lemma_seq_contains_after_push,
++    std_specs::btree::{
++        CursorMutModel, before_lower_bound, before_upper_bound, positioned_at_lower_bound,
++        positioned_at_upper_bound,
++    },
++    std_specs::cmp::OrdSpec,
+ };
+ use vstd_extra::{
+     debug_assert,
+@@ -44,6 +49,15 @@ pub struct RangeAllocError;
+ 
+ verus! {
+ 
++/// The splittable permission to allocate from a range allocator's free addresses.
++pub type AllocPermit = GhostSubset<usize>;
++
++/// The permission to allocate a contiguous range of free addresses.
++pub type AllocRangePermit = GhostSubRange<usize>;
++
++/// The permission to free a previously allocated range, consumed by [`RangeAllocator::free`].
++pub type FreePermit = GhostSubRange<usize>;
++
+ impl View for RangeAllocator {
+     type V = Range<usize>;
+ 
+@@ -53,9 +67,29 @@ impl View for RangeAllocator {
+ }
+ 
+ impl RangeAllocator {
+-    /// The identifier shared by this allocator's authority and allocation tokens.
+-    pub closed spec fn id(self) -> Loc {
+-        self.freelist.constant().state_id
++    /// The identifier shared by this allocator's allocated-set authority and allocation tokens.
++    pub closed spec fn allocated_id(self) -> Loc {
++        self.freelist.constant().allocated_id
++    }
++
++    /// The identifier shared by this allocator's free-set authority and allocation permissions.
++    pub closed spec fn free_id(self) -> Loc {
++        self.freelist.constant().free_id
++    }
++
++    /// The free permission and borrowed allocation tokens account for this allocator's full range.
++    pub open spec fn owns_free_pool(
++        self,
++        permit: AllocPermit,
++        allocations: Seq<FreePermit>,
++    ) -> bool {
++        &&& permit.id() == self.free_id()
++        &&& allocations.all(|token: FreePermit| token.id() == self.allocated_id())
++        &&& forall|address: usize| #[trigger]
++            self@.view_set().contains(address) ==> {
++                permit@.contains(address) || exists|i: int|
++                    0 <= i < allocations.len() && #[trigger] allocations[i]@.contains(address)
++            }
+     }
+ 
+     #[verifier::type_invariant]
+@@ -67,7 +101,8 @@ impl RangeAllocator {
+ ghost struct FreelistConstant {
+     fullrange: Range<usize>,
+     initialized_id: Loc,
+-    state_id: Loc,
++    free_id: Loc,
++    allocated_id: Loc,
+ }
+ 
+ ghost struct FreelistInvariant;
+@@ -92,6 +127,7 @@ closed spec fn concrete_freelist_wf(
+         freelist.contains_key(key) ==> {
+             let block = freelist[key].block;
+             &&& fullrange.start <= block.start <= block.end <= fullrange.end
++            &&& (block.start < block.end || fullrange.start == fullrange.end)
+             &&& key == block.start
+         }
+     &&& forall|left: usize, right: usize|
+@@ -100,17 +136,29 @@ closed spec fn concrete_freelist_wf(
+             ==> freelist[left].block.view_set().disjoint(freelist[right].block.view_set())
+ }
+ 
++/// Distinct free-list blocks are not adjacent; maximal free runs are merged.
++closed spec fn freelist_blocks_not_adjacent(freelist: Map<usize, FreeRange>) -> bool {
++    forall|left: usize, right: usize|
++        #![trigger freelist.contains_key(left), freelist.contains_key(right)]
++        freelist.contains_key(left) && freelist.contains_key(right) && left != right
++            ==> freelist[left].block.end < freelist[right].block.start || freelist[right].block.end
++            < freelist[left].block.start
++}
++
+ /// Whether `block` wholly covers `range`.
+ closed spec fn block_contains(block: Range<usize>, range: Range<usize>) -> bool {
+     block.start <= range.start && range.end <= block.end
+ }
+ 
++/// Splittable free-range permissions for a sequence of allocators.
++pub type RangeAllocatorPermits = Seq<AllocPermit>;
++
+ /// Lock-guarded proof resource: initialization state, the authoritative set,
+-/// and ownership of all currently free addresses.
++/// and the authoritative free and allocated address sets.
+ tracked struct FreelistResource {
+     initialized: Sum<OneShotPending, OneShotSet>,
+-    state: GhostSetAuth<usize>,
+-    remaining: GhostSubset<usize>,
++    free: GhostSetAuth<usize>,
++    allocated: GhostSetAuth<usize>,
+ }
+ 
+ #[cfg(feature = "irc11")]
+@@ -128,20 +176,22 @@ impl ResourceInvariant<Option<BTreeMap<usize, FreeRange>>> for FreelistInvariant
+         freelist: Option<BTreeMap<usize, FreeRange>>,
+         resource: Self::Resource,
+     ) -> bool {
+-        &&& resource.state.id() == constant.state_id
+-        &&& resource.remaining.id() == constant.state_id
+-        &&& resource.state@ == constant.fullrange.view_set()
++        &&& resource.free.id() == constant.free_id
++        &&& resource.allocated.id() == constant.allocated_id
+         &&& match resource.initialized {
+             Sum::Left(pending) => {
+                 &&& pending.id() == constant.initialized_id
+                 &&& freelist is None
+-                &&& resource.remaining@ == constant.fullrange.view_set()
++                &&& resource.free@ == constant.fullrange.view_set()
++                &&& resource.allocated@ == Set::empty()
+             },
+             Sum::Right(set) => {
+                 &&& set.id() == constant.initialized_id
+                 &&& freelist is Some
+                 &&& concrete_freelist_wf(constant.fullrange, freelist->0@)
+-                &&& resource.remaining@ == free_set(freelist_model(freelist->0@))
++                &&& freelist_blocks_not_adjacent(freelist->0@)
++                &&& resource.free@ == free_set(freelist_model(freelist->0@))
++                &&& resource.allocated@ == constant.fullrange.view_set() - resource.free@
+             },
+         }
+     }
+@@ -151,11 +201,13 @@ impl ResourceInvariant<Option<BTreeMap<usize, FreeRange>>> for FreelistInvariant
+ #[verus_verify]
+ impl RangeAllocator {
+     #[verus_spec(ret =>
++        with -> permit: Tracked<AllocPermit>,
+         requires
+             fullrange.start <= fullrange.end,
+         ensures
+-            ret@.start == fullrange.start,
+-            ret@.end == fullrange.end,
++            ret@ == fullrange,
++            permit@.id() == ret.free_id(),
++            permit@@ == fullrange.view_set(),
+     )]
+     /* `#[verus_spec]` on a `const fn` does not keep `proof_decl!` locals visible to
+      * `verus_exec_expr!` in the active Verus toolchain, so this constructor cannot remain const.
+@@ -164,19 +216,22 @@ impl RangeAllocator {
+     pub fn new(fullrange: Range<usize>) -> Self {
+         proof_decl! {
+             let tracked initialized = OneShotPending::alloc();
+-            let tracked (state_auth, remaining) = GhostSetAuth::new(fullrange.view_set());
++            let tracked (free, permit) = GhostSetAuth::new(fullrange.view_set());
++            let tracked (allocated, empty_allocated) = GhostSetAuth::new(Set::empty());
+             let ghost constant = FreelistConstant {
+                 fullrange,
+                 initialized_id: initialized.id(),
+-                state_id: state_auth.id(),
++                free_id: free.id(),
++                allocated_id: allocated.id(),
+             };
+             let tracked resource = FreelistResource {
+                 initialized: Sum::Left(initialized),
+-                state: state_auth,
+-                remaining,
++                free,
++                allocated,
+             };
+         }
+ 
++        #[verus_spec(with |= Tracked(permit))]
+         verus_exec_expr! {
+             Self {
+                 fullrange,
+@@ -198,37 +253,49 @@ impl RangeAllocator {
+     /// - No unsafe code; no panic under the verified contract.
+     ///
+     /// ## Functional Correctness
+-    /// - Returns `Ok` if and only if the shared state's free list covers
+-    ///   `allocate_range`.
++    /// - Always returns `Ok` for `allocate_range` under the free-range
++    ///   permission precondition.
+     ///
+     /// ## Preconditions
+     /// - The target range is non-empty and lies within this allocator's range.
++    /// - Supply an [`AllocRangePermit`] for exactly `allocate_range`.
++    ///
+     /// ## Postconditions
+-    /// - On success, returns a [`GhostSubRange`] proving ownership of the
+-    ///   allocated range; a token is dispatched if and only if the result is
+-    ///   `Ok`, and it is consumed by [`RangeAllocator::free`].
++    /// - Consumes the free-range permission and returns a [`FreePermit`]
++    ///   proving ownership of the allocated range, consumed by
++    ///   [`RangeAllocator::free`].
+     #[verus_spec(res =>
+         with
+-            -> allocated: Tracked<Option<GhostSubRange<usize>>>,
++            Tracked(permit): Tracked<AllocRangePermit>,
++            -> allocated: Tracked<FreePermit>,
+         requires
+             self@.start <= allocate_range.start < allocate_range.end <= self@.end,
++            permit.id() == self.free_id(),
++            permit.range() == allocate_range,
+         ensures
+-            res is Ok <==> allocated@ is Some,
+-            allocated@ matches Some(token) ==> {
+-                &&& token.id() == self.id()
+-                &&& token.range() == allocate_range
+-            },
++            res is Ok,
++            allocated@.id() == self.allocated_id(),
++            allocated@.range() == allocate_range,
+     )]
+     pub fn alloc_specific(&self, allocate_range: &Range<usize>) -> Result<(), RangeAllocError> {
+         debug_assert!(allocate_range.start < allocate_range.end);
+ 
+         let mut lock_guard = self.get_freelist_guard();
+         proof_decl! {
+-            let tracked allocated: Option<GhostSubRange<usize>>;
++            let tracked allocated: FreePermit;
+             let ghost initial_map = lock_guard@->0@;
+             let ghost initial_freelist = freelist_model(initial_map);
+             let ghost mut checked = Set::<(usize, FreeRange)>::empty();
+         }
++        proof! {
++            let tracked resource = lock_guard.tracked_borrow_mut_resource();
++            permit.tracked_borrow().agree(&resource.free);
++            lemma_contiguous_subset_has_covering_block(
++                self@,
++                initial_map,
++                *allocate_range,
++            );
++        }
+         let freelist = lock_guard.as_mut().unwrap();
+         let mut target_node = None;
+         let mut left_length = 0;
+@@ -238,6 +305,7 @@ impl RangeAllocator {
+                 self@.start <= allocate_range.start < allocate_range.end <= self@.end,
+                 right_length <= usize::MAX - allocate_range.end,
+                 concrete_freelist_wf(self@, freelist@),
++                freelist_blocks_not_adjacent(freelist@),
+                 freelist@ == initial_map,
+                 freelist_model(freelist@) == initial_freelist,
+                 it.seq().unref().to_set() == freelist@.kv_pairs(),
+@@ -295,13 +363,6 @@ impl RangeAllocator {
+             }
+         }
+ 
+-        proof! {
+-            if let Some(key) = target_node {
+-                let block = freelist@[key].block;
+-                lemma_free_set_contains_range(initial_freelist, block);
+-            }
+-        }
+-
+         if let Some(key) = target_node {
+             if left_length == 0 {
+                 freelist.remove(&key);
+@@ -323,39 +384,28 @@ impl RangeAllocator {
+             Err(RangeAllocError)
+         };
+         proof! {
+-            if (exists|block: Range<usize>|
+-                #![trigger initial_freelist.contains(block)]
+-                initial_freelist.contains(block) && block_contains(block, *allocate_range))
+-                && res is Err
+-            {
+-                let block = choose|block: Range<usize>|
+-                    #![trigger initial_freelist.contains(block)]
+-                    initial_freelist.contains(block) && block_contains(
+-                        block,
+-                        *allocate_range,
+-                    );
+-                let key = choose|key: usize| {
+-                    &&& #[trigger] freelist@.dom().contains(key)
+-                    &&& block == freelist@[key].block
+-                };
++            if res is Err {
++                let key = choose|key: usize|
++                    #![trigger initial_map.contains_key(key)]
++                    initial_map.contains_key(key)
++                        && block_contains(initial_map[key].block, *allocate_range);
+                 assert(freelist@.kv_pairs().contains((key, freelist@[key])));
+                 assert(false);
+             }
+             let tracked resource = lock_guard.tracked_borrow_mut_resource();
+-            if res is Ok {
+-                let ghost key = target_node->0;
+-                lemma_alloc_specific_model(
+-                    self@,
+-                    initial_map,
+-                    freelist@,
+-                    key,
+-                    *allocate_range,
+-                );
+-                let tracked subset = resource.remaining.split(allocate_range.view_set());
+-                allocated = Some(GhostSubRange::tracked_new(subset, *allocate_range));
+-            } else {
+-                allocated = None;
+-            }
++            let ghost key = target_node->0;
++            lemma_alloc_specific_model(
++                self@,
++                initial_map,
++                freelist@,
++                key,
++                *allocate_range,
++            );
++            resource.free.delete(permit.tracked_into_subset());
++            let tracked subset = resource.allocated.insert_set(allocate_range.view_set());
++            allocated = GhostSubRange::tracked_new(subset, *allocate_range);
++            assert(resource.allocated@ == lock_guard.constant().fullrange.view_set()
++                - resource.free@);
+         }
+         lock_guard.drop();
+         #[verus_spec(with |= Tracked(allocated))]
+@@ -375,29 +425,93 @@ impl RangeAllocator {
+     /// - On `Ok`, the returned range lies within `self@` and has exactly
+     ///   `size` addresses.
+     ///
++    /// ## Preconditions
++    /// - Supply the remaining free-address permission and borrow the allocation
++    ///   tokens that together account for this allocator's full range.
++    /// - Split permissions can be used independently with `alloc_specific`;
++    ///   `alloc` requires ownership of the entire current free pool.
++    ///
+     /// ## Postconditions
+-    /// - On success, returns a [`GhostSubRange`] proving ownership of the
+-    ///   returned range; a token is dispatched if and only if the result is
+-    ///   `Ok`, and it is consumed by [`RangeAllocator::free`].
++    /// - On `Ok`, removes the returned range from the supplied permission and
++    ///   returns a [`FreePermit`] proving ownership, consumed by
++    ///   [`RangeAllocator::free`]. On `Err`, no allocation token is returned.
++    /// - Append the returned token to the borrowed collection before calling
++    ///   `alloc` again. On failure, the existing permissions remain usable.
+     #[verus_spec(res =>
+         with
+-            -> allocated: Tracked<Option<GhostSubRange<usize>>>,
++            Tracked(permit): Tracked<&mut AllocPermit>,
++            Tracked(allocations): Tracked<&Seq<FreePermit>>,
++            -> allocated: Tracked<Option<FreePermit>>,
++        requires
++            self.owns_free_pool(*old(permit), *allocations),
+         ensures
+             res matches Ok(res) ==> {
+                 &&& res.end - res.start == size
+                 &&& self@.start <= res.start <= res.end <= self@.end
+                 &&& allocated@ matches Some(token) && {
+-                    &&& token.id() == self.id()
++                    &&& token.id() == self.allocated_id()
+                     &&& token.range() == res
++                    &&& self.owns_free_pool(*final(permit), allocations.push(token))
+                 }
++                &&& final(permit)@ == old(permit)@ - res.view_set()
++                &&& res.view_set() <= old(permit)@
+             },
+             res is Ok <==> allocated@ is Some,
++            final(permit).id() == old(permit).id(),
++            res is Err ==> final(permit)@ == old(permit)@,
+     )]
+     pub fn alloc(&self, size: usize) -> Result<Range<usize>, RangeAllocError> {
+         let mut lock_guard = self.get_freelist_guard();
++        proof! {
++            proof fn lemma_allocations_agree(
++                tracked allocations: &Seq<FreePermit>,
++                tracked authority: &GhostSetAuth<usize>,
++                count: int,
++            )
++                requires
++                    0 <= count <= allocations.len(),
++                    forall|i: int| 0 <= i < allocations.len() ==> #[trigger]
++                        allocations[i].id() == authority.id(),
++                ensures
++                    forall|i: int| 0 <= i < count ==> #[trigger] allocations[i]@
++                        <= authority@,
++                decreases count,
++            {
++                if count > 0 {
++                    lemma_allocations_agree(allocations, authority, count - 1);
++                    let tracked token = allocations.tracked_borrow(count - 1);
++                    token.tracked_borrow().agree(authority);
++                }
++            }
++
++            let tracked resource = lock_guard.tracked_borrow_mut_resource();
++            permit.agree(&resource.free);
++            assert forall|i: int| 0 <= i < allocations.len() implies #[trigger] allocations[i].id()
++                == resource.allocated.id() by {
++                let belongs = |token: FreePermit| token.id() == self.allocated_id();
++                assert(belongs(allocations[i]));
++            }
++            lemma_allocations_agree(allocations, &resource.allocated, allocations.len() as int);
++            assert(resource.free@ <= permit@) by {
++                assert forall|address: usize| #[trigger] resource.free@.contains(address) implies
++                    permit@.contains(address) by {
++                    lemma_concrete_free_set_contains(lock_guard@->0@, address);
++                    let key = choose|key: usize| #[trigger]
++                        lock_guard@->0@.contains_key(key)
++                            && lock_guard@->0@[key].block.view_set().contains(address);
++                    assert(self@.view_set().contains(address));
++                    if !permit@.contains(address) {
++                        let j = choose|j: int| 0 <= j < allocations.len()
++                            && #[trigger] allocations[j]@.contains(address);
++                        assert(allocations[j]@ <= resource.allocated@);
++                    }
++                }
++            }
++            assert(permit@ == resource.free@);
++        }
+         let freelist = lock_guard.as_mut().unwrap();
+         proof_decl! {
+-            let tracked allocated: Option<GhostSubRange<usize>>;
++            let tracked allocated: Option<FreePermit>;
+             let ghost initial_map = freelist@;
+             let ghost initial_freelist = freelist_model(freelist@);
+         }
+@@ -414,6 +528,7 @@ impl RangeAllocator {
+                     &&& freelist@[key].block.end == range.end
+                 },
+                 concrete_freelist_wf(self@, freelist@),
++                freelist_blocks_not_adjacent(freelist@),
+         )]
+         for (key, value) in freelist.iter() {
+             proof! {
+@@ -447,8 +562,33 @@ impl RangeAllocator {
+             if allocate_range is Some {
+                 let ghost range = allocate_range -> 0;
+                 lemma_alloc_suffix_model(self@, initial_map, freelist@, to_remove->0, range);
+-                let tracked subset = resource.remaining.split(range.view_set());
+-                allocated = Some(GhostSubRange::tracked_new(subset, range));
++                let ghost permit_before = *permit;
++                let tracked free_subset = permit.split(range.view_set());
++                resource.free.delete(free_subset);
++                let tracked allocated_subset = resource.allocated.insert_set(range.view_set());
++                let tracked token = GhostSubRange::tracked_new(allocated_subset, range);
++                let ghost next_allocations = allocations.push(token);
++                assert(self.owns_free_pool(*permit, next_allocations)) by {
++                    assert forall|address: usize| #[trigger] self@.view_set().contains(address)
++                        implies permit@.contains(address) || exists|i: int|
++                            0 <= i < next_allocations.len()
++                                && #[trigger] next_allocations[i]@.contains(address) by {
++                        if !permit@.contains(address) {
++                            if range.view_set().contains(address) {
++                                assert(next_allocations[allocations.len() as int]@
++                                    .contains(address));
++                            } else {
++                                assert(!permit_before@.contains(address));
++                                let i = choose|i: int| 0 <= i < allocations.len()
++                                    && #[trigger] allocations[i]@.contains(address);
++                                assert(next_allocations[i]@.contains(address));
++                            }
++                        }
++                    }
++                }
++                allocated = Some(token);
++                assert(resource.allocated@ == lock_guard.constant().fullrange.view_set()
++                    - resource.free@);
+             } else {
+                 allocated = None;
+             }
+@@ -473,13 +613,22 @@ impl RangeAllocator {
+     /// - The range to free lies within this allocator's range.
+     /// - Supply the allocation token returned when this exact range was
+     ///   allocated. The token is consumed by this operation.
++    ///
++    /// ## Postconditions
++    /// - Returns an [`AllocRangePermit`] for the released range. Its underlying
++    ///   subset can be combined with the allocator's remaining [`AllocPermit`].
++    #[verus_verify(spinoff_prover)]
+     #[verus_spec(
+         with
+-            Tracked(allocated): Tracked<GhostSubRange<usize>>,
++            Tracked(allocated): Tracked<FreePermit>,
++            -> alloc_permit: Tracked<AllocRangePermit>,
+         requires
+             self@.start <= range.start < range.end <= self@.end,
+-            allocated.id() == self.id(),
++            allocated.id() == self.allocated_id(),
+             allocated.range() == range,
++        ensures
++            alloc_permit@.id() == self.free_id(),
++            alloc_permit@.range() == range,
+     )]
+     pub fn free(&self, range: Range<usize>) {
+         proof! {
+@@ -487,12 +636,13 @@ impl RangeAllocator {
+         }
+         let mut lock_guard = self.freelist.lock();
+         proof_decl! {
++            let tracked alloc_permit: AllocRangePermit;
+             let tracked resource = lock_guard.tracked_borrow_mut_resource();
+             let tracked allocated_subset = allocated.tracked_borrow();
+-            allocated_subset.agree(&resource.state);
+-            resource.remaining.disjoint(allocated_subset);
++            allocated_subset.agree(&resource.allocated);
+             if resource.initialized is Left {
+-                assert(resource.remaining@.contains(range.start));
++                assert(resource.allocated@.is_empty());
++                assert(allocated_subset@.contains(range.start));
+                 assert(false);
+             }
+         }
+@@ -510,10 +660,25 @@ impl RangeAllocator {
+             let ghost mut merged_left = false;
+         }
+ 
+-        if let Some((prev_va, prev_node)) = freelist
+-            .upper_bound_mut(core::ops::Bound::Excluded(&free_range.start))
+-            .peek_prev()
+-        {
++        /* Retaining the cursor in a local keeps its verified position model available to the
++         * proof; it does not change the lookup, mutation, or control flow.
++         * Origin Rust: if let Some((prev_va, prev_node)) = freelist
++         *     .upper_bound_mut(core::ops::Bound::Excluded(&free_range.start))
++         *     .peek_prev()
++         * {
++         */
++        let mut prev_cursor =
++            freelist.upper_bound_mut(core::ops::Bound::Excluded(&free_range.start));
++        proof_decl! {
++            let ghost prev_cursor_model = prev_cursor@;
++        }
++        if let Some((prev_va, prev_node)) = prev_cursor.peek_prev() {
++            proof! {
++                assert(before_upper_bound(
++                    *prev_va,
++                    core::ops::Bound::Excluded(&free_range.start),
++                ));
++            }
+             if prev_node.block.end == free_range.start {
+                 let prev_va = *prev_va;
+                 free_range.start = prev_node.block.start;
+@@ -531,6 +696,41 @@ impl RangeAllocator {
+                     merged_left = true;
+                 }
+             }
++            proof! {
++                assert forall|key: usize| #[trigger] freelist@.contains_key(key)
++                    implies freelist@[key].block.end != free_range.start by {
++                    if freelist@[key].block.end == free_range.start {
++                        lemma_upper_bound_prev_is_maximal(
++                            prev_cursor_model,
++                            before_left_range.start,
++                            *prev_va,
++                            key,
++                        );
++                        if key != *prev_va {
++                            assert(before_left_map.contains_key(key));
++                            assert(before_left_map.contains_key(*prev_va));
++                            assert(false);
++                        } else {
++                            assert(false);
++                        }
++                    }
++                }
++            }
++        }
++        proof! {
++            if prev_cursor_model.position == 0 {
++                assert forall|key: usize| #[trigger] freelist@.contains_key(key)
++                    implies freelist@[key].block.end != free_range.start by {
++                    if freelist@[key].block.end == free_range.start {
++                        lemma_upper_bound_has_previous(
++                            prev_cursor_model,
++                            before_left_range.start,
++                            key,
++                        );
++                        assert(false);
++                    }
++                }
++            }
+         }
+         proof_decl! {
+             if !merged_left {
+@@ -546,10 +746,25 @@ impl RangeAllocator {
+             let ghost mut merged_right = false;
+         }
+         // 2. check if we can merge the current block with the next block, if we can, do so.
+-        if let Some((next_va, next_node)) = freelist
+-            .lower_bound_mut(core::ops::Bound::Excluded(&free_range.start))
+-            .peek_next()
+-        {
++        /* Retaining the cursor in a local keeps its verified position model available to the
++         * proof; it does not change the lookup, mutation, or control flow.
++         * Origin Rust: if let Some((next_va, next_node)) = freelist
++         *     .lower_bound_mut(core::ops::Bound::Excluded(&free_range.start))
++         *     .peek_next()
++         * {
++         */
++        let mut next_cursor =
++            freelist.lower_bound_mut(core::ops::Bound::Excluded(&free_range.start));
++        proof_decl! {
++            let ghost next_cursor_model = next_cursor@;
++        }
++        if let Some((next_va, next_node)) = next_cursor.peek_next() {
++            proof! {
++                assert(!before_lower_bound(
++                    *next_va,
++                    core::ops::Bound::Excluded(&free_range.start),
++                ));
++            }
+             if free_range.end == next_node.block.start {
+                 let next_va = *next_va;
+                 free_range.end = next_node.block.end;
+@@ -571,17 +786,88 @@ impl RangeAllocator {
+                     merged_right = true;
+                 }
+             }
++            proof! {
++                assert forall|key: usize| #[trigger] freelist@.contains_key(key)
++                    implies key == free_range.start
++                        || freelist@[key].block.start != free_range.end by {
++                    if key != free_range.start
++                        && freelist@[key].block.start == free_range.end {
++                        lemma_lower_bound_next_is_minimal(
++                            next_cursor_model,
++                            before_right_range.start,
++                            *next_va,
++                            key,
++                        );
++                        if merged_right {
++                            assert(before_right_map.contains_key(key));
++                            assert(before_right_map.contains_key(*next_va));
++                            assert(before_insert_map.contains_key(*next_va));
++                            assert(before_left_map.contains_key(key));
++                            assert(before_left_map.contains_key(*next_va));
++                            assert(before_left_map[key] == before_right_map[key]);
++                            assert(before_right_map[*next_va].block.end == free_range.end);
++                            assert(false);
++                        } else {
++                            assert(freelist@ == before_right_map);
++                            if key == *next_va {
++                                assert(false);
++                            } else {
++                                assert(*next_va < key);
++                                assert(before_right_map.contains_key(*next_va));
++                                assert(before_right_map.contains_key(before_right_range.start));
++                                assert(concrete_freelist_wf(self@, before_right_map));
++                                assert(before_right_map[*next_va].block.view_set().contains(
++                                    *next_va,
++                                ));
++                                assert(false);
++                            }
++                        }
++                    }
++                }
++            }
++        }
++        proof! {
++            if next_cursor_model.position == next_cursor_model.keys.len() {
++                assert forall|key: usize| #[trigger] freelist@.contains_key(key)
++                    implies key == free_range.start
++                        || freelist@[key].block.start != free_range.end by {
++                    if key != free_range.start
++                        && freelist@[key].block.start == free_range.end {
++                        assert(freelist@[key].block.start == key);
++                        lemma_lower_bound_has_next(
++                            next_cursor_model,
++                            before_right_range.start,
++                            key,
++                        );
++                        assert(false);
++                    }
++                }
++            }
++        }
++        proof! {
++            lemma_restored_freelist_is_separated(
++                self@,
++                before_left_map,
++                freelist@,
++                free_range.start,
++                free_range,
++            );
+         }
+         proof! {
+             let tracked resource = lock_guard.tracked_borrow_mut_resource();
+-            resource.remaining.combine(allocated.tracked_into_subset());
+-            assert(resource.remaining@ == free_set(freelist_model(freelist@))) by {
++            resource.allocated.delete(allocated.tracked_into_subset());
++            let tracked free_subset = resource.free.insert_set(range.view_set());
++            alloc_permit = GhostSubRange::tracked_new(free_subset, range);
++            assert(resource.allocated@ == lock_guard.constant().fullrange.view_set()
++                - resource.free@);
++            assert(resource.free@ == free_set(freelist_model(freelist@))) by {
+                 if !merged_right {
+                     assert(freelist@ == before_right_map);
+                 }
+             }
+         }
+-        lock_guard.drop();
++        #[verus_spec(with |= Tracked(alloc_permit))]
++        lock_guard.drop()
+     }
+ 
+     #[verus_spec(ret =>
+@@ -589,13 +875,15 @@ impl RangeAllocator {
+             ret@ is Some,
+             ret@ matches Some(freelist) ==> {
+                 &&& concrete_freelist_wf(self@, freelist@)
+-                &&& ret.resource().remaining@ == free_set(freelist_model(freelist@))
++                &&& freelist_blocks_not_adjacent(freelist@)
++                &&& ret.resource().free@ == free_set(freelist_model(freelist@))
++                &&& ret.resource().allocated@ == self@.view_set() - ret.resource().free@
+             },
+             ret.constant().fullrange == self@,
+-            ret.constant().state_id == self.id(),
+-            ret.resource().state.id() == self.id(),
+-            ret.resource().remaining.id() == self.id(),
+-            ret.resource().state@ == self@.view_set(),
++            ret.constant().free_id == self.free_id(),
++            ret.constant().allocated_id == self.allocated_id(),
++            ret.resource().free.id() == self.free_id(),
++            ret.resource().allocated.id() == self.allocated_id(),
+             ret.resource().initialized is Right,
+             ret.resource().initialized->Right_0.id() == ret.constant().initialized_id,
+     )]
+@@ -678,6 +966,171 @@ proof fn lemma_concrete_free_set_contains(freelist: Map<usize, FreeRange>, addre
+     }
+ }
+ 
++proof fn lemma_upper_bound_has_previous(
++    model: CursorMutModel<usize, FreeRange>,
++    bound: usize,
++    key: usize,
++)
++    requires
++        model.wf(),
++        positioned_at_upper_bound(model, core::ops::Bound::Excluded(&bound)),
++        model.map.contains_key(key),
++        before_upper_bound(key, core::ops::Bound::Excluded(&bound)),
++    ensures
++        model.position > 0,
++{
++    let key_idx = choose|i: int| 0 <= i < model.keys.len() && #[trigger] model.keys[i] == key;
++    if model.position == 0 {
++        assert(false);
++    }
++}
++
++proof fn lemma_upper_bound_prev_is_maximal(
++    model: CursorMutModel<usize, FreeRange>,
++    bound: usize,
++    previous: usize,
++    key: usize,
++)
++    requires
++        model.wf(),
++        positioned_at_upper_bound(model, core::ops::Bound::Excluded(&bound)),
++        model.map.contains_key(key),
++        before_upper_bound(key, core::ops::Bound::Excluded(&bound)),
++        model.position > 0,
++        previous == model.keys[model.position - 1],
++    ensures
++        key <= previous,
++{
++    let key_idx = choose|i: int| 0 <= i < model.keys.len() && #[trigger] model.keys[i] == key;
++    if key_idx < model.position - 1 {
++        assert(model.keys[key_idx].cmp_spec(&model.keys[model.position - 1]) is Less);
++    }
++}
++
++proof fn lemma_lower_bound_has_next(
++    model: CursorMutModel<usize, FreeRange>,
++    bound: usize,
++    key: usize,
++)
++    requires
++        model.wf(),
++        positioned_at_lower_bound(model, core::ops::Bound::Excluded(&bound)),
++        model.map.contains_key(key),
++        !before_lower_bound(key, core::ops::Bound::Excluded(&bound)),
++    ensures
++        model.position < model.keys.len(),
++{
++    let key_idx = choose|i: int| 0 <= i < model.keys.len() && #[trigger] model.keys[i] == key;
++    if model.position == model.keys.len() {
++        assert(false);
++    }
++}
++
++proof fn lemma_lower_bound_next_is_minimal(
++    model: CursorMutModel<usize, FreeRange>,
++    bound: usize,
++    next: usize,
++    key: usize,
++)
++    requires
++        model.wf(),
++        positioned_at_lower_bound(model, core::ops::Bound::Excluded(&bound)),
++        model.map.contains_key(key),
++        !before_lower_bound(key, core::ops::Bound::Excluded(&bound)),
++        model.position < model.keys.len(),
++        next == model.keys[model.position],
++    ensures
++        next <= key,
++{
++    let key_idx = choose|i: int| 0 <= i < model.keys.len() && #[trigger] model.keys[i] == key;
++    if model.position < key_idx {
++        assert(model.keys[model.position].cmp_spec(&model.keys[key_idx]) is Less);
++    }
++}
++
++/// A nonempty contiguous subset of a well-formed free set is covered by one block.
++proof fn lemma_contiguous_subset_has_covering_block(
++    fullrange: Range<usize>,
++    freelist: Map<usize, FreeRange>,
++    range: Range<usize>,
++)
++    requires
++        concrete_freelist_wf(fullrange, freelist),
++        freelist_blocks_not_adjacent(freelist),
++        range.start < range.end,
++        range.view_set() <= free_set(freelist_model(freelist)),
++    ensures
++        exists|key: usize| #[trigger]
++            freelist.contains_key(key) && block_contains(freelist[key].block, range),
++{
++    lemma_concrete_free_set_contains(freelist, range.start);
++    let key = choose|key: usize| #[trigger]
++        freelist.contains_key(key) && freelist[key].block.view_set().contains(range.start);
++    let block = freelist[key].block;
++    if block.end < range.end {
++        let address = block.end;
++        lemma_concrete_free_set_contains(freelist, address);
++        let other = choose|other: usize| #[trigger]
++            freelist.contains_key(other) && freelist[other].block.view_set().contains(address);
++        if block.end < freelist[other].block.start {
++            assert(false);
++        } else {
++            assert(false);
++        }
++    }
++}
++
++/// Restores the canonical separation property after inserting one merged free block.
++proof fn lemma_restored_freelist_is_separated(
++    fullrange: Range<usize>,
++    old_freelist: Map<usize, FreeRange>,
++    new_freelist: Map<usize, FreeRange>,
++    new_key: usize,
++    new_range: Range<usize>,
++)
++    requires
++        freelist_blocks_not_adjacent(old_freelist),
++        concrete_freelist_wf(fullrange, new_freelist),
++        new_freelist.contains_key(new_key),
++        new_key == new_range.start,
++        new_freelist[new_key].block == new_range,
++        forall|key: usize| #[trigger]
++            new_freelist.contains_key(key) && key != new_key ==> old_freelist.contains_key(key)
++                && new_freelist[key] == old_freelist[key],
++        forall|key: usize| #[trigger]
++            new_freelist.contains_key(key) ==> new_freelist[key].block.end != new_range.start,
++        forall|key: usize| #[trigger]
++            new_freelist.contains_key(key) ==> key == new_key || new_freelist[key].block.start
++                != new_range.end,
++    ensures
++        freelist_blocks_not_adjacent(new_freelist),
++{
++    assert forall|left: usize, right: usize|
++        #![trigger new_freelist.contains_key(left), new_freelist.contains_key(right)]
++        new_freelist.contains_key(left) && new_freelist.contains_key(right) && left
++            != right implies new_freelist[left].block.end < new_freelist[right].block.start
++        || new_freelist[right].block.end < new_freelist[left].block.start by {
++        if left == new_key || right == new_key {
++            let other = if left == new_key {
++                right
++            } else {
++                left
++            };
++            if new_key < other {
++                if other < new_range.end {
++                    assert(new_freelist[other].block.view_set().contains(other));
++                    assert(false);
++                }
++            } else {
++                if new_range.start < new_freelist[other].block.end {
++                    assert(new_freelist[other].block.view_set().contains(new_range.start));
++                    assert(false);
++                }
++            }
++        }
++    }
++}
++
+ proof fn lemma_alloc_suffix_model(
+     fullrange: Range<usize>,
+     old_freelist: Map<usize, FreeRange>,
+@@ -687,6 +1140,7 @@ proof fn lemma_alloc_suffix_model(
+ )
+     requires
+         concrete_freelist_wf(fullrange, old_freelist),
++        freelist_blocks_not_adjacent(old_freelist),
+         old_freelist.contains_key(key),
+         old_freelist[key].block.start <= allocation.start <= allocation.end,
+         old_freelist[key].block.end == allocation.end,
+@@ -700,6 +1154,7 @@ proof fn lemma_alloc_suffix_model(
+         },
+     ensures
+         concrete_freelist_wf(fullrange, new_freelist),
++        freelist_blocks_not_adjacent(new_freelist),
+         free_set(freelist_model(new_freelist)) == free_set(freelist_model(old_freelist))
+             - allocation.view_set(),
+ {
+@@ -743,6 +1198,7 @@ proof fn lemma_alloc_specific_model(
+ )
+     requires
+         concrete_freelist_wf(fullrange, old_freelist),
++        freelist_blocks_not_adjacent(old_freelist),
+         old_freelist.contains_key(key),
+         old_freelist[key].block.start <= allocation.start < allocation.end
+             <= old_freelist[key].block.end,
+@@ -768,6 +1224,7 @@ proof fn lemma_alloc_specific_model(
+         }),
+     ensures
+         concrete_freelist_wf(fullrange, new_freelist),
++        freelist_blocks_not_adjacent(new_freelist),
+         free_set(freelist_model(new_freelist)) == free_set(freelist_model(old_freelist))
+             - allocation.view_set(),
+ {
+@@ -803,7 +1260,6 @@ proof fn lemma_alloc_specific_model(
+             } else {
+                 if old_key == allocation.end && allocation.end < old_freelist[key].block.end {
+                     let other_block = old_freelist[old_key].block;
+-                    assert(other_block.view_set().contains(allocation.end));
+                     assert(false);
+                 } else {
+                     assert(new_freelist.contains_key(old_key));
+diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
+index f56a9a62b..d16e0f340 100644
+--- a/verified_libs/vstd_extra/Cargo.toml
++++ b/verified_libs/vstd_extra/Cargo.toml
+@@ -18,3 +18,8 @@ vstd = { workspace = true }
+ bitvec.workspace = true
+ smallvec = "1.13.2"
+ acpi = "=5.2.0"
++
++[target.'cfg(target_arch = "x86_64")'.dependencies]
++x86_64 = { version = "0.15.5", default-features = false, features = ["instructions"] }
++
++
+diff --git a/verified_libs/vstd_extra/src/external/int_specs.rs b/verified_libs/vstd_extra/src/external/int_specs.rs
+index a73b3c24d..2c367b44d 100644
+--- a/verified_libs/vstd_extra/src/external/int_specs.rs
++++ b/verified_libs/vstd_extra/src/external/int_specs.rs
+@@ -27,6 +27,15 @@ pub assume_specification[ u32::is_power_of_two ](self_: u32) -> (r: bool)
+     no_unwind
+ ;
+ 
++/// On a little-endian target, converting a native-endian `u32` to little endian is the identity.
++#[cfg(target_endian = "little")]
++pub assume_specification[ u32::to_le ](value: u32) -> u32
++    returns
++        value,
++    opens_invariants none
++    no_unwind
++;
++
+ pub assume_specification[ u64::is_power_of_two ](self_: u64) -> (r: bool)
+     returns
+         is_pow2(self_ as int),
+diff --git a/verified_libs/vstd_extra/src/external/io_port.rs b/verified_libs/vstd_extra/src/external/io_port.rs
+new file mode 100644
+index 000000000..d4ce66be8
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/io_port.rs
+@@ -0,0 +1,78 @@
++//! Specifications for x86 I/O-port access types and traits.
++use core::mem::size_of;
++
++use vstd::prelude::*;
++use x86_64::{
++    instructions::port::{ReadWriteAccess, WriteOnlyAccess},
++    structures::port::{PortRead, PortWrite},
++};
++
++verus! {
++
++/// Whether a `T`-typed access at `port` fits in the PIO byte range `0..=u16::MAX`.
++///
++/// Uninterpreted: `PortRead`/`PortWrite` are user-implementable, so meaning comes only from
++/// the trusted widths in [`group_io_port_models`]. ISA-level fact only — no claim about
++/// device decoding, access permission, or ownership.
++pub uninterp spec fn valid_io_port_access<T>(port: u16) -> bool;
++
++/// Trusted: `u8` ports are written and read via `outb`/`inb`.
++pub broadcast axiom fn axiom_u8_pio_model(port: u16)
++    ensures
++        #[trigger] valid_io_port_access::<u8>(port) <==> port + size_of::<u8>() <= u16::MAX + 1,
++;
++
++/// Trusted: `u16` ports are written and read via `outw`/`inw`.
++pub broadcast axiom fn axiom_u16_pio_model(port: u16)
++    ensures
++        #[trigger] valid_io_port_access::<u16>(port) <==> port + size_of::<u16>() <= u16::MAX + 1,
++;
++
++/// Trusted: `u32` ports are written and read via `outl`/`inl`.
++pub broadcast axiom fn axiom_u32_pio_model(port: u16)
++    ensures
++        #[trigger] valid_io_port_access::<u32>(port) <==> port + size_of::<u32>() <= u16::MAX + 1,
++;
++
++/// The trusted instances of the PIO model.
++pub broadcast group group_io_port_models {
++    axiom_u8_pio_model,
++    axiom_u16_pio_model,
++    axiom_u32_pio_model,
++}
++
++/// Opaque specification boundary for the third-party read/write access marker.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExReadWriteAccess(ReadWriteAccess);
++
++/// Opaque specification boundary for the third-party write-only access marker.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExWriteOnlyAccess(WriteOnlyAccess);
++
++/// Trusted specification boundary for values that can be read from an x86 I/O port.
++#[verifier::external_trait_specification]
++pub trait ExPortRead {
++    type ExternalTraitSpecificationFor: PortRead;
++
++    /// A port read can produce any value supplied by the device.
++    unsafe fn read_from_port(port: u16) -> Self where Self: Sized
++        requires
++            valid_io_port_access::<Self>(port),
++    ;
++}
++
++/// Trusted specification boundary for values that can be written to an x86 I/O port.
++#[verifier::external_trait_specification]
++pub trait ExPortWrite {
++    type ExternalTraitSpecificationFor: PortWrite;
++
++    /// A port write has no modeled logical effect on kernel memory.
++    unsafe fn write_to_port(port: u16, value: Self) where Self: Sized
++        requires
++            valid_io_port_access::<Self>(port),
++    ;
++}
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index 34fb8f96d..c9688d2ae 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -10,6 +10,8 @@ pub mod convert;
+ pub mod deref;
+ pub mod ilog2;
+ pub mod int_specs;
++#[cfg(target_arch = "x86_64")]
++pub mod io_port;
+ pub mod iter;
+ pub mod nonnull;
+ pub mod ptr;
+@@ -25,6 +27,8 @@ pub use bitvec::*;
+ pub use cmp::*;
+ pub use ilog2::*;
+ pub use int_specs::*;
++#[cfg(target_arch = "x86_64")]
++pub use io_port::*;
+ pub use iter::*;
+ pub use nonnull::*;
+ pub use ptr::*;
+diff --git a/verified_libs/vstd_extra/src/trans_macros.rs b/verified_libs/vstd_extra/src/trans_macros.rs
+index ebf7e4dd2..cb369c9b0 100644
+--- a/verified_libs/vstd_extra/src/trans_macros.rs
++++ b/verified_libs/vstd_extra/src/trans_macros.rs
+@@ -2,6 +2,24 @@ use vstd::prelude::*;
+ 
+ use crate::panic::*;
+ 
++/* Verus cannot translate formatting machinery used by `core::panic!`; select the modeled
++ * diverging boundary only while retaining ghost bodies.
++ * Origin Rust: <none; new executable code>
++ */
++#[macro_export]
++macro_rules! panic {
++    ($($arg:tt)*) => {{
++        #[cfg(verus_keep_ghost_body)]
++        {
++            $crate::panic::panic_diverge()
++        }
++        #[cfg(not(verus_keep_ghost_body))]
++        {
++            ::core::panic!($($arg)*)
++        }
++    }};
++}
++
+ #[macro_export]
+ macro_rules! assert {
+     ($cond:expr) => {

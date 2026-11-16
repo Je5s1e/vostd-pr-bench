@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-820-23c7625612f0",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-820-23c7625612f0:issue-4227846100",
+      "original_label_id": "4227846100",
+      "category": "guideline",
+      "description": "This lemma is not called",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/x86/irq.rs",
+          "start_line": 89,
+          "end_line": 89
+        }
+      ],
+      "rationale": "Independent repository-wide search returned only declaration of lemma_nonempty_isa_overrides_without_timer; pub(crate) and no external consumer documented. Newly added unused lemma.",
+      "source_evidence": "82: {\n83:     if isa == 0 {\n84:         lemma_isa_first_match(isa_overrides_with_fallback(Seq::empty()), isa, gsi, 0);\n85:     }\n86: }\n87: \n88: /// A nonempty override list without IRQ 0 keeps its identity mapping.\n89: pub(crate) proof fn lemma_nonempty_isa_overrides_without_timer(\n90:     overrides: Seq<IsaOverrideMapping>,\n91:     gsi: u32,\n92: )\n93:     requires\n94:         overrides.len() > 0,\n95:         forall|i: int| 0 <= i < overrides.len() ==> #[trigger] overrides[i].0 != 0,\n96:         isa_mapping_correct(isa_overrides_with_fallback(overrides), 0, gsi),\n97:     ensures",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/820#discussion_r4227846100",
+      "related_comment_ids": [
+        "4227846100"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-820-23c7625612f0:issue-4227853351",
+      "original_label_id": "4227853351",
+      "category": "guideline",
+      "description": "This is also not called",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/x86/irq.rs",
+          "start_line": 73,
+          "end_line": 73
+        }
+      ],
+      "rationale": "Independent repository-wide search returned only declaration of lemma_empty_isa_overrides; not broadcast or invoked by macro. Newly added unused lemma.",
+      "source_evidence": "66: {\n67:     let k = choose|k: int|\n68:         0 <= k < overrides.len() && #[trigger] overrides[k].0 == isa && (forall|j: int|\n69:             0 <= j < k ==> #[trigger] overrides[j].0 != isa) && gsi == overrides[k].1;\n70: }\n71: \n72: /// With the empty-list fallback, only IRQ 0 maps to a different GSI.\n73: pub(crate) proof fn lemma_empty_isa_overrides(isa: u8, gsi: u32)\n74:     requires\n75:         isa_mapping_correct(isa_overrides_with_fallback(Seq::empty()), isa, gsi),\n76:     ensures\n77:         gsi == if isa == 0 {\n78:             2u32\n79:         } else {\n80:             isa as u32\n81:         },",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/820#discussion_r4227853351",
+      "related_comment_ids": [
+        "4227853351"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-820-23c7625612f0:issue-4227854716",
+      "original_label_id": "4227854716",
+      "category": "guideline",
+      "description": "same here",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/x86/irq.rs",
+          "start_line": 103,
+          "end_line": 103
+        }
+      ],
+      "rationale": "Independent repository-wide search returned only declaration of lemma_isa_override_origin; pub(crate) with no external consumer. Newly added unused lemma.",
+      "source_evidence": "96:         isa_mapping_correct(isa_overrides_with_fallback(overrides), 0, gsi),\n97:     ensures\n98:         gsi == 0,\n99: {\n100: }\n101: \n102: /// Every collected mapping originates from an ISA entry in the decoded sequence.\n103: pub(crate) proof fn lemma_isa_override_origin(\n104:     entries: Seq<MadtOverrideEntry>,\n105:     mapping: IsaOverrideMapping,\n106: )\n107:     requires\n108:         collect_isa_overrides(entries).contains(mapping),\n109:     ensures\n110:         exists|i: int|\n111:             0 <= i < entries.len() && #[trigger] isa_override_entry(entries[i]) == Some(mapping),",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/820#discussion_r4227854716",
+      "related_comment_ids": [
+        "4227854716"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

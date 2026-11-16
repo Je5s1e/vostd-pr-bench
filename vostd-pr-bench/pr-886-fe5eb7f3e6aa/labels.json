@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-886-fe5eb7f3e6aa",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-886-fe5eb7f3e6aa:issue-4451380859",
+      "original_label_id": "4451380859",
+      "category": "guideline",
+      "description": "The None equivalence repeats a direction already implied by the Some contract.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/x86/ex_table.rs",
+          "start_line": 88,
+          "end_line": 88
+        }
+      ],
+      "rationale": "Some postcondition implies existence of a matching table entry. Contrapositive gives no-match => not-Some => None. Thus right-to-left direction of None equivalence is redundant; retain None => no-match and all Some first-match facts.",
+      "source_evidence": "85:                 && recovery == table_model()[i].1\n86:                 && forall|j: int| 0 <= j < i\n87:                     ==> #[trigger] table_model()[j].0 != inst_addr,\n88:             r is None <==> forall|i: int| 0 <= i < table_model().len()\n89:                 ==> #[trigger] table_model()[i].0 != inst_addr,\n90:     )]\n91:     pub fn find_recovery_inst_addr(inst_addr: Vaddr) -> Option<Vaddr> {\n92:         /* `read_table` isolates linker-symbol casts unsupported by Verus.\n93:          * Origin Rust:\n94:          * let table_size =\n95:          *     (__ex_table_end as usize - __ex_table as usize) / core::mem::size_of::<ExTableItem>();",
+      "rule_ids": [
+        "match-enum-results"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/886#discussion_r4451380859",
+      "related_comment_ids": [
+        "4451380859"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

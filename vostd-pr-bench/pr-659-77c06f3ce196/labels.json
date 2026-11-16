@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-659-77c06f3ce196",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-659-77c06f3ce196:issue-3613367103",
+      "original_label_id": "3613367103",
+      "category": "guideline",
+      "description": "Complete function213-221 is empty, takes unused len and only reexports unchanged input invariance/mem_view/range. Repository-wide search finds sole call334 in samefile dispatch. Not unused: remove trivial boundary/call or inline facts without changing exec code.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/io.rs",
+          "start_line": 213,
+          "end_line": 213
+        }
+      ],
+      "rationale": "Complete function213-221 is empty, takes unused len and only reexports unchanged input invariance/mem_view/range. Repository-wide search finds sole call334 in samefile dispatch. Not unused: remove trivial boundary/call or inline facts without changing exec code.",
+      "source_evidence": "210: /// Exec body writes through `self.cursor` and then advances the\n211: /// handle's cursor; the owner's `mem_view` shape is preserved (write\n212: /// view stays a write view).\n213: pub proof fn lemma_vm_writer_fill_zeros_embedded(tracked owner: &mut VmIoOwner, len: usize)\n214:     requires\n215:         old(owner).inv(),\n216:     ensures\n217:         final(owner).inv(),\n218:         final(owner).mem_view == old(owner).mem_view,\n219:         final(owner).range == old(owner).range,\n220: {",
+      "rule_ids": [
+        "inline-single-use-proof-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/659#discussion_r3613367103",
+      "related_comment_ids": [
+        "3613367103"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

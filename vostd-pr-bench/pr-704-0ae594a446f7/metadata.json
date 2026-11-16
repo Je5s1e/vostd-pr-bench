@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-704-0ae594a446f7",
+  "pr_number": 704,
+  "title": "feat: add btree spec in vstd_extra",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/704",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "e87443ef658488349d1f3625923a5bec1c9bb967",
+  "head_sha": "0ae594a446f71c1fab772384701e60686c5357c5",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "verified_libs/vstd_extra/src/external/btree.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/lib.rs"
+  ],
+  "diff_sha256": "c1b369e15149956612daa1a5bca216b00790e580cb2426be59c41869f620f246",
+  "versions": {
+    "before": {
+      "commit": "e87443ef658488349d1f3625923a5bec1c9bb967",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "30837214e0c263d6bd19a7c4748ad70492aeaa91",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "0ae594a446f71c1fab772384701e60686c5357c5",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "30837214e0c263d6bd19a7c4748ad70492aeaa91",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

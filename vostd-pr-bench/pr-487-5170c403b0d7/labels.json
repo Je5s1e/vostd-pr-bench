@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-487-5170c403b0d7",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-487-5170c403b0d7:issue-3636252007",
+      "original_label_id": "3636252007",
+      "category": "semantic",
+      "description": "`Task::current()` currently always returns `Some(CurrentTask { })`, which contradicts its own documentation (bootstrap should return `None`) and removes the prior linkage to the runtime notion of “current task”. This will break callers that rely on `None` in bootstrap/interrupt contexts and makes `CurrentTask` unusable for accessing per-task state.\n\nThis issue also appears on line 103 of the same file.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/task/mod.rs",
+          "start_line": 90,
+          "end_line": 90
+        }
+      ],
+      "rationale": "Read full Task diff and head lines86-95. Newly re-enabled current() unconditionally returns Some despite explicit None-on-bootstrap contract. Base implementation was commented out: do NOT describe as change to previously active runtime code. Valid finding is restoring a behaviorally different stub under the original documented API.",
+      "source_evidence": "83:     /// Returns the unique identifier of the task.\n84:     pub uninterp spec fn id(&self) -> Loc;\n85: \n86:     /// Gets the current task.\n87:     ///\n88:     /// It returns `None` if the function is called in the bootstrap context.\n89:     pub fn current() -> Option<CurrentTask> {\n90:         Some(CurrentTask {  })\n91:         // let current_task = current_task()?;\n92:         // // SAFETY: `current_task` is the current task.\n93:         // Some(unsafe { CurrentTask::new(current_task) })\n94: \n95:     }\n96: }\n97: \n98: /// The current task.",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/487#discussion_r3636252007",
+      "related_comment_ids": [
+        "3636252007"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

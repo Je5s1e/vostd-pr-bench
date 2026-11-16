@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-789-8943e8f25420",
+  "pr_number": 789,
+  "title": "prove: arch/x86/kernel/acpi",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/789",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d73d234f3d5a5b1b1519ff25e45e3864c6f7353b",
+  "head_sha": "8943e8f25420156b3d3a1485729278dfc2cae89c",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "ostd/src/arch/x86/kernel/acpi/dmar.rs",
+    "ostd/src/arch/x86/kernel/acpi/remapping.rs",
+    "ostd/src/arch/x86/kernel/mod.rs",
+    "ostd/src/arch/x86/mod.rs",
+    "ostd/src/boot/mod.rs",
+    "verified_libs/vstd_extra/Cargo.toml",
+    "verified_libs/vstd_extra/src/external/acpi.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/external/str.rs",
+    "verified_libs/vstd_extra/src/trans_macros.rs"
+  ],
+  "diff_sha256": "2a6a12bc51def749ddc96fc6b87dba10b25a1ed60b165d44e447bf436979206f",
+  "versions": {
+    "before": {
+      "commit": "d73d234f3d5a5b1b1519ff25e45e3864c6f7353b",
+      "file_count": 324,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "8943e8f25420156b3d3a1485729278dfc2cae89c",
+      "file_count": 326,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

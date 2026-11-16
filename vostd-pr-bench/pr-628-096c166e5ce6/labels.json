@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-628-096c166e5ce6",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-628-096c166e5ce6:issue-3577128689",
+      "original_label_id": "3577128689",
+      "category": "guideline",
+      "description": "Complete signature and ensures mutate tracked MetaRegionOwners/LinkedListOwner and transfer frame permissions. name-proof-roles specifically requires tracked_ for resource-transform helpers, not lemma_ factual-proof prefix. Reviewer premise of missing role prefix is supported; preserve correction distinction.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/list_store.rs",
+          "start_line": 534,
+          "end_line": 534
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/list_store.rs",
+          "start_line": 453,
+          "end_line": 453
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/list_store.rs",
+          "start_line": 382,
+          "end_line": 382
+        }
+      ],
+      "rationale": "Complete signature and ensures mutate tracked MetaRegionOwners/LinkedListOwner and transfer frame permissions. name-proof-roles specifically requires tracked_ for resource-transform helpers, not lemma_ factual-proof prefix. Reviewer premise of missing role prefix is supported; preserve correction distinction.",
+      "source_evidence": "531: /// (verified) [`crate::mm::frame::LinkedList::pop_back`]. Identical to\n532: /// [`pop_front_embedded`] except the *last* link is popped (touching the\n533: /// back neighbour at `slot_index_at(len - 2)`).\n534: pub proof fn pop_back_embedded<M: AnyFrameMeta + Repr<MetaSlotSmall>>(\n535:     tracked regions: &mut MetaRegionOwners,\n536:     tracked owner: &mut LinkedListOwner<M>,\n537: ) -> (tracked frame_own: UniqueFrameOwner<Link<M>>)\n538:     requires\n539:         old(regions).inv(),\n540:         old(owner).inv(),\n541:         old(owner).relate_region(*old(regions)),",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/628#discussion_r3577128689",
+      "related_comment_ids": [
+        "3577128689",
+        "3577127687",
+        "3577124237"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

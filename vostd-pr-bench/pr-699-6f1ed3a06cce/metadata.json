@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-699-6f1ed3a06cce",
+  "pr_number": 699,
+  "title": "prove: util::range_alloc",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/699",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d0289e7fcc3b199996685f5b454b3355e999b327",
+  "head_sha": "6f1ed3a06ccef25a12c1c2b0ddf17c090cb1c4cd",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/util/range_alloc.rs",
+    "verified_libs/vstd_extra/src/trans_macros.rs"
+  ],
+  "diff_sha256": "2706cbea4faaabd59287c5c3ae554d74017604211dc5d29d367c655296fee3f8",
+  "versions": {
+    "before": {
+      "commit": "d0289e7fcc3b199996685f5b454b3355e999b327",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "f601298f3b1c97d8d0fc545f97a727786c39b48d",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "6f1ed3a06ccef25a12c1c2b0ddf17c090cb1c4cd",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "f601298f3b1c97d8d0fc545f97a727786c39b48d",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

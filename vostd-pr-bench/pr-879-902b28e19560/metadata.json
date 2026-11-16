@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-879-902b28e19560",
+  "pr_number": 879,
+  "title": "prove: add nested local IRQ guard protocol",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/879",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "9c7677deee6fbe7ac154158b571282a801ecea8a",
+  "head_sha": "902b28e1956088886fea720640507623d8d11239",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/task/irq.rs",
+    "ostd/specs/task/mod.rs",
+    "ostd/src/arch/x86/irq.rs",
+    "ostd/src/trap/irq.rs"
+  ],
+  "diff_sha256": "16ea7e295e4b92cca53fb3566fe3498c3cd7bdbcbd7646f6b442e14c193fb091",
+  "versions": {
+    "before": {
+      "commit": "9c7677deee6fbe7ac154158b571282a801ecea8a",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "902b28e1956088886fea720640507623d8d11239",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

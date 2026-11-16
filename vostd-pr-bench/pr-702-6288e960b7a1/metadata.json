@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-702-6288e960b7a1",
+  "pr_number": 702,
+  "title": "prove: WaitQueue num_wakers",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/702",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "6638dcc310f8fe891b10c294596826cbbadb52cc",
+  "head_sha": "6288e960b7a11173a6984be0c13ed796e7f732da",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/sync/mod.rs",
+    "ostd/src/sync/spin.rs",
+    "ostd/src/sync/wait.rs"
+  ],
+  "diff_sha256": "28abe67aec4e4735c4d2b623fbc7c9b618bc0e5c0edc2be5e2b985d7a160afe0",
+  "versions": {
+    "before": {
+      "commit": "6638dcc310f8fe891b10c294596826cbbadb52cc",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "b4bc559dae28c4be9cd8c782a0ecae1806af2606",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "6288e960b7a11173a6984be0c13ed796e7f732da",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "b4bc559dae28c4be9cd8c782a0ecae1806af2606",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

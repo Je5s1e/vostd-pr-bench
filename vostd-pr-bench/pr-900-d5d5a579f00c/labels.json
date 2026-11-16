@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-900-d5d5a579f00c",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-900-d5d5a579f00c:issue-4521959604",
+      "original_label_id": "4521959604",
+      "category": "semantic",
+      "description": "Preemption guard is changed into an IRQ-masking RAII guard.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/task/preempt/guard.rs",
+          "start_line": 109,
+          "end_line": 109
+        }
+      ],
+      "rationale": "Read DisabledPreemptGuard fields and disable_preempt body138-141: it now owns IRQ guard and calls disable_local. Baseline parked preemption count does not make IRQ masking behavior-preserving. Source acknowledges temporary redesign; accepted issue is executable semantic change outside proof-only migration.",
+      "source_evidence": "106: #[must_use]\n107: #[derive(Debug)]\n108: pub struct DisabledPreemptGuard {\n109:     irq_guard: DisabledLocalIrqGuard,\n110: }\n111: \n112: impl !Send for DisabledPreemptGuard {}\n113: \n114: impl !Sync for DisabledPreemptGuard {}\n115: \n116: verus! {",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/900#discussion_r4521959604",
+      "related_comment_ids": [
+        "4521959604"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-900-d5d5a579f00c:issue-4537575521",
+      "original_label_id": "4537575521",
+      "category": "guideline",
+      "description": "An identity tracked move is wrapped in a dedicated transfer API.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/task/cpu_core.rs",
+          "start_line": 75,
+          "end_line": 75
+        }
+      ],
+      "rationale": "Repository search finds one caller in regression proof491. Complete tracked_transfer75-83 returns self unchanged and promises accessor equalities; direct tracked move supplies these facts without extra protocol operation.",
+      "source_evidence": "72:     }\n73: \n74:     /// Moves the unique release obligation to a replacement guard.\n75:     pub proof fn tracked_transfer(tracked self) -> (tracked res: Self)\n76:         ensures\n77:             res.core_id() == self.core_id(),\n78:             res.cpu() == self.cpu(),\n79:             res.depth() == self.depth(),\n80:             res.was_enabled() == self.was_enabled(),\n81:     {\n82:         self",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/900#discussion_r4537575521",
+      "related_comment_ids": [
+        "4537575521"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

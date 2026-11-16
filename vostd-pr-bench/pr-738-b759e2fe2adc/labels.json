@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-738-b759e2fe2adc",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-738-b759e2fe2adc:issue-3920760604",
+      "original_label_id": "3920760604",
+      "category": "guideline",
+      "description": "This change does not match the Asterinas source code. Just comment it.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rwlock.rs",
+          "start_line": 636,
+          "end_line": 636
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. as_ptr replaces self.val.get() with pointer to enclosing PCell cast to T and leaves external_body. Original line comment lacks required explanation; no equivalence justification shown. Runtime equivalence remains unverified.",
+      "source_evidence": "632:     /// is still safe.\n633:     #[verifier::external_body]\n634:     pub(super) fn as_ptr(&self) -> *mut T {\n635:         // self.val.get()\n636:         core::ptr::from_ref(&self.val) as *const T as *mut T\n637:     }\n638: }\n639: \n640: /* the trait `core::fmt::Debug` is not implemented for `vstd::cell::pcell::PCell<T>`\n641: impl<T: ?Sized + fmt::Debug, G> fmt::Debug for RwLock<T, G> {",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/738#discussion_r3920760604",
+      "related_comment_ids": [
+        "3920760604"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

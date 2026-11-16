@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-612-0886ccdd5411",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-612-0886ccdd5411:issue-3529784300",
+      "original_label_id": "3529784300",
+      "category": "semantic",
+      "description": "Read safety documentation105-110, exec contracts208-215 and244-247, complete trait and new roundtrip326-331. Only into_raw(from_raw(raw))=raw is promised, under has_safe_slot. This does not imply from_raw(into_raw(item))=item without injectivity of into_raw, which no trait clause provides. Raw projection may discard an item tag while from_raw chooses canonical tag. Thus documented recovery of exact consumed item is not available to generic proof clients. No Verus execution claimed.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "start_line": 331,
+          "end_line": 331
+        }
+      ],
+      "rationale": "Read safety documentation105-110, exec contracts208-215 and244-247, complete trait and new roundtrip326-331. Only into_raw(from_raw(raw))=raw is promised, under has_safe_slot. This does not imply from_raw(into_raw(item))=item without injectivity of into_raw, which no trait clause provides. Raw projection may discard an item tag while from_raw chooses canonical tag. Thus documented recovery of exact consumed item is not available to generic proof clients. No Verus execution claimed.",
+      "source_evidence": "328:             has_safe_slot(paddr),\n329:             Self::item_from_raw_spec(paddr, level, prop) == item,\n330:         ensures\n331:             Self::item_into_raw_spec(item) == (paddr, level, prop),\n332:     ;\n333: \n334:     /// Proves `item.clone_requires(regions)` from the concrete frame-slot facts\n335:     /// delivered by `metaregion_sound` plus the non-saturation bound propagated\n336:     /// from `Cursor::query`. Implementors unfold their `MappedItem::clone_requires`\n337:     /// to `Frame::clone_requires` and connect `pa` to the frame's internal pointer\n338:     /// address.",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/612#discussion_r3529784300",
+      "related_comment_ids": [
+        "3529784300"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

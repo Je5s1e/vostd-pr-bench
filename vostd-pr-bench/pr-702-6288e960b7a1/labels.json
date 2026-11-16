@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-702-6288e960b7a1",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-702-6288e960b7a1:issue-3851620421",
+      "original_label_id": "3851620421",
+      "category": "guideline",
+      "description": "Tracked fields redundantly repeat their enclosing struct mode.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/spin.rs",
+          "start_line": 58,
+          "end_line": 58
+        }
+      ],
+      "rationale": "Independent source and applicable guideline inspection supports this specific finding: Both fields are linear resources in a tracked struct, whose fields default to tracked.",
+      "source_evidence": "55: /// The tracked resources transferred from the unlocked spin lock to its guard\n56: /// when the lock is acquired, and returned to the lock when the guard is dropped.\n57: tracked struct SpinLockResource<T, P: SpinLockPredicate<T>> {\n58:     tracked perm: PointsTo<T>,\n59:     tracked state: P::State,\n60: }\n61: \n62: impl<T, P: SpinLockPredicate<T>> SpinLockResource<T, P> {\n63:     pub closed spec fn cell_id(self) -> cell::CellId {\n64:         self.perm.id()\n65:     }",
+      "rule_ids": [
+        "avoid-redundant-mode-markers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/702#discussion_r3851620421",
+      "related_comment_ids": [
+        "3851620421"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-802-2d0e9d0e7c27",
+  "pr_number": 802,
+  "title": "prove: EarlyFrameAllocator::alloc",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/802",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "395015e012954a2fc579d1bff917abc7d4b4e67d",
+  "head_sha": "2d0e9d0e7c27a1133f3985388ae2be52b1201460",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/boot/mod.rs",
+    "ostd/src/mm/frame/allocator.rs",
+    "verified_libs/vstd_extra/src/external/layout.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs"
+  ],
+  "diff_sha256": "ca4b3c79daa926c4811d421f1891859896e173c75c97b4001af950c9521d93f4",
+  "versions": {
+    "before": {
+      "commit": "395015e012954a2fc579d1bff917abc7d4b4e67d",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "2d0e9d0e7c27a1133f3985388ae2be52b1201460",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

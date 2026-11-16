@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-706-3d7ea1276689",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-706-3d7ea1276689:issue-4396249644",
+      "original_label_id": "4396249644",
+      "category": "guideline",
+      "description": "use chaining operatoe may save some lines",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/io/io_port/allocator.rs",
+          "start_line": 469,
+          "end_line": 469
+        }
+      ],
+      "rationale": "Second pass agrees after reading historical source, selected comment/replies and applicable current guideline. Conjuncts start <= i and i < allocator length can use one chained comparison; separate i < range.end remains.",
+      "source_evidence": "465:             assert(io_port_inner_inv_values(instance_id, preserved, &allocator_inner));\n466:             assert(id_alloc_view(&allocator_inner) == bitmap_view);\n467:             assert forall|i: int|\n468:                 range.start as usize <= i\n469:                     && i < allocator_inner@.len()\n470:                     && i < range.end as usize implies\n471:                 allocator_inner@[i]\n472:             by {\n473:                 assert(Set::<usize>::range(range.start as usize, range.end as usize)\n474:                     <= preserved);",
+      "rule_ids": [
+        "use-chained-comparisons"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/706#discussion_r4396249644",
+      "related_comment_ids": [
+        "4396249644"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    },
+    {
+      "id": "pr-706-3d7ea1276689:issue-4396256683",
+      "original_label_id": "4396256683",
+      "category": "guideline",
+      "description": "import `MAX_IO_PORT`",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/io/io_port/allocator.rs",
+          "start_line": 69,
+          "end_line": 69
+        }
+      ],
+      "rationale": "Repeated crate::arch::io::MAX_IO_PORT occurs throughout newly added ghost contracts. This is organize-proof-imports, not primarily group-imports-by-crate.",
+      "source_evidence": "65:     allocator: &IdAlloc,\n66: ) -> bool {\n67:     &&& allocated_instance_id == io_port_allocator_instance_id()\n68:     &&& allocator.inv()\n69:     &&& allocator@.len() == crate::arch::io::MAX_IO_PORT\n70:     &&& allocated.subset_of(id_alloc_view(allocator))\n71:     &&& id_alloc_capacity(allocator) == crate::arch::io::MAX_IO_PORT as usize\n72: }\n73: \n74: /// Authority over the set of PIO ids currently allocated by the global allocator.",
+      "rule_ids": [
+        "organize-proof-imports"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/706#discussion_r4396256683",
+      "related_comment_ids": [
+        "4396256683"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

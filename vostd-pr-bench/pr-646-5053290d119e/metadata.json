@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-646-5053290d119e",
+  "pr_number": 646,
+  "title": "simplify: specs::mm::page_table::owners",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/646",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "97465ca6c44c08d3fef64e13d568344fb967306b",
+  "head_sha": "5053290d119e38a3368fed6d197eda9b2bdb5171",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/page_table/owners.rs"
+  ],
+  "diff_sha256": "8150c1c6cf94432754a0b345de2731ec75ea32d7474aa5758f1e8156023c1d21",
+  "versions": {
+    "before": {
+      "commit": "97465ca6c44c08d3fef64e13d568344fb967306b",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "5053290d119e38a3368fed6d197eda9b2bdb5171",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

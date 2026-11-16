@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-679-f7dfb8525a55",
+  "pr_number": 679,
+  "title": "prove: replace rlimit with proof helper function",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/679",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "716e351a6c4986e5688ecefee5fecae4700d423f",
+  "head_sha": "f7dfb8525a555f121d89809f7f1d3bbc7d1390cb",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "dev",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/src/mm/frame/linked_list.rs"
+  ],
+  "diff_sha256": "86c0f203fbdabf91b92ba16fb6edc139831fbaf1cf3aa79df8d13bbc2db76af5",
+  "versions": {
+    "before": {
+      "commit": "716e351a6c4986e5688ecefee5fecae4700d423f",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "f7dfb8525a555f121d89809f7f1d3bbc7d1390cb",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

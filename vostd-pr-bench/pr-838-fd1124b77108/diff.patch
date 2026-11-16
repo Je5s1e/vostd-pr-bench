@@ -1,0 +1,117 @@
+diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
+index f20cc7a11..1fcc88686 100644
+--- a/ostd/src/cpu/mod.rs
++++ b/ostd/src/cpu/mod.rs
+@@ -1,6 +1,9 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! CPU-related definitions.
+-use vstd::{prelude::*, std_specs::convert::TryFromSpecImpl};
++use vstd::{
++    prelude::*,
++    std_specs::{convert::TryFromSpecImpl, iter::IteratorSpec},
++};
+ 
+ // pub mod local;
+ pub mod set;
+@@ -113,8 +116,47 @@ pub fn num_cpus() -> usize {
+ }
+ 
+ /// Returns an iterator over all CPUs.
++///
++/// # Verified Properties
++///
++/// ## Safety
++/// - CPU IDs are valid, relying on the trusted CPU count contract and bounds.
++///
++/// ## Functional Correctness
++/// - IDs form an ascending prefix of `0..num_cpus()`.
++///
++/// ## Preconditions
++/// - None.
++///
++/// ## Postconditions
++/// - Obeys iterator laws.
++/// - Has a decreasing measure.
++/// - Yields at most `num_cpus()` IDs.
++/// - Covers every CPU exactly once if iteration completes.
++#[verus_verify]
++#[verus_spec(ret =>
++    ensures
++        IteratorSpec::obeys_prophetic_iter_laws(&ret),
++        IteratorSpec::decrease(&ret) is Some,
++        IteratorSpec::remaining(&ret).len() <= cpu_count(),
++        forall|i: int| 0 <= i < IteratorSpec::remaining(&ret).len() ==>
++            #[trigger] IteratorSpec::remaining(&ret)[i]@ == i,
++        IteratorSpec::will_return_none(&ret) ==>
++            IteratorSpec::remaining(&ret).len() == cpu_count(),
++)]
+ pub fn all_cpus() -> impl Iterator<Item = CpuId> {
+-    (0..num_cpus()).map(|id| CpuId(id as u32))
++    proof! {
++        broadcast use { axiom_cpu_count_bounds, vstd::std_specs::iter::group_iter_axioms };
++    }
++    (0..num_cpus()).map(
++        #[verus_spec(ret: CpuId =>
++            requires
++                id < cpu_count(),
++            ensures
++                ret@ == id,
++        )]
++        |id| CpuId(id as u32),
++    )
+ }
+ 
+ verus! {
+diff --git a/ostd/src/mm/tlb.rs b/ostd/src/mm/tlb.rs
+index ef9663a93..0e37a66b2 100644
+--- a/ostd/src/mm/tlb.rs
++++ b/ostd/src/mm/tlb.rs
+@@ -212,8 +212,24 @@ impl TlbFlushOp {
+         }*/
+ 
+     }
++}
+ 
+-    #[verifier::external_body]
++} // verus!
++#[verus_verify]
++impl TlbFlushOp {
++    #[verus_spec(
++        returns
++            match self {
++                TlbFlushOp::Range(range) => {
++                    if range.end - range.start > FLUSH_ALL_RANGE_THRESHOLD {
++                        TlbFlushOp::All
++                    } else {
++                        self
++                    }
++                },
++                _ => self,
++            },
++    )]
+     fn optimize_for_large_range(self) -> Self {
+         match self {
+             TlbFlushOp::Range(range) => {
+@@ -222,19 +238,20 @@ impl TlbFlushOp {
+                 } else {
+                     TlbFlushOp::Range(range)
+                 }
+-            },
++            }
+             _ => self,
+         }
+     }
+ }
+ 
++verus! {
++
+ // The queues of pending requests on each CPU.
+ /*cpu_local! {
+     static FLUSH_OPS: SpinLock<OpsStack, LocalIrqDisabled> = SpinLock::new(OpsStack::new());
+     /// Whether this CPU finishes the last remote flush request.
+     static ACK_REMOTE_FLUSH: AtomicBool = AtomicBool::new(true);
+ }*/
+-
+ #[verifier::external_body]
+ fn do_remote_flush() {
+     unimplemented!()/*

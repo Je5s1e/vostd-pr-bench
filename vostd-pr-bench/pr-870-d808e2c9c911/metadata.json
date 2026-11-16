@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-870-d808e2c9c911",
+  "pr_number": 870,
+  "title": "prove: verify x86 task context",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/870",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "a22d96b40dddb85a4df2896113fb9e7170b86a42",
+  "head_sha": "d808e2c9c91131a328364d76701218ca0bff356b",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/mod.rs",
+    "ostd/src/arch/x86/task/mod.rs"
+  ],
+  "diff_sha256": "9c8e0ef689b2885b3322d2d7b9206585dd8efa6386e3702f1ef10b4a5b92d55e",
+  "versions": {
+    "before": {
+      "commit": "a22d96b40dddb85a4df2896113fb9e7170b86a42",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "d808e2c9c91131a328364d76701218ca0bff356b",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

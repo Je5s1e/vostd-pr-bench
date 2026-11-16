@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-775-d3b5ea030112",
+  "pr_number": 775,
+  "title": "prove tracked_new_val in vstd_extra",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/775",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "a7a57fabff88ca077f7303cdecbcab7a2639feb0",
+  "head_sha": "d3b5ea0301129d909b49687a9d7357308b26a12f",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "verified_libs/vstd_extra/src/ghost_tree.rs"
+  ],
+  "diff_sha256": "c0ded6b6ee86f0360ed2f2c3c65ead78d875a946011111c0869960f5699bc503",
+  "versions": {
+    "before": {
+      "commit": "a7a57fabff88ca077f7303cdecbcab7a2639feb0",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "d3b5ea0301129d909b49687a9d7357308b26a12f",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1
+}

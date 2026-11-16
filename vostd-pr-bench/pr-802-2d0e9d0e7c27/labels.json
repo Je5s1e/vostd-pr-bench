@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-802-2d0e9d0e7c27",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-802-2d0e9d0e7c27:issue-4310053052",
+      "original_label_id": "4310053052",
+      "category": "guideline",
+      "description": "Read LayoutAdditionalSpecFns value receiver and two assume_specification functions: self_ plus explicit dereference repeats avoidable receiver mechanics. Current named rule explicitly prescribes role name l and method-call auto-deref; correct stable rule is name-assume-spec-receivers.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/external/layout.rs",
+          "start_line": 36,
+          "end_line": 36
+        }
+      ],
+      "rationale": "Read LayoutAdditionalSpecFns value receiver and two assume_specification functions: self_ plus explicit dereference repeats avoidable receiver mechanics. Current named rule explicitly prescribes role name l and method-call auto-deref; correct stable rule is name-assume-spec-receivers.",
+      "source_evidence": "33: /// `Layout::size`, trusted to equal `(*self_).spec_size()`.\n34: pub assume_specification[ core::alloc::Layout::size ](self_: &Layout) -> usize\n35:     returns\n36:         (*self_).spec_size(),\n37: ;\n38: \n39: /// `Layout::align`, trusted to equal `(*self_).spec_align()`.\n40: pub assume_specification[ core::alloc::Layout::align ](self_: &Layout) -> usize\n41:     returns\n42:         (*self_).spec_align(),\n43: ;",
+      "rule_ids": [
+        "name-assume-spec-receivers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/802#discussion_r4310053052",
+      "related_comment_ids": [
+        "4310053052"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}

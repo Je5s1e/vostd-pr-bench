@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-778-994b5b0a00cf",
+  "pr_number": 778,
+  "title": "prove: boot::memory_region::as_aligned",
+  "title_source": "historical_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/778",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "69f005898d5d203bc59c9e7ffd8428be608222c2",
+  "head_sha": "994b5b0a00cf41de243932d5a12b0e172a5784a9",
+  "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
+  "original_split": "heldout",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/memory_region_specs.rs",
+    "ostd/src/boot/memory_region.rs"
+  ],
+  "diff_sha256": "17f2944d15a2fb3b5959eda9ae8b53dbead5575fccbc7deb7a636fcf9211dd2e",
+  "versions": {
+    "before": {
+      "commit": "69f005898d5d203bc59c9e7ffd8428be608222c2",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "994b5b0a00cf41de243932d5a12b0e172a5784a9",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-870-d808e2c9c911",
+  "status": "frozen_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-870-d808e2c9c911:issue-4410505691",
+      "original_label_id": "4410505691",
+      "category": "guideline",
+      "description": "CalleeRegs literal repeated exactly in returns87-89 and executable body90-91, then copied into TaskContext specification. Constructor only zeros integerfields, supporting shared dual_spec model; no toolchain validation of proposed patch claimed.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/x86/task/mod.rs",
+          "start_line": 87,
+          "end_line": 87
+        }
+      ],
+      "rationale": "CalleeRegs literal repeated exactly in returns87-89 and executable body90-91, then copied into TaskContext specification. Constructor only zeros integerfields, supporting shared dual_spec model; no toolchain validation of proposed patch claimed.",
+      "source_evidence": "84: #[verus_verify]\n85: impl CalleeRegs {\n86:     /// Creates new `CalleeRegs`\n87:     #[verus_spec(returns (Self {\n88:         rsp: 0, rbx: 0, rbp: 0, r12: 0, r13: 0, r14: 0, r15: 0,\n89:     }))]\n90:     pub const fn new() -> Self {\n91:         CalleeRegs { rsp: 0, rbx: 0, rbp: 0, r12: 0, r13: 0, r14: 0, r15: 0 }\n92:     }\n93: }\n94: ",
+      "rule_ids": [
+        "pair-exec-helpers-with-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/870#discussion_r4410505691",
+      "related_comment_ids": [
+        "4410505691"
+      ],
+      "verification": "source-only; historical Verus not executed"
+    }
+  ]
+}
