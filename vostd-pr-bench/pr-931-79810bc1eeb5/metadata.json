@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-931-79810bc1eeb5",
+  "pr_number": 931,
+  "title": "prove: specify bzImage flat binary construction",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/931",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "c25ca6f98633e7de6c09c66e9e981061ed51cfb4",
+  "head_sha": "79810bc1eeb5a65acb4ec81370d0671253ab48c9",
+  "base_method": "merge-base(head, historical main first-parent tip 8e681282d19b29bdc1b6e715930fe9224a0c88dc before first selected review comment at 2026-11-16T06:55:59Z); historical tip selected by commit timestamp",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/libs/linux-bzimage/builder/src/lib.rs",
+    "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/external/slice.rs",
+    "verified_libs/vstd_extra/src/external/vec.rs",
+    "verified_libs/vstd_extra/src/external/xmas_elf.rs"
+  ],
+  "diff_sha256": "975b884231aa35ec8e95d1437f7b0f2ebf7d2f98f68d32b58fe5d893086b8d3d",
+  "versions": {
+    "before": {
+      "commit": "c25ca6f98633e7de6c09c66e9e981061ed51cfb4",
+      "file_count": 324,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "79810bc1eeb5a65acb4ec81370d0671253ab48c9",
+      "file_count": 325,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-16T09:42:43.184203+00:00",
+    "reviewed_at": "2026-11-16T06:55:59Z",
+    "upstream_updated_at": "2026-11-16T09:34:29Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/931",
+      "https://github.com/asterinas/vostd/pull/931#discussion_r4582797497"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "79810bc1eeb5a65acb4ec81370d0671253ab48c9",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/79810bc1eeb5a65acb4ec81370d0671253ab48c9/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ]
+  }
+}

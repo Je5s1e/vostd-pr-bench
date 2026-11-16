@@ -1,0 +1,684 @@
+use vstd::{modes::tracked_swap, prelude::*};
+use vstd_extra::{ghost_tree::*, ownership::*};
+
+use crate::specs::{
+    arch::*,
+    mm::{
+        frame::{
+            mapping::*,
+            meta_owners::{FracMetadataPerm, PageUsage},
+            meta_region_owners::MetaRegionOwners,
+        },
+        page_table::*,
+    },
+};
+
+use crate::mm::{
+    Paddr, PagingConstsTrait, PagingLevel, Vaddr,
+    frame::meta::{
+        MetaSlot, REF_COUNT_MAX, REF_COUNT_UNIQUE, REF_COUNT_UNUSED, mapping::meta_to_frame,
+    },
+    page_prop::PageProperty,
+    page_table::*,
+};
+use core::marker::PhantomData;
+
+verus! {
+
+/// # Verification Design
+/// The proof-side snapshot for a page table leaf: a frame mapped in a node. Asterinas
+/// supports huge pages, so it is not necessarily at level 1.
+/// - `mapped_pa` is the physical address of the mapped frame.
+/// - `prop` is a bitfield tracking the properties of the page ([`PageProperty`])
+pub tracked struct FrameEntryOwner<C: PageTableConfig> {
+    pub ghost mapped_pa: usize,
+    pub ghost prop: PageProperty,
+    pub permission: Option<C::Perm>,
+}
+
+pub tracked enum EntryOwnerKind<C: PageTableConfig> {
+    Node(NodeOwner<C>),
+    Frame(FrameEntryOwner<C>),
+    /// Translation-only / borrowed-sub-tree variant.
+    ///
+    /// Present when the slot's PTE references a sub-tree owned by *another*
+    /// page-table configuration (e.g. a user PT's kernel-half slot
+    /// pointing at a kernel-owned sub-table). The ghost `Set<Mapping>`
+    /// records the mappings reachable through that sub-tree so the
+    /// embedding can reason about what the borrowed translation provides
+    /// without descending into a sub-tree it does not own. Mutually
+    /// exclusive with `node`, `frame`, and `absent` by construction.
+    Borrowed(ghost Set<Mapping>),
+    Absent,
+}
+
+pub tracked struct EntryOwner<C: PageTableConfig> {
+    pub kind: EntryOwnerKind<C>,
+    /// The incoming node PTE owns Some(token). While an owning Frame holds the
+    /// this field is None.
+    pub node_permission: Option<FracMetadataPerm>,
+    pub ghost path: TreePath<NR_ENTRIES>,
+    pub ghost parent_level: PagingLevel,
+}
+
+impl<C: PageTableConfig> EntryOwner<C> {
+    /// Transfers a removed PTE's counted reference back to its owning Frame.
+    pub proof fn tracked_take_node_permission(tracked &mut self) -> (tracked permission:
+        FracMetadataPerm)
+        requires
+            old(self).node_permission is Some,
+        ensures
+            permission == old(self).node_permission->0,
+            *final(self) == (EntryOwner { node_permission: None, ..*old(self) }),
+    {
+        self.node_permission.tracked_take()
+    }
+
+    #[verifier::inline]
+    pub open spec fn is_node(self) -> bool {
+        self.kind is Node
+    }
+
+    #[verifier::inline]
+    pub open spec fn is_frame(self) -> bool {
+        self.kind is Frame
+    }
+
+    #[verifier::inline]
+    pub open spec fn is_absent(self) -> bool {
+        self.kind is Absent
+    }
+
+    #[verifier::inline]
+    pub open spec fn is_borrowed(self) -> bool {
+        self.kind is Borrowed
+    }
+
+    pub open spec fn node(self) -> NodeOwner<C> {
+        self.kind->Node_0
+    }
+
+    pub open spec fn frame(self) -> FrameEntryOwner<C> {
+        self.kind->Frame_0
+    }
+
+    pub open spec fn frame_permission(self) -> Option<C::Perm>
+        recommends
+            self.is_frame(),
+    {
+        self.frame().permission
+    }
+
+    pub open spec fn frame_is_tracked(self) -> bool
+        recommends
+            self.is_frame(),
+    {
+        self.frame_permission() is Some
+    }
+
+    pub open spec fn borrowed(self) -> Set<Mapping> {
+        self.kind->Borrowed_0
+    }
+
+    pub open spec fn new_absent(path: TreePath<NR_ENTRIES>, parent_level: PagingLevel) -> Self {
+        EntryOwner { kind: EntryOwnerKind::Absent, node_permission: None, path, parent_level }
+    }
+
+    pub open spec fn new_frame(
+        paddr: Paddr,
+        path: TreePath<NR_ENTRIES>,
+        parent_level: PagingLevel,
+        prop: PageProperty,
+        permission: Option<C::Perm>,
+    ) -> Self {
+        EntryOwner {
+            kind: EntryOwnerKind::Frame(FrameEntryOwner { mapped_pa: paddr, prop, permission }),
+            node_permission: None,
+            path,
+            parent_level,
+        }
+    }
+
+    pub open spec fn new_node(node: NodeOwner<C>, path: TreePath<NR_ENTRIES>) -> Self {
+        EntryOwner {
+            kind: EntryOwnerKind::Node(node),
+            node_permission: None,
+            path,
+            parent_level: (node.level() + 1) as PagingLevel,
+        }
+    }
+
+    pub proof fn tracked_new_absent(
+        path: TreePath<NR_ENTRIES>,
+        parent_level: PagingLevel,
+    ) -> tracked Self
+        returns
+            Self::new_absent(path, parent_level),
+    {
+        Self { kind: EntryOwnerKind::Absent, node_permission: None, path, parent_level }
+    }
+
+    pub proof fn tracked_take_node(tracked &mut self) -> (tracked res: NodeOwner<C>)
+        requires
+            old(self).kind is Node,
+        ensures
+            res == old(self).node(),
+            *final(self) == (EntryOwner { kind: EntryOwnerKind::Absent, ..*old(self) }),
+    {
+        let tracked mut tmp = EntryOwnerKind::Absent;
+        tracked_swap(&mut self.kind, &mut tmp);
+        match tmp {
+            EntryOwnerKind::Node(node) => node,
+            _ => { proof_from_false() },
+        }
+    }
+
+    pub proof fn tracked_put_node(tracked &mut self, tracked node: NodeOwner<C>)
+        ensures
+            *final(self) == (EntryOwner { kind: EntryOwnerKind::Node(node), ..*old(self) }),
+    {
+        self.kind = EntryOwnerKind::Node(node);
+    }
+
+    pub proof fn tracked_borrow_node(tracked &self) -> (tracked res: &NodeOwner<C>)
+        requires
+            self.kind is Node,
+        ensures
+            *res == self.node(),
+    {
+        match self.kind {
+            EntryOwnerKind::Node(ref node) => node,
+            _ => { proof_from_false() },
+        }
+    }
+
+    pub proof fn tracked_borrow_mut_node(tracked &mut self) -> (tracked res: &mut NodeOwner<C>)
+        requires
+            old(self).kind is Node,
+        ensures
+            *res == old(self).node(),
+            *final(self) == (EntryOwner { kind: EntryOwnerKind::Node(*final(res)), ..*old(self) }),
+    {
+        match self.kind {
+            EntryOwnerKind::Node(ref mut node) => node,
+            _ => { proof_from_false() },
+        }
+    }
+
+    pub proof fn tracked_set_frame_prop(tracked &mut self, prop: PageProperty)
+        requires
+            old(self).kind is Frame,
+        ensures
+            *final(self) == (EntryOwner {
+                kind: EntryOwnerKind::Frame(FrameEntryOwner { prop, ..old(self).frame() }),
+                ..*old(self)
+            }),
+    {
+        let tracked mut old_kind = EntryOwnerKind::Absent;
+        tracked_swap(&mut self.kind, &mut old_kind);
+        match old_kind {
+            EntryOwnerKind::Frame(frame) => {
+                let ghost mapped_pa = frame.mapped_pa;
+                let tracked permission = frame.permission;
+                self.kind = EntryOwnerKind::Frame(FrameEntryOwner { mapped_pa, prop, permission });
+            },
+            _ => proof_from_false(),
+        }
+    }
+
+    pub proof fn tracked_take_frame_permission(tracked &mut self) -> (tracked res: Option<C::Perm>)
+        requires
+            old(self).is_frame(),
+        ensures
+            res == old(self).frame_permission(),
+            *final(self) == (EntryOwner {
+                kind: EntryOwnerKind::Frame(
+                    FrameEntryOwner { permission: None, ..old(self).frame() },
+                ),
+                ..*old(self)
+            }),
+    {
+        let tracked mut old_kind = EntryOwnerKind::Absent;
+        tracked_swap(&mut self.kind, &mut old_kind);
+        match old_kind {
+            EntryOwnerKind::Frame(frame) => {
+                let ghost mapped_pa = frame.mapped_pa;
+                let ghost prop = frame.prop;
+                let tracked permission = frame.permission;
+                self.kind = EntryOwnerKind::Frame(
+                    FrameEntryOwner { mapped_pa, prop, permission: None },
+                );
+                permission
+            },
+            _ => proof_from_false(),
+        }
+    }
+
+    pub proof fn tracked_put_frame_permission(
+        tracked &mut self,
+        tracked permission: Option<C::Perm>,
+    )
+        requires
+            old(self).is_frame(),
+            old(self).frame_permission() is None,
+        ensures
+            *final(self) == (EntryOwner {
+                kind: EntryOwnerKind::Frame(FrameEntryOwner { permission, ..old(self).frame() }),
+                ..*old(self)
+            }),
+    {
+        let tracked mut old_kind = EntryOwnerKind::Absent;
+        tracked_swap(&mut self.kind, &mut old_kind);
+        match old_kind {
+            EntryOwnerKind::Frame(frame) => {
+                let ghost mapped_pa = frame.mapped_pa;
+                let ghost prop = frame.prop;
+                self.kind = EntryOwnerKind::Frame(FrameEntryOwner { mapped_pa, prop, permission });
+            },
+            _ => proof_from_false(),
+        }
+    }
+
+    pub proof fn tracked_new_frame(
+        paddr: Paddr,
+        path: TreePath<NR_ENTRIES>,
+        parent_level: PagingLevel,
+        prop: PageProperty,
+        tracked permission: Option<C::Perm>,
+    ) -> tracked Self
+        returns
+            Self::new_frame(paddr, path, parent_level, prop, permission),
+    {
+        Self {
+            kind: EntryOwnerKind::Frame(FrameEntryOwner { mapped_pa: paddr, prop, permission }),
+            node_permission: None,
+            path,
+            parent_level,
+        }
+    }
+
+    /// Creates an untracked physical mapping without counted metadata ownership.
+    /// The mapped address may belong to ordinary RAM or MMIO.
+    /// The actual mapping correctness is guaranteed by the caller's `unsafe` contract.
+    ///
+    /// The `requires` reflect properties established by `collect_largest_pages` and the page-table
+    /// configuration model, allowing this checked constructor to build an invariant-safe,
+    /// untracked entry owner.
+    pub proof fn tracked_new_untracked_frame(
+        paddr: Paddr,
+        parent_level: PagingLevel,
+        prop: PageProperty,
+    ) -> (tracked res: Self)
+        requires
+            valid_frame_paddr(paddr),
+            1 <= parent_level <= C::NR_LEVELS,
+            paddr % page_size::<C>(parent_level) == 0,
+            paddr + page_size::<C>(parent_level) <= MAX_PADDR,
+            C::raw_item_well_formed((paddr, parent_level, prop, Tracked(None))),
+            C::E::new_page_req(paddr, parent_level, prop),
+        ensures
+            res.is_frame(),
+            res.frame().mapped_pa == paddr,
+            res.frame().prop == prop,
+            !res.frame_is_tracked(),
+            res.parent_level == parent_level,
+            res.path.inv(),
+            res.inv(),
+            crate::mm::page_table::Child::<C>::Frame(paddr, parent_level, prop).wf(res),
+    {
+        C::lemma_paging_consts_properties();
+        C::lemma_page_table_config_constant_properties();
+        Self {
+            kind: EntryOwnerKind::Frame(
+                FrameEntryOwner { mapped_pa: paddr, prop, permission: None },
+            ),
+            node_permission: None,
+            path: TreePath(Seq::empty()),
+            parent_level,
+        }
+    }
+
+    pub open spec fn match_pte(self, pte: C::E, parent_level: PagingLevel) -> bool {
+        &&& valid_frame_paddr(pte.paddr())
+        &&& !pte.is_present() ==> {
+            &&& self.is_absent()
+            &&& parent_level > 1 ==> !pte.is_last(parent_level)
+        }
+        &&& pte.is_present() && !pte.is_last(parent_level) ==> {
+            &&& self.is_node()
+            &&& meta_to_frame(self.node().slot_vaddr()) == pte.paddr()
+        }
+        &&& pte.is_present() && pte.is_last(parent_level) ==> {
+            &&& self.is_frame()
+            &&& self.frame().mapped_pa == pte.paddr()
+            &&& self.frame().prop == pte.prop()
+        }
+    }
+
+    /// PTE-shape constraint for a borrowed / translation-only entry. The
+    /// PTE must be a node-PTE (present and non-leaf at `parent_level`),
+    /// since the borrowed sub-table is accessed only via the MMU walk.
+    /// Unlike [`match_pte`], we do *not* pin the PTE's target paddr to
+    /// any owned `NodeOwner` — the sub-table is owned by a different
+    /// page-table configuration and the embedding doesn't track its
+    /// address here.
+    pub open spec fn borrowed_match_pte(self, pte: C::E, parent_level: PagingLevel) -> bool {
+        &&& self.is_borrowed()
+        &&& valid_frame_paddr(pte.paddr())
+        &&& pte.is_present()
+        &&& !pte.is_last(parent_level)
+    }
+
+    pub proof fn huge_frame_split_child_at(self, regions: MetaRegionOwners, idx: usize)
+        requires
+            self.inv(),
+            self.is_frame(),
+            regions.inv(),
+            1 < self.parent_level <= C::NR_LEVELS,
+            idx < NR_ENTRIES,
+        ensures
+            self.frame().mapped_pa + idx * page_size::<C>((self.parent_level - 1) as PagingLevel)
+                < MAX_PADDR,
+            ((self.frame().mapped_pa + idx * page_size::<C>(
+                (self.parent_level - 1) as PagingLevel,
+            )) as Paddr) % page_size::<C>((self.parent_level - 1) as PagingLevel) == 0,
+            ((self.frame().mapped_pa + idx * page_size::<C>(
+                (self.parent_level - 1) as PagingLevel,
+            )) as Paddr) + page_size::<C>((self.parent_level - 1) as PagingLevel) <= MAX_PADDR,
+            ((self.frame().mapped_pa + idx * page_size::<C>(
+                (self.parent_level - 1) as PagingLevel,
+            )) as Paddr) % PAGE_SIZE == 0,
+    {
+        C::lemma_paging_consts_properties();
+        C::lemma_page_table_config_constant_properties();
+        let pa = self.frame().mapped_pa;
+        let child_pa = (pa + idx * page_size::<C>((self.parent_level - 1) as PagingLevel)) as Paddr;
+        lemma_page_size_spec_values::<C>();
+        vstd_extra::external::ilog2::lemma_usize_ilog2_to32();
+        lemma_page_size_base::<C>();
+        vstd::arithmetic::power2::lemma2_to64();
+        if self.parent_level == 2 {
+            lemma_page_size_divides::<C>(1, 2);
+            assert(child_pa + page_size::<C>(1) <= MAX_PADDR) by {
+                assert(idx * 4096 + 4096 <= 2097152);
+            };
+        } else {
+            lemma_va_align_page_size::<C>(pa, 2);
+            vstd::arithmetic::div_mod::lemma_mod_multiples_basic(
+                idx as int,
+                page_size::<C>(2) as int,
+            );
+            vstd::arithmetic::div_mod::lemma_add_mod_noop(
+                pa as int,
+                (idx * page_size::<C>(2)) as int,
+                page_size::<C>(2) as int,
+            );
+        }
+    }
+
+    pub open spec fn metaregion_sound(self, regions: MetaRegionOwners) -> bool {
+        if self.is_node() {
+            let idx = frame_to_index(self.meta_slot_paddr()->0);
+            &&& regions.ref_count(idx) != REF_COUNT_UNUSED
+            &&& 0 < regions.ref_count(idx) <= REF_COUNT_MAX
+            &&& regions.slot_owners[idx].slot_vaddr == self.node().slot_vaddr()
+            &&& regions.slots[idx].value().wf(regions.slot_owners[idx])
+            &&& regions.slot_owners[idx].paths_in_pt == set![self.path]
+            &&& self.node().metaregion_sound_node(regions)
+        } else if self.is_frame() {
+            let idx = frame_to_index(self.meta_slot_paddr()->0);
+            &&& regions.slots.contains_key(idx)
+            &&& regions.slots[idx].addr() == index_to_meta(idx)
+            &&& regions.slots[idx].is_init()
+            &&& regions.slots[idx].value().wf(regions.slot_owners[idx])
+            &&& self.frame_is_tracked() ==> {
+                &&& regions.slot_owners[idx].usage !is PageTable
+                &&& 0 < regions.ref_count(idx) <= REF_COUNT_MAX
+                &&& regions.slot_owners[idx].paths_in_pt.contains(self.path)
+            }
+            &&& C::perm_well_formed_with_region(
+                self.frame().mapped_pa,
+                Tracked(self.frame_permission()),
+                regions,
+            )
+        } else {
+            true
+        }
+    }
+
+    /// An active page-table node cannot occupy a metadata slot whose refcount is
+    /// still `REF_COUNT_UNUSED`.
+    pub proof fn lemma_active_entry_not_in_free_pool(
+        entry: Self,
+        regions: MetaRegionOwners,
+        free_idx: int,
+    )
+        requires
+            regions.inv(),
+            entry.inv(),
+            entry.is_node(),
+            entry.metaregion_sound(regions),
+            regions.slots.contains_key(free_idx),
+            regions.ref_count(free_idx) == REF_COUNT_UNUSED,
+        ensures
+            frame_to_index(entry.meta_slot_paddr()->0) != free_idx,
+    {
+        let idx = frame_to_index(entry.meta_slot_paddr().unwrap());
+        if idx == free_idx {
+            assert(false);
+        }
+    }
+
+    pub open spec fn meta_slot_paddr(self) -> Option<Paddr> {
+        if self.is_node() {
+            Some(meta_to_frame(self.node().slot_vaddr()))
+        } else if self.is_frame() {
+            Some(self.frame().mapped_pa)
+        } else {
+            None
+        }
+    }
+
+    /// Physical-slot exclusion for owning entries; raw mappings impose no exclusion.
+    pub open spec fn meta_slot_paddr_neq(self, other: Self) -> bool {
+        (self.is_node() || (self.is_frame() && self.frame_is_tracked())) && (other.is_node() || (
+        other.is_frame() && other.frame_is_tracked())) ==> {
+            self.meta_slot_paddr() is Some ==> other.meta_slot_paddr() is Some
+                ==> self.meta_slot_paddr()->0 != other.meta_slot_paddr()->0
+        }
+    }
+
+    /// An untracked mapping needs no counted ownership of its physical slot.
+    pub proof fn lemma_untracked_frame_metaregion_sound(self, regions: MetaRegionOwners)
+        requires
+            self.inv(),
+            self.is_frame(),
+            !self.frame_is_tracked(),
+            regions.inv(),
+        ensures
+            self.metaregion_sound(regions),
+    {
+        regions.lemma_contains_valid_frame_paddr(self.frame().mapped_pa);
+        C::lemma_none_perm_well_formed(self.frame().mapped_pa, regions);
+    }
+
+    /// `metaregion_sound` transfers when `slot_owners` matches and `slots` is a superset.
+    /// For nodes: only `slot_owners` matters. For frames: `slots.contains_key` and `slots[idx]`
+    /// must be preserved, which holds when `slots` is a superset with values unchanged.
+    pub proof fn metaregion_sound_slot_owners_only(self, r0: MetaRegionOwners, r1: MetaRegionOwners)
+        requires
+            self.inv(),
+            self.metaregion_sound(r0),
+            r0.slot_owners == r1.slot_owners,
+            forall|k: int| r0.slots.contains_key(k) ==> #[trigger] r1.slots.contains_key(k),
+            forall|k: int| r0.slots.contains_key(k) ==> r0.slots[k] == #[trigger] r1.slots[k],
+        ensures
+            self.metaregion_sound(r1),
+    {
+        if self.is_frame() {
+            let pa = self.frame().mapped_pa;
+            let idx = frame_to_index(pa);
+            assert(r0.slots[idx] == r1.slots[idx]);
+            assert(r0.slot_owners[idx].metadata_perm.id()
+                == r1.slot_owners[idx].metadata_perm.id());
+            C::lemma_perm_well_formed_with_region_preserved(
+                pa,
+                Tracked(self.frame_permission()),
+                r0,
+                r1,
+            );
+        }
+    }
+
+    /// Updating frame paths preserves metadata access and node ownership paths.
+    pub proof fn lemma_metaregion_sound_frame_paths_changed(
+        self,
+        r0: MetaRegionOwners,
+        r1: MetaRegionOwners,
+    )
+        requires
+            self.inv(),
+            self.metaregion_sound(r0),
+            r0.inv(),
+            r1.inv(),
+            r0.slots == r1.slots,
+            forall|i: int|
+                #![trigger r1.slot_owners[i]]
+                r0.slot_owners.contains_key(i) ==> {
+                    &&& r1.slot_owners[i].same_permissions(r0.slot_owners[i])
+                    &&& r1.slot_owners[i].usage == r0.slot_owners[i].usage
+                    &&& r1.slot_owners[i].slot_vaddr == r0.slot_owners[i].slot_vaddr
+                    &&& r0.slot_owners[i].paths_in_pt.subset_of(r1.slot_owners[i].paths_in_pt)
+                    &&& r0.slot_owners[i].usage is PageTable ==> r1.slot_owners[i].paths_in_pt
+                        == r0.slot_owners[i].paths_in_pt
+                },
+        ensures
+            self.metaregion_sound(r1),
+    {
+        if self.is_frame() {
+            C::lemma_perm_well_formed_with_region_preserved(
+                self.frame().mapped_pa,
+                Tracked(self.frame_permission()),
+                r0,
+                r1,
+            );
+        }
+    }
+
+    /// Changing only a leaf PTE's page properties preserves its relationship
+    /// to the metadata region. The counting permission, physical address and
+    /// page-table path remain unchanged.
+    pub proof fn metaregion_sound_frame_prop_changed(self, other: Self, regions: MetaRegionOwners)
+        requires
+            regions.inv(),
+            self.inv(),
+            other.inv(),
+            self.is_frame(),
+            other.is_frame(),
+            self.metaregion_sound(regions),
+            other.frame().mapped_pa == self.frame().mapped_pa,
+            other.path == self.path,
+            other.parent_level == self.parent_level,
+            other.frame_permission() == self.frame_permission(),
+            other.frame_is_tracked() == self.frame_is_tracked(),
+        ensures
+            other.metaregion_sound(regions),
+    {
+    }
+
+    /// If `metaregion_sound(r0)` holds and `r1` differs from `r0` only at one slot index
+    /// that this entry does not reference, then `metaregion_sound(r1)` also holds.
+    pub proof fn lemma_metaregion_sound_one_slot_changed(
+        self,
+        r0: MetaRegionOwners,
+        r1: MetaRegionOwners,
+        changed_idx: int,
+    )
+        requires
+            self.inv(),
+            self.metaregion_sound(r0),
+            forall|i: int|
+                #![trigger r1.slot_owners[i]]
+                i != changed_idx ==> r0.slot_owners[i] == r1.slot_owners[i],
+            r0.slot_owners.dom() =~= r1.slot_owners.dom(),
+            // slots preserved at the entry's index (frames read from slots)
+            forall|k: int| r0.slots.contains_key(k) ==> #[trigger] r1.slots.contains_key(k),
+            forall|k: int| r0.slots.contains_key(k) ==> r0.slots[k] == #[trigger] r1.slots[k],
+            self.is_node() || (self.is_frame() && self.frame_is_tracked())
+                ==> self.meta_slot_paddr() is Some ==> frame_to_index(self.meta_slot_paddr()->0)
+                != changed_idx,
+            self.meta_slot_paddr() is Some && frame_to_index(self.meta_slot_paddr()->0)
+                == changed_idx ==> r1.inv(),
+        ensures
+            self.metaregion_sound(r1),
+    {
+        C::lemma_paging_consts_properties();
+        C::lemma_page_table_config_constant_properties();
+        if self.is_frame() && !self.frame_is_tracked() && frame_to_index(self.meta_slot_paddr()->0)
+            == changed_idx {
+            self.lemma_untracked_frame_metaregion_sound(r1);
+        } else if self.meta_slot_paddr() is Some {
+            let idx = frame_to_index(self.meta_slot_paddr()->0);
+            assert(idx != changed_idx);
+            assert(r0.slot_owners[idx] == r1.slot_owners[idx]);
+            assert(r0.slots.contains_key(idx));
+            assert(r1.slots.contains_key(idx));
+            assert(r0.slots[idx] == r1.slots[idx]);
+            if self.is_frame() {
+                assert(r0.slot_owners[idx].metadata_perm.id()
+                    == r1.slot_owners[idx].metadata_perm.id());
+                C::lemma_perm_well_formed_with_region_preserved(
+                    self.frame().mapped_pa,
+                    Tracked(self.frame_permission()),
+                    r0,
+                    r1,
+                );
+            }
+            if self.is_node() {
+                assert(self.node().meta_wf(r1));
+                assert(self.node().metaregion_sound_node(r1));
+            }
+        }
+    }
+}
+
+impl<C: PageTableConfig> Inv for EntryOwner<C> {
+    /// Structural invariant of an entry owner.
+    open spec fn inv(self) -> bool {
+        &&& self.is_node() ==> {
+            &&& self.node().inv()
+            &&& self.parent_level == self.node().level() + 1
+        }
+        &&& self.is_frame() ==> {
+            &&& 1 <= self.parent_level <= C::NR_LEVELS
+            &&& valid_frame_paddr(self.frame().mapped_pa)
+            &&& self.frame().mapped_pa % page_size::<C>(self.parent_level) == 0
+            &&& self.frame().mapped_pa + page_size::<C>(self.parent_level) <= MAX_PADDR
+            &&& C::raw_item_well_formed(
+                (
+                    self.frame().mapped_pa,
+                    self.parent_level,
+                    self.frame().prop,
+                    Tracked(self.frame_permission()),
+                ),
+            )
+            &&& C::E::new_page_req(self.frame().mapped_pa, self.parent_level, self.frame().prop)
+        }
+        &&& self.node_permission matches Some(permission) ==> {
+            &&& self.is_node()
+            &&& self.node().matches_permission(permission)
+        }
+        &&& self.path.inv()
+    }
+}
+
+impl<'a, 'rcu, C: PageTableConfig> OwnerOf for Entry<'a, 'rcu, C> {
+    type Owner = EntryOwner<C>;
+
+    open spec fn wf(self, owner: Self::Owner) -> bool {
+        &&& self.idx < NR_ENTRIES
+        &&& owner.match_pte(self.pte, owner.parent_level)
+    }
+}
+
+} // verus!

@@ -1,0 +1,30 @@
+{
+  "last_successful_scan_at": null,
+  "pending": [],
+  "last_trial": {
+    "started_at": "2026-11-16T09:42:43.184203+00:00",
+    "mode": "single-case-trial",
+    "discovery_query": "repo:asterinas/vostd updated:>=2026-08-18; first 15 results ordered by updated descending",
+    "full_scan_completed": false,
+    "previewed_prs": [
+      931,
+      921,
+      916
+    ],
+    "fully_inspected_prs": [
+      931
+    ],
+    "added_samples": [
+      "pr-931-79810bc1eeb5"
+    ],
+    "added_issue_count": 1,
+    "excluded_feedback": [
+      {
+        "pr_number": 931,
+        "comment_id": "4582813072",
+        "reason": "Explicitly informational, not a change request."
+      }
+    ],
+    "notes": "Merge-conflict reminder and acknowledgement excluded as workflow discussion. Other previewed PRs were not fully adjudicated and remain eligible for future scans."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-931-79810bc1eeb5",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-931-79810bc1eeb5:review-comment-4582797497",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The verification change rewrites an existing to_flat_binary comment instead of preserving the original source documentation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/libs/linux-bzimage/builder/src/lib.rs",
+          "start_line": 121,
+          "end_line": 122
+        }
+      ],
+      "rationale": "The base contains the original two-line comment about mem_size exceeding file_size and zero filling. The selected head replaces it with an explanation about overlapping segments while leaving the adjacent executable resize/copy logic unchanged. The preserve-exec-code guideline at this same head requires existing comments and rustdoc to be preserved verbatim during proof work, with apparent documentation corrections handled separately. Review comment 4582797497 explicitly requests preserving the comment. Subsequent commit d30c271708585a0ae89b5eafd1dd795bc98281a9 restores the original wording. This label concerns the scope and preservation rule, not a claim that the replacement comment is semantically false.",
+      "source_evidence": "before/ostd/libs/linux-bzimage/builder/src/lib.rs\n98:                 program.virtual_addr() as usize,\n99:             )));\n100: \n101:             // Note that `mem_size` can be greater than `file_size`. The remaining part must be\n102:             // filled with zeros.\n103:             let mem_length = program.mem_size() as usize;\n104:             if bin.len() < dst_file_offset + mem_length {\n105:                 bin.resize(dst_file_offset + mem_length, 0);\n106:             }\n107: \n108:             // Copy the bytes in the `file_size` part.\n\nafter/ostd/libs/linux-bzimage/builder/src/lib.rs\n118:                 program.virtual_addr() as usize,\n119:             )));\n120: \n121:             // `mem_size` can exceed `file_size`. Only newly appended bytes are zeroed;\n122:             // an overlapping segment's memory-only tail keeps existing bytes.\n123:             let mem_length = program.mem_size() as usize;\n124:             if bin.len() < dst_file_offset + mem_length {\n125:                 bin.resize(dst_file_offset + mem_length, 0);\n126:             }\n127: \n128:             // Copy the bytes in the `file_size` part.",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/931#discussion_r4582797497",
+      "related_comment_ids": [
+        "4582797497"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4582797497",
+          "url": "https://github.com/asterinas/vostd/pull/931#discussion_r4582797497",
+          "commit_id": "79810bc1eeb5a65acb4ec81370d0671253ab48c9"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared base/head code, pinned preserve-exec-code guideline, full PR discussion, and subsequent restoration commit d30c271708585a0ae89b5eafd1dd795bc98281a9."
+    }
+  ]
+}
