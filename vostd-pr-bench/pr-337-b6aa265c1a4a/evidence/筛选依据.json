@@ -1,0 +1,25 @@
+{
+  "number": 337,
+  "title": "Add Guard traits without implementation and make rwarc verifiable.",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Add Guard traits without implementation and make rwarc verifiable.",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/337#issuecomment-4021666901",
+      "excerpt": "ompile with the `external_type_specification` trick. However, to prove `RwArc`, we have more things to do with `RwLock`. I will leave this in a future PR.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "d; type ReadGuard: /*AsAtomicModeGuard +*/GuardTransfer; /* #[verus_verify] #[verifier::external] #[verifier::external_type_specification] #[verifier::external_body] pub struct ExPreemptDisabled(PreemptDisabled); #[verus_ve",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

@@ -10,7 +10,6 @@
   "base_sha": "d73d234f3d5a5b1b1519ff25e45e3864c6f7353b",
   "head_sha": "8943e8f25420156b3d3a1485729278dfc2cae89c",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "Cargo.lock",

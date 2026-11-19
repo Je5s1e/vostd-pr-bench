@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-773-7b2dc586f7fe",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-773-7b2dc586f7fe:review-comment-4024295801",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The `usize::div_ceil` external-specification example expresses an exact return value with a named result and `ensures` instead of the repository's required `returns` form.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "docs/coding-guidelines/proof-engineering.md",
+          "start_line": 38,
+          "end_line": 42
+        }
+      ],
+      "rationale": "The same reviewed revision's `use-returns-for-exact-results` rule says exact results must use `returns expr`, while `ensures` is reserved for other result or state properties and unused named return binders should be omitted. The new `div_ceil` example contradicts that rule by declaring `(r: usize)` solely for `ensures r == ...`. The collaborator reviewer requests `returns`, and the immediate `refine` commit removes the binder, changes the clause to `returns`, adds the required `as usize` result cast, and extends the rule text to state that it also applies to `assume_specification`. The later LGTM confirms the corrected documentation was accepted.",
+      "source_evidence": "after/docs/coding-guidelines/proof-engineering.md\n38: pub assume_specification[ usize::div_ceil ](self_: usize, rhs: usize) -> (r: usize)\n39:     requires rhs > 0\n40:     ensures r == (self_ + rhs - 1) / (rhs as int)\n41:     opens_invariants none\n42:     no_unwind when rhs > 0;\n\nafter/docs/coding-guidelines/maintainability.md\n33: ### Use returns for exact results\n35: <!-- guideline: use-returns-for-exact-results -->\n37: Use `returns expr` for an exact return value and `ensures` for other result or\n38: state properties. Omit unused named return binders and unit return declarations",
+      "rule_ids": [
+        "use-returns-for-exact-results"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/773#discussion_r4024295801",
+      "related_comment_ids": [
+        "4024295801"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4024295801",
+          "url": "https://github.com/asterinas/vostd/pull/773#discussion_r4024295801",
+          "commit_id": "7b2dc586f7fed23c43ec2a27a4da2496fa4d726e"
+        }
+      ],
+      "verification": "source-only; documentation examples were not compiled. Checked the fixed historical source, the same-revision rule text, complete archived/live discussion, and the immediate accepted `refine` commit that rewrites the example with `returns`."
+    }
+  ]
+}

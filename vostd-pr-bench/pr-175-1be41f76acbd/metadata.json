@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-175-1be41f76acbd",
+  "pr_number": 175,
+  "title": "Prove rcu tree spec",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/175",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "63f6a052f73706b2db5282e46ef75f7da96d3c63",
+  "head_sha": "1be41f76acbd78c3a1bd88c5efc41246814631d7",
+  "base_method": "GitHub compare confirms 63f6a052f73706b2db5282e46ef75f7da96d3c63 is the merge-base of the archived base and final head 1be41f76acbd78c3a1bd88c5efc41246814631d7; the human issue comment and fixed source confirm the protocol_lock_start defect remains in this final head",
+  "archive_base_sha": "63f6a052f73706b2db5282e46ef75f7da96d3c63",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/rcu/cpu.rs",
+    "lock-protocol/src/spec/rcu/tree.rs",
+    "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+    "lock-protocol/src/spec/rcu/types.rs",
+    "lock-protocol/src/spec/rw/tree.rs",
+    "lock-protocol/src/spec/utils.rs",
+    "vstd_extra/src/map_extra.rs"
+  ],
+  "diff_sha256": "68ee7247a79692fbe92620dc8239530f4833627dea876738049905570060c8ef",
+  "versions": {
+    "before": {
+      "commit": "63f6a052f73706b2db5282e46ef75f7da96d3c63",
+      "file_count": 9,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "1be41f76acbd78c3a1bd88c5efc41246814631d7",
+      "file_count": 9,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:39:14.017551+00:00",
+    "reviewed_at": "2026-11-18T14:06:42Z",
+    "upstream_updated_at": "2025-08-08T02:17:07Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/175",
+      "https://github.com/asterinas/vostd/pull/175#issuecomment-3158423715",
+      "https://github.com/asterinas/vostd/pull/175#issuecomment-3163063975",
+      "https://github.com/asterinas/vostd/pull/185"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00175"
+  }
+}

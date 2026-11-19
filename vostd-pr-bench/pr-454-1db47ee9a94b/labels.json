@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-454-1db47ee9a94b",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-454-1db47ee9a94b:issue-comment-4537882561",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`cursor_mut_at` requires every non-member frame's slot permission to be in the global region map, excluding valid frames whose permission is owned by another linked list, a `UniqueFrame`, or a page-table node.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "start_line": 432,
+          "end_line": 442
+        }
+      ],
+      "rationale": "The method is documented to return a cursor when the frame belongs to this list and otherwise fail. For a safe frame not present in `owner.list`, however, the selected contract requires `regions.slots` to contain its slot and requires its `in_list` permission value to be zero. The repository's ownership model intentionally moves slot permissions out of `regions` into the owning object: this list's members live in `owner.perms`, and other linked lists, `UniqueFrame`s, and page-table nodes may likewise hold their permissions. Such valid non-member frames therefore cannot satisfy the precondition, so callers cannot invoke the method to obtain the documented `None`; the proof excludes those cases rather than establishing behavior for them. Human reviewers rikosellic and SNoAnd explain this permission split, and SNoAnd explicitly concludes the final proof is vacuous for those three classes.",
+      "source_evidence": "after/ostd/src/mm/frame/linked_list.rs\n406: /// Gets a cursor at the specified frame if the frame is in the list.\n408: /// This method fails if the frame is not in the list.\n432: has_safe_slot(frame)\n433:     && !(exists|i: int| 0 <= i < owner.list.len() && owner.list[i].paddr == frame)\n434:     ==> old(regions).slots.contains_key(frame_to_index(frame)),\n435: has_safe_slot(frame)\n436:     && !(exists|i: int| 0 <= i < owner.list.len() && owner.list[i].paddr == frame)\n437:     ==> old(regions).slot_owners[frame_to_index(frame)].inner_perms.in_list.is_for(\n438:         old(regions).slots[frame_to_index(frame)].mem_contents().value().in_list,\n439:     ),\n440: has_safe_slot(frame)\n441:     && !(exists|i: int| 0 <= i < owner.list.len() && owner.list[i].paddr == frame)\n442:     ==> old(regions).slot_owners[frame_to_index(frame)].inner_perms.in_list.value() == 0,\n\nafter/ostd/specs/mm/frame/linked_list/linked_list_owners.rs\n224: pub tracked struct LinkedListOwner<...> {\n225:     pub list: Seq<LinkOwner>,\n226:     pub perms: Map<int, ...>,\n\nThe body itself branches to `owner.perms` for members (lines 458-463) and to `regions.slots` for all non-members (lines 464-468), exposing the missing ownership source for frames held by other owners.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4537882561",
+      "related_comment_ids": [
+        "3252020451",
+        "4516225147",
+        "4516892458",
+        "4537882561"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3252020451",
+          "url": "https://github.com/asterinas/vostd/pull/454#discussion_r3252020451",
+          "commit_id": "c531288040e00949dcf05ffdef82fb4f76c9f67d"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4516225147",
+          "url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4516225147",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4516892458",
+          "url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4516892458",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4537882561",
+          "url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4537882561",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Read the complete archived and current remote discussion, distinguished the earlier bot comment from later human confirmation, inspected the final unmerged head's contract, owner permission maps, and branch logic, and confirmed the issue remains in the fixed snapshot."
+    }
+  ]
+}

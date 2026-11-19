@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-615-b995aae1ffdb",
+  "pr_number": 615,
+  "title": "Prove axiom in vm_space_embedding.rs",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/615",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "ab124435bbc85dae21c90079f39d7e6d76aafb95",
+  "head_sha": "b995aae1ffdbd4bf67d730e91013f04b82647f66",
+  "base_method": "git merge-base(remote PR base ab124435bbc85dae21c90079f39d7e6d76aafb95, original review commit b995aae1ffdbd4bf67d730e91013f04b82647f66); both inline comments and the CHANGES_REQUESTED review are anchored to this commit, and final commit 023860d44e94591b08f572e6c8b74798bcf9726c applies the requested renames",
+  "archive_base_sha": "ab124435bbc85dae21c90079f39d7e6d76aafb95",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/vm_space_embedding.rs"
+  ],
+  "diff_sha256": "a8a3d07bb1859f3983e396975e829f53dd0435cb17b0183287011a2e5fbd068c",
+  "versions": {
+    "before": {
+      "commit": "ab124435bbc85dae21c90079f39d7e6d76aafb95",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "d3ed58403c0f281a6af51befc8a9d44d4d582ee4",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "b995aae1ffdbd4bf67d730e91013f04b82647f66",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "d3ed58403c0f281a6af51befc8a9d44d4d582ee4",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:25:25.297568+00:00",
+    "reviewed_at": "2026-07-07T08:52:07Z",
+    "upstream_updated_at": "2026-07-22T08:38:26Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/615",
+      "https://github.com/asterinas/vostd/pull/615#discussion_r3534950852",
+      "https://github.com/asterinas/vostd/pull/615#discussion_r3534953281",
+      "https://github.com/asterinas/vostd/pull/615#pullrequestreview-4643307189",
+      "https://github.com/asterinas/vostd/pull/615#issuecomment-4901943075",
+      "https://github.com/asterinas/vostd/pull/615#pullrequestreview-4643544079"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "b995aae1ffdbd4bf67d730e91013f04b82647f66",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/b995aae1ffdbd4bf67d730e91013f04b82647f66/AGENTS.md#L27-L33"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00615"
+  }
+}

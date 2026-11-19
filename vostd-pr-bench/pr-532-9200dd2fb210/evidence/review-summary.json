@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 7,
+  "inline_review_comment_count": 3,
+  "review_count": 3,
+  "core_lesson": "泛型签名并不能掩盖不变量中写死的架构常量",
+  "category": "规约与模型",
+  "all_content_unadjudicated": true
+}

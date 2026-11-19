@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-614-0f6d3afea7b8",
+  "pr_number": 614,
+  "title": "Prove page table child permission axiom",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/614",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "86da74b574fdaecbdc3fc9a20ad0ec635314f050",
+  "head_sha": "0f6d3afea7b8d2042da129656703df122c5a7cc7",
+  "base_method": "git merge-base(1fbfca7b12d0f91c3ed143fed296be6c5bf6f665, 0f6d3afea7b8d2042da129656703df122c5a7cc7); historical review head selected from archived and remote PR #614 discussion",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/frame.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs"
+  ],
+  "diff_sha256": "84ec8d31dba2f39176f27791db46c248b77cecfe64816f8b574c87fb05137044",
+  "versions": {
+    "before": {
+      "commit": "86da74b574fdaecbdc3fc9a20ad0ec635314f050",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "42773267867d052521e700ee3007feffc1f3a1aa",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "0f6d3afea7b8d2042da129656703df122c5a7cc7",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "42773267867d052521e700ee3007feffc1f3a1aa",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 3,
+  "collection": {
+    "collected_at": "2026-11-18T09:44:28.297738+00:00",
+    "reviewed_at": "2026-07-11T03:44:59Z",
+    "upstream_updated_at": "2026-07-22T08:38:28Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/614",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557696368",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557698288",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557701673",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557703902",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557707042",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557708851",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557710931",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3559241218",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3557714902",
+      "https://github.com/asterinas/vostd/pull/614#discussion_r3563072027"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#name-proof-roles"
+      },
+      {
+        "commit": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00614"
+  }
+}

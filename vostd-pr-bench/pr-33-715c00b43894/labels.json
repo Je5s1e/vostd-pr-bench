@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-33-715c00b43894",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-33-715c00b43894:issue-comment-2918513851",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The RW test module enables `exec::utils` without including the required `exec/utils.rs` source file, so the crate cannot build.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/test/rw_version/exec/mod.rs",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "rationale": "The selected head changes the previously commented declaration to `pub mod utils;`, which makes Rust require `lock-protocol/src/test/rw_version/exec/utils.rs` (or an inline module). That file does not exist in the selected Git tree, and no inline module is present. Reviewer rikosellic explicitly reports that CI/CD fails because this file is missing. The same comment also suggests avoiding redundant copies of the already merged specification utilities, but the independently confirmed build-blocking missing module is the formal root cause. The PR contains only this one commit and was closed without a fix, so the archived head is the exact issue-bearing review revision.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/exec/mod.rs\n1: pub mod common;\n2: pub mod utils;\n3: pub mod types;\n\nGit object check at head 715c00b438943d760c67a6dad9bc2286f001f0f1:\nlock-protocol/src/test/rw_version/exec/utils.rs does not exist.\n\nIssue comment 2918513851: CI/CD fails because `lock-protocol/src/test/rw_version/exec/utils.rs` is missing.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/33#issuecomment-2918513851",
+      "related_comment_ids": [
+        "2918513851"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "2918513851",
+          "url": "https://github.com/asterinas/vostd/pull/33#issuecomment-2918513851",
+          "commit_id": null
+        }
+      ],
+      "verification": "Source-only; historical build/Verus execution was not performed. Confirmed directly from the fixed head that `exec/mod.rs` enables `pub mod utils;` while the required `exec/utils.rs` Git object is absent."
+    }
+  ]
+}

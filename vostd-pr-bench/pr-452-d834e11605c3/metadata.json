@@ -10,7 +10,6 @@
   "base_sha": "064c5f5b202cc6df2e179ccade47226cbd68e68f",
   "head_sha": "d834e11605c33755c786625dc3f4f25386b01f7c",
   "base_method": "merge-base(head, latest first-parent main as of selected review)",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/libs/align_ext/src/lib.rs",

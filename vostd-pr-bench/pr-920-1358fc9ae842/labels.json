@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-920-1358fc9ae842",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-920-1358fc9ae842:review-comment-4608327322",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The verification patch rewrites the existing CPUID imports, calls, and adjacent executable comments to use a different wrapper instead of specifying the original core intrinsics at the centralized external boundary.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/arch/x86/mod.rs",
+          "start_line": 148,
+          "end_line": 185
+        }
+      ],
+      "rationale": "The base functions call `core::arch::x86_64::{__cpuid, __cpuid_count}` and carry their original comments. This reviewed revision inserts new explanatory/rustdoc text, replaces the imports with `x86::cpuid::native_cpuid::cpuid_count`, and replaces all four intrinsic calls, even though the PR's purpose is to add specifications. The CHANGES_REQUESTED review says not to modify executable comments, asks whether the two original functions can be added to verified_libs, and flags the added comment. The next commit does exactly that: it adds external specifications for `__cpuid` and `__cpuid_count` under `verified_libs/vstd_extra/src/external/x86.rs`, restores the original imports/calls/comments, and leaves only `#[verus_spec]` contracts at the OSTD caller. This is one `preserve-exec-code` root cause, with `centralize-trusted-boundaries` providing the correct location for the external intrinsic contracts.",
+      "source_evidence": "after/ostd/src/arch/x86/mod.rs\n148: // x86 0.52/raw-cpuid 10.7 delegates to __cpuid_count and preserves all registers.\n149: // In particular, __cpuid(0) is __cpuid_count(0, 0); reuse its existing external spec.\n150: /// Checks the CPUID-enumerated AVX capability, without checking OS enablement.\n153:     // Origin Rust: use core::arch::x86_64::{__cpuid, __cpuid_count};\n154:     use x86::cpuid::native_cpuid::cpuid_count;\n156:     // Origin Rust: let cpuid_result = unsafe { __cpuid(0) };\n157:     let cpuid_result = cpuid_count(0, 0);\n163:     // Origin Rust: let cpuid_result = unsafe { __cpuid_count(1, 0) };\n164:     let cpuid_result = cpuid_count(1, 0);",
+      "rule_ids": [
+        "preserve-exec-code",
+        "centralize-trusted-boundaries"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/920#discussion_r4608327322",
+      "related_comment_ids": [
+        "4608327322",
+        "4608334937",
+        "4608336438"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4608327322",
+          "url": "https://github.com/asterinas/vostd/pull/920#discussion_r4608327322",
+          "commit_id": "1358fc9ae84204e358d2da999325216af850c2c2"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4608334937",
+          "url": "https://github.com/asterinas/vostd/pull/920#discussion_r4608334937",
+          "commit_id": "1358fc9ae84204e358d2da999325216af850c2c2"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4608336438",
+          "url": "https://github.com/asterinas/vostd/pull/920#discussion_r4608336438",
+          "commit_id": "1358fc9ae84204e358d2da999325216af850c2c2"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the force-pushed original review commit, its fixing successor, current head, full live remote discussion, and fixed before/after source."
+    }
+  ]
+}

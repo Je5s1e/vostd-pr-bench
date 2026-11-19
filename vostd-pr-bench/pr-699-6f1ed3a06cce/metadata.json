@@ -10,7 +10,6 @@
   "base_sha": "d0289e7fcc3b199996685f5b454b3355e999b327",
   "head_sha": "6f1ed3a06ccef25a12c1c2b0ddf17c090cb1c4cd",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/util/range_alloc.rs",

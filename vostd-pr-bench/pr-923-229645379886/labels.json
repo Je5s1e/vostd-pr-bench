@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-923-229645379886",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-923-229645379886:review-comment-4561956786",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The proof migration widens all three `HeapSlot` fields to `pub(super)` even though closed specification accessors can expose the required proof facts without changing executable visibility.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot.rs",
+          "start_line": 31,
+          "end_line": 38
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot.rs",
+          "start_line": 85,
+          "end_line": 104
+        }
+      ],
+      "rationale": "The original executable struct fields were private, but the first review head changes `addr`, `info`, and the new tracked permission field to `pub(super)`. The same source already defines closed spec accessors for pointer, slot metadata, and memory, so widening the executable representation is unnecessary for contracts and proofs. The human reviewer requested retaining field privacy and exposing proof facts through closed spec functions; the next commit makes all fields private and keeps the accessors. This directly violates the same-head `preserve-exec-code` rule, which forbids widening visibility merely to isolate verification.",
+      "source_evidence": "after/ostd/src/mm/heap/slot.rs\n31: pub struct HeapSlot {\n33:     pub(super) addr: NonNull<u8>,\n35:     pub(super) info: SlotInfo,\n37:     pub(super) tracked_mem: Tracked<PointsToRaw>,\n\n85-96: the same file already provides closed spec accessors `ptr`, `slot_info`, and `memory`.\n98-104: `lemma_fields` exports the required relationships without requiring executable field visibility.\n\nafter/AGENTS.md\n30-33: Follow the VOSTD Verus Coding Guidelines.\n\nFixed rule at the same commit, docs/coding-guidelines/maintainability.md:352-360: add specifications/proofs without rewriting executable Rust and do not widen visibility merely to isolate verification.",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/923#discussion_r4561956786",
+      "related_comment_ids": [
+        "4561956786"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4561956786",
+          "url": "https://github.com/asterinas/vostd/pull/923#discussion_r4561956786",
+          "commit_id": "2296453798860c0445430f7204a6bae5eb6aa726"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently checked the first-review Git object, the pre-existing private representation, the same-head preserve-exec-code rule, and immediate successor a6cf1df438a81c15fa627f3db864db3926cce269 that restores field privacy while retaining closed spec accessors."
+    }
+  ]
+}

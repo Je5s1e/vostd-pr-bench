@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-553-e7376912b43f",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-553-e7376912b43f:review-comment-3465862439",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The verification patch moves the executable MetaSlot type ahead of the mapping module instead of preserving the source item order.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/meta.rs",
+          "start_line": 79,
+          "end_line": 131
+        }
+      ],
+      "rationale": "In the base, the mapping module is the first item in the Verus block and `MetaSlot` remains in its established location after the imports and constants. The selected final head moves the entire executable `MetaSlot` definition to immediately after the mapping module, solely alongside the new layout proof machinery. Review comment 3465862439 explicitly identifies the original order and asks that the definition not be moved; GitHub still maps that comment to the selected final head, and the exported source confirms the move remains. The later official `preserve-exec-code` guideline codifies the same maintainability requirement: proof migration must not move executable items or alter import-independent item order merely to make verification compile. That guideline postdates this review and is used only to adjudicate the concrete source-order request, not to invent a new issue. The later LGTM does not explicitly retract the still-unresolved, final-head-mapped request.",
+      "source_evidence": "before/ostd/src/mm/frame/meta.rs\n18: pub(crate) mod mapping {\n...\n76: }\n...\n126: verus! {\n136: #[repr(C)]\n137: pub struct MetaSlot {\n\nafter/ostd/src/mm/frame/meta.rs\n20: pub(crate) mod mapping {\n...\n77: }\n79: #[repr(C)]\n80: pub struct MetaSlot {\n...\n131: }\n\nReview comment 3465862439: `The MetaSlot definition is after the mapping module in the source code. Please do not move this definition.`\n\ndocs/coding-guidelines/maintainability.md at af3406cffc8500b06116606fc17c86d7d5d13c44\n20: Add specifications and proofs without rewriting executable Rust or moving its items.\n25: This includes preserving import-independent item order: proof migration should not move constants, methods, or module declarations merely to make a partial file compile.",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/553#discussion_r3465862439",
+      "related_comment_ids": [
+        "3465862439",
+        "4567452278"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3465862439",
+          "url": "https://github.com/asterinas/vostd/pull/553#discussion_r3465862439",
+          "commit_id": "e7376912b43fb093202de068c14705daba0e9d54"
+        },
+        {
+          "kind": "review",
+          "id": "4567452278",
+          "url": "https://github.com/asterinas/vostd/pull/553#pullrequestreview-4567452278",
+          "commit_id": "e7376912b43fb093202de068c14705daba0e9d54"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Read the complete archived discussion and current remote PR metadata, commits, review threads including replies, reviews, and issue comments; confirmed the comment remains mapped to the selected final head; compared the exported before/after source; mechanically verified the base/head relationship with GitHub compare; and checked the later official guideline used for adjudication."
+    }
+  ]
+}

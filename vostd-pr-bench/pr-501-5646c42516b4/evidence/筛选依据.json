@@ -1,0 +1,14 @@
+{
+  "number": 501,
+  "title": "Add `VmSpace::activate` back",
+  "selected": true,
+  "category": "验证代码或工具改动",
+  "evidence": [
+    {
+      "location": "代码 diff",
+      "excerpt": ":RoArc; /// Activates the page table on the current CPU. #[verifier::external_body] pub fn activate(this: &RoArc<Self>) { // No support for CPU set semantics; skip now // let preempt_guard = disabl",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 1
+}

@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-424-2e7051b98235",
+  "pr_number": 424,
+  "title": "Interrelated arithmetic, &mut porting, and panic handling fixes",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/424",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "f09a07cab06065070dc842e3e786f8ceba675eaf",
+  "head_sha": "2e7051b982356a7e02be4983c2ee5ebe0a911e6a",
+  "base_method": "git merge-base(remote PR base 835ea7642b955f8a8329d4d1748911e201bdff49, historical PR head 2e7051b982356a7e02be4983c2ee5ebe0a911e6a); this was the latest PR head when issue comment 4342695998 requested moving std_extra assumptions into vstd_extra::external",
+  "archive_base_sha": "835ea7642b955f8a8329d4d1748911e201bdff49",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/x86_64/kspace.rs",
+    "ostd/specs/mm/frame/frame_specs.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/node/entry.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/entry_view.rs",
+    "ostd/specs/mm/page_table/node/mod.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+    "ostd/specs/mm/virt_mem_example.rs",
+    "ostd/specs/mm/virt_mem_newer.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "vstd_extra/src/std_extra.rs"
+  ],
+  "diff_sha256": "308baf0ea4cff42d85eaf2e5eca72ccafb9ce056930d4cb805f9c8cf44431a0b",
+  "versions": {
+    "before": {
+      "commit": "f09a07cab06065070dc842e3e786f8ceba675eaf",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "2e7051b982356a7e02be4983c2ee5ebe0a911e6a",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:05:02.296838+00:00",
+    "reviewed_at": "2026-04-30T06:11:39Z",
+    "upstream_updated_at": "2026-04-30T08:57:28Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/424",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4342695998",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4350099569"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "af3406cffc8500b06116606fc17c86d7d5d13c44",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/af3406cffc8500b06116606fc17c86d7d5d13c44/docs/coding-guidelines/proof-engineering.md#centralize-trusted-boundaries"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00424"
+  }
+}

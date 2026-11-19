@@ -1,0 +1,98 @@
+{
+  "number": 855,
+  "title": "prove: remove paging layout axiom and refactor architecture specs",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "prove: remove paging layout axiom and refactor architecture specs",
+      "category": "证明与规约"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/855",
+      "excerpt": "## Remove the paging-layout axiom Remove `PagingConstsTrait::axiom_current_paging_consts_hardcoded` and all of its uses. The layout facts required by the current page-table owner mod",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#discussion_r4360105514",
+      "excerpt": "Do not rely on this lemma, the same postconditions do not hold for all `PagingConsts`.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#discussion_r4509222760",
+      "excerpt": "Do we actually need this lemma since there is no proof?",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6731757954",
+      "excerpt": "The new change just moved the three hardcoded constant postconditions from `PagingConstsTrait` to `PageTableConfig`, I have several problems: - Since this constraint is purely related to the paging constants, if you sti",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#discussion_r4509936147",
+      "excerpt": ", so these definitions yield the same values. I moved these two lemmas into `vaddr_range_proofs.rs` to avoid duplicating the proofs across architectures and to keep them alongside the page-table specifications they descr",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#discussion_r4509936329",
+      "excerpt": "its current-target instantiation. `model.rs` provides a generic lemma over `ArchAddressSpaceModel`, while `lemma_paddr_to_vaddr_properties` in `arch/mod.rs` instantiates it with `CurrentArch` and connects the modeled co",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6737834717",
+      "excerpt": "> The new change just moved the three hardcoded constant postconditions from `PagingConstsTrait` to `PageTableConfig`, I have several problems: > > * Since this constraint is purely related to the paging constants, if yo",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6757682321",
+      "excerpt": "he general `PagingConstsTrait::lemma_paging_consts_requirements` postconditions, because IOMMU also implements `PagingConstsTrait` and uses 3 page-table levels, which do not match the architecture constants. The architecture-spec",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6761817965",
+      "excerpt": "he general `PagingConstsTrait::lemma_paging_consts_requirements` postconditions, because IOMMU also implements `PagingConstsTrait` and uses 3 page-table levels, which do not match the architecture constants. The architecture-spec",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/loongarch/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/model.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/riscv/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/x86/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+      "category": "规约或验证工具文件"
+    }
+  ],
+  "evidence_count": 32
+}

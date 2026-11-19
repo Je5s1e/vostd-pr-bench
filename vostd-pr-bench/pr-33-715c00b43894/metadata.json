@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-33-715c00b43894",
+  "pr_number": 33,
+  "title": "Fix rw version",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/33",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "faf896b9bd5e20836b2e48ca9e58ad46aca4d423",
+  "head_sha": "715c00b438943d760c67a6dad9bc2286f001f0f1",
+  "base_method": "git merge-base(archived base_sha, archived head_sha); mechanical archive import, not an adjudicated review revision",
+  "archive_base_sha": "faf896b9bd5e20836b2e48ca9e58ad46aca4d423",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/helpers/bits.rs",
+    "lock-protocol/src/helpers/mod.rs",
+    "lock-protocol/src/spec/utils.rs",
+    "lock-protocol/src/test/rw_version/exec/common.rs",
+    "lock-protocol/src/test/rw_version/exec/cursor.rs",
+    "lock-protocol/src/test/rw_version/exec/frame.rs",
+    "lock-protocol/src/test/rw_version/exec/mod.rs",
+    "lock-protocol/src/test/rw_version/exec/page_table.rs",
+    "lock-protocol/src/test/rw_version/mod.rs",
+    "lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs",
+    "lock-protocol/src/test/rw_version/vstd_extra/mod.rs"
+  ],
+  "diff_sha256": "b7307348e32324d1572d1a6f8bae6e7ca92737d62da7d6b37bc8e1ee0005465d",
+  "versions": {
+    "before": {
+      "commit": "faf896b9bd5e20836b2e48ca9e58ad46aca4d423",
+      "file_count": 10,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "715c00b438943d760c67a6dad9bc2286f001f0f1",
+      "file_count": 9,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "CLOSED",
+  "collection": {
+    "collected_at": "2026-11-17T04:39:01.434920+00:00",
+    "reviewed_at": "2026-11-19T00:00:00+08:00",
+    "upstream_updated_at": "2025-11-25T02:52:37Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/33",
+      "https://github.com/asterinas/vostd/pull/33#issuecomment-2918513851"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00033"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Archived head 715c00b438943d760c67a6dad9bc2286f001f0f1 is the sole PR commit and the exact revision reviewed in issue comment 2918513851. It enables exec::utils without adding the required utils.rs file, and the PR was subsequently closed without a fix commit.",
+    "zero_issues_meaning": "Not applicable; one source-adjudicated semantic issue is recorded.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

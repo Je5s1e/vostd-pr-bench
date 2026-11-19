@@ -1,0 +1,45 @@
+{
+  "number": 454,
+  "source_pr": "https://github.com/asterinas/vostd/pull/454",
+  "base_sha": "98aaa837b7a02758c55c783ec2a91550de0ce725",
+  "head_sha": "1db47ee9a94bf4d4f4d5ba5fa63b8c16eb1f7650",
+  "files": {
+    "totalCount": 2,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "Mg"
+    },
+    "nodes": [
+      {
+        "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+        "additions": 3,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/linked_list.rs",
+        "additions": 51,
+        "deletions": 17,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/454",
+    "accept": "application/vnd.github.diff",
+    "bytes": 6904,
+    "sha256": "b02d192822f5a00b20e492be99c11bdf5073ddd32d4d4d0d807bca3811a6d639",
+    "fetched_at": "2026-11-13T21:15:25.266347+00:00",
+    "diff_file_sections": 2,
+    "expected_changed_files": 2
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/454",
+    "accept": "application/vnd.github.patch",
+    "bytes": 7305,
+    "sha256": "65c3a21c868dafc6f2bedb8dad2489f5e3fd12849763cc1c9184e408d9d784ec",
+    "fetched_at": "2026-11-13T21:23:08.003200+00:00"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-915-7a42b67bb385",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-915-7a42b67bb385:review-comment-4537637739",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Both address-conversion contracts unnecessarily make their exact result guarantees conditional even though their bodies assume the same range conditions.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+          "start_line": 125,
+          "end_line": 129
+        },
+        {
+          "version": "after",
+          "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+          "start_line": 144,
+          "end_line": 148
+        }
+      ],
+      "rationale": "Each implementation unconditionally assumes the exact bound used as the antecedent, so the function can and should expose the exact conversion relation unconditionally to callers. The reviewer flags both directions, and the final approved head replaces both implications with unconditional equality postconditions. This is a contract-strength/clarity issue rather than a claim that the accepted normal-build trust assumptions are invalid.",
+      "source_evidence": "after/ostd/libs/linux-bzimage/builder/src/mapping.rs\n125:     #[verus_spec(ret =>\n126:         ensures\n127:             (SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va@ <= usize::MAX - LEGACY_SETUP_SEC_SIZE)\n128:                 ==> ret@ == va@ + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA,\n144:     #[verus_spec(ret =>\n145:         ensures\n146:             offset@ <= usize::MAX - SETUP32_LMA\n147:                 ==> ret@ == offset@ + SETUP32_LMA - LEGACY_SETUP_SEC_SIZE,",
+      "rule_ids": [
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537637739",
+      "related_comment_ids": [
+        "4537637739",
+        "4537640441"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4537637739",
+          "url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537637739",
+          "commit_id": "7a42b67bb385417f3906765513485ff3e36c1346"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4537640441",
+          "url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537640441",
+          "commit_id": "7a42b67bb385417f3906765513485ff3e36c1346"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared both fixed contracts and their body assumptions with the unconditional contracts in the final approved head, and checked the complete archived and remote threads."
+    }
+  ]
+}

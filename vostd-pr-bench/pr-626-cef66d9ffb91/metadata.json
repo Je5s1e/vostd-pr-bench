@@ -10,7 +10,6 @@
   "base_sha": "9f303a1bdce25c7def21ce28b60a7d4f84217262",
   "head_sha": "cef66d9ffb91f3bc2f087e479f0571a67f5ff011",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/mm/embedding/kvirt_store.rs",

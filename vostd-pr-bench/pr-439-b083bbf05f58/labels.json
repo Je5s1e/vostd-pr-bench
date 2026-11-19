@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-439-b083bbf05f58",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-439-b083bbf05f58:issue-comment-4437186057",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "VmReader/VmWriter value operations consume tracked owner permissions on error even when their cursor is restored and the operation produces no value.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/io.rs",
+          "start_line": 665,
+          "end_line": 668
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/io.rs",
+          "start_line": 1225,
+          "end_line": 1232
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/io.rs",
+          "start_line": 1417,
+          "end_line": 1429
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/io.rs",
+          "start_line": 1469,
+          "end_line": 1479
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/io.rs",
+          "start_line": 2265,
+          "end_line": 2276
+        }
+      ],
+      "rationale": "All five routines split the caller's tracked owner before they know the operation will succeed. The short-buffer paths return `InvalidArgs` after the split, and the fallible I/O paths restore only the reader/writer cursor after a partial fault; none restores or recombines the consumed portion of the owner. Their contracts likewise advance the final owner independently of the `Result`. Consequently a failed call can leave verified code without the permission needed to retry even though the execution cursor was restored and no value was produced. The PR author explicitly confirmed this as a leaked-permission problem and said the permission should be rolled back; the defect remains in the selected final head.",
+      "source_evidence": "after/ostd/src/mm/io.rs\n665:             temp_r_owner = reader_owner.split(len);\n667:         if self.avail() < len {\n668:             return Err(Error::InvalidArgs);\n\n1225:             temp_w_owner = writer_owner.split(len);\n1227:         if self.remain() < len {\n1232:             Err(Error::InvalidArgs)\n\n1417:             val_owner_inner = writer_owner.split(len);\n1419:         let result = if self.remain() < len {\n1420:             Err(Error::InvalidArgs)\n1427:                 Err((err, copied_len)) => {\n1428:                     self.cursor = self.cursor.sub(copied_len);\n1429:                     Err(err)\n\n1469:             val_owner_inner = writer_owner.split(len);\n1476:             Err((err, copied_len)) => {\n1477:                 self.cursor = self.cursor.sub(copied_len);\n1478:                 Err(err)\n\n2265:             _temp_r_owner = reader_owner.split(len);\n2267:         if self.avail() < len {\n2268:             return Err(Error::InvalidArgs);\n2274:             Err((err, copied_len)) => {\n2275:                 self.cursor = self.cursor.sub(copied_len);\n2276:                 Err(err)",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4437186057",
+      "related_comment_ids": [
+        "3225175099",
+        "3225175120",
+        "3225175141",
+        "3225175166",
+        "3225175186",
+        "4436502213",
+        "4436612297",
+        "4437186057"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3225175099",
+          "url": "https://github.com/asterinas/vostd/pull/439#discussion_r3225175099",
+          "commit_id": "b083bbf05f58a859a9f468d7d1347feca46162f3"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3225175120",
+          "url": "https://github.com/asterinas/vostd/pull/439#discussion_r3225175120",
+          "commit_id": "b083bbf05f58a859a9f468d7d1347feca46162f3"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3225175141",
+          "url": "https://github.com/asterinas/vostd/pull/439#discussion_r3225175141",
+          "commit_id": "b083bbf05f58a859a9f468d7d1347feca46162f3"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3225175166",
+          "url": "https://github.com/asterinas/vostd/pull/439#discussion_r3225175166",
+          "commit_id": "b083bbf05f58a859a9f468d7d1347feca46162f3"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3225175186",
+          "url": "https://github.com/asterinas/vostd/pull/439#discussion_r3225175186",
+          "commit_id": "b083bbf05f58a859a9f468d7d1347feca46162f3"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4436502213",
+          "url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4436502213",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4436612297",
+          "url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4436612297",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4437186057",
+          "url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4437186057",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Independently inspected the fixed final head, including the owner-splitting statements, error branches, and contracts, then checked the complete archived and remote discussions. AI-assisted inline comments were used only as leads; the final label is supported by the source and the human author's explicit confirmation."
+    },
+    {
+      "id": "pr-439-b083bbf05f58:issue-comment-4418478187",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The final head disables the `mm::dma` module while `ostd::init` still calls `mm::dma::init()`, so the crate cannot resolve that module reference.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/mod.rs",
+          "start_line": 22,
+          "end_line": 22
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/lib.rs",
+          "start_line": 121,
+          "end_line": 121
+        }
+      ],
+      "rationale": "`ostd/src/mm/mod.rs` comments out the only `dma` module declaration, but `ostd/src/lib.rs` still resolves and invokes `mm::dma::init()` unconditionally. The module path therefore does not exist at name resolution, which is a direct compilation failure rather than a stylistic concern. Two collaborators identified the regression in the PR conversation, and the contradictory declaration/use remains in the selected final head.",
+      "source_evidence": "after/ostd/src/mm/mod.rs\n22: //pub(crate) mod dma;\n\nafter/ostd/src/lib.rs\n121:     mm::dma::init();",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4418478187",
+      "related_comment_ids": [
+        "3225175039",
+        "4418381335",
+        "4418478187"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3225175039",
+          "url": "https://github.com/asterinas/vostd/pull/439#discussion_r3225175039",
+          "commit_id": "b083bbf05f58a859a9f468d7d1347feca46162f3"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4418381335",
+          "url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4418381335",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4418478187",
+          "url": "https://github.com/asterinas/vostd/pull/439#issuecomment-4418478187",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Rust/Verus build not executed. Independently checked the fixed final head for both the module declaration and the remaining call, and read the complete archived and remote discussions. The unresolved path follows directly from the exported source; the AI-assisted inline comment was not treated as authoritative."
+    }
+  ]
+}

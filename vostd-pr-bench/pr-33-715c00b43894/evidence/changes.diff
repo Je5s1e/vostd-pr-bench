@@ -1,0 +1,485 @@
+diff --git a/lock-protocol/src/helpers/bits.rs b/lock-protocol/src/helpers/bits.rs
+new file mode 100644
+index 000000000..5a78b2efe
+--- /dev/null
++++ b/lock-protocol/src/helpers/bits.rs
+@@ -0,0 +1,16 @@
++use vstd::prelude::*;
++use vstd::bits::low_bits_mask;
++
++verus! {
++
++#[verifier::external_body]
++pub fn low_bits_mask_u64(k: u64) -> (res: u64) 
++    requires
++        0 <= k < 64,
++    ensures
++        res == low_bits_mask(k as nat),
++{
++    (1 << k) - 1
++}
++
++}
+\ No newline at end of file
+diff --git a/lock-protocol/src/helpers/mod.rs b/lock-protocol/src/helpers/mod.rs
+index 6c16ab21a..9fe3601ed 100644
+--- a/lock-protocol/src/helpers/mod.rs
++++ b/lock-protocol/src/helpers/mod.rs
+@@ -1,3 +1,4 @@
+ pub mod align_ext;
+ pub mod extern_const;
+ pub mod math;
++pub mod bits;
+\ No newline at end of file
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index 15483cf59..692137a0b 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -302,6 +302,13 @@ impl NodeHelper {
+         Self::dep_to_level(Self::nid_to_dep(nid))
+     }
+ 
++    pub open spec fn is_not_leaf(nid: NodeId) -> bool 
++        recommends
++            Self::valid_nid(nid),
++    {
++        0 <= Self::nid_to_dep(nid) < 3 
++    }
++
+     /// Returns the size of the subtree rooted at `nid`.
+     pub open spec fn sub_tree_size(nid: NodeId) -> nat
+         recommends
+diff --git a/lock-protocol/src/test/rw_version/exec/common.rs b/lock-protocol/src/test/rw_version/exec/common.rs
+index a1f5fdb13..59ccd3577 100644
+--- a/lock-protocol/src/test/rw_version/exec/common.rs
++++ b/lock-protocol/src/test/rw_version/exec/common.rs
+@@ -8,9 +8,11 @@ use vstd::arithmetic::div_mod::*;
+ use vstd::arithmetic::power2::*;
+ use vstd::bits::*;
+ 
+-use super::super::spec::{common::*, utils::*};
+-use super::super::vstd_extra::bits::*;
++use crate::helpers::bits::*;
+ use crate::helpers::extern_const::*;
++// use super::super::spec::{common::*, utils::*};
++use super::super::spec::common::*;
++use crate::spec::utils::*;
+ 
+ verus! {
+ 
+@@ -102,7 +104,7 @@ pub open spec fn va_level_to_trace(va: Vaddr, level: Level) -> Seq<nat> {
+ }
+ 
+ pub open spec fn va_level_to_nid(va: Vaddr, level: Level) -> NodeId {
+-    NodeHelper::trace_to_nid_from_root(va_level_to_trace(va, level))
++    NodeHelper::trace_to_nid(va_level_to_trace(va, level))
+ }
+ 
+ } // verus!
+diff --git a/lock-protocol/src/test/rw_version/exec/cursor.rs b/lock-protocol/src/test/rw_version/exec/cursor.rs
+index c958a784d..dd84c4967 100644
+--- a/lock-protocol/src/test/rw_version/exec/cursor.rs
++++ b/lock-protocol/src/test/rw_version/exec/cursor.rs
+@@ -10,7 +10,8 @@ use vstd::rwlock::{ReadHandle, WriteHandle};
+ use vstd::vpanic;
+ use vstd::pervasive::allow_panic;
+ 
+-use super::super::spec::{common::*, utils::*, tree::*};
++use crate::spec::utils::*;
++use super::super::spec::{common::*, tree::*};
+ use super::{common::*, utils::*, types::*, cpu::*, frame::*, page_table::*};
+ 
+ verus! {
+@@ -86,15 +87,17 @@ impl TransHandler {
+     ))
+         requires
+             pt_frame.wf(),
+-            m@.inv(pt_frame.inst@),
++            m@.inv(),
++            m@.inst_id() == pt_frame.inst@.id(),
+             m@.pred_cursor_ReadLocking(tree_path@),
+             wf_tree_path(tree_path@.push(pt_frame.nid@)),
+         ensures
+             res.0@.instance_id() == pt_frame.inst@.id(),
+             res.0@.key() == pt_frame.nid@,
+-            res.0@.value().is_WriteLocked(),
++            res.0@.value() is WriteLocked,
+             res.1.rwlock() == pt_frame.rw_lock,
+-            res.2@.inv(pt_frame.inst@),
++            res.2@.inv(),
++            res.2@.inst_id() == pt_frame.inst@.id(),
+             res.2@.pred_cursor_WriteLocked(res.3@),
+             res.3@ =~= tree_path@.push(pt_frame.nid@),
+     {
+@@ -137,14 +140,16 @@ impl TransHandler {
+             pt_frame.wf(),
+             token@.instance_id() == pt_frame.inst@.id(),
+             token@.key() == pt_frame.nid@,
+-            token@.value().is_WriteLocked(),
++            token@.value() is WriteLocked,
+             write_handle.rwlock() == pt_frame.rw_lock,
+-            m@.inv(pt_frame.inst@),
++            m@.inv(),
++            m@.inst_id() == pt_frame.inst@.id(),
+             m@.pred_cursor_WriteLocked(tree_path@),
+             wf_tree_path(tree_path@),
+             tree_path@.len() > 0 && tree_path@.last() == pt_frame.nid@,
+         ensures
+-            res.0@.inv(pt_frame.inst@),
++            res.0@.inv(),
++            res.0@.inst_id() == pt_frame.inst@.id(),
+             res.0@.pred_cursor_ReadLocking(res.1@),
+             res.1@ =~= tree_path@.drop_last(),
+     {
+@@ -180,13 +185,15 @@ impl TransHandler {
+     ))
+         requires
+             pt_frame.wf(),
+-            m@.inv(pt_frame.inst@),
++            m@.inv(),
++            m@.inst_id() == pt_frame.inst@.id(),
+             m@.pred_cursor_ReadLocking(tree_path@),
+             wf_tree_path(tree_path@.push(pt_frame.nid@)),
+         ensures
+             pt_frame.rw_lock.inv(res.0.view()),
+             res.0.rwlock() == pt_frame.rw_lock,
+-            res.1@.inv(pt_frame.inst@),
++            res.1@.inv(),
++            res.1@.inst_id() == pt_frame.inst@.id(),
+             res.1@.pred_cursor_ReadLocking(res.2@),
+             res.2@ =~= tree_path@.push(pt_frame.nid@),
+     {
+@@ -203,6 +210,7 @@ impl TransHandler {
+             ghost g => {
+                 assert(next <= MAX_RC()) by { admit(); }; // How to remove this?
+ 
++                assert(tree_path.len() < 3) by { admit(); };
+                 let tracked res = pt_frame.inst.borrow().read_lock(
+                     m.cpu,
+                     pt_frame.nid@,
+@@ -228,12 +236,14 @@ impl TransHandler {
+         requires
+             pt_frame.wf(),
+             read_handle.rwlock() == pt_frame.rw_lock,
+-            m@.inv(pt_frame.inst@),
++            m@.inv(),
++            m@.inst_id() == pt_frame.inst@.id(),
+             m@.pred_cursor_ReadLocking(tree_path@),
+             wf_tree_path(tree_path@),
+             tree_path@.len() > 0 && tree_path@.last() == pt_frame.nid@,
+         ensures
+-            res.0@.inv(pt_frame.inst@),
++            res.0@.inv(),
++            res.0@.inst_id() == pt_frame.inst@.id(),
+             res.0@.pred_cursor_ReadLocking(res.1@),
+             res.1@ =~= tree_path@.drop_last(),
+     {
+@@ -273,7 +283,8 @@ impl TransHandler {
+             allocator.wf(),
+             NodeHelper::valid_nid(nid as NodeId),
+             nid as NodeId != NodeHelper::root_id(),
+-            m@.inv(pt.inst@),
++            m@.inv(),
++            m@.inst_id() == pt.inst@.id(),
+             m@.pred_cursor_WriteLocked(*tree_path@),
+             tree_path@.len() > 0,
+             NodeHelper::in_subtree(tree_path@.last(), nid as NodeId),
+@@ -296,7 +307,7 @@ impl TransHandler {
+                 assert(prev == INVALID_PADDR) by { admit(); }; // How to remove this?
+                 assert(g.tokens.is_Some());
+                 let tracked tokens = g.tokens.tracked_unwrap();
+-                assert(tokens.0.value().is_UnAllocated());
++                assert(tokens.0.value() is UnAllocated);
+ 
+                 let tracked res = pt.inst.borrow().allocate(
+                     m.cpu,
+@@ -393,6 +404,7 @@ pub proof fn lemma_va_range_get_tree_path(va: Range<Vaddr>)
+     admit();
+ }
+ 
++#[verifier::exec_allows_no_decreases_clause]
+ pub fn lock_range<'a>(
+     pt: &PageTable,
+     allocator: &'a FrameAllocator,
+@@ -403,12 +415,14 @@ pub fn lock_range<'a>(
+         pt.wf(*allocator),
+         allocator.wf(),
+         va_range_wf(*va),
+-        m@.inv(pt.inst@),
++        m@.inv(),
++        m@.inst_id() == pt.inst@.id(),
+         m@.pred_cursor_Void(),
+     ensures
+         res.0.wf(),
+         res.0.init_wf(*va),
+-        res.1@.inv(pt.inst@),
++        res.1@.inv(),
++        res.1@.inst_id() == pt.inst@.id(),
+         res.1@.pred_cursor_WriteLocked(va_range_get_tree_path(*va)),
+ {
+     let mut path: Vec<GuardInPath<'a>> = Vec::with_capacity(4);
+@@ -440,6 +454,9 @@ pub fn lock_range<'a>(
+ 
+     // Prologue lemmas
+     proof {
++        assert(va_level_to_nid(va.start, 4) == NodeHelper::root_id()) by { admit(); };
++        assert(NodeHelper::nid_to_level(NodeHelper::root_id()) == 4) by { admit(); };
++
+         lemma_va_range_get_guard_level(*va);
+         lemma_va_range_get_tree_path(*va);
+     }
+@@ -449,7 +466,8 @@ pub fn lock_range<'a>(
+             pt.wf(*allocator),
+             allocator.wf(),
+             va_range_wf(*va),
+-            m.inv(pt.inst@),
++            m.inv(),
++            m.inst_id() == pt.inst@.id(),
+             NodeHelper::valid_nid(cur_nid as NodeId),
+             cur_nid as NodeId == va_level_to_nid(va.start, cur_level),
+             1 <= cur_level <= 4,
+@@ -463,7 +481,8 @@ pub fn lock_range<'a>(
+             tree_path.is_prefix_of(va_range_get_tree_path(*va)),
+             m.pred_cursor_ReadLocking(tree_path),
+         ensures
+-            m.inv(pt.inst@),
++            m.inv(),
++            m.inst_id() == pt.inst@.id(),
+             NodeHelper::valid_nid(cur_nid as NodeId),
+             cur_nid as NodeId == va_level_to_nid(va.start, cur_level),
+             1 <= cur_level <= 4,
+@@ -475,6 +494,7 @@ pub fn lock_range<'a>(
+             tree_path.len() == 4 - cur_level,
+             tree_path.is_prefix_of(va_range_get_tree_path(*va)),
+             m.pred_cursor_ReadLocking(tree_path),
++        decreases cur_level,
+     {
+         let start_idx = pte_index(va.start, cur_level);
+         let level_too_high = {
+@@ -504,9 +524,7 @@ pub fn lock_range<'a>(
+         };
+ 
+         // TODO: fix this.
+-        if pa == INVALID_PADDR {
+-            continue ;
+-        }
++        assert(pa != INVALID_PADDR) by { admit(); };
+         assert(valid_paddr(pa));
+         assert(paddr_is_aligned(pa));
+ 
+@@ -601,6 +619,28 @@ pub fn lock_range<'a>(
+                 tree_path = res.1@;
+             }
+ 
++            // Downgrade to read lock.
++            assert(wf_tree_path(tree_path.push(cur_nid as NodeId))) by {
++                admit();
++            };
++            let res = TransHandler::acquire_read(pt_frame, Tracked(m), Ghost(tree_path));
++            let read_handle = res.0;
++            proof {
++                m = res.1.get();
++                tree_path = res.2@;
++            }
++
++            path[(cur_level - 1) as usize] = GuardInPath::ReadLocked(read_handle);
++            cur_nid = nxt_nid;
++            cur_level = cur_level - 1;
++
++            assert(cur_nid as NodeId == va_level_to_nid(va.start, cur_level)) by {
++                admit();
++            };
++            assert(cur_level as nat == NodeHelper::nid_to_level(cur_nid as nat)) by { admit(); };
++            assert(tree_path.is_prefix_of(va_range_get_tree_path(*va))) by {
++                admit();
++            };
+         } else {
+             path[(cur_level - 1) as usize] = GuardInPath::ReadLocked(read_handle);
+             cur_nid = nxt_nid;
+@@ -609,6 +649,7 @@ pub fn lock_range<'a>(
+             assert(cur_nid as NodeId == va_level_to_nid(va.start, cur_level)) by {
+                 admit();
+             };
++            assert(cur_level as nat == NodeHelper::nid_to_level(cur_nid as nat)) by { admit(); };
+             assert(tree_path.is_prefix_of(va_range_get_tree_path(*va))) by {
+                 admit();
+             };
+@@ -620,7 +661,8 @@ pub fn lock_range<'a>(
+             pt.wf(*allocator),
+             allocator.wf(),
+             va_range_wf(*va),
+-            m.inv(pt.inst@),
++            m.inv(),
++            m.inst_id() == pt.inst@.id(),
+             NodeHelper::valid_nid(cur_nid as NodeId),
+             cur_nid as NodeId == va_level_to_nid(va.start, cur_level),
+             1 <= cur_level <= 4,
+@@ -633,7 +675,8 @@ pub fn lock_range<'a>(
+             va_range_get_tree_path(*va).len() == 5 - va_range_get_guard_level(*va),
+             m.pred_cursor_ReadLocking(tree_path),
+         ensures
+-            m.inv(pt.inst@),
++            m.inv(),
++            m.inst_id() == pt.inst@.id(),
+             NodeHelper::valid_nid(cur_nid as NodeId),
+             cur_nid as NodeId == va_level_to_nid(va.start, cur_level),
+             1 <= cur_level <= 4,
+diff --git a/lock-protocol/src/test/rw_version/exec/frame.rs b/lock-protocol/src/test/rw_version/exec/frame.rs
+index 383b3a54b..35ca38948 100644
+--- a/lock-protocol/src/test/rw_version/exec/frame.rs
++++ b/lock-protocol/src/test/rw_version/exec/frame.rs
+@@ -9,12 +9,11 @@ use vstd::vstd::arithmetic::power2::*;
+ use vstd::bits::*;
+ use vstd::atomic_ghost::AtomicU64;
+ 
+-use super::super::vstd_extra::{
+-    manually_drop::*,
+-};
++use vstd_extra::manually_drop::*;
++use crate::spec::utils::*;
+ use super::super::spec::{
+     common::*,
+-    utils::*,
++    // utils::*,
+     tree::*,
+ };
+ use super::{
+@@ -123,7 +122,7 @@ pub open spec fn wf(&self) -> bool {
+         &&& forall |token: Tracked<NodeToken>| #[trigger] self.rw_lock.inv(token) <==> {
+             &&& token@.instance_id() == self.inst@.id()
+             &&& token@.key() == self.nid@
+-            &&& token@.value().is_WriteUnLocked()
++            &&& token@.value() is WriteUnLocked
+         }
+ 
+         // &&& self.ptes@.len() == 512
+@@ -265,7 +264,7 @@ impl FrameAllocator {
+             inst@.cpu_num() == GLOBAL_CPU_NUM,
+             node_token@.instance_id() == inst@.id(),
+             node_token@.key() == nid@,
+-            node_token@.value().is_WriteUnLocked(),
++            node_token@.value() is WriteUnLocked,
+             rc_token@.instance_id() == inst@.id(),
+             rc_token@.key() == nid@,
+             rc_token@.value() == 0,
+diff --git a/lock-protocol/src/test/rw_version/exec/mod.rs b/lock-protocol/src/test/rw_version/exec/mod.rs
+index a071cf2b6..6d7ff36af 100644
+--- a/lock-protocol/src/test/rw_version/exec/mod.rs
++++ b/lock-protocol/src/test/rw_version/exec/mod.rs
+@@ -1,9 +1,7 @@
+ pub mod common;
+-// FIXME: bug!
+-// pub mod utils;
+-// pub mod types;
+-// pub mod cpu;
+-pub mod cursor;
++pub mod utils;
++pub mod types;
++pub mod cpu;
+ pub mod cursor;
+ pub mod frame;
+ pub mod page_table;
+diff --git a/lock-protocol/src/test/rw_version/exec/page_table.rs b/lock-protocol/src/test/rw_version/exec/page_table.rs
+index 45dfed51a..401584e07 100644
+--- a/lock-protocol/src/test/rw_version/exec/page_table.rs
++++ b/lock-protocol/src/test/rw_version/exec/page_table.rs
+@@ -7,7 +7,8 @@ use vstd::hash_map::*;
+ use vstd::tokens::*;
+ use vstd::atomic_ghost::*;
+ 
+-use super::super::spec::{common::*, utils::*, tree::*};
++use crate::spec::utils::*;
++use super::super::spec::{common::*, tree::*};
+ use super::{common::*, types::*, frame::*};
+ 
+ verus! {
+@@ -28,7 +29,7 @@ pub open spec fn inv(&self) -> bool {
+         &&& self.tokens.is_Some() ==> {
+             &&& self.tokens.get_Some_0().0.instance_id() == self.inst.id()
+             &&& self.tokens.get_Some_0().0.key() == self.nid
+-            &&& self.tokens.get_Some_0().0.value().is_UnAllocated()
++            &&& self.tokens.get_Some_0().0.value() is UnAllocated
+ 
+             &&& self.tokens.get_Some_0().1.instance_id() == self.inst.id()
+             &&& self.tokens.get_Some_0().1.key() == self.nid
+diff --git a/lock-protocol/src/test/rw_version/mod.rs b/lock-protocol/src/test/rw_version/mod.rs
+index 8d5509027..e38150be1 100644
+--- a/lock-protocol/src/test/rw_version/mod.rs
++++ b/lock-protocol/src/test/rw_version/mod.rs
+@@ -1,5 +1,2 @@
+-// FIXME: bug!
+-// pub mod exec;
+-pub mod spec;
+-// FIXME: bug!
+-// pub mod vstd_extra;
++pub mod exec;
++pub mod spec;
+\ No newline at end of file
+diff --git a/lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs b/lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs
+deleted file mode 100644
+index b9c909774..000000000
+--- a/lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs
++++ /dev/null
+@@ -1,54 +0,0 @@
+-use vstd::prelude::*;
+-use core::mem::ManuallyDrop;
+-use core::ops::Deref;
+-
+-verus! {
+-
+-pub uninterp spec fn ex_manually_drop_new_spec<V>(value: V) -> ManuallyDrop<V>;
+-
+-pub uninterp spec fn ex_manually_drop_into_inner_spec<V>(slot: ManuallyDrop<V>) -> V;
+-
+-pub uninterp spec fn ex_manually_drop_deref_spec<V: ?Sized>(slot: &ManuallyDrop<V>) -> &V;
+-
+-#[verifier::external_fn_specification]
+-#[verifier::when_used_as_spec(ex_manually_drop_new_spec)]
+-pub fn ex_manually_drop_new<V>(value: V) -> ManuallyDrop<V> {
+-    ManuallyDrop::new(value)
+-}
+-
+-#[verifier::external_fn_specification]
+-#[verifier::when_used_as_spec(ex_manually_drop_into_inner_spec)]
+-pub fn ex_manually_drop_into_inner<V>(slot: ManuallyDrop<V>) -> V {
+-    ManuallyDrop::into_inner(slot)
+-}
+-
+-#[verifier::external_fn_specification]
+-#[verifier::when_used_as_spec(ex_manually_drop_deref_spec)]
+-pub fn ex_manually_drop_deref<V: ?Sized>(slot: &ManuallyDrop<V>) -> &V {
+-    slot.deref()
+-}
+-
+-pub broadcast proof fn ex_manually_drop_value_properties<V: Sized>(value: V)
+-    ensures
+-        #[trigger] ManuallyDrop::into_inner(ManuallyDrop::new(value)) == value,
+-        ManuallyDrop::new(value).deref() == &value,
+-        forall|other: V| value == other ==> ManuallyDrop::new(value) == ManuallyDrop::new(other),
+-{
+-    admit();
+-}
+-
+-pub broadcast proof fn ex_manually_drop_ref_properties<V: Sized>(r: &V)
+-    ensures
+-        #[trigger] ManuallyDrop::new(*r).deref() == r,
+-{
+-    admit();
+-}
+-
+-pub broadcast proof fn ex_manually_drop_properties<V: Sized>(slot: ManuallyDrop<V>)
+-    ensures
+-        #[trigger] ManuallyDrop::new(*slot.deref()) == slot,
+-{
+-    admit();
+-}
+-
+-} // verus!
+diff --git a/lock-protocol/src/test/rw_version/vstd_extra/mod.rs b/lock-protocol/src/test/rw_version/vstd_extra/mod.rs
+deleted file mode 100644
+index c35517f35..000000000
+--- a/lock-protocol/src/test/rw_version/vstd_extra/mod.rs
++++ /dev/null
+@@ -1,2 +0,0 @@
+-pub mod bits;
+-pub mod manually_drop;

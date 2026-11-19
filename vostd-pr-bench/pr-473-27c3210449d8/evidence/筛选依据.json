@@ -1,0 +1,93 @@
+{
+  "number": 473,
+  "title": "Rename tracked versions of spec functions",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Rename tracked versions of spec functions",
+      "category": "证明与规约"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3286965930",
+      "excerpt": "@SNoAnd Is `[verifier::returns(proof)]` an old-fashioned way to identify the function that returns a tracked value? Maybe we should use `(tracked res: Self)` now.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3292962930",
+      "excerpt": "@rikosellic BTW What's the most idiomatic way to defined trusted tracked proof functions",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3294047808",
+      "excerpt": "@rikosellic, exactly. We can switch to the `tracked res` version.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3294189046",
+      "excerpt": "@rikosellic BTW What's the most idiomatic way to defined trusted tracked proof functions I think we can just use axiom fn which returns tracked res.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/unique.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/io.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/node/entry_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/tlb.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/virt_mem.rs",
+      "category": "规约或验证工具文件"
+    }
+  ],
+  "evidence_count": 19
+}

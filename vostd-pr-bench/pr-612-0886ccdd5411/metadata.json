@@ -10,7 +10,6 @@
   "base_sha": "ab124435bbc85dae21c90079f39d7e6d76aafb95",
   "head_sha": "0886ccdd541158731f210241284c04330bec7617",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/mm/kspace/mod.rs",

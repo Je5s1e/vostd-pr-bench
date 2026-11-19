@@ -10,7 +10,6 @@
   "base_sha": "41e666060c61eb656c5101b94ca77a753d604af3",
   "head_sha": "77c06f3ce19652edeb2d3afbb0c9c9f2e8b05583",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/mm/embedding/io.rs",

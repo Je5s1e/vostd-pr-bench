@@ -10,7 +10,6 @@
   "base_sha": "d88962beabc466ff41033efefdb96c4a481b2ae5",
   "head_sha": "b0d5450c6e0c8c056a3320f495bf8dc78f3049c2",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/mm/page_table/cursor/va_lemmas.rs",

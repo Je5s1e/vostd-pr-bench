@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-350-5cbda0832ce0",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-350-5cbda0832ce0:issue-comment-4100231726",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`RwArc` exposes locking operations but no spec-level view or equivalent relation to its protected value, so clients cannot state what data a returned guard borrows from the shared wrapper.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rwarc.rs",
+          "start_line": 26,
+          "end_line": 32
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rwarc.rs",
+          "start_line": 47,
+          "end_line": 64
+        }
+      ],
+      "rationale": "The fixed revision proves the bodies of `RwArc::new`, `read`, and `write`, but the public wrapper has no `View` implementation, observable spec field, or method postcondition connecting an `RwArc<T>` to the `T` protected by its private `Inner<T>::data`. Its `read` and `write` methods simply return guards without exposing that relation. A collaborator specifically asks for a view such as `some_arc@.data` so functions that open an arc and borrow its contents—particularly DMA code—can express their specifications, warning that this may otherwise be impossible. The author first explains the special treatment available only for standard `Arc`, then agrees that the project-specific `RwArc` needs separate treatment, says a read-guard method should be easy, and notes that writable `RwArc` state may require prophecy. This confirms a missing semantic abstraction in the fixed head rather than a mere style preference. The discussion happened after merge and no later PR revision addresses it, so the issue is attached directly to the archived final head.",
+      "source_evidence": "after/ostd/src/sync/rwarc.rs\n26: pub struct RwArc<T>(Arc<Inner<T>>);\n32: pub struct RoArc<T>(Arc<Inner<T>>);\n47: impl<T> RwArc<T> {\n49-53: pub fn new(data: T) -> Self { ... }\n57-59: pub fn read(&self) -> RwLockReadGuard<T, PreemptDisabled> { self.0.data.read() }\n62-64: pub fn write(&self) -> RwLockWriteGuard<T, PreemptDisabled> { self.0.data.write() }\n\nThe file contains no `View` implementation or public spec function for `RwArc`; the private inner `data` relation is therefore unavailable to client specifications.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/350#issuecomment-4100231726",
+      "related_comment_ids": [
+        "4100231726",
+        "4107705907",
+        "4111056031",
+        "4111141806"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4100231726",
+          "url": "https://github.com/asterinas/vostd/pull/350#issuecomment-4100231726",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4107705907",
+          "url": "https://github.com/asterinas/vostd/pull/350#issuecomment-4107705907",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4111056031",
+          "url": "https://github.com/asterinas/vostd/pull/350#issuecomment-4111056031",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4111141806",
+          "url": "https://github.com/asterinas/vostd/pull/350#issuecomment-4111141806",
+          "commit_id": null
+        }
+      ],
+      "verification": "Source and Git-object adjudication; historical Verus not executed. Read the complete archived and current remote discussion, all PR commits/reviews/threads/comments, verified the exact official base/head and merge-base, and inspected the fixed RwArc/RoArc declarations and locking methods. The requested observable relation is absent from the fixed head, and there is no later PR revision to select."
+    }
+  ]
+}

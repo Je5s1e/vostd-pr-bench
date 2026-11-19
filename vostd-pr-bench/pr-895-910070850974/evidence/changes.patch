@@ -1,0 +1,1960 @@
+From e68edbd6cb32bfaecfc19aee52f1484deffd2fb7 Mon Sep 17 00:00:00 2001
+From: Chao <chao-j@qq.com>
+Date: Wed, 4 Nov 2026 20:07:22 +0800
+Subject: [PATCH 1/5] prove: verify PCI foundations
+
+---
+ ostd/src/arch/x86/irq.rs              | 58 +++++++++++++--------------
+ ostd/src/arch/x86/mod.rs              | 17 +++++---
+ ostd/src/arch/x86/trap/mod.rs         |  8 +++-
+ ostd/src/bus/pci/capability/msix.rs   | 10 +++++
+ ostd/src/bus/pci/capability/vendor.rs | 11 ++++-
+ ostd/src/bus/pci/cfg_space.rs         | 14 ++++++-
+ ostd/src/bus/pci/device_info.rs       |  8 ++++
+ ostd/src/bus/pci/mod.rs               | 23 ++++++++++-
+ ostd/src/io/io_mem/allocator.rs       |  5 ++-
+ ostd/src/io/io_mem/mod.rs             | 44 ++++++++++++++++----
+ ostd/src/io/io_port/allocator.rs      |  7 +++-
+ ostd/src/lib.rs                       | 12 ++++--
+ ostd/src/sync/mod.rs                  |  2 +-
+ ostd/src/trap/irq.rs                  | 34 ++++++++++------
+ 14 files changed, 182 insertions(+), 71 deletions(-)
+
+diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
+index 3279a988e..6a8e513c5 100644
+--- a/ostd/src/arch/x86/irq.rs
++++ b/ostd/src/arch/x86/irq.rs
+@@ -2,12 +2,6 @@
+ //! Interrupts.
+ use vstd::prelude::*;
+ 
+-/* use spin::Once;
+-use x86_64::registers::rflags::{self, RFlags};
+-
+-use super::iommu::{alloc_irt_entry, has_interrupt_remapping, IrtEntryHandle};
+-use crate::cpu::PinCurrentCpu;
+-
+ // Intel(R) 64 and IA-32 rchitectures Software Developer's Manual,
+ // Volume 3A, Section 6.2 says "Vector numbers in the range 32 to 255
+ // are designated as user-defined interrupts and are not reserved by
+@@ -15,41 +9,43 @@ use crate::cpu::PinCurrentCpu;
+ pub(crate) const IRQ_NUM_MIN: u8 = 32;
+ pub(crate) const IRQ_NUM_MAX: u8 = 255;
+ 
+-pub(crate) struct IrqRemapping {
+-    entry: Once<IrtEntryHandle>,
+-}
++/* The IOMMU module is outside the active verified module graph, so interrupt remapping is
++ * unavailable in this build. This preserves the original no-IOMMU branch: initialization is a
++ * no-op and the query returns `None`. TODO: restore the IOMMU-backed path when that module enters
++ * the verified graph.
++ * Origin Rust:
++ * pub(crate) struct IrqRemapping { entry: Once<IrtEntryHandle> }
++ * impl IrqRemapping {
++ *     pub(crate) const fn new() -> Self { Self { entry: Once::new() } }
++ *     pub(crate) fn init(&self, irq_num: u8) {
++ *         if !has_interrupt_remapping() { return; }
++ *         self.entry.call_once(|| {
++ *             let handle = alloc_irt_entry().unwrap();
++ *             handle.enable(irq_num as u32);
++ *             handle
++ *         });
++ *     }
++ *     pub(crate) fn remapping_index(&self) -> Option<u16> {
++ *         Some(self.entry.get()?.index())
++ *     }
++ * }
++ */
++pub(crate) struct IrqRemapping;
+ 
+ impl IrqRemapping {
+     pub(crate) const fn new() -> Self {
+-        Self { entry: Once::new() }
++        Self
+     }
+ 
+-    /// Initializes the remapping entry for the specific IRQ number.
+-    ///
+-    /// This will do nothing if the entry is already initialized or interrupt
+-    /// remapping is disabled or not supported by the architecture.
+-    pub(crate) fn init(&self, irq_num: u8) {
+-        if !has_interrupt_remapping() {
+-            return;
+-        }
+-
+-        self.entry.call_once(|| {
+-            // Allocate and enable the IRT entry.
+-            let handle = alloc_irt_entry().unwrap();
+-            handle.enable(irq_num as u32);
+-            handle
+-        });
+-    }
++    pub(crate) fn init(&self, _irq_num: u8) {}
+ 
+-    /// Gets the remapping index of the IRQ line.
+-    ///
+-    /// This method will return `None` if interrupt remapping is disabled or
+-    /// not supported by the architecture.
+     pub(crate) fn remapping_index(&self) -> Option<u16> {
+-        Some(self.entry.get()?.index())
++        None
+     }
+ }
+ 
++/* Local IRQ hardware operations are not required by the PCI dependency slice.
++ * Origin Rust:
+ // FIXME: Mark this as unsafe. See
+ // <https://github.com/asterinas/asterinas/issues/1120#issuecomment-2748696592>.
+ pub(crate) fn enable_local() {
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index d2412ae5c..42cfb59c9 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -1,20 +1,23 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Platform-specific code for the x86 platform.
+ /*pub mod boot;
+-pub(crate) mod cpu;
++pub(crate) mod cpu;*/
++// Origin Rust: the following two declarations were inside the surrounding block comment.
+ pub mod device;
+-pub(crate) mod ex_table;
+ pub(crate) mod io;
++/*pub(crate) mod ex_table;
+ pub(crate) mod iommu;*/
+ pub(crate) mod irq;
+ pub(crate) mod kernel;
+ pub(crate) mod mm;
+-/*pub(crate) mod pci;
+-pub mod qemu;
++// Origin Rust: this declaration was inside the surrounding block comment.
++pub(crate) mod pci;
++/*pub mod qemu;
+ pub(crate) mod serial; */
+ pub(crate) mod task;
+ pub mod timer;
+-/* pub mod trap; */
++// Origin Rust: this declaration was inside a block comment.
++pub mod trap;
+ 
+ /*use io::construct_io_mem_allocator_builder;
+ use spin::Once;
+@@ -214,6 +217,8 @@ pub(crate) fn enable_cpu_features() {
+     }
+ }
+ 
++*/
++
+ /// Inserts a TDX-specific code block.
+ ///
+ /// This macro conditionally executes a TDX-specific code block based on the following conditions:
+@@ -222,6 +227,7 @@ pub(crate) fn enable_cpu_features() {
+ ///
+ /// If both conditions are met, the `if_block` is executed. If an `else_block` is provided, it will be executed
+ /// when either the `cvm_guest` feature is not enabled or the TDX feature is not detected at runtime.
++// Origin Rust: this unchanged macro was inside the surrounding block comment.
+ #[macro_export]
+ macro_rules! if_tdx_enabled {
+     // Match when there is an else block
+@@ -251,4 +257,3 @@ macro_rules! if_tdx_enabled {
+ }
+ 
+ pub use if_tdx_enabled;
+-*/
+diff --git a/ostd/src/arch/x86/trap/mod.rs b/ostd/src/arch/x86/trap/mod.rs
+index 595859af4..a32f31a19 100644
+--- a/ostd/src/arch/x86/trap/mod.rs
++++ b/ostd/src/arch/x86/trap/mod.rs
+@@ -14,6 +14,9 @@
+ //
+ // SPDX-License-Identifier: MPL-2.0
+ //! Handles trap.
++/* Only the trap-frame data type is needed by PCI's IRQ dependency; trap dispatch remains
++ * outside this migration until its CPU-local and descriptor protocols are verified.
++ * Origin Rust:
+ pub(super) mod gdt;
+ mod idt;
+ mod syscall;
+@@ -50,7 +53,7 @@ cfg_if! {
+ cpu_local_cell! {
+     static KERNEL_INTERRUPT_NESTED_LEVEL: u8 = 0;
+ }
+-
++*/
+ /// Trap frame of kernel interrupt
+ ///
+ /// # Trap handler
+@@ -101,6 +104,8 @@ pub struct TrapFrame {
+     pub rflags: usize,
+ }
+ 
++/* Trap initialization, user-context data, and dispatch are not needed by the PCI dependency slice.
++ * Origin Rust:
+ /// Initializes interrupt handling on x86_64.
+ ///
+ /// This function will:
+@@ -300,3 +305,4 @@ fn handle_kernel_page_fault(info: RawPageFaultInfo) {
+     //    correctness follows the semantics of the direct mapping of physical memory.
+     unsafe { cursor.map(crate::mm::kspace::MappedItem::Untracked(paddr, 1, prop)) }.unwrap();
+ }
++*/
+diff --git a/ostd/src/bus/pci/capability/msix.rs b/ostd/src/bus/pci/capability/msix.rs
+index ada20bbd0..26466d125 100644
+--- a/ostd/src/bus/pci/capability/msix.rs
++++ b/ostd/src/bus/pci/capability/msix.rs
+@@ -3,6 +3,8 @@
+ #![expect(dead_code)]
+ #![expect(unused_variables)]
+ 
++use vstd::prelude::*;
++
+ use alloc::{sync::Arc, vec::Vec};
+ 
+ use crate::{
+@@ -186,6 +188,14 @@ impl CapabilityMsixData {
+     }
+ }
+ 
++#[verus_verify]
++#[verus_verify(dual_spec)]
++#[verus_spec(
++    requires
++        offset < 16,
++    returns
++        set_bit(origin_value, offset, set),
++)]
+ fn set_bit(origin_value: u16, offset: usize, set: bool) -> u16 {
+     (origin_value & (!(1 << offset))) | ((set as u16) << offset)
+ }
+diff --git a/ostd/src/bus/pci/capability/vendor.rs b/ostd/src/bus/pci/capability/vendor.rs
+index 7c18df936..25b89bfba 100644
+--- a/ostd/src/bus/pci/capability/vendor.rs
++++ b/ostd/src/bus/pci/capability/vendor.rs
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Vendor-specific capability support.
++use vstd::prelude::*;
++
+ use crate::{
+     Error, Result,
+     bus::pci::{common_device::PciCommonDevice, device_info::PciDeviceLocation},
+@@ -7,13 +9,13 @@ use crate::{
+ 
+ /// Vendor specific capability. Users can access this capability area at will,
+ /// except for the PCI configuration space which cannot be accessed at will through this structure.
++#[verus_verify]
+ #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+ pub struct CapabilityVndrData {
+     location: PciDeviceLocation,
+     cap_ptr: u16,
+     length: u16,
+ }
+-
+ impl CapabilityVndrData {
+     pub(super) fn new(dev: &PciCommonDevice, cap_ptr: u16, length: u16) -> Self {
+         Self {
+@@ -22,13 +24,20 @@ impl CapabilityVndrData {
+             length,
+         }
+     }
++}
+ 
++#[verus_verify]
++impl CapabilityVndrData {
+     /// The length of this capability
+     #[expect(clippy::len_without_is_empty)]
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns self.len())]
+     pub fn len(&self) -> u16 {
+         self.length
+     }
++}
+ 
++impl CapabilityVndrData {
+     /// Reads u8 from the capability.
+     pub fn read8(&self, offset: u16) -> Result<u8> {
+         self.check_range(offset)?;
+diff --git a/ostd/src/bus/pci/cfg_space.rs b/ostd/src/bus/pci/cfg_space.rs
+index 94ea50891..e5d1a7242 100644
+--- a/ostd/src/bus/pci/cfg_space.rs
++++ b/ostd/src/bus/pci/cfg_space.rs
+@@ -2,6 +2,8 @@
+ //! The PCI configuration space.
+ //!
+ //! Reference: <https://wiki.osdev.org/PCI>
++use vstd::prelude::*;
++
+ use alloc::sync::Arc;
+ use core::mem::size_of;
+ 
+@@ -297,7 +299,8 @@ impl MemoryBar {
+             io_memory: unsafe {
+                 IoMem::new(
+                     (base as usize)..((base + size as u64) as usize),
+-                    PageFlags::RW,
++                    // Origin Rust: PageFlags::RW,
++                    PageFlags::RW(),
+                     CachePolicy::Uncacheable,
+                 )
+             },
+@@ -315,23 +318,30 @@ pub enum AddrLen {
+ }
+ 
+ /// I/O port BAR.
++#[verus_verify]
+ #[derive(Debug, Clone, Copy)]
+ pub struct IoBar {
+     base: u32,
+     size: u32,
+ }
+-
++#[verus_verify]
+ impl IoBar {
+     /// Base port
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns self.base())]
+     pub fn base(&self) -> u32 {
+         self.base
+     }
+ 
+     /// Size of the port
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns self.size())]
+     pub fn size(&self) -> u32 {
+         self.size
+     }
++}
+ 
++impl IoBar {
+     /// Reads from port
+     pub fn read<T: PortRead>(&self, offset: u32) -> Result<T> {
+         // Check alignment
+diff --git a/ostd/src/bus/pci/device_info.rs b/ostd/src/bus/pci/device_info.rs
+index 3d415c987..b4bde0da2 100644
+--- a/ostd/src/bus/pci/device_info.rs
++++ b/ostd/src/bus/pci/device_info.rs
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! PCI device Information
++use vstd::prelude::*;
++
+ use core::iter;
+ 
+ use super::cfg_space::PciDeviceCommonCfgOffset;
+@@ -50,6 +52,7 @@ impl PciDeviceId {
+ }
+ 
+ /// PCI device Location
++#[verus_verify]
+ #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+ pub struct PciDeviceLocation {
+     /// Bus number
+@@ -88,9 +91,14 @@ impl PciDeviceLocation {
+             },
+         )
+     }
++}
+ 
++#[verus_verify]
++impl PciDeviceLocation {
+     /// The page table of all devices is the same. So we can use any device ID.
+     /// FIXME: distinguish different device id.
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns Self::zero())]
+     pub fn zero() -> Self {
+         Self {
+             bus: 0,
+diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
+index 0de48b517..6d4113834 100644
+--- a/ostd/src/bus/pci/mod.rs
++++ b/ostd/src/bus/pci/mod.rs
+@@ -56,11 +56,30 @@ mod device_info;
+ 
+ pub use device_info::{PciDeviceId, PciDeviceLocation};
+ 
++use spin::Once;
++
+ use self::{bus::PciBus, common_device::PciCommonDevice};
+-use crate::{arch::pci::has_pci_bus, sync::Mutex};
++use crate::{
++    arch::pci::has_pci_bus,
++    sync::{Mutex, MutexGuard},
++};
+ 
+ /// PCI bus instance
+-pub static PCI_BUS: Mutex<PciBus> = Mutex::new(PciBus::new());
++///
++/// Origin Rust: `pub static PCI_BUS: Mutex<PciBus> = Mutex::new(PciBus::new());`
++pub struct PciBusCell(Once<Mutex<PciBus>>);
++
++impl PciBusCell {
++    const fn new() -> Self {
++        Self(Once::new())
++    }
++
++    pub fn lock(&self) -> MutexGuard<'_, PciBus> {
++        self.0.call_once(|| Mutex::new(PciBus::new())).lock()
++    }
++}
++
++pub static PCI_BUS: PciBusCell = PciBusCell::new();
+ 
+ pub(crate) fn init() {
+     if !has_pci_bus() {
+diff --git a/ostd/src/io/io_mem/allocator.rs b/ostd/src/io/io_mem/allocator.rs
+index 0cd42a4e9..12a7ac74e 100644
+--- a/ostd/src/io/io_mem/allocator.rs
++++ b/ostd/src/io/io_mem/allocator.rs
+@@ -29,7 +29,10 @@ impl IoMemAllocator {
+         debug!("Acquiring MMIO range:{:x?}..{:x?}", range.start, range.end);
+ 
+         // SAFETY: The created `IoMem` is guaranteed not to access physical memory or system device I/O.
+-        unsafe { Some(IoMem::new(range, PageFlags::RW, CachePolicy::Uncacheable)) }
++        /* The migrated bitflags API exposes composite flags through a function.
++         * Origin Rust: unsafe { Some(IoMem::new(range, PageFlags::RW, CachePolicy::Uncacheable)) }
++         */
++        unsafe { Some(IoMem::new(range, PageFlags::RW(), CachePolicy::Uncacheable)) }
+     }
+ 
+     /// Recycles an MMIO range.
+diff --git a/ostd/src/io/io_mem/mod.rs b/ostd/src/io/io_mem/mod.rs
+index 3afa2d077..d8d0f8a7c 100644
+--- a/ostd/src/io/io_mem/mod.rs
++++ b/ostd/src/io/io_mem/mod.rs
+@@ -2,6 +2,10 @@
+ //! I/O memory and its allocator that allocates memory I/O (MMIO) to device drivers.
+ mod allocator;
+ 
++use vstd::prelude::*;
++
++use crate::specs::{mm::virt_mem::VirtPtr, task::AnyAtomicGuard};
++
+ use core::ops::{Deref, Range};
+ 
+ use align_ext::AlignExt;
+@@ -11,8 +15,8 @@ pub(super) use self::allocator::init;
+ use crate::{
+     Error,
+     mm::{
+-        FallibleVmRead, FallibleVmWrite, HasPaddr, Infallible, PAGE_SIZE, Paddr, PodOnce, VmIo,
+-        VmIoOnce, VmReader, VmWriter,
++        FallibleVmRead, FallibleVmWrite, HasPaddr, Infallible, PAGE_SIZE, Paddr, PodOnce, VmReader,
++        VmWriter,
+         kspace::kvirt_area::KVirtArea,
+         page_prop::{CachePolicy, PageFlags, PageProperty, PrivilegedPageFlags},
+     },
+@@ -123,7 +127,10 @@ impl IoMem {
+ 
+         // SAFETY: The caller of `IoMem::new()` ensures that the given
+         // physical address range is I/O memory, so it is safe to map.
+-        let kva = unsafe { KVirtArea::map_untracked_frames(area_size, 0, frames_range, prop) };
++        // Origin Rust: KVirtArea::map_untracked_frames(area_size, 0, frames_range, prop)
++        let kva = unsafe {
++            KVirtArea::map_untracked_frames::<AnyAtomicGuard>(area_size, 0, frames_range, prop)
++        };
+ 
+         Self {
+             kvirt_area: Arc::new(kva),
+@@ -145,9 +152,15 @@ impl IoMem {
+     fn reader(&self) -> VmReader<'_, Infallible> {
+         // SAFETY: The constructor of the `IoMem` structure has already ensured the
+         // safety of reading from the mapped physical address, and the mapping is valid.
++        // Origin Rust: VmReader::from_kernel_space(
++        //     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
++        let vaddr = self.kvirt_area.deref().start() + self.offset;
+         unsafe {
+             VmReader::from_kernel_space(
+-                (self.kvirt_area.deref().start() + self.offset) as *mut u8,
++                VirtPtr {
++                    vaddr,
++                    range: Ghost::new(vaddr..vaddr + self.limit),
++                },
+                 self.limit,
+             )
+         }
+@@ -156,15 +169,24 @@ impl IoMem {
+     fn writer(&self) -> VmWriter<'_, Infallible> {
+         // SAFETY: The constructor of the `IoMem` structure has already ensured the
+         // safety of writing to the mapped physical address, and the mapping is valid.
++        // Origin Rust: VmWriter::from_kernel_space(
++        //     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
++        let vaddr = self.kvirt_area.deref().start() + self.offset;
+         unsafe {
+             VmWriter::from_kernel_space(
+-                (self.kvirt_area.deref().start() + self.offset) as *mut u8,
++                VirtPtr {
++                    vaddr,
++                    range: Ghost::new(vaddr..vaddr + self.limit),
++                },
+                 self.limit,
+             )
+         }
+     }
+ }
+ 
++/* The generic verified `VmIo<P>` interface requires an ownership model for MMIO side effects.
++ * TODO: restore this implementation after introducing that hardware ownership model.
++ * Origin Rust:
+ impl VmIo for IoMem {
+     fn read(&self, offset: usize, writer: &mut VmWriter) -> Result<()> {
+         let offset = offset + self.offset;
+@@ -204,13 +226,19 @@ impl VmIo for IoMem {
+         Ok(())
+     }
+ }
++*/
+ 
+-impl VmIoOnce for IoMem {
+-    fn read_once<T: PodOnce>(&self, offset: usize) -> Result<T> {
++/* The verified `VmIoOnce` trait requires a memory owner that the current method signatures cannot
++ * carry. Keep the executable API available without adding a trusted implementation. TODO: restore
++ * the trait implementation together with the MMIO ownership model.
++ * Origin Rust: `impl VmIoOnce for IoMem`.
++ */
++impl IoMem {
++    pub fn read_once<T: PodOnce>(&self, offset: usize) -> Result<T> {
+         self.reader().skip(offset).read_once()
+     }
+ 
+-    fn write_once<T: PodOnce>(&self, offset: usize, new_val: &T) -> Result<()> {
++    pub fn write_once<T: PodOnce>(&self, offset: usize, new_val: &T) -> Result<()> {
+         self.writer().skip(offset).write_once(new_val)
+     }
+ }
+diff --git a/ostd/src/io/io_port/allocator.rs b/ostd/src/io/io_port/allocator.rs
+index 0e5b85e9a..15c7f6b73 100644
+--- a/ostd/src/io/io_port/allocator.rs
++++ b/ostd/src/io/io_port/allocator.rs
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O port allocator.
++use vstd::prelude::*;
++
+ use core::ops::Range;
+ 
+ use id_alloc::IdAlloc;
+@@ -93,6 +95,9 @@ pub(crate) unsafe fn init() {
+     }
+ 
+     IO_PORT_ALLOCATOR.call_once(|| IoPortAllocator {
+-        allocator: SpinLock::new(allocator),
++        /* The verified `SpinLock` constructor now requires its trivial invariant resources.
++         * Origin Rust: allocator: SpinLock::new(allocator),
++         */
++        allocator: SpinLock::new(allocator, Ghost::new(()), Tracked::new(())),
+     });
+ }
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index f796fe53c..70b4e811d 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -41,12 +41,14 @@ pub mod arch;
+ #[path = "arch/loongarch/mod.rs"]
+ pub mod arch;
+ pub mod boot;
+-/*pub mod bus;
+-pub mod console;*/
++// Origin Rust: this declaration was inside a block comment.
++pub mod bus;
++/*pub mod console;*/
+ pub mod cpu;
+ pub mod error;
+-/*pub mod io;
+-pub mod logger;*/
++// Origin Rust: this declaration was inside a block comment.
++pub mod io;
++/*pub mod logger;*/
+ pub mod mm;
+ /*pub mod panic;*/
+ pub mod prelude;
+@@ -67,6 +69,8 @@ pub use ostd_macros::{
+     panic_handler,
+ };*/
+ pub use ostd_pod::Pod;
++// Origin Rust: this declaration was inside the block comment below.
++pub use self::{error::Error, prelude::Result};
+ /*
+ pub use self::{error::Error, prelude::Result};
+ 
+diff --git a/ostd/src/sync/mod.rs b/ostd/src/sync/mod.rs
+index 1d3f5e951..c97ab481d 100644
+--- a/ostd/src/sync/mod.rs
++++ b/ostd/src/sync/mod.rs
+@@ -10,7 +10,7 @@ mod spin;
+ mod wait;
+ //pub(crate) use self::rcu::finish_grace_period;
+ pub use self::{
+-    guard::{GuardTransfer, LocalIrqDisabled, PreemptDisabled, SpinGuardian, /*WriteIrqDisabled*/},
++    guard::{GuardTransfer, LocalIrqDisabled, PreemptDisabled, SpinGuardian, WriteIrqDisabled},
+     mutex::{Mutex, MutexGuard},
+     rcu::{non_null /*, Rcu, RcuDrop, RcuOption, RcuOptionReadGuard, RcuReadGuard*/},
+     rwarc::{RoArc, RwArc},
+diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
+index 22327adce..133fdbeb9 100644
+--- a/ostd/src/trap/irq.rs
++++ b/ostd/src/trap/irq.rs
+@@ -2,22 +2,23 @@
+ //! IRQ line and IRQ guards.
+ use vstd::prelude::*;
+ 
++use alloc::{boxed::Box, sync::Arc, vec::Vec};
+ use core::{fmt::Debug, ops::Deref};
+ 
+-// use id_alloc::IdAlloc;
+-// use spin::Once;
++use id_alloc::IdAlloc;
++use spin::Once;
+ 
+ use crate::{
++    // task::atomic_mode::InAtomicMode,
++    Error,
+     arch::{
+-        irq::{self /* , IrqRemapping, IRQ_NUM_MAX, IRQ_NUM_MIN */},
+-        /* trap::TrapFrame, */
++        irq::{self, IRQ_NUM_MAX, IRQ_NUM_MIN, IrqRemapping},
++        trap::TrapFrame,
+     },
+     prelude::*,
+-    sync::{GuardTransfer, RwLock, SpinLock /* WriteIrqDisabled */},
+-    // task::atomic_mode::InAtomicMode,
+-    // Error,
++    sync::{GuardTransfer, PreemptDisabled, RwLock, SpinLock, WriteIrqDisabled},
+ };
+-/*
++// Origin Rust: the following IRQ-line implementation was inside a block comment.
+ /// A type alias for the IRQ callback function.
+ pub type IrqCallbackFunction = dyn Fn(&TrapFrame) + Sync + Send + 'static;
+ 
+@@ -136,10 +137,17 @@ impl Inner {
+ const NUMBER_OF_IRQS: usize = (IRQ_NUM_MAX - IRQ_NUM_MIN) as usize + 1;
+ 
+ static INNERS: [Inner; NUMBER_OF_IRQS] = [const { Inner::new() }; NUMBER_OF_IRQS];
+-static ALLOCATOR: Once<SpinLock<IdAlloc>> = Once::new();
+-
+-fn get_or_init_allocator() -> &'static SpinLock<IdAlloc> {
+-    ALLOCATOR.call_once(|| SpinLock::new(IdAlloc::with_capacity(NUMBER_OF_IRQS)))
++static ALLOCATOR: Once<SpinLock<IdAlloc, PreemptDisabled>> = Once::new();
++
++fn get_or_init_allocator() -> &'static SpinLock<IdAlloc, PreemptDisabled> {
++    // Origin Rust: SpinLock::new(IdAlloc::with_capacity(NUMBER_OF_IRQS))
++    ALLOCATOR.call_once(|| {
++        SpinLock::new(
++            IdAlloc::with_capacity(NUMBER_OF_IRQS),
++            Ghost::new(()),
++            Tracked::new(()),
++        )
++    })
+ }
+ 
+ /// A handle for an allocated IRQ line.
+@@ -191,7 +199,7 @@ pub(super) fn process_top_half(trap_frame: &TrapFrame, irq_num: usize) {
+     for callback in &*inner.callbacks.read() {
+         callback(trap_frame);
+     }
+-}*/
++}
+ 
+ // ####### IRQ Guards #######
+ verus! {
+
+From 2b671cf0befdf4e877744a6bb32156d26609e7de Mon Sep 17 00:00:00 2001
+From: Chao <chao-j@qq.com>
+Date: Wed, 11 Nov 2026 15:59:21 +0800
+Subject: [PATCH 2/5] Restore original Cargo configuration
+
+---
+ .cargo/config.toml | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/.cargo/config.toml b/.cargo/config.toml
+index a38a9687b..06127e47b 100644
+--- a/.cargo/config.toml
++++ b/.cargo/config.toml
+@@ -5,6 +5,4 @@ dv = "run --manifest-path dv/Cargo.toml --bin rust-dv --"
+ pre-commit = "run --manifest-path dv/Cargo.toml --bin pre_commit --"
+ 
+ [build]
+-# Incremental span identities trigger false callee mismatches in Verus proof_with checks.
+-incremental = false
+-rustflags = []
++rustflags = []
+\ No newline at end of file
+
+From 79b54e52588bf8a82ed7ff237d5865fc53097ccd Mon Sep 17 00:00:00 2001
+From: Chao <chao-j@qq.com>
+Date: Wed, 11 Nov 2026 16:11:13 +0800
+Subject: [PATCH 3/5] Clarify PCI migration comments
+
+---
+ ostd/src/arch/x86/irq.rs      |  9 +++------
+ ostd/src/arch/x86/mod.rs      |  4 ----
+ ostd/src/arch/x86/trap/mod.rs |  6 ++----
+ ostd/src/bus/pci/cfg_space.rs |  4 +++-
+ ostd/src/bus/pci/mod.rs       |  8 +++++---
+ ostd/src/io/io_mem/mod.rs     | 23 +++++++++++++----------
+ ostd/src/lib.rs               |  6 ++----
+ ostd/src/trap/irq.rs          |  9 ++++-----
+ 8 files changed, 32 insertions(+), 37 deletions(-)
+
+diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
+index 6a8e513c5..edc9d67b2 100644
+--- a/ostd/src/arch/x86/irq.rs
++++ b/ostd/src/arch/x86/irq.rs
+@@ -9,10 +9,8 @@ use vstd::prelude::*;
+ pub(crate) const IRQ_NUM_MIN: u8 = 32;
+ pub(crate) const IRQ_NUM_MAX: u8 = 255;
+ 
+-/* The IOMMU module is outside the active verified module graph, so interrupt remapping is
+- * unavailable in this build. This preserves the original no-IOMMU branch: initialization is a
+- * no-op and the query returns `None`. TODO: restore the IOMMU-backed path when that module enters
+- * the verified graph.
++/* IOMMU support is not enabled, so this stub leaves interrupt remapping disabled.
++ * TODO: restore the implementation below when enabling the IOMMU module.
+  * Origin Rust:
+  * pub(crate) struct IrqRemapping { entry: Once<IrtEntryHandle> }
+  * impl IrqRemapping {
+@@ -44,8 +42,7 @@ impl IrqRemapping {
+     }
+ }
+ 
+-/* Local IRQ hardware operations are not required by the PCI dependency slice.
+- * Origin Rust:
++/*
+ // FIXME: Mark this as unsafe. See
+ // <https://github.com/asterinas/asterinas/issues/1120#issuecomment-2748696592>.
+ pub(crate) fn enable_local() {
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index 07bb7a06e..2eeb9921a 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -2,7 +2,6 @@
+ //! Platform-specific code for the x86 platform.
+ /*pub mod boot;
+ pub(crate) mod cpu;*/
+-// Origin Rust: the device and I/O declarations were inside the surrounding block comment.
+ pub mod device;
+ pub(crate) mod ex_table;
+ pub(crate) mod io;
+@@ -10,13 +9,11 @@ pub(crate) mod io;
+ pub(crate) mod irq;
+ pub(crate) mod kernel;
+ pub(crate) mod mm;
+-// Origin Rust: this declaration was inside the surrounding block comment.
+ pub(crate) mod pci;
+ /*pub mod qemu;
+ pub(crate) mod serial; */
+ pub(crate) mod task;
+ pub mod timer;
+-// Origin Rust: this declaration was inside a block comment.
+ pub mod trap;
+ 
+ /*use io::construct_io_mem_allocator_builder;
+@@ -227,7 +224,6 @@ pub(crate) fn enable_cpu_features() {
+ ///
+ /// If both conditions are met, the `if_block` is executed. If an `else_block` is provided, it will be executed
+ /// when either the `cvm_guest` feature is not enabled or the TDX feature is not detected at runtime.
+-// Origin Rust: this unchanged macro was inside the surrounding block comment.
+ #[macro_export]
+ macro_rules! if_tdx_enabled {
+     // Match when there is an else block
+diff --git a/ostd/src/arch/x86/trap/mod.rs b/ostd/src/arch/x86/trap/mod.rs
+index a32f31a19..c460b3f19 100644
+--- a/ostd/src/arch/x86/trap/mod.rs
++++ b/ostd/src/arch/x86/trap/mod.rs
+@@ -14,8 +14,7 @@
+ //
+ // SPDX-License-Identifier: MPL-2.0
+ //! Handles trap.
+-/* Only the trap-frame data type is needed by PCI's IRQ dependency; trap dispatch remains
+- * outside this migration until its CPU-local and descriptor protocols are verified.
++/* Only TrapFrame is enabled for IRQ callbacks; trap dispatch is not enabled.
+  * Origin Rust:
+ pub(super) mod gdt;
+ mod idt;
+@@ -104,8 +103,7 @@ pub struct TrapFrame {
+     pub rflags: usize,
+ }
+ 
+-/* Trap initialization, user-context data, and dispatch are not needed by the PCI dependency slice.
+- * Origin Rust:
++/*
+ /// Initializes interrupt handling on x86_64.
+ ///
+ /// This function will:
+diff --git a/ostd/src/bus/pci/cfg_space.rs b/ostd/src/bus/pci/cfg_space.rs
+index e5d1a7242..74a3ec81a 100644
+--- a/ostd/src/bus/pci/cfg_space.rs
++++ b/ostd/src/bus/pci/cfg_space.rs
+@@ -299,7 +299,9 @@ impl MemoryBar {
+             io_memory: unsafe {
+                 IoMem::new(
+                     (base as usize)..((base + size as u64) as usize),
+-                    // Origin Rust: PageFlags::RW,
++                    /* The migrated bitflags API exposes composite flags through a function.
++                     * Origin Rust: PageFlags::RW,
++                     */
+                     PageFlags::RW(),
+                     CachePolicy::Uncacheable,
+                 )
+diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
+index 6d4113834..b8c26a254 100644
+--- a/ostd/src/bus/pci/mod.rs
++++ b/ostd/src/bus/pci/mod.rs
+@@ -64,9 +64,7 @@ use crate::{
+     sync::{Mutex, MutexGuard},
+ };
+ 
+-/// PCI bus instance
+-///
+-/// Origin Rust: `pub static PCI_BUS: Mutex<PciBus> = Mutex::new(PciBus::new());`
++/// A PCI bus mutex initialized on the first call to `lock`.
+ pub struct PciBusCell(Once<Mutex<PciBus>>);
+ 
+ impl PciBusCell {
+@@ -79,6 +77,10 @@ impl PciBusCell {
+     }
+ }
+ 
++/* Defer mutex construction until the first lock so the static holds an empty Once.
++ * Origin Rust: pub static PCI_BUS: Mutex<PciBus> = Mutex::new(PciBus::new());
++ */
++/// PCI bus instance
+ pub static PCI_BUS: PciBusCell = PciBusCell::new();
+ 
+ pub(crate) fn init() {
+diff --git a/ostd/src/io/io_mem/mod.rs b/ostd/src/io/io_mem/mod.rs
+index 353d85ba3..3a226bb72 100644
+--- a/ostd/src/io/io_mem/mod.rs
++++ b/ostd/src/io/io_mem/mod.rs
+@@ -149,8 +149,10 @@ impl IoMem {
+     fn reader(&self) -> VmReader<'_, Infallible> {
+         // SAFETY: The constructor of the `IoMem` structure has already ensured the
+         // safety of reading from the mapped physical address, and the mapping is valid.
+-        // Origin Rust: VmReader::from_kernel_space(
+-        //     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
++        /* VmReader now takes a VirtPtr with a ghost address range instead of a raw pointer.
++         * Origin Rust: VmReader::from_kernel_space(
++         *     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
++         */
+         let vaddr = self.kvirt_area.deref().start() + self.offset;
+         unsafe {
+             VmReader::from_kernel_space(
+@@ -166,8 +168,10 @@ impl IoMem {
+     fn writer(&self) -> VmWriter<'_, Infallible> {
+         // SAFETY: The constructor of the `IoMem` structure has already ensured the
+         // safety of writing to the mapped physical address, and the mapping is valid.
+-        // Origin Rust: VmWriter::from_kernel_space(
+-        //     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
++        /* VmWriter now takes a VirtPtr with a ghost address range instead of a raw pointer.
++         * Origin Rust: VmWriter::from_kernel_space(
++         *     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
++         */
+         let vaddr = self.kvirt_area.deref().start() + self.offset;
+         unsafe {
+             VmWriter::from_kernel_space(
+@@ -181,8 +185,8 @@ impl IoMem {
+     }
+ }
+ 
+-/* The generic verified `VmIo<P>` interface requires an ownership model for MMIO side effects.
+- * TODO: restore this implementation after introducing that hardware ownership model.
++/* IoMem does not yet implement the ownership specifications required by VmIo<P>.
++ * TODO: model MMIO ownership and restore this trait implementation.
+  * Origin Rust:
+ impl VmIo for IoMem {
+     fn read(&self, offset: usize, writer: &mut VmWriter) -> Result<()> {
+@@ -225,10 +229,9 @@ impl VmIo for IoMem {
+ }
+ */
+ 
+-/* The verified `VmIoOnce` trait requires a memory owner that the current method signatures cannot
+- * carry. Keep the executable API available without adding a trusted implementation. TODO: restore
+- * the trait implementation together with the MMIO ownership model.
+- * Origin Rust: `impl VmIoOnce for IoMem`.
++/* These remain inherent methods because IoMem does not implement VmIoOnce's spec predicates.
++ * TODO: supply those predicates and restore the trait implementation.
++ * Origin Rust: impl VmIoOnce for IoMem
+  */
+ impl IoMem {
+     pub fn read_once<T: PodOnce>(&self, offset: usize) -> Result<T> {
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 58fc2c0d7..d08261c75 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -41,16 +41,14 @@ pub mod arch;
+ #[path = "arch/loongarch/mod.rs"]
+ pub mod arch;
+ pub mod boot;
+-/* PCI is connected only to the x86 device and trap modules in this verification slice.
+- * Keep the other architectures' previously disabled bus module out of the module graph.
+- * Origin Rust: pub mod bus; (inside a block comment)
++/* PCI's device and trap dependencies are currently enabled only on x86.
++ * Origin Rust: pub mod bus;
+  */
+ #[cfg(target_arch = "x86_64")]
+ pub mod bus;
+ /*pub mod console;*/
+ pub mod cpu;
+ pub mod error;
+-// Origin Rust: this declaration was inside a block comment.
+ pub mod io;
+ /*pub mod logger;*/
+ pub mod mm;
+diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
+index 65b100419..45ed6cdd4 100644
+--- a/ostd/src/trap/irq.rs
++++ b/ostd/src/trap/irq.rs
+@@ -6,10 +6,7 @@ use core::fmt::Debug;
+ 
+ use crate::{arch::irq, sync::GuardTransfer};
+ 
+-/* IRQ lines require the TrapFrame module enabled by the x86 PCI migration. IRQ guards below
+- * remain available on every architecture, as they were before the PCI migration.
+- * Origin Rust: the IRQ-line implementation below was inside a block comment.
+- */
++// IRQ lines depend on TrapFrame, which is currently enabled only on x86.
+ cfg_if::cfg_if! {
+     if #[cfg(target_arch = "x86_64")] {
+         use alloc::{boxed::Box, sync::Arc, vec::Vec};
+@@ -148,8 +145,10 @@ cfg_if::cfg_if! {
+         static ALLOCATOR: Once<SpinLock<IdAlloc, PreemptDisabled>> = Once::new();
+ 
+         fn get_or_init_allocator() -> &'static SpinLock<IdAlloc, PreemptDisabled> {
+-            // Origin Rust: SpinLock::new(IdAlloc::with_capacity(NUMBER_OF_IRQS))
+             ALLOCATOR.call_once(|| {
++                /* Supply the trivial invariant resources required by SpinLock::new.
++                 * Origin Rust: SpinLock::new(IdAlloc::with_capacity(NUMBER_OF_IRQS))
++                 */
+                 SpinLock::new(
+                     IdAlloc::with_capacity(NUMBER_OF_IRQS),
+                     Ghost::new(()),
+
+From 4c26ddb86ff4087d7fa3fe3fc32c49ae695622ca Mon Sep 17 00:00:00 2001
+From: Chao <chao-j@qq.com>
+Date: Wed, 11 Nov 2026 16:43:50 +0800
+Subject: [PATCH 4/5] Limit PCI verification to foundation helpers
+
+Preserve original hardware implementations as commented code and restore upstream I/O and IRQ dependencies. Remove the PCI bus wrapper, interrupt-remapping stub, and IoMem trait rewrites while retaining the five verified helper bodies unchanged.
+
+Validated with CARGO_INCREMENTAL=0 make, make verify-riscv, make verify-loongarch, focused PCI verification, and verusfmt checks.
+---
+ ostd/src/arch/x86/irq.rs              |  55 ++--
+ ostd/src/arch/x86/mod.rs              |  17 +-
+ ostd/src/arch/x86/trap/mod.rs         |   6 +-
+ ostd/src/bus/mod.rs                   |   2 +
+ ostd/src/bus/pci/capability/mod.rs    |   4 +
+ ostd/src/bus/pci/capability/msix.rs   |   3 +
+ ostd/src/bus/pci/capability/vendor.rs |   9 +-
+ ostd/src/bus/pci/cfg_space.rs         |  10 +-
+ ostd/src/bus/pci/device_info.rs       |   7 +-
+ ostd/src/bus/pci/mod.rs               |  32 +--
+ ostd/src/io/io_mem/allocator.rs       |   5 +-
+ ostd/src/io/io_mem/mod.rs             |  42 +---
+ ostd/src/io/io_port/allocator.rs      |   7 +-
+ ostd/src/lib.rs                       |   8 +-
+ ostd/src/sync/mod.rs                  |   2 +-
+ ostd/src/trap/irq.rs                  | 347 ++++++++++++--------------
+ 16 files changed, 252 insertions(+), 304 deletions(-)
+
+diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
+index edc9d67b2..3279a988e 100644
+--- a/ostd/src/arch/x86/irq.rs
++++ b/ostd/src/arch/x86/irq.rs
+@@ -2,6 +2,12 @@
+ //! Interrupts.
+ use vstd::prelude::*;
+ 
++/* use spin::Once;
++use x86_64::registers::rflags::{self, RFlags};
++
++use super::iommu::{alloc_irt_entry, has_interrupt_remapping, IrtEntryHandle};
++use crate::cpu::PinCurrentCpu;
++
+ // Intel(R) 64 and IA-32 rchitectures Software Developer's Manual,
+ // Volume 3A, Section 6.2 says "Vector numbers in the range 32 to 255
+ // are designated as user-defined interrupts and are not reserved by
+@@ -9,40 +15,41 @@ use vstd::prelude::*;
+ pub(crate) const IRQ_NUM_MIN: u8 = 32;
+ pub(crate) const IRQ_NUM_MAX: u8 = 255;
+ 
+-/* IOMMU support is not enabled, so this stub leaves interrupt remapping disabled.
+- * TODO: restore the implementation below when enabling the IOMMU module.
+- * Origin Rust:
+- * pub(crate) struct IrqRemapping { entry: Once<IrtEntryHandle> }
+- * impl IrqRemapping {
+- *     pub(crate) const fn new() -> Self { Self { entry: Once::new() } }
+- *     pub(crate) fn init(&self, irq_num: u8) {
+- *         if !has_interrupt_remapping() { return; }
+- *         self.entry.call_once(|| {
+- *             let handle = alloc_irt_entry().unwrap();
+- *             handle.enable(irq_num as u32);
+- *             handle
+- *         });
+- *     }
+- *     pub(crate) fn remapping_index(&self) -> Option<u16> {
+- *         Some(self.entry.get()?.index())
+- *     }
+- * }
+- */
+-pub(crate) struct IrqRemapping;
++pub(crate) struct IrqRemapping {
++    entry: Once<IrtEntryHandle>,
++}
+ 
+ impl IrqRemapping {
+     pub(crate) const fn new() -> Self {
+-        Self
++        Self { entry: Once::new() }
+     }
+ 
+-    pub(crate) fn init(&self, _irq_num: u8) {}
++    /// Initializes the remapping entry for the specific IRQ number.
++    ///
++    /// This will do nothing if the entry is already initialized or interrupt
++    /// remapping is disabled or not supported by the architecture.
++    pub(crate) fn init(&self, irq_num: u8) {
++        if !has_interrupt_remapping() {
++            return;
++        }
+ 
++        self.entry.call_once(|| {
++            // Allocate and enable the IRT entry.
++            let handle = alloc_irt_entry().unwrap();
++            handle.enable(irq_num as u32);
++            handle
++        });
++    }
++
++    /// Gets the remapping index of the IRQ line.
++    ///
++    /// This method will return `None` if interrupt remapping is disabled or
++    /// not supported by the architecture.
+     pub(crate) fn remapping_index(&self) -> Option<u16> {
+-        None
++        Some(self.entry.get()?.index())
+     }
+ }
+ 
+-/*
+ // FIXME: Mark this as unsafe. See
+ // <https://github.com/asterinas/asterinas/issues/1120#issuecomment-2748696592>.
+ pub(crate) fn enable_local() {
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index 2eeb9921a..c763ffff8 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -1,20 +1,20 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Platform-specific code for the x86 platform.
+ /*pub mod boot;
+-pub(crate) mod cpu;*/
+-pub mod device;
++pub(crate) mod cpu;
++pub mod device;*/
+ pub(crate) mod ex_table;
+-pub(crate) mod io;
+-/*pub(crate) mod iommu;*/
++/*pub(crate) mod io;
++pub(crate) mod iommu;*/
+ pub(crate) mod irq;
+ pub(crate) mod kernel;
+ pub(crate) mod mm;
+-pub(crate) mod pci;
+-/*pub mod qemu;
++/*pub(crate) mod pci;
++pub mod qemu;
+ pub(crate) mod serial; */
+ pub(crate) mod task;
+ pub mod timer;
+-pub mod trap;
++/* pub mod trap; */
+ 
+ /*use io::construct_io_mem_allocator_builder;
+ use spin::Once;
+@@ -214,8 +214,6 @@ pub(crate) fn enable_cpu_features() {
+     }
+ }
+ 
+-*/
+-
+ /// Inserts a TDX-specific code block.
+ ///
+ /// This macro conditionally executes a TDX-specific code block based on the following conditions:
+@@ -253,3 +251,4 @@ macro_rules! if_tdx_enabled {
+ }
+ 
+ pub use if_tdx_enabled;
++*/
+diff --git a/ostd/src/arch/x86/trap/mod.rs b/ostd/src/arch/x86/trap/mod.rs
+index c460b3f19..595859af4 100644
+--- a/ostd/src/arch/x86/trap/mod.rs
++++ b/ostd/src/arch/x86/trap/mod.rs
+@@ -14,8 +14,6 @@
+ //
+ // SPDX-License-Identifier: MPL-2.0
+ //! Handles trap.
+-/* Only TrapFrame is enabled for IRQ callbacks; trap dispatch is not enabled.
+- * Origin Rust:
+ pub(super) mod gdt;
+ mod idt;
+ mod syscall;
+@@ -52,7 +50,7 @@ cfg_if! {
+ cpu_local_cell! {
+     static KERNEL_INTERRUPT_NESTED_LEVEL: u8 = 0;
+ }
+-*/
++
+ /// Trap frame of kernel interrupt
+ ///
+ /// # Trap handler
+@@ -103,7 +101,6 @@ pub struct TrapFrame {
+     pub rflags: usize,
+ }
+ 
+-/*
+ /// Initializes interrupt handling on x86_64.
+ ///
+ /// This function will:
+@@ -303,4 +300,3 @@ fn handle_kernel_page_fault(info: RawPageFaultInfo) {
+     //    correctness follows the semantics of the direct mapping of physical memory.
+     unsafe { cursor.map(crate::mm::kspace::MappedItem::Untracked(paddr, 1, prop)) }.unwrap();
+ }
+-*/
+diff --git a/ostd/src/bus/mod.rs b/ostd/src/bus/mod.rs
+index 7b81924ce..7d55712ca 100644
+--- a/ostd/src/bus/mod.rs
++++ b/ostd/src/bus/mod.rs
+@@ -11,7 +11,9 @@ pub enum BusProbeError {
+     ConfigurationSpaceError,
+ }
+ 
++/*
+ /// Initializes the bus
+ pub(crate) fn init() {
+     pci::init();
+ }
++*/
+diff --git a/ostd/src/bus/pci/capability/mod.rs b/ostd/src/bus/pci/capability/mod.rs
+index 48a3f2dbb..b3d83f8d1 100644
+--- a/ostd/src/bus/pci/capability/mod.rs
++++ b/ostd/src/bus/pci/capability/mod.rs
+@@ -2,6 +2,7 @@
+ //! PCI device capabilities.
+ #![expect(dead_code)]
+ 
++/*
+ use alloc::vec::Vec;
+ 
+ use self::{msix::CapabilityMsixData, vendor::CapabilityVndrData};
+@@ -11,9 +12,11 @@ use super::{
+     common_device::PciCommonDevice,
+ };
+ 
++*/
+ pub mod msix;
+ pub mod vendor;
+ 
++/*
+ /// PCI Capability
+ #[derive(Debug)]
+ pub struct Capability {
+@@ -144,3 +147,4 @@ impl Capability {
+         capabilities
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/capability/msix.rs b/ostd/src/bus/pci/capability/msix.rs
+index 26466d125..22b161400 100644
+--- a/ostd/src/bus/pci/capability/msix.rs
++++ b/ostd/src/bus/pci/capability/msix.rs
+@@ -5,6 +5,7 @@
+ 
+ use vstd::prelude::*;
+ 
++/*
+ use alloc::{sync::Arc, vec::Vec};
+ 
+ use crate::{
+@@ -188,6 +189,8 @@ impl CapabilityMsixData {
+     }
+ }
+ 
++*/
++
+ #[verus_verify]
+ #[verus_verify(dual_spec)]
+ #[verus_spec(
+diff --git a/ostd/src/bus/pci/capability/vendor.rs b/ostd/src/bus/pci/capability/vendor.rs
+index 25b89bfba..b5fd1a2ad 100644
+--- a/ostd/src/bus/pci/capability/vendor.rs
++++ b/ostd/src/bus/pci/capability/vendor.rs
+@@ -3,8 +3,8 @@
+ use vstd::prelude::*;
+ 
+ use crate::{
+-    Error, Result,
+-    bus::pci::{common_device::PciCommonDevice, device_info::PciDeviceLocation},
++    /*Error, Result,*/
++    bus::pci::{/*common_device::PciCommonDevice,*/ device_info::PciDeviceLocation},
+ };
+ 
+ /// Vendor specific capability. Users can access this capability area at will,
+@@ -16,6 +16,7 @@ pub struct CapabilityVndrData {
+     cap_ptr: u16,
+     length: u16,
+ }
++/*
+ impl CapabilityVndrData {
+     pub(super) fn new(dev: &PciCommonDevice, cap_ptr: u16, length: u16) -> Self {
+         Self {
+@@ -26,6 +27,8 @@ impl CapabilityVndrData {
+     }
+ }
+ 
++*/
++
+ #[verus_verify]
+ impl CapabilityVndrData {
+     /// The length of this capability
+@@ -37,6 +40,7 @@ impl CapabilityVndrData {
+     }
+ }
+ 
++/*
+ impl CapabilityVndrData {
+     /// Reads u8 from the capability.
+     pub fn read8(&self, offset: u16) -> Result<u8> {
+@@ -84,3 +88,4 @@ impl CapabilityVndrData {
+         Ok(())
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/cfg_space.rs b/ostd/src/bus/pci/cfg_space.rs
+index 74a3ec81a..120afcf53 100644
+--- a/ostd/src/bus/pci/cfg_space.rs
++++ b/ostd/src/bus/pci/cfg_space.rs
+@@ -4,6 +4,7 @@
+ //! Reference: <https://wiki.osdev.org/PCI>
+ use vstd::prelude::*;
+ 
++/*
+ use alloc::sync::Arc;
+ use core::mem::size_of;
+ 
+@@ -299,10 +300,7 @@ impl MemoryBar {
+             io_memory: unsafe {
+                 IoMem::new(
+                     (base as usize)..((base + size as u64) as usize),
+-                    /* The migrated bitflags API exposes composite flags through a function.
+-                     * Origin Rust: PageFlags::RW,
+-                     */
+-                    PageFlags::RW(),
++                    PageFlags::RW,
+                     CachePolicy::Uncacheable,
+                 )
+             },
+@@ -319,6 +317,8 @@ pub enum AddrLen {
+     Bits64,
+ }
+ 
++*/
++
+ /// I/O port BAR.
+ #[verus_verify]
+ #[derive(Debug, Clone, Copy)]
+@@ -343,6 +343,7 @@ impl IoBar {
+     }
+ }
+ 
++/*
+ impl IoBar {
+     /// Reads from port
+     pub fn read<T: PortRead>(&self, offset: u32) -> Result<T> {
+@@ -388,3 +389,4 @@ impl IoBar {
+         })
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/device_info.rs b/ostd/src/bus/pci/device_info.rs
+index b4bde0da2..128d5326f 100644
+--- a/ostd/src/bus/pci/device_info.rs
++++ b/ostd/src/bus/pci/device_info.rs
+@@ -4,7 +4,7 @@ use vstd::prelude::*;
+ 
+ use core::iter;
+ 
+-use super::cfg_space::PciDeviceCommonCfgOffset;
++// use super::cfg_space::PciDeviceCommonCfgOffset;
+ 
+ /// PCI device ID
+ #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+@@ -27,6 +27,7 @@ pub struct PciDeviceId {
+     pub subsystem_id: u16,
+ }
+ 
++/*
+ impl PciDeviceId {
+     pub(super) fn new(location: PciDeviceLocation) -> Self {
+         let vendor_id = location.read16(PciDeviceCommonCfgOffset::VendorId as u16);
+@@ -51,6 +52,8 @@ impl PciDeviceId {
+     }
+ }
+ 
++*/
++
+ /// PCI device Location
+ #[verus_verify]
+ #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+@@ -108,6 +111,7 @@ impl PciDeviceLocation {
+     }
+ }
+ 
++/*
+ impl PciDeviceLocation {
+     pub(super) const BIT32_ALIGN_MASK: u16 = 0xFFFC;
+ 
+@@ -157,3 +161,4 @@ impl PciDeviceLocation {
+         crate::arch::pci::write32(self, offset as u32, val).unwrap()
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
+index b8c26a254..d3d499493 100644
+--- a/ostd/src/bus/pci/mod.rs
++++ b/ostd/src/bus/pci/mod.rs
+@@ -48,40 +48,21 @@
+ //!     PCI_BUS.lock().register_driver(driver_a);
+ //! }
+ //! ```
+-pub mod bus;
++// Only data types and pure helpers are enabled; hardware access remains commented out.
++/*pub mod bus;*/
+ pub mod capability;
+ pub mod cfg_space;
+-pub mod common_device;
++/*pub mod common_device;*/
+ mod device_info;
+ 
+ pub use device_info::{PciDeviceId, PciDeviceLocation};
+ 
+-use spin::Once;
+-
++/*
+ use self::{bus::PciBus, common_device::PciCommonDevice};
+-use crate::{
+-    arch::pci::has_pci_bus,
+-    sync::{Mutex, MutexGuard},
+-};
+-
+-/// A PCI bus mutex initialized on the first call to `lock`.
+-pub struct PciBusCell(Once<Mutex<PciBus>>);
+-
+-impl PciBusCell {
+-    const fn new() -> Self {
+-        Self(Once::new())
+-    }
+-
+-    pub fn lock(&self) -> MutexGuard<'_, PciBus> {
+-        self.0.call_once(|| Mutex::new(PciBus::new())).lock()
+-    }
+-}
++use crate::{arch::pci::has_pci_bus, sync::Mutex};
+ 
+-/* Defer mutex construction until the first lock so the static holds an empty Once.
+- * Origin Rust: pub static PCI_BUS: Mutex<PciBus> = Mutex::new(PciBus::new());
+- */
+ /// PCI bus instance
+-pub static PCI_BUS: PciBusCell = PciBusCell::new();
++pub static PCI_BUS: Mutex<PciBus> = Mutex::new(PciBus::new());
+ 
+ pub(crate) fn init() {
+     if !has_pci_bus() {
+@@ -96,3 +77,4 @@ pub(crate) fn init() {
+         lock.register_common_device(device);
+     }
+ }
++*/
+diff --git a/ostd/src/io/io_mem/allocator.rs b/ostd/src/io/io_mem/allocator.rs
+index 12a7ac74e..0cd42a4e9 100644
+--- a/ostd/src/io/io_mem/allocator.rs
++++ b/ostd/src/io/io_mem/allocator.rs
+@@ -29,10 +29,7 @@ impl IoMemAllocator {
+         debug!("Acquiring MMIO range:{:x?}..{:x?}", range.start, range.end);
+ 
+         // SAFETY: The created `IoMem` is guaranteed not to access physical memory or system device I/O.
+-        /* The migrated bitflags API exposes composite flags through a function.
+-         * Origin Rust: unsafe { Some(IoMem::new(range, PageFlags::RW, CachePolicy::Uncacheable)) }
+-         */
+-        unsafe { Some(IoMem::new(range, PageFlags::RW(), CachePolicy::Uncacheable)) }
++        unsafe { Some(IoMem::new(range, PageFlags::RW, CachePolicy::Uncacheable)) }
+     }
+ 
+     /// Recycles an MMIO range.
+diff --git a/ostd/src/io/io_mem/mod.rs b/ostd/src/io/io_mem/mod.rs
+index 3a226bb72..3afa2d077 100644
+--- a/ostd/src/io/io_mem/mod.rs
++++ b/ostd/src/io/io_mem/mod.rs
+@@ -2,10 +2,6 @@
+ //! I/O memory and its allocator that allocates memory I/O (MMIO) to device drivers.
+ mod allocator;
+ 
+-use vstd::prelude::*;
+-
+-use crate::specs::mm::virt_mem::VirtPtr;
+-
+ use core::ops::{Deref, Range};
+ 
+ use align_ext::AlignExt;
+@@ -15,8 +11,8 @@ pub(super) use self::allocator::init;
+ use crate::{
+     Error,
+     mm::{
+-        FallibleVmRead, FallibleVmWrite, HasPaddr, Infallible, PAGE_SIZE, Paddr, PodOnce, VmReader,
+-        VmWriter,
++        FallibleVmRead, FallibleVmWrite, HasPaddr, Infallible, PAGE_SIZE, Paddr, PodOnce, VmIo,
++        VmIoOnce, VmReader, VmWriter,
+         kspace::kvirt_area::KVirtArea,
+         page_prop::{CachePolicy, PageFlags, PageProperty, PrivilegedPageFlags},
+     },
+@@ -149,17 +145,9 @@ impl IoMem {
+     fn reader(&self) -> VmReader<'_, Infallible> {
+         // SAFETY: The constructor of the `IoMem` structure has already ensured the
+         // safety of reading from the mapped physical address, and the mapping is valid.
+-        /* VmReader now takes a VirtPtr with a ghost address range instead of a raw pointer.
+-         * Origin Rust: VmReader::from_kernel_space(
+-         *     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
+-         */
+-        let vaddr = self.kvirt_area.deref().start() + self.offset;
+         unsafe {
+             VmReader::from_kernel_space(
+-                VirtPtr {
+-                    vaddr,
+-                    range: Ghost::new(vaddr..vaddr + self.limit),
+-                },
++                (self.kvirt_area.deref().start() + self.offset) as *mut u8,
+                 self.limit,
+             )
+         }
+@@ -168,26 +156,15 @@ impl IoMem {
+     fn writer(&self) -> VmWriter<'_, Infallible> {
+         // SAFETY: The constructor of the `IoMem` structure has already ensured the
+         // safety of writing to the mapped physical address, and the mapping is valid.
+-        /* VmWriter now takes a VirtPtr with a ghost address range instead of a raw pointer.
+-         * Origin Rust: VmWriter::from_kernel_space(
+-         *     (self.kvirt_area.deref().start() + self.offset) as *mut u8, self.limit)
+-         */
+-        let vaddr = self.kvirt_area.deref().start() + self.offset;
+         unsafe {
+             VmWriter::from_kernel_space(
+-                VirtPtr {
+-                    vaddr,
+-                    range: Ghost::new(vaddr..vaddr + self.limit),
+-                },
++                (self.kvirt_area.deref().start() + self.offset) as *mut u8,
+                 self.limit,
+             )
+         }
+     }
+ }
+ 
+-/* IoMem does not yet implement the ownership specifications required by VmIo<P>.
+- * TODO: model MMIO ownership and restore this trait implementation.
+- * Origin Rust:
+ impl VmIo for IoMem {
+     fn read(&self, offset: usize, writer: &mut VmWriter) -> Result<()> {
+         let offset = offset + self.offset;
+@@ -227,18 +204,13 @@ impl VmIo for IoMem {
+         Ok(())
+     }
+ }
+-*/
+ 
+-/* These remain inherent methods because IoMem does not implement VmIoOnce's spec predicates.
+- * TODO: supply those predicates and restore the trait implementation.
+- * Origin Rust: impl VmIoOnce for IoMem
+- */
+-impl IoMem {
+-    pub fn read_once<T: PodOnce>(&self, offset: usize) -> Result<T> {
++impl VmIoOnce for IoMem {
++    fn read_once<T: PodOnce>(&self, offset: usize) -> Result<T> {
+         self.reader().skip(offset).read_once()
+     }
+ 
+-    pub fn write_once<T: PodOnce>(&self, offset: usize, new_val: &T) -> Result<()> {
++    fn write_once<T: PodOnce>(&self, offset: usize, new_val: &T) -> Result<()> {
+         self.writer().skip(offset).write_once(new_val)
+     }
+ }
+diff --git a/ostd/src/io/io_port/allocator.rs b/ostd/src/io/io_port/allocator.rs
+index 15c7f6b73..0e5b85e9a 100644
+--- a/ostd/src/io/io_port/allocator.rs
++++ b/ostd/src/io/io_port/allocator.rs
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! I/O port allocator.
+-use vstd::prelude::*;
+-
+ use core::ops::Range;
+ 
+ use id_alloc::IdAlloc;
+@@ -95,9 +93,6 @@ pub(crate) unsafe fn init() {
+     }
+ 
+     IO_PORT_ALLOCATOR.call_once(|| IoPortAllocator {
+-        /* The verified `SpinLock` constructor now requires its trivial invariant resources.
+-         * Origin Rust: allocator: SpinLock::new(allocator),
+-         */
+-        allocator: SpinLock::new(allocator, Ghost::new(()), Tracked::new(())),
++        allocator: SpinLock::new(allocator),
+     });
+ }
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index d08261c75..406f247ad 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -41,16 +41,12 @@ pub mod arch;
+ #[path = "arch/loongarch/mod.rs"]
+ pub mod arch;
+ pub mod boot;
+-/* PCI's device and trap dependencies are currently enabled only on x86.
+- * Origin Rust: pub mod bus;
+- */
+-#[cfg(target_arch = "x86_64")]
+ pub mod bus;
+ /*pub mod console;*/
+ pub mod cpu;
+ pub mod error;
+-pub mod io;
+-/*pub mod logger;*/
++/*pub mod io;
++pub mod logger;*/
+ pub mod mm;
+ /*pub mod panic;*/
+ pub mod prelude;
+diff --git a/ostd/src/sync/mod.rs b/ostd/src/sync/mod.rs
+index c97ab481d..1d3f5e951 100644
+--- a/ostd/src/sync/mod.rs
++++ b/ostd/src/sync/mod.rs
+@@ -10,7 +10,7 @@ mod spin;
+ mod wait;
+ //pub(crate) use self::rcu::finish_grace_period;
+ pub use self::{
+-    guard::{GuardTransfer, LocalIrqDisabled, PreemptDisabled, SpinGuardian, WriteIrqDisabled},
++    guard::{GuardTransfer, LocalIrqDisabled, PreemptDisabled, SpinGuardian, /*WriteIrqDisabled*/},
+     mutex::{Mutex, MutexGuard},
+     rcu::{non_null /*, Rcu, RcuDrop, RcuOption, RcuOptionReadGuard, RcuReadGuard*/},
+     rwarc::{RoArc, RwArc},
+diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
+index 45ed6cdd4..22327adce 100644
+--- a/ostd/src/trap/irq.rs
++++ b/ostd/src/trap/irq.rs
+@@ -2,214 +2,197 @@
+ //! IRQ line and IRQ guards.
+ use vstd::prelude::*;
+ 
+-use core::fmt::Debug;
+-
+-use crate::{arch::irq, sync::GuardTransfer};
+-
+-// IRQ lines depend on TrapFrame, which is currently enabled only on x86.
+-cfg_if::cfg_if! {
+-    if #[cfg(target_arch = "x86_64")] {
+-        use alloc::{boxed::Box, sync::Arc, vec::Vec};
+-        use core::ops::Deref;
+-
+-        use id_alloc::IdAlloc;
+-        use spin::Once;
+-
+-        use crate::{
+-            Error,
+-            arch::{
+-                irq::{IRQ_NUM_MAX, IRQ_NUM_MIN, IrqRemapping},
+-                trap::TrapFrame,
+-            },
+-            prelude::*,
+-            sync::{PreemptDisabled, RwLock, SpinLock, WriteIrqDisabled},
+-        };
+-        /// A type alias for the IRQ callback function.
+-        pub type IrqCallbackFunction = dyn Fn(&TrapFrame) + Sync + Send + 'static;
+-
+-        /// An Interrupt ReQuest (IRQ) line.
+-        ///
+-        /// Users can use [`alloc`] or [`alloc_specific`] to allocate a (specific) IRQ line.
+-        ///
+-        /// The IRQ number is guaranteed to be an external IRQ number and users can use [`on_active`] to
+-        /// safely register callback functions on this IRQ line. When the IRQ line is dropped, all the
+-        /// registered callbacks will be unregistered automatically.
+-        ///
+-        /// [`alloc`]: Self::alloc
+-        /// [`alloc_specific`]: Self::alloc_specific
+-        /// [`on_active`]: Self::on_active
+-        #[derive(Debug)]
+-        #[must_use]
+-        pub struct IrqLine {
+-            inner: Arc<InnerHandle>,
+-            callbacks: Vec<CallbackHandle>,
++use core::{fmt::Debug, ops::Deref};
++
++// use id_alloc::IdAlloc;
++// use spin::Once;
++
++use crate::{
++    arch::{
++        irq::{self /* , IrqRemapping, IRQ_NUM_MAX, IRQ_NUM_MIN */},
++        /* trap::TrapFrame, */
++    },
++    prelude::*,
++    sync::{GuardTransfer, RwLock, SpinLock /* WriteIrqDisabled */},
++    // task::atomic_mode::InAtomicMode,
++    // Error,
++};
++/*
++/// A type alias for the IRQ callback function.
++pub type IrqCallbackFunction = dyn Fn(&TrapFrame) + Sync + Send + 'static;
++
++/// An Interrupt ReQuest (IRQ) line.
++///
++/// Users can use [`alloc`] or [`alloc_specific`] to allocate a (specific) IRQ line.
++///
++/// The IRQ number is guaranteed to be an external IRQ number and users can use [`on_active`] to
++/// safely register callback functions on this IRQ line. When the IRQ line is dropped, all the
++/// registered callbacks will be unregistered automatically.
++///
++/// [`alloc`]: Self::alloc
++/// [`alloc_specific`]: Self::alloc_specific
++/// [`on_active`]: Self::on_active
++#[derive(Debug)]
++#[must_use]
++pub struct IrqLine {
++    inner: Arc<InnerHandle>,
++    callbacks: Vec<CallbackHandle>,
++}
++
++impl IrqLine {
++    /// Allocates an available IRQ line.
++    pub fn alloc() -> Result<Self> {
++        get_or_init_allocator()
++            .lock()
++            .alloc()
++            .map(|id| Self::new(id as u8))
++            .ok_or(Error::NotEnoughResources)
++    }
++
++    /// Allocates a specific IRQ line.
++    pub fn alloc_specific(irq_num: u8) -> Result<Self> {
++        get_or_init_allocator()
++            .lock()
++            .alloc_specific((irq_num - IRQ_NUM_MIN) as usize)
++            .map(|id| Self::new(id as u8))
++            .ok_or(Error::NotEnoughResources)
++    }
++
++    fn new(index: u8) -> Self {
++        let inner = InnerHandle { index };
++        inner.remapping.init(index + IRQ_NUM_MIN);
++
++        Self {
++            inner: Arc::new(inner),
++            callbacks: Vec::new(),
+         }
++    }
+ 
+-        impl IrqLine {
+-            /// Allocates an available IRQ line.
+-            pub fn alloc() -> Result<Self> {
+-                get_or_init_allocator()
+-                    .lock()
+-                    .alloc()
+-                    .map(|id| Self::new(id as u8))
+-                    .ok_or(Error::NotEnoughResources)
+-            }
++    /// Gets the IRQ number.
++    pub fn num(&self) -> u8 {
++        self.inner.index + IRQ_NUM_MIN
++    }
+ 
+-            /// Allocates a specific IRQ line.
+-            pub fn alloc_specific(irq_num: u8) -> Result<Self> {
+-                get_or_init_allocator()
+-                    .lock()
+-                    .alloc_specific((irq_num - IRQ_NUM_MIN) as usize)
+-                    .map(|id| Self::new(id as u8))
+-                    .ok_or(Error::NotEnoughResources)
+-            }
++    /// Registers a callback that will be invoked when the IRQ is active.
++    ///
++    /// For each IRQ line, multiple callbacks may be registered.
++    pub fn on_active<F>(&mut self, callback: F)
++    where
++        F: Fn(&TrapFrame) + Sync + Send + 'static,
++    {
++        let callback_handle = {
++            let callback_box = Box::new(callback);
++            let callback_addr = core::ptr::from_ref(&*callback_box).addr();
+ 
+-            fn new(index: u8) -> Self {
+-                let inner = InnerHandle { index };
+-                inner.remapping.init(index + IRQ_NUM_MIN);
++            let mut callbacks = self.inner.callbacks.write();
++            callbacks.push(callback_box);
+ 
+-                Self {
+-                    inner: Arc::new(inner),
+-                    callbacks: Vec::new(),
+-                }
++            CallbackHandle {
++                irq_index: self.inner.index,
++                callback_addr,
+             }
++        };
+ 
+-            /// Gets the IRQ number.
+-            pub fn num(&self) -> u8 {
+-                self.inner.index + IRQ_NUM_MIN
+-            }
++        self.callbacks.push(callback_handle);
++    }
+ 
+-            /// Registers a callback that will be invoked when the IRQ is active.
+-            ///
+-            /// For each IRQ line, multiple callbacks may be registered.
+-            pub fn on_active<F>(&mut self, callback: F)
+-            where
+-                F: Fn(&TrapFrame) + Sync + Send + 'static,
+-            {
+-                let callback_handle = {
+-                    let callback_box = Box::new(callback);
+-                    let callback_addr = core::ptr::from_ref(&*callback_box).addr();
+-
+-                    let mut callbacks = self.inner.callbacks.write();
+-                    callbacks.push(callback_box);
+-
+-                    CallbackHandle {
+-                        irq_index: self.inner.index,
+-                        callback_addr,
+-                    }
+-                };
+-
+-                self.callbacks.push(callback_handle);
+-            }
++    /// Checks if there are no registered callbacks.
++    pub fn is_empty(&self) -> bool {
++        self.callbacks.is_empty()
++    }
+ 
+-            /// Checks if there are no registered callbacks.
+-            pub fn is_empty(&self) -> bool {
+-                self.callbacks.is_empty()
+-            }
++    /// Gets the remapping index of the IRQ line.
++    ///
++    /// This method will return `None` if interrupt remapping is disabled or
++    /// not supported by the architecture.
++    pub fn remapping_index(&self) -> Option<u16> {
++        self.inner.remapping.remapping_index()
++    }
++}
+ 
+-            /// Gets the remapping index of the IRQ line.
+-            ///
+-            /// This method will return `None` if interrupt remapping is disabled or
+-            /// not supported by the architecture.
+-            pub fn remapping_index(&self) -> Option<u16> {
+-                self.inner.remapping.remapping_index()
+-            }
++impl Clone for IrqLine {
++    fn clone(&self) -> Self {
++        Self {
++            inner: self.inner.clone(),
++            callbacks: Vec::new(),
+         }
++    }
++}
+ 
+-        impl Clone for IrqLine {
+-            fn clone(&self) -> Self {
+-                Self {
+-                    inner: self.inner.clone(),
+-                    callbacks: Vec::new(),
+-                }
+-            }
+-        }
++struct Inner {
++    callbacks: RwLock<Vec<Box<IrqCallbackFunction>>, WriteIrqDisabled>,
++    remapping: IrqRemapping,
++}
+ 
+-        struct Inner {
+-            callbacks: RwLock<Vec<Box<IrqCallbackFunction>>, WriteIrqDisabled>,
+-            remapping: IrqRemapping,
++impl Inner {
++    const fn new() -> Self {
++        Self {
++            callbacks: RwLock::new(Vec::new()),
++            remapping: IrqRemapping::new(),
+         }
++    }
++}
+ 
+-        impl Inner {
+-            const fn new() -> Self {
+-                Self {
+-                    callbacks: RwLock::new(Vec::new()),
+-                    remapping: IrqRemapping::new(),
+-                }
+-            }
+-        }
++const NUMBER_OF_IRQS: usize = (IRQ_NUM_MAX - IRQ_NUM_MIN) as usize + 1;
+ 
+-        const NUMBER_OF_IRQS: usize = (IRQ_NUM_MAX - IRQ_NUM_MIN) as usize + 1;
+-
+-        static INNERS: [Inner; NUMBER_OF_IRQS] = [const { Inner::new() }; NUMBER_OF_IRQS];
+-        static ALLOCATOR: Once<SpinLock<IdAlloc, PreemptDisabled>> = Once::new();
+-
+-        fn get_or_init_allocator() -> &'static SpinLock<IdAlloc, PreemptDisabled> {
+-            ALLOCATOR.call_once(|| {
+-                /* Supply the trivial invariant resources required by SpinLock::new.
+-                 * Origin Rust: SpinLock::new(IdAlloc::with_capacity(NUMBER_OF_IRQS))
+-                 */
+-                SpinLock::new(
+-                    IdAlloc::with_capacity(NUMBER_OF_IRQS),
+-                    Ghost::new(()),
+-                    Tracked::new(()),
+-                )
+-            })
+-        }
++static INNERS: [Inner; NUMBER_OF_IRQS] = [const { Inner::new() }; NUMBER_OF_IRQS];
++static ALLOCATOR: Once<SpinLock<IdAlloc>> = Once::new();
+ 
+-        /// A handle for an allocated IRQ line.
+-        ///
+-        /// When the handle is dropped, the IRQ line will be released automatically.
+-        #[must_use]
+-        #[derive(Debug)]
+-        struct InnerHandle {
+-            index: u8,
+-        }
++fn get_or_init_allocator() -> &'static SpinLock<IdAlloc> {
++    ALLOCATOR.call_once(|| SpinLock::new(IdAlloc::with_capacity(NUMBER_OF_IRQS)))
++}
+ 
+-        impl Deref for InnerHandle {
+-            type Target = Inner;
++/// A handle for an allocated IRQ line.
++///
++/// When the handle is dropped, the IRQ line will be released automatically.
++#[must_use]
++#[derive(Debug)]
++struct InnerHandle {
++    index: u8,
++}
+ 
+-            fn deref(&self) -> &Self::Target {
+-                &INNERS[self.index as usize]
+-            }
+-        }
++impl Deref for InnerHandle {
++    type Target = Inner;
+ 
+-        impl Drop for InnerHandle {
+-            fn drop(&mut self) {
+-                ALLOCATOR.get().unwrap().lock().free(self.index as usize);
+-            }
+-        }
++    fn deref(&self) -> &Self::Target {
++        &INNERS[self.index as usize]
++    }
++}
+ 
+-        /// A handle for a registered callback on an IRQ line.
+-        ///
+-        /// When the handle is dropped, the callback will be unregistered automatically.
+-        #[must_use]
+-        #[derive(Debug)]
+-        struct CallbackHandle {
+-            irq_index: u8,
+-            callback_addr: usize,
+-        }
++impl Drop for InnerHandle {
++    fn drop(&mut self) {
++        ALLOCATOR.get().unwrap().lock().free(self.index as usize);
++    }
++}
+ 
+-        impl Drop for CallbackHandle {
+-            fn drop(&mut self) {
+-                let mut callbacks = INNERS[self.irq_index as usize].callbacks.write();
++/// A handle for a registered callback on an IRQ line.
++///
++/// When the handle is dropped, the callback will be unregistered automatically.
++#[must_use]
++#[derive(Debug)]
++struct CallbackHandle {
++    irq_index: u8,
++    callback_addr: usize,
++}
+ 
+-                let pos = callbacks
+-                    .iter()
+-                    .position(|element| core::ptr::from_ref(&**element).addr() == self.callback_addr);
+-                let _ = callbacks.swap_remove(pos.unwrap());
+-            }
+-        }
++impl Drop for CallbackHandle {
++    fn drop(&mut self) {
++        let mut callbacks = INNERS[self.irq_index as usize].callbacks.write();
+ 
+-        pub(super) fn process_top_half(trap_frame: &TrapFrame, irq_num: usize) {
+-            let inner = &INNERS[irq_num - (IRQ_NUM_MIN as usize)];
+-            for callback in &*inner.callbacks.read() {
+-                callback(trap_frame);
+-            }
+-        }
++        let pos = callbacks
++            .iter()
++            .position(|element| core::ptr::from_ref(&**element).addr() == self.callback_addr);
++        let _ = callbacks.swap_remove(pos.unwrap());
+     }
+ }
+ 
++pub(super) fn process_top_half(trap_frame: &TrapFrame, irq_num: usize) {
++    let inner = &INNERS[irq_num - (IRQ_NUM_MIN as usize)];
++    for callback in &*inner.callbacks.read() {
++        callback(trap_frame);
++    }
++}*/
++
+ // ####### IRQ Guards #######
+ verus! {
+ 
+@@ -298,7 +281,7 @@ impl GuardTransfer for DisabledLocalIrqGuard {
+         }
+     }
+ } */
+-#[cfg(all(ktest, target_arch = "x86_64"))]
++#[cfg(ktest)]
+ mod test {
+     use super::*;
+ 
+
+From 738a8122fa4ab52be51a6dc6567a51718209d6d1 Mon Sep 17 00:00:00 2001
+From: Chao <chao-j@qq.com>
+Date: Thu, 12 Nov 2026 12:30:31 +0800
+Subject: [PATCH 5/5] remove useless comment
+
+---
+ ostd/src/bus/pci/mod.rs | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
+index d3d499493..a9e8dff9b 100644
+--- a/ostd/src/bus/pci/mod.rs
++++ b/ostd/src/bus/pci/mod.rs
+@@ -48,7 +48,6 @@
+ //!     PCI_BUS.lock().register_driver(driver_a);
+ //! }
+ //! ```
+-// Only data types and pure helpers are enabled; hardware access remains commented out.
+ /*pub mod bus;*/
+ pub mod capability;
+ pub mod cfg_space;

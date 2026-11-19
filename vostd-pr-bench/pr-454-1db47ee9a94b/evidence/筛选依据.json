@@ -1,0 +1,54 @@
+{
+  "number": 454,
+  "title": "prove: cursor_mut_at at mm::frame::linked_list",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "prove: cursor mut at at mm::frame::linked list",
+      "category": "证明与规约"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/454",
+      "excerpt": "y: nonempty lists must have a nonzero list_id, and each link’s tracked in_list permission value must agree with the logical list_id. The only deduction is minor redundancy/proof-shaping: the added cursor_mut_at precon",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/454#discussion_r3252020451",
+      "excerpt": "This precondition narrows `cursor_mut_at` so it no longer covers the documented list-owned-frame case. `LinkedListOwner` tracks link slot permissions in its `perms` ma",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码审查 COMMENTED",
+      "url": "https://github.com/asterinas/vostd/pull/454#pullrequestreview-4302693433",
+      "excerpt": "## Pull request overview This PR attempts to prove `LinkedList::cursor_mut_at` by removing its external verification body and adding the proof obligations needed to borrow frame metadata and load `in_",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4516892458",
+      "excerpt": "ed by `owner.list_own.perms` and not found in `regions`. But the proof code in this function is old, and doesn't really work with the approach; it assumes that the perm can be found in `regions`. The idiomatic approach",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4537882561",
+      "excerpt": "order to read the slot _before_ checking the list id. Hence the preconditions here asserting that the permission must otherwise be in `regions`. I think that removing those preconditions will actually require us to retire the",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "r is Some ==> r.unwrap().wf(cursor_owner@.unwrap()), #[verifier::external_body] let tracked mut slot_own = regions.slot_owners.tracked_remove(frame_to_index(frame)); let tracked mut inner_perms = s",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 8
+}

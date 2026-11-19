@@ -1,0 +1,55 @@
+{
+  "number": 553,
+  "title": "refine and prove some axioms",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "refine and prove some axioms",
+      "category": "证明与规约"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/553#discussion_r3465876084",
+      "excerpt": "The proof is a bit verbose, but it's okay.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/mapping.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/meta_region_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/node/entry_view.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "pub open spec fn list_insert(cursor: Self, link: LinkOwner, list_id: u64) -> (Self, LinkOwner) recommends list_id != 0, 0 <= cursor.in",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 9
+}

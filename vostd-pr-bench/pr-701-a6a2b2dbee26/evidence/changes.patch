@@ -1,0 +1,53 @@
+From 97345daa8e4b683b7bce40a7fede866ba714ef6c Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Mon, 10 Aug 2026 03:35:26 -0400
+Subject: [PATCH] sync-dv
+
+---
+ Cargo.lock | 8 ++++----
+ dv         | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/Cargo.lock b/Cargo.lock
+index f1945994d..92c2f90e6 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -595,11 +595,11 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_builtin"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ 
+ [[package]]
+ name = "verus_builtin_macros"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ dependencies = [
+  "convert_case",
+  "proc-macro2",
+@@ -612,7 +612,7 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_prettyplease"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ dependencies = [
+  "proc-macro2",
+  "verus_syn",
+@@ -651,7 +651,7 @@ checksum = "af8ca9a5d4debca0633e697c88269395493cebf2e10db21ca2dbde37c1356452"
+ 
+ [[package]]
+ name = "vstd"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ dependencies = [
+  "verus_builtin",
+  "verus_builtin_macros",
+diff --git a/dv b/dv
+index cde503877..30837214e 160000
+--- a/dv
++++ b/dv
+@@ -1 +1 @@
+-Subproject commit cde503877551598ea0d1a17f68ee5610861de383
++Subproject commit 30837214e0c263d6bd19a7c4748ad70492aeaa91

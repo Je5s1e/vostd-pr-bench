@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-296-899421ff5b69",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-296-899421ff5b69:review-comment-2782098137",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "`remove_rel_children` recursively duplicates information already available through `recursive_trace`, adding an unnecessary parallel specification helper.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 1518,
+          "end_line": 1537
+        }
+      ],
+      "rationale": "The helper walks the same path solely to recover the removal-point relation, while the existing recursive trace already identifies that node. The maintainer explicitly requested expressing the condition through `recursive_trace`; the immediate next commit removes the helper and rewrites the precondition accordingly, after which the PR is approved.",
+      "source_evidence": "after/vstd_extra/src/ghost_tree.rs\n1518: /// Check whether remove satisfies rel_children at the removal point\n1519: pub open spec fn remove_rel_children(self, path: TreePath<N>) -> bool\n...\n1533: Some(child) => child.remove_rel_children(tl),",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/296#discussion_r2782098137",
+      "related_comment_ids": [
+        "2782098137"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "2782098137",
+          "url": "https://github.com/asterinas/vostd/pull/296#discussion_r2782098137",
+          "commit_id": "899421ff5b69eeabcaa27904753c09e4dd9c150e"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Confirmed the duplicated path traversal and its immediate replacement with recursive_trace-based conditions in commit 5578e2f8662da852a3f33534b49a8330f6ae7a31."
+    }
+  ]
+}

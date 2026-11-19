@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-921-26e8809aa407",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-921-26e8809aa407:review-comment-4581710848",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The environment-dependent verification boundary is partly presented as public rustdoc instead of being kept inside the adjacent Origin Rust block.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/task/kernel_stack.rs",
+          "start_line": 32,
+          "end_line": 34
+        }
+      ],
+      "rationale": "The selected head rewrites the original static initializer through an external-body helper and preserves the original form in an adjacent Origin Rust block. However, the first two lines explaining that the environment-dependent initializer is unverified are written as `///` documentation on the public static, while the block comment begins only at the implementation limitation. The same-head preserve-exec-code guideline requires an actual executable rewrite to use one concise adjacent Origin Rust block containing both the original code and the concrete reason. Review comment 4581710848 is anchored to this exact head and moves the whole verification-only explanation into the block. The final PR head c2b79a99ac026677dcf035233e3a87b36f2c88ed applies that layout before approval.",
+      "source_evidence": "after/ostd/src/task/kernel_stack.rs\n25: /// The kernel stack size of a task, specified in pages.\n31: ///\n32: /// The environment-dependent initializer is not verified. Verifying it requires\n33: /// any supplied value to satisfy `valid_decimal(value.spec_bytes())`.\n34: /* Verus cannot apply external_body directly to a static item.\n35:  * Origin Rust:\n36: pub static STACK_SIZE_IN_PAGES: u32 = parse_u32_or_default(\n37:     option_env!(\"OSTD_TASK_STACK_SIZE_IN_PAGES\"),\n38:     DEFAULT_STACK_SIZE_IN_PAGES,\n39: );\n40: */\n\ndocs/coding-guidelines/maintainability.md at 26e8809aa4070c5242958f3b40bda2145ae40cae\nFor an actual executable rewrite required by Verus, retain a concise adjacent `Origin Rust:` block with the original code and the concrete reason for the change.",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4581710848",
+      "related_comment_ids": [
+        "4581710848"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4581710848",
+          "url": "https://github.com/asterinas/vostd/pull/921#discussion_r4581710848",
+          "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Read the complete archived and current remote discussion, confirmed the review comment is anchored to the selected head, checked the same-head guideline, and compared the accepted final-head comment layout."
+    }
+  ]
+}

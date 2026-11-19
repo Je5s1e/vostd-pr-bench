@@ -1,0 +1,749 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/296",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 296,
+    "title": "prove: 6 admits in ghost_tree",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/296",
+    "state": "MERGED",
+    "createdAt": "2026-02-03T11:13:08Z",
+    "updatedAt": "2026-02-12T08:57:48Z",
+    "closedAt": "2026-02-10T03:55:53Z",
+    "mergedAt": "2026-02-10T03:55:53Z",
+    "author": {
+      "login": "Marsman1996"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "f54e25d68c7fd2ce3d692a85336a2b21ca4bb90d",
+    "headRefName": "ghost-tree",
+    "headRefOid": "54aa0c173a4948b91c5cc923e07d59f3515a4fd8",
+    "changedFiles": 3,
+    "additions": 278,
+    "deletions": 209,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        },
+        {
+          "name": "pure proof"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 8
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0wMi0xMFQwMzoxODoxMFq0MjAyNi0wMi0xMFQwMzoxODoxMFrO4RkPDQ=="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c7g36Ui",
+          "databaseId": 3772753186,
+          "body": "",
+          "bodyHTML": "",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-02-09T11:25:06Z",
+          "createdAt": "2026-02-09T11:24:56Z",
+          "updatedAt": "2026-02-09T11:25:06Z",
+          "url": "https://github.com/asterinas/vostd/pull/296#pullrequestreview-3772753186",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c7hGQ8N",
+          "databaseId": 3776515853,
+          "body": "",
+          "bodyHTML": "",
+          "state": "APPROVED",
+          "submittedAt": "2026-02-10T03:18:10Z",
+          "createdAt": "2026-02-10T03:18:10Z",
+          "updatedAt": "2026-02-10T03:18:10Z",
+          "url": "https://github.com/asterinas/vostd/pull/296#pullrequestreview-3776515853",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0wMi0wOVQxMToyNDo1NlrObXfx0g=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c5td_HS",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 1519,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "Marsman1996"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 2782098137
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 3,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Mw"
+      },
+      "nodes": [
+        {
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "additions": 276,
+          "deletions": 207,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/lib.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/undroppable.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3845846135",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3845846135",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3845846135,
+      "node_id": "IC_kwDONtWm_c7lOvR3",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-04T07:41:24Z",
+      "updated_at": "2026-02-04T07:41:24Z",
+      "body_html": "<p dir=\"auto\">I think this is a reasonable approach, but this implementation of <code class=\"notranslate\">default_preserves_rel_children_none</code> actually asserts that <em>every</em> node satisfies <code class=\"notranslate\">rel_children(None)</code>. So it is trivially solving the admits, because it is much too strong. Instead try it with <code class=\"notranslate\">ensures Self::default(lv).rel_children(None)</code> and see if that works?</p>",
+      "body_text": "I think this is a reasonable approach, but this implementation of default_preserves_rel_children_none actually asserts that every node satisfies rel_children(None). So it is trivially solving the admits, because it is much too strong. Instead try it with ensures Self::default(lv).rel_children(None) and see if that works?",
+      "body": "I think this is a reasonable approach, but this implementation of `default_preserves_rel_children_none` actually asserts that _every_ node satisfies `rel_children(None)`. So it is trivially solving the admits, because it is much too strong. Instead try it with `ensures Self::default(lv).rel_children(None)` and see if that works?",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3845846135/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 1,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3852259563",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3852259563",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3852259563,
+      "node_id": "IC_kwDONtWm_c7lnNDr",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-05T09:32:12Z",
+      "updated_at": "2026-02-05T09:32:12Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\">Instead try it with <code class=\"notranslate\">ensures Self::default(lv).rel_children(None)</code> and see if that works?</p>\n</blockquote>\n<p dir=\"auto\">With <code class=\"notranslate\">ensures Self::default(lv).rel_children(None)</code>, still need extra requirement to complete the proof.<br>\nThe AI adds <code class=\"notranslate\">requires #[trigger] Self::new(lv).value.rel_children(None),</code> for every function.</p>",
+      "body_text": "Instead try it with ensures Self::default(lv).rel_children(None) and see if that works?\n\nWith ensures Self::default(lv).rel_children(None), still need extra requirement to complete the proof.\nThe AI adds requires #[trigger] Self::new(lv).value.rel_children(None), for every function.",
+      "body": "> Instead try it with `ensures Self::default(lv).rel_children(None)` and see if that works?\r\n\r\nWith `ensures Self::default(lv).rel_children(None)`, still need extra requirement to complete the proof.\r\nThe AI adds `requires #[trigger] Self::new(lv).value.rel_children(None),` for every function.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3852259563/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3869820419",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3869820419",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3869820419,
+      "node_id": "IC_kwDONtWm_c7mqMYD",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-09T07:24:56Z",
+      "updated_at": "2026-02-09T07:29:21Z",
+      "body_html": "<p dir=\"auto\">The question is the design of <code class=\"notranslate\">Node::new</code> and <code class=\"notranslate\">TreeNodeValue::rel_children</code> makes <code class=\"notranslate\">Node::default(lv).rel_children(None)</code> a compulsory requirement to prove <code class=\"notranslate\">new_preserves_inv</code>. I've thought about decomposing the properties into several traits, but this is not an easy one, because <code class=\"notranslate\">TreeNodeValue::default()</code> requires a <code class=\"notranslate\">nat</code> argument. So modifications of these are good.</p>\n<p dir=\"auto\">But I don't like the modification in <code class=\"notranslate\">recursive_insert</code> and <code class=\"notranslate\">recursive_remove</code>. They should just insert or remove, and I don't think we should check <code class=\"notranslate\">rel_children</code> in this function. Instead, we may need another function to check whether the <code class=\"notranslate\">inserted/removed</code> node satisfies <code class=\"notranslate\">rel_children</code> and add it to the preconditions of <code class=\"notranslate\">insert/remove_preserves_inv</code>. I've removed the change in these two functions.</p>",
+      "body_text": "The question is the design of Node::new and TreeNodeValue::rel_children makes Node::default(lv).rel_children(None) a compulsory requirement to prove new_preserves_inv. I've thought about decomposing the properties into several traits, but this is not an easy one, because TreeNodeValue::default() requires a nat argument. So modifications of these are good.\nBut I don't like the modification in recursive_insert and recursive_remove. They should just insert or remove, and I don't think we should check rel_children in this function. Instead, we may need another function to check whether the inserted/removed node satisfies rel_children and add it to the preconditions of insert/remove_preserves_inv. I've removed the change in these two functions.",
+      "body": "The question is the design of `Node::new` and `TreeNodeValue::rel_children` makes `Node::default(lv).rel_children(None)` a compulsory requirement to prove `new_preserves_inv`. I've thought about decomposing the properties into several traits, but this is not an easy one, because `TreeNodeValue::default()` requires a `nat` argument. So modifications of these are good.\r\n\r\nBut I don't like the modification in `recursive_insert` and `recursive_remove`. They should just insert or remove, and I don't think we should check `rel_children` in this function. Instead, we may need another function to check whether the `inserted/removed` node satisfies `rel_children` and add it to the preconditions of `insert/remove_preserves_inv`. I've removed the change in these two functions.\r\n \r\n",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3869820419/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3869861280",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3869861280",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3869861280,
+      "node_id": "IC_kwDONtWm_c7mqWWg",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-09T07:36:43Z",
+      "updated_at": "2026-02-09T07:36:43Z",
+      "body_html": "<p dir=\"auto\">Basically, in <code class=\"notranslate\">insert_preserves_inv</code>, we need the <code class=\"notranslate\">rel_children</code> between the inserted node and the last node given by <code class=\"notranslate\">recursive_visit</code>; in <code class=\"notranslate\">remove_preserves_inv</code>, we need the relationship between None and the last node given by the path.</p>",
+      "body_text": "Basically, in insert_preserves_inv, we need the rel_children between the inserted node and the last node given by recursive_visit; in remove_preserves_inv, we need the relationship between None and the last node given by the path.",
+      "body": "Basically, in `insert_preserves_inv`, we need the `rel_children` between the inserted node and the last node given by `recursive_visit`; in `remove_preserves_inv`, we need the relationship between None and the last node given by the path.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3869861280/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3870277414",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3870277414",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3870277414,
+      "node_id": "IC_kwDONtWm_c7mr78m",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-09T08:57:56Z",
+      "updated_at": "2026-02-09T08:57:56Z",
+      "body_html": "<p dir=\"auto\">The direction is correct, but I suspect their is still some duplication which is already defined in <code class=\"notranslate\">recursive_visit</code>, I will check it manually.</p>",
+      "body_text": "The direction is correct, but I suspect their is still some duplication which is already defined in recursive_visit, I will check it manually.",
+      "body": "The direction is correct, but I suspect their is still some duplication which is already defined in `recursive_visit`, I will check it manually.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3870277414/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 1,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3870657505",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3870657505",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3870657505,
+      "node_id": "IC_kwDONtWm_c7mtYvh",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-09T09:55:12Z",
+      "updated_at": "2026-02-09T09:55:12Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a> I've simplified and proved the insert case, is it possible for KVerus to simplify the remove case?</p>",
+      "body_text": "@Marsman1996 I've simplified and proved the insert case, is it possible for KVerus to simplify the remove case?",
+      "body": "@Marsman1996 I've simplified and proved the insert case, is it possible for KVerus to simplify the remove case?",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3870657505/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3875091850",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3875091850",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3875091850,
+      "node_id": "IC_kwDONtWm_c7m-TWK",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-10T03:18:41Z",
+      "updated_at": "2026-02-10T03:18:41Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a> LGTM now, can you simplify unnecessary asserts?</p>",
+      "body_text": "@Marsman1996 LGTM now, can you simplify unnecessary asserts?",
+      "body": "@Marsman1996 LGTM now, can you simplify unnecessary asserts?",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3875091850/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 1,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3875155802",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#issuecomment-3875155802",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/296",
+      "id": 3875155802,
+      "node_id": "IC_kwDONtWm_c7m-i9a",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-02-10T03:46:50Z",
+      "updated_at": "2026-02-10T03:46:50Z",
+      "body_html": "<p dir=\"auto\">LGTM, KVerus makes me a happy man.</p>",
+      "body_text": "LGTM, KVerus makes me a happy man.",
+      "body": "LGTM, KVerus makes me a happy man.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3875155802/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/2782098137",
+      "pull_request_review_id": 3772753186,
+      "id": 2782098137,
+      "node_id": "PRRC_kwDONtWm_c6l03LZ",
+      "diff_hunk": "@@ -1483,31 +1515,105 @@ impl<T: TreeNodeValue<L>, const N: usize, const L: usize> Node<T, N, L> {\n         }\n     }\n \n+    /// Check whether remove satisfies rel_children at the removal point\n+    pub open spec fn remove_rel_children(self, path: TreePath<N>) -> bool",
+      "path": "vstd_extra/src/ghost_tree.rs",
+      "commit_id": "899421ff5b69eeabcaa27904753c09e4dd9c150e",
+      "original_commit_id": "899421ff5b69eeabcaa27904753c09e4dd9c150e",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This function is unnecessary, it can be expressed using recursive_trace, like in lemma_recursive_insert_preserves_inv.",
+      "created_at": "2026-02-09T11:24:56Z",
+      "updated_at": "2026-02-09T11:25:06Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/296#discussion_r2782098137",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/296",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/2782098137"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/296#discussion_r2782098137"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/296"
+        }
+      },
+      "body_html": "<p dir=\"auto\">This function is unnecessary, it can be expressed using recursive_trace, like in lemma_recursive_insert_preserves_inv.</p>",
+      "body_text": "This function is unnecessary, it can be expressed using recursive_trace, like in lemma_recursive_insert_preserves_inv.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/2782098137/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 1519,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 565,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

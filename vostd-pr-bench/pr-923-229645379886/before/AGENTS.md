@@ -1,0 +1,56 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+
+This repository contains the Verus proof development for Asterinas OSTD. The layout is given as follows:
+
+- `verified_libs/`: The auxiliary verified libraries.
+- `ostd`:
+  - `ostd/src/`: Core OSTD implementation and proofs.
+  - `ostd/specs/`: Verus specifications for OSTD.
+  - `ostd/libs/`: Auxiliary libraries for OSTD (e.g., `align_ext`, `id-alloc`, and `ostd-pod`).
+- `dv`: The main build system (you can think this as `xtask`-equivalent).
+
+## Build, Test, and Development Commands
+
+- `git submodule update --init --recursive`: initialize required submodules.
+- `make verus` or `cargo dv bootstrap`: fetch and build the configured Verus toolchain under `tools/`.
+  - `make verus-upgrade` or `cargo dv bootstrap --upgrade`: needed if there is compilation errors which might be caused by toolchain updates.
+- `make` or `cargo dv verify`: verify the whole target.
+- `cargo dv focus --package ostd -- --verify-only-module <module_path>`: verify only a specific module, for example `sync::rwlock`, without re-checking dependency proofs.
+- `cargo dv verify --package vstd_extra`: compile and verify the `vstd_extra` library independently.
+- `--package` (`-p`) selects packages for `verify`, `focus`, `build`, `doc`, and `count`; `--target <TRIPLE>` selects the Rust target platform (default: `x86_64-unknown-none`).
+- `make verify-<TRIPLE>` verifies `ostd` for one Rust target (short aliases: `verify-x86`, `verify-riscv`, `verify-loongarch`); the pattern accepts any triple `cargo dv` supports, e.g. `make verify-loongarch64-unknown-none-softfloat`. Plain `make` / `make verify` stays on the default target.
+- `cargo dv count -p ostd --module sync::rwlock`: count one module; add `--print-all` (`-a`) to print annotated source lines.
+- `cargo dv doc -p ostd`: generate documentation after building dependencies for the same Rust target with `cargo dv build --target <TRIPLE>`.
+- `make fmt`: format Verus/Rust sources using the project formatter.
+- `make doc`: build dependencies and generate API documentation in `doc/`.
+- `make clean`: remove Cargo and generated documentation artifacts.
+
+## Coding Guidelines
+
+Follow the [VOSTD Verus Coding Guidelines](docs/coding-guidelines/README.md)
+for coding, specification, proof, naming, and review conventions.
+
+## Verus Requirements
+
+For proof-sensitive changes, use Verus-related skills in `.agents/skills` only when nontrivial Verus reasoning, specification changes, or verification failures require it. Keep routine edits lightweight.
+
+## Hard Constraints
+
+- Try to only change proof code first to fix verification issues, and only modify specifications if necessary to enable proofs.
+- Avoid changing executable Rust code unless required to support verification (e.g., use `PPtr` instead of raw pointers). All changes to executable code must be prompted to the user or justified in the PR description, and should not change observable behavior.
+- Keep edits minimal and localized to the smallest necessary dependency closure.
+- Never add `#[verifier::external_body]`, `admit()`, or `assume()` unless instructed. If you really need to add them, prompt the user first to see if adding cheating code is necessary.
+
+## Testing and Verification Guidelines
+
+Verification is the primary correctness gate. Run `make` before submitting changes that affect `ostd`, `verified_libs`, or proof code. For targeted work on specific modules, use `cargo dv focus` with the `--verify-only-module` flag to speed up iteration.
+
+## Commit & Pull Request Guidelines
+
+Recent history uses short, imperative summaries but does not enforce a strict prefix convention. Prefer clear subjects such as `Fix page table cursor lemma`. Pull requests should describe the changed subsystem, list verification or formatting commands run and link related issues.
+
+## Security & Configuration Tips
+
+Do not commit generated artifacts such as `target/`, `doc/`, or local logs. To point the build at a locally installed Verus instead of the one bootstrapped under `tools/verus`, set `CARGO_VERUS_PATH` to the directory containing the `cargo-verus` binary (or add it to `PATH`).

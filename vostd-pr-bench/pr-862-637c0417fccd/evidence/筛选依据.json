@@ -1,0 +1,30 @@
+{
+  "number": 862,
+  "title": "Fix empty-set partition specification",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Fix empty-set partition specification",
+      "category": "证明与规约"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/862",
+      "excerpt": "the per-part quantifier. Add `lemma_is_partition_empty_parts` to prove that an empty family partitions `s` exactly when `s` is empty. ## Verification - `cargo dv verify --package vstd_extra` — passed. - `make` — passed",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "verified_libs/vstd_extra/src/set_extra.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "With no parts, `s` is a partition exactly when it is empty. pub proof fn lemma_is_partition_empty_parts<A>(s: Set<A>) ensures is_partition(s, Set::<Set<A>>::empty()) == s.is_empty(), { reveal(is_partition);",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 4
+}

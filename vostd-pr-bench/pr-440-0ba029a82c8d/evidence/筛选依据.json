@@ -1,0 +1,36 @@
+{
+  "number": 440,
+  "title": "fix: use iterator.seq() for frame mapping for Verus breaking change",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "fix: use iterator.seq() for frame mapping for Verus breaking change",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/440#issuecomment-4411043642",
+      "excerpt": "tmp%% <= tmp%% ✔ | tmp%% < tmp%% ✔ +--- NOTE: Verus failed to prove an assertion even though all of its sub-assertions succeeded. This is usually unexpected, and it may indicate that the proof",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/440#issuecomment-4411678323",
+      "excerpt": "According to the [migration guide](https://github.com/verus-lang/verus/blob/main/source/docs/migration-iterators.md), we should use `it.seq()` instead of the raw snapshot definition.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "it.seq().index(it.index() as int)), prop)).0; // Now Verus knows: dynframe == frame_as_dynframe(it.elements[it.pos]) // Now Verus knows: dynframe == frame_as_dynframe(it.seq()[it.index()])",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 5
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-916-d7cdf470b297",
+  "pr_number": 916,
+  "title": "Verify PE/COFF header construction in linux-bzimage builder",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/916",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "35a5722f5a802ac0f594d780306f61afa9f37370",
+  "head_sha": "d7cdf470b297e24b5299fc90e6e0b6e6769ff124",
+  "base_method": "git merge-base(archived base_sha, archived head_sha); mechanical archive import, not an adjudicated review revision",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    ".github/workflows/ci-irc11.yml",
+    "Cargo.lock",
+    "ostd/libs/linux-bzimage/builder/Cargo.toml",
+    "ostd/libs/linux-bzimage/builder/src/lib.rs",
+    "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+    "tools/patches/verus-irc11.patch",
+    "verified_libs/vstd_extra/Cargo.toml",
+    "verified_libs/vstd_extra/src/external/bytemuck.rs",
+    "verified_libs/vstd_extra/src/external/int_specs.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/external/xmas_elf.rs"
+  ],
+  "diff_sha256": "4094a50ec7e867e86297b00b0eee39fac5330ff57287d6c96908d303e051b036",
+  "versions": {
+    "before": {
+      "commit": "35a5722f5a802ac0f594d780306f61afa9f37370",
+      "file_count": 326,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "d7cdf470b297e24b5299fc90e6e0b6e6769ff124",
+      "file_count": 328,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-17T04:41:42.222657+00:00",
+    "reviewed_at": "2026-11-13T09:50:57Z",
+    "upstream_updated_at": "2026-11-16T06:21:29Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/916",
+      "https://github.com/asterinas/vostd/pull/916#discussion_r4561893594",
+      "https://github.com/asterinas/vostd/pull/916#discussion_r4561916242"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "d7cdf470b297e24b5299fc90e6e0b6e6769ff124",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/d7cdf470b297e24b5299fc90e6e0b6e6769ff124/docs/coding-guidelines/maintainability.md#pair-exec-helpers-with-spec-models"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00916"
+  }
+}

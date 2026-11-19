@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-701-a6a2b2dbee26",
+  "pr_number": 701,
+  "title": "sync-dv",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/701",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "2c3feef7322b1e6dfad1dbb5a45858b58cd9e43a",
+  "head_sha": "a6a2b2dbee26f548964b067123753eda43053779",
+  "base_method": "git merge-base(archived base 2c3feef7322b1e6dfad1dbb5a45858b58cd9e43a, reviewed head a6a2b2dbee26f548964b067123753eda43053779); reviewed head recovered from GitHub Actions run 31366696780 and fetched from the PR author fork",
+  "archive_base_sha": "2c3feef7322b1e6dfad1dbb5a45858b58cd9e43a",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "dv"
+  ],
+  "diff_sha256": "a1393b6c60f091deb78f139566c95e63217eafbab5fb98f59d903b55062f8488",
+  "versions": {
+    "before": {
+      "commit": "2c3feef7322b1e6dfad1dbb5a45858b58cd9e43a",
+      "file_count": 350,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "a6a2b2dbee26f548964b067123753eda43053779",
+      "file_count": 350,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "30837214e0c263d6bd19a7c4748ad70492aeaa91",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T15:19:14.889973+00:00",
+    "reviewed_at": "2026-11-18T15:19:14.889973+00:00",
+    "upstream_updated_at": "2026-08-11T02:54:32Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/701",
+      "https://github.com/asterinas/vostd/pull/701#issuecomment-5238480335",
+      "https://github.com/hiroki-chen/vostd/commit/a6a2b2dbee26f548964b067123753eda43053779",
+      "https://github.com/asterinas/vostd/actions/runs/31366696780"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00701"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Historical head a6a2b2dbee26f548964b067123753eda43053779 was recovered from the first GitHub Actions run for PR #701; it was current when issue comment 5238480335 requested refreshing Cargo.lock and was replaced by force-pushed head 97345daa8e4b683b7bce40a7fede866ba714ef6c.",
+    "zero_issues_meaning": "Not applicable; this adjudicated historical snapshot contains one known issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

@@ -10,7 +10,6 @@
   "base_sha": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
   "head_sha": "431e3c7c0000787a1cdc3abd702638b3a7140716",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/cpu.rs",

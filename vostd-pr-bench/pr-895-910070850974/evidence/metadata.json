@@ -1,0 +1,81 @@
+{
+  "number": 895,
+  "source_pr": "https://github.com/asterinas/vostd/pull/895",
+  "base_sha": "b6db6df974cf0af881255cf88613836613fc6ce4",
+  "head_sha": "738a8122fa4ab52be51a6dc6567a51718209d6d1",
+  "files": {
+    "totalCount": 8,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "OA"
+    },
+    "nodes": [
+      {
+        "path": "ostd/src/bus/mod.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/bus/pci/capability/mod.rs",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/bus/pci/capability/msix.rs",
+        "additions": 13,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/bus/pci/capability/vendor.rs",
+        "additions": 17,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/bus/pci/cfg_space.rs",
+        "additions": 15,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/bus/pci/device_info.rs",
+        "additions": 14,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/bus/pci/mod.rs",
+        "additions": 4,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/lib.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/895",
+    "accept": "application/vnd.github.diff",
+    "bytes": 6974,
+    "sha256": "a62bd2b257c52811f7e0cf3cacba9d8c7b3bea35c3a1ef889876211ed5a24b41",
+    "fetched_at": "2026-11-13T21:16:23.427415+00:00",
+    "diff_file_sections": 8,
+    "expected_changed_files": 8
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/895",
+    "accept": "application/vnd.github.patch",
+    "bytes": 65873,
+    "sha256": "68406f81315ac05011d0584afa709c018c65741799d838c2aae7655c1f66b937",
+    "fetched_at": "2026-11-13T21:24:27.859578+00:00"
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/518",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 518,
+    "title": "Rcu fix",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/518",
+    "state": "MERGED",
+    "createdAt": "2026-06-12T09:31:26Z",
+    "updatedAt": "2026-06-12T09:49:00Z",
+    "closedAt": "2026-06-12T09:48:56Z",
+    "mergedAt": "2026-06-12T09:48:55Z",
+    "author": {
+      "login": "hiroki-chen"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "3f79dd82743d874959207a27899e0496d57c6ad1",
+    "headRefName": "rcu-fix",
+    "headRefOid": "d92a7f6fea21923aad30af56b0dd1d14ddf9333d",
+    "changedFiles": 3,
+    "additions": 72,
+    "deletions": 65,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 3,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Mw"
+      },
+      "nodes": [
+        {
+          "path": "ostd/src/mm/frame/mod.rs",
+          "additions": 18,
+          "deletions": 16,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/unique.rs",
+          "additions": 18,
+          "deletions": 16,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/sync/rcu/mod.rs",
+          "additions": 36,
+          "deletions": 33,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4689651348",
+      "html_url": "https://github.com/asterinas/vostd/pull/518#issuecomment-4689651348",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/518",
+      "id": 4689651348,
+      "node_id": "IC_kwDONtWm_c8AAAABF4ZmlA",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-06-12T09:31:43Z",
+      "updated_at": "2026-06-12T09:31:43Z",
+      "body_html": "<p dir=\"auto\">Bring back <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"4647570634\" data-permission-text=\"Title is private\" data-url=\"https://github.com/asterinas/vostd/issues/515\" data-hovercard-type=\"pull_request\" data-hovercard-url=\"/asterinas/vostd/pull/515/hovercard\" href=\"https://github.com/asterinas/vostd/pull/515\">#515</a></p>",
+      "body_text": "Bring back #515",
+      "body": "Bring back #515 ",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4689651348/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4689653149",
+      "html_url": "https://github.com/asterinas/vostd/pull/518#issuecomment-4689653149",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/518",
+      "id": 4689653149,
+      "node_id": "IC_kwDONtWm_c8AAAABF4ZtnQ",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-06-12T09:31:54Z",
+      "updated_at": "2026-06-12T09:31:54Z",
+      "body_html": "<p dir=\"auto\">/ci-upstream-verus</p>",
+      "body_text": "/ci-upstream-verus",
+      "body": "/ci-upstream-verus",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4689653149/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

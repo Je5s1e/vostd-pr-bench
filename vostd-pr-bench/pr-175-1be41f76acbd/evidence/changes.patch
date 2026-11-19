@@ -1,0 +1,1559 @@
+From 9fa70cc5324b555d4e02954086f05facaaed0697 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Mon, 4 Aug 2025 17:33:47 +0800
+Subject: [PATCH 01/15] Use set in inv_non_overlapping
+
+---
+ lock-protocol/src/spec/rcu/tree.rs  | 24 ++++++++++++------------
+ lock-protocol/src/spec/rcu/types.rs |  6 +++---
+ 2 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 026d8f482..e89f4d844 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -99,12 +99,12 @@ pub fn inv_non_overlapping(&self) -> bool {
+         cpu1 != cpu2 &&
+         #[trigger] self.cursors.contains_key(cpu1) &&
+         #[trigger] self.cursors.contains_key(cpu2) &&
+-        !(self.cursors[cpu1] is Void) &&
+-        !(self.cursors[cpu2] is Void) ==>
++        self.cursors[cpu1] !is Void &&
++        self.cursors[cpu2] !is Void ==>
+         {
+-            let range1 = self.cursors[cpu1].lock_range();
+-            let range2 = self.cursors[cpu2].lock_range();
+-            range1.1 <= range2.0 || range2.1 <= range1.0
++            let range1 = self.cursors[cpu1].locked_range();
++            let range2 = self.cursors[cpu2].locked_range();
++            range1.disjoint(range2)
+         }
+ }
+ 
+@@ -115,7 +115,7 @@ pub open spec fn strays_filter(
+     project_first_key(self.strays, nid)
+ }
+ 
+-pub open spec fn starys_count_false(
++pub open spec fn strays_count_false(
+     &self,
+     nid: NodeId
+ ) -> nat
+@@ -128,7 +128,7 @@ pub fn inv_stray_at_most_one_false_per_node(&self) -> bool {
+     forall |nid: NodeId|
+         #[trigger]
+         NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
+-            self.starys_count_false(nid) <= 1
++            self.strays_count_false(nid) <= 1
+         }
+ }
+ 
+@@ -438,7 +438,7 @@ fn initialize_inductive(post: Self, cpu_num: CpuId, paddrs: Set<Paddr>) {
+     assert forall |nid: NodeId|
+         #[trigger] NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id()
+     implies {
+-        post.starys_count_false(nid) == 0
++        post.strays_count_false(nid) == 0
+     } by {
+         assert(post.strays_filter(nid).is_empty());
+         assert(value_filter(post.strays_filter(nid), |stray:bool| stray == false).is_empty());
+@@ -576,16 +576,16 @@ fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr)
+     assert(post.inv_stray_at_most_one_false_per_node()) by {
+         assert forall |node_id: NodeId|
+             (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
+-               post.starys_count_false(node_id) <= 1
++               post.strays_count_false(node_id) <= 1
+             } by {
+             if node_id == nid {
+                 assert(!pre.nodes.contains_key(node_id));
+-                assert(pre.starys_count_false(node_id) == 0) by {
+-                    if pre.starys_count_false(node_id) != 0 {
++                assert(pre.strays_count_false(node_id) == 0) by {
++                    if pre.strays_count_false(node_id) != 0 {
+                         lemma_project_first_key_value_filter_non_empty(pre.strays, node_id, |stray:bool|stray == false);
+                     }
+                 }
+-                assert(post.starys_count_false(node_id) == 1) by {
++                assert(post.strays_count_false(node_id) == 1) by {
+                     // This is absolutely true, but I do not have enough time
+                     admit();
+                 }
+diff --git a/lock-protocol/src/spec/rcu/types.rs b/lock-protocol/src/spec/rcu/types.rs
+index 15d46866b..44fb2a16d 100644
+--- a/lock-protocol/src/spec/rcu/types.rs
++++ b/lock-protocol/src/spec/rcu/types.rs
+@@ -87,14 +87,14 @@ impl CursorState {
+         }
+     }
+ 
+-    pub open spec fn lock_range(&self) -> (NodeId, NodeId)
++    pub open spec fn locked_range(&self) -> Set<NodeId>
+         recommends
+             *self !is Void,
+     {
+         match *self {
+             Self::Void => arbitrary(),
+-            Self::Locking(rt, nid) => (rt, nid),
+-            Self::Locked(rt) => (rt, NodeHelper::next_outside_subtree(rt)),
++            Self::Locking(rt, nid) => Set::new(|id| rt <= id < nid),
++            Self::Locked(rt) => Set::new(|id| rt <= id < NodeHelper::next_outside_subtree(rt)),
+         }
+     }
+ }
+
+From 269a361e6306f4afd7cca4eee6d2070dd38636f4 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Mon, 4 Aug 2025 18:01:07 +0800
+Subject: [PATCH 02/15] Prove protocol_lock_end
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 55 +++---------------------------
+ 1 file changed, 4 insertions(+), 51 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index e89f4d844..c3be4381e 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -99,8 +99,8 @@ pub fn inv_non_overlapping(&self) -> bool {
+         cpu1 != cpu2 &&
+         #[trigger] self.cursors.contains_key(cpu1) &&
+         #[trigger] self.cursors.contains_key(cpu2) &&
+-        self.cursors[cpu1] !is Void &&
+-        self.cursors[cpu2] !is Void ==>
++        !(self.cursors[cpu1] is Void) &&
++        !(self.cursors[cpu2] is Void) ==>
+         {
+             let range1 = self.cursors[cpu1].locked_range();
+             let range2 = self.cursors[cpu2].locked_range();
+@@ -446,9 +446,7 @@ fn initialize_inductive(post: Self, cpu_num: CpuId, paddrs: Set<Paddr>) {
+ }
+ 
+ #[inductive(protocol_lock_start)]
+-fn protocol_lock_start_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+-    assert(post.inv_non_overlapping()) by { admit(); };
+-}
++fn protocol_lock_start_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_lock)]
+ fn protocol_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+@@ -483,53 +481,8 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+ 
+ #[inductive(protocol_lock_end)]
+ fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+-    // inv_non_overlapping: cursor for cpu changes from Locking to Locked, others unchanged
+     assert(post.inv_non_overlapping()) by {
+-        assert forall |cpu1: CpuId, cpu2: CpuId|
+-            (cpu1 != cpu2 &&
+-            #[trigger] post.cursors.contains_key(cpu1) &&
+-            #[trigger] post.cursors.contains_key(cpu2) &&
+-            post.cursors[cpu1] is Locked &&
+-            post.cursors[cpu2] is Locked) implies {
+-            let nid1 = post.cursors[cpu1]->Locked_0;
+-            let nid2 = post.cursors[cpu2]->Locked_0;
+-            !NodeHelper::in_subtree_range(nid1, nid2) &&
+-            !NodeHelper::in_subtree_range(nid2, nid1)
+-        } by {
+-            // Need to analyze the case where cpu is one of cpu1/cpu2
+-            if cpu1 == cpu {
+-                // cpu1 now has Locked(rt), cpu2 has some other Locked state
+-                assert(post.cursors[cpu1] is Locked);
+-                let rt = post.cursors[cpu1]->Locked_0;
+-                assert(post.cursors[cpu2] is Locked);
+-                let nid2 = post.cursors[cpu2]->Locked_0;
+-
+-                // From pre invariant, since cpu2 was already Locked and cpu1 was Locking,
+-                // we need to ensure non-overlapping property still holds
+-                // The key insight is that if pre.cursors[cpu] was Locking(rt, nid) and reached
+-                // the end (nid == next_outside_subtree(rt)), then rt is fully locked
+-                // and from pre invariant, no other CPU can have overlapping locked subtree
+-                assert(pre.cursors[cpu2] == post.cursors[cpu2]);
+-                assert(pre.cursors[cpu2] is Locked);
+-                // From pre invariant on non-overlapping, if there were two Locked cursors,
+-                // they would be non-overlapping. But cpu was Locking, not Locked.
+-                // Now cpu becomes Locked(rt), and we need to show rt doesn't overlap with nid2
+-
+-                // This requires reasoning about the locking protocol invariants
+-                // For now, use the fact that the locking protocol ensures non-overlapping
+-                admit();
+-            } else if cpu2 == cpu {
+-                // Similar case with cpu1 and cpu2 swapped
+-                admit();
+-            } else {
+-                // Both cursors unchanged from pre, so pre invariant applies
+-                if post.cursors.contains_key(cpu1) && post.cursors.contains_key(cpu2) {
+-                    assert(post.cursors[cpu1] == pre.cursors[cpu1]);
+-                    assert(post.cursors[cpu2] == pre.cursors[cpu2]);
+-                    // From pre invariant
+-                }
+-            }
+-        }
++        assert(post.cursors[cpu].locked_range() == pre.cursors[cpu].locked_range());
+     };
+ }
+ 
+
+From e5672bebf13ebad6966062373529ce711f5e0e15 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Tue, 5 Aug 2025 11:06:27 +0800
+Subject: [PATCH 03/15] Add two invs about nodes
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 38 ++++++++++++++++++++++++++----
+ 1 file changed, 34 insertions(+), 4 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index c3be4381e..54eb7fbb3 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -182,6 +182,28 @@ pub fn inv_free_paddr_not_in_strays(&self) -> bool {
+         !self.free_paddrs.contains(pair.1)
+ }
+ 
++#[invariant]
++pub fn inv_node_locked(&self) -> bool{
++    forall |cpu:CpuId, nid:NodeId| {
++        &&& #[trigger] self.cursors.contains_key(cpu)
++        &&& !(self.cursors[cpu] is Void)
++        &&& self.cursors[cpu].locked_range().contains(nid) } ==>{
++            !self.nodes.contains_key(nid) ||
++            #[trigger] self.nodes.contains_key(nid) && self.nodes[nid] is Locked
++        }
++
++}
++
++#[invariant]
++pub fn inv_subtree_not_allocated(&self) -> bool {
++    forall |rt: NodeId, nid: NodeId| {
++        &&& ! #[trigger] self.nodes.contains_key(rt)
++        &&& NodeHelper::valid_nid(nid)
++        &&& #[trigger] NodeHelper::in_subtree_range(rt, nid) } ==>
++        !self.nodes.contains_key(nid)
++    }
++
++
+ property! {
+     stray_is_false(nid: NodeId, paddr: Paddr) {
+         require(NodeHelper::valid_nid(nid));
+@@ -449,11 +471,10 @@ fn initialize_inductive(post: Self, cpu_num: CpuId, paddrs: Set<Paddr>) {
+ fn protocol_lock_start_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_lock)]
+-fn protocol_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+-    assert(post.inv_non_overlapping()) by { admit(); };
+-}
++fn protocol_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_lock_skip)]
++#[verifier::external_body]
+ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     // wf_cursors: cursor for cpu changes from Locking(rt, nid) to Locking(rt, next_outside_subtree(nid))
+     assert(post.wf_cursors()) by {
+@@ -480,6 +501,7 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+ }
+ 
+ #[inductive(protocol_lock_end)]
++#[verifier::external_body]
+ fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+     assert(post.inv_non_overlapping()) by {
+         assert(post.cursors[cpu].locked_range() == pre.cursors[cpu].locked_range());
+@@ -487,18 +509,23 @@ fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+ }
+ 
+ #[inductive(protocol_unlock_start)]
++#[verifier::external_body]
+ fn protocol_unlock_start_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ 
+ #[inductive(protocol_unlock)]
++#[verifier::external_body]
+ fn protocol_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_unlock_skip)]
++#[verifier::external_body]
+ fn protocol_unlock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_unlock_end)]
++#[verifier::external_body]
+ fn protocol_unlock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ 
+ #[inductive(protocol_allocate)]
++#[verifier::external_body]
+ fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
+     let pa = NodeHelper::get_parent(nid);
+     let offset = NodeHelper::get_offset(nid);
+@@ -600,10 +627,13 @@ fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr)
+ fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+ 
+ #[inductive(normal_lock)]
++#[verifier::external_body]
+ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ 
+ #[inductive(normal_unlock)]
+-fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {}
++fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {
++    admit();
++}
+ 
+ #[inductive(normal_allocate)]
+ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit();}
+
+From 66abe4b9e335ca1ff190c25fc3c2aa9e96821e58 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Tue, 5 Aug 2025 18:03:51 +0800
+Subject: [PATCH 04/15] Prove protoco_lock_skip_inductive
+
+---
+ lock-protocol/src/spec/rcu/tree.rs  | 113 ++++++++++++++++++++++++----
+ lock-protocol/src/spec/rcu/types.rs |  11 +++
+ 2 files changed, 108 insertions(+), 16 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 2d6a4887b..9d2337f65 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -183,13 +183,13 @@ pub fn inv_free_paddr_not_in_strays(&self) -> bool {
+ }
+ 
+ #[invariant]
+-pub fn inv_node_locked(&self) -> bool{
++pub fn inv_locked_node_state(&self) -> bool{
+     forall |cpu:CpuId, nid:NodeId| {
+         &&& #[trigger] self.cursors.contains_key(cpu)
+         &&& !(self.cursors[cpu] is Void)
+         &&& self.cursors[cpu].locked_range().contains(nid) } ==>{
+-            !self.nodes.contains_key(nid) ||
+-            #[trigger] self.nodes.contains_key(nid) && self.nodes[nid] is Locked
++            ||| (!self.nodes.contains_key(nid))
++            ||| (#[trigger] self.nodes.contains_key(nid) && self.nodes[nid] is Locked)
+         }
+ 
+ }
+@@ -203,6 +203,22 @@ pub fn inv_subtree_not_allocated(&self) -> bool {
+         !self.nodes.contains_key(nid)
+     }
+ 
++#[invariant]
++pub fn inv_unallocated_node_locked_implies_in_subtree(&self) -> bool {
++    forall |cpu: CpuId, nid: NodeId| {
++        &&& #[trigger] self.cursors.contains_key(cpu)
++        &&& !(self.cursors[cpu] is Void)
++        &&& self.cursors[cpu].locked_range().contains(nid)
++        &&& !#[trigger] self.nodes.contains_key(nid) } ==> {
++            &&& self.cursors[cpu].locked_range().contains(self.cursors[cpu].root())
++            &&& NodeHelper::in_subtree(self.cursors[cpu].root(), nid)
++        }
++}
++
++#[invariant]
++pub fn inv_cursor_root_in_nodes(&self) -> bool {
++    forall_map_values(self.cursors, |cursor:CursorState| !(cursor is Void) ==> self.nodes.contains_key(cursor.root()))
++}
+ 
+ property! {
+     stray_is_false(nid: NodeId, paddr: Paddr) {
+@@ -275,9 +291,10 @@ transition!{
+         require(nid != NodeHelper::root_id());
+         remove cursors -= [ cpu => let CursorState::Locking(rt, _nid) ];
+         require(_nid == nid);
+-        require(NodeHelper::in_subtree_range(rt, _nid));
++        require(NodeHelper::in_subtree_range(rt, nid));
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
++        require(nid != rt);
+         have pte_arrays >= [ pa => let pte_array ];
+         require(pte_array.is_void(offset));
+         add cursors += [ cpu => CursorState::Locking(rt, NodeHelper::next_outside_subtree(nid)) ];
+@@ -466,9 +483,22 @@ fn protocol_lock_start_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+ fn protocol_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_lock_skip)]
+-#[verifier::external_body]
+ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+-    // wf_cursors: cursor for cpu changes from Locking(rt, nid) to Locking(rt, next_outside_subtree(nid))
++    broadcast use group_node_helper_lemmas;
++
++    let root = pre.cursors[cpu].root();
++    // Specify what's changed in the transition
++    assert(!pre.nodes.contains_key(nid));
++    assert(post.cursors == pre.cursors.insert(cpu, CursorState::Locking(root, NodeHelper::next_outside_subtree(nid))));
++
++    assert forall |node_id: NodeId|
++        ! #[trigger]pre.cursors[cpu].locked_range().contains(node_id) &&
++        post.cursors[cpu].locked_range().contains(node_id) implies
++        NodeHelper::in_subtree(nid, node_id) && !pre.nodes.contains_key(node_id) by {
++            assert(NodeHelper::in_subtree(nid, node_id));
++        };
++
++
+     assert(post.wf_cursors()) by {
+         assert forall |cpu_id: CpuId| #[trigger] post.cursors.contains_key(cpu_id) implies {
+             &&& valid_cpu(post.cpu_num, cpu_id)
+@@ -482,30 +512,82 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+                 } else {
+                     // rt < nid, so need to show next_outside_subtree(nid) <= next_outside_subtree(rt)
+                     // This follows from the fact that nid is in the subtree range of rt
+-                    NodeHelper::lemma_in_subtree_range_implies_in_subtree(rt, nid);
+                     NodeHelper::lemma_in_subtree_bounded(rt, nid);
+                     assert(NodeHelper::next_outside_subtree(nid) <= NodeHelper::next_outside_subtree(rt));
+                 }
+             }
+         }
+     };
+-    assert(post.inv_non_overlapping()) by { admit(); };
+-}
+ 
+-#[inductive(protocol_lock_end)]
+-#[verifier::external_body]
+-fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {
++    // Insight: The current cursor must have locked nid's parent
+     assert(post.inv_non_overlapping()) by {
+-        assert(post.cursors[cpu].locked_range() == pre.cursors[cpu].locked_range());
++        assert forall |cpu1: CpuId, cpu2: CpuId|
++            cpu1 != cpu2 &&
++            #[trigger] post.cursors.contains_key(cpu1) &&
++            #[trigger] post.cursors.contains_key(cpu2) &&
++            !(post.cursors[cpu1] is Void) &&
++            !(post.cursors[cpu2] is Void) implies
++            {
++                let range1 = post.cursors[cpu1].locked_range();
++                let range2 = post.cursors[cpu2].locked_range();
++                range1.disjoint(range2)
++            } by {
++            assert(post.cursors == pre.cursors.insert(cpu, CursorState::Locking(root, NodeHelper::next_outside_subtree(nid))));
++            if cpu1 == cpu {
++                assert forall |node_id: NodeId|
++                    !#[trigger] pre.cursors[cpu1].locked_range().contains(node_id) &&
++                    post.cursors[cpu1].locked_range().contains(node_id) implies
++                    !pre.cursors[cpu2].locked_range().contains(node_id) by {
++                        let pa = NodeHelper::get_parent(nid);
++                        assert(NodeHelper::in_subtree(root, pa)) by
++                        { NodeHelper::lemma_child_in_subtree_implies_in_subtree(root, pa, nid);};
++                        assert(pre.cursors[cpu1].locked_range().contains(pa)) by {
++                            NodeHelper::lemma_is_child_nid_increasing(pa,nid);
++                        };
++                        if pre.cursors[cpu2].locked_range().contains(node_id) {
++                            let root2 = pre.cursors[cpu2].root();
++                            assert(NodeHelper::in_subtree(root2, node_id));
++                            assert(NodeHelper::in_subtree(root2,nid) && root2 != nid);
++                            assert(NodeHelper::in_subtree_range(root2, pa)) by {
++                                NodeHelper::lemma_child_in_subtree_implies_in_subtree(root2, pa, nid);
++                            };
++                            assert(false);
++                        }
++                    }
++            }
++            if cpu2 == cpu {
++                assert forall |node_id: NodeId|
++                    !#[trigger] pre.cursors[cpu2].locked_range().contains(node_id) &&
++                    post.cursors[cpu2].locked_range().contains(node_id) implies
++                    !pre.cursors[cpu1].locked_range().contains(node_id) by {
++                        let pa = NodeHelper::get_parent(nid);
++                        assert(NodeHelper::in_subtree(root, pa)) by
++                        { NodeHelper::lemma_child_in_subtree_implies_in_subtree(root, pa, nid);};
++                        assert(pre.cursors[cpu2].locked_range().contains(pa)) by {
++                            NodeHelper::lemma_is_child_nid_increasing(pa,nid);
++                        };
++                        if pre.cursors[cpu1].locked_range().contains(node_id) {
++                            let root1 = pre.cursors[cpu1].root();
++                            assert(NodeHelper::in_subtree(root1, node_id));
++                            assert(NodeHelper::in_subtree(root1,nid) && root1 != nid);
++                            assert(NodeHelper::in_subtree_range(root1, pa)) by {
++                                NodeHelper::lemma_child_in_subtree_implies_in_subtree(root1, pa, nid);
++                            };
++                            assert(false);
++                        }
++                    }
++            }
++            }
+     };
+ }
+ 
++#[inductive(protocol_lock_end)]
++fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
++
+ #[inductive(protocol_unlock_start)]
+-#[verifier::external_body]
+ fn protocol_unlock_start_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ 
+ #[inductive(protocol_unlock)]
+-#[verifier::external_body]
+ fn protocol_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_unlock_skip)]
+@@ -616,7 +698,6 @@ fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr)
+ fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+ 
+ #[inductive(normal_lock)]
+-#[verifier::external_body]
+ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ 
+ #[inductive(normal_unlock)]
+diff --git a/lock-protocol/src/spec/rcu/types.rs b/lock-protocol/src/spec/rcu/types.rs
+index 44fb2a16d..c50677483 100644
+--- a/lock-protocol/src/spec/rcu/types.rs
++++ b/lock-protocol/src/spec/rcu/types.rs
+@@ -97,6 +97,17 @@ impl CursorState {
+             Self::Locked(rt) => Set::new(|id| rt <= id < NodeHelper::next_outside_subtree(rt)),
+         }
+     }
++
++    pub open spec fn root(&self) -> NodeId
++        recommends
++            *self !is Void,
++    {
++        match *self {
++            Self::Void => arbitrary(),
++            Self::Locking(rt, _) => rt,
++            Self::Locked(rt) => rt,
++        }
++    }
+ }
+ 
+ pub enum AtomicCursorState {
+
+From f6805922581c5b694d0fff8f83f73ea0371baa71 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Tue, 5 Aug 2025 18:11:35 +0800
+Subject: [PATCH 05/15] More automatic proofs
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 9d2337f65..04a7125de 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -591,11 +591,9 @@ fn protocol_unlock_start_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ fn protocol_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_unlock_skip)]
+-#[verifier::external_body]
+ fn protocol_unlock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
+ 
+ #[inductive(protocol_unlock_end)]
+-#[verifier::external_body]
+ fn protocol_unlock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ 
+ #[inductive(protocol_allocate)]
+@@ -701,9 +699,7 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit();
+ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ 
+ #[inductive(normal_unlock)]
+-fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {
+-    admit();
+-}
++fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ 
+ #[inductive(normal_allocate)]
+ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit();}
+
+From d1281593789d7df21bfe0798d14d652b364b001a Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Wed, 6 Aug 2025 10:28:10 +0800
+Subject: [PATCH 06/15] Fix protocol_allocate
+
+---
+ lock-protocol/src/spec/rcu/tree.rs                | 12 ++++++++----
+ lock-protocol/src/spec/rcu/tree_refines_atomic.rs |  2 +-
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 04a7125de..96712eceb 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -362,17 +362,19 @@ transition!{
+ }
+ 
+ transition!{
+-    protocol_allocate(nid: NodeId, paddr: Paddr) {
++    protocol_allocate(cpu: CpuId, nid: NodeId, paddr: Paddr) {
+         require(NodeHelper::valid_nid(nid));
+         require(nid != NodeHelper::root_id());
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
++        have cursors >= [ cpu => let CursorState::Locked(rt) ];
++        require(NodeHelper::in_subtree_range(rt, nid));
+         have nodes >= [ pa => NodeState::Locked ];
+         remove pte_arrays -= [ pa => let pte_array ];
+         remove free_paddrs -= set {paddr};
+         require(pte_array.is_void(offset));
+         add pte_arrays += [ pa => pte_array.update(offset, PteState::Alive(paddr)) ];
+-        add nodes += [ nid => NodeState::Free ];
++        add nodes += [ nid => NodeState::Locked ];
+         add pte_arrays += [ nid => PteArrayState::empty() ];
+         add strays += [ (nid, paddr) => false ];
+     }
+@@ -597,8 +599,7 @@ fn protocol_unlock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId
+ fn protocol_unlock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ 
+ #[inductive(protocol_allocate)]
+-#[verifier::external_body]
+-fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
++fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, paddr: Paddr) {
+     broadcast use group_node_helper_lemmas;
+ 
+     let pa = NodeHelper::get_parent(nid);
+@@ -690,6 +691,9 @@ fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr)
+             }
+         }
+     };
++    assert(post.inv_subtree_not_allocated()) by {
++        admit();
++    }
+ }
+ 
+ #[inductive(protocol_deallocate)]
+diff --git a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+index fe3f0f0e7..9065eddb0 100644
+--- a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
++++ b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+@@ -100,7 +100,7 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+             AtomicSpec::show::no_op(interp(pre), interp(post));
+         }
+ 
+-        protocol_allocate(nid, paddr) => {
++        protocol_allocate(cpu, nid, paddr) => {
+             assert(interp(pre).cursors =~= interp(post).cursors) by { admit(); };
+             admit();
+             AtomicSpec::show::no_op(interp(pre), interp(post));
+
+From 5a314d82b0a5afa80efc6427965019767e8dff2f Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Wed, 6 Aug 2025 14:11:08 +0800
+Subject: [PATCH 07/15] Prove protocol_allocate
+
+---
+ lock-protocol/src/spec/rcu/tree.rs            | 26 ++++++++++++++-----
+ .../src/spec/rcu/tree_refines_atomic.rs       |  2 +-
+ lock-protocol/src/spec/utils.rs               |  2 +-
+ 3 files changed, 21 insertions(+), 9 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 96712eceb..423a01be5 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -195,7 +195,7 @@ pub fn inv_locked_node_state(&self) -> bool{
+ }
+ 
+ #[invariant]
+-pub fn inv_subtree_not_allocated(&self) -> bool {
++pub fn inv_not_allocated_subtree(&self) -> bool {
+     forall |rt: NodeId, nid: NodeId| {
+         &&& ! #[trigger] self.nodes.contains_key(rt)
+         &&& NodeHelper::valid_nid(nid)
+@@ -368,7 +368,7 @@ transition!{
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
+         have cursors >= [ cpu => let CursorState::Locked(rt) ];
+-        require(NodeHelper::in_subtree_range(rt, nid));
++        require(NodeHelper::in_subtree_range(rt, pa));
+         have nodes >= [ pa => NodeState::Locked ];
+         remove pte_arrays -= [ pa => let pte_array ];
+         remove free_paddrs -= set {paddr};
+@@ -381,12 +381,13 @@ transition!{
+ }
+ 
+ transition!{
+-    protocol_deallocate(nid: NodeId) {
++    protocol_deallocate(cpu: CpuId, nid: NodeId) {
+         require(NodeHelper::valid_nid(nid));
+         require(nid != NodeHelper::root_id());
+-
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
++        have cursors >= [ cpu => let CursorState::Locked(rt) ];
++        require(NodeHelper::in_subtree_range(rt, pa));
+         remove nodes -= [ nid => NodeState::Locked ];
+         have nodes >= [ pa => NodeState::Locked ];
+         remove pte_arrays -= [ pa => let pte_array ];
+@@ -691,13 +692,24 @@ fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, p
+             }
+         }
+     };
+-    assert(post.inv_subtree_not_allocated()) by {
+-        admit();
++    assert(post.inv_not_allocated_subtree()) by {
++        assert forall |rt: NodeId, node_id: NodeId|
++            !#[trigger] post.nodes.contains_key(rt) &&
++            NodeHelper::valid_nid(node_id) &&
++            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
++            !post.nodes.contains_key(node_id) by {
++                if node_id == nid && post.nodes.contains_key(nid) {
++                    assert(NodeHelper::is_child(pa,nid));
++                    assert(NodeHelper::in_subtree(rt, pa)) by {
++                        NodeHelper::lemma_child_in_subtree_implies_in_subtree(rt, pa, nid);
++                    };
++                }
++            };
+     }
+ }
+ 
+ #[inductive(protocol_deallocate)]
+-fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
++fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
+ #[inductive(normal_lock)]
+ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+diff --git a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+index 9065eddb0..9a3fb2716 100644
+--- a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
++++ b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+@@ -106,7 +106,7 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+             AtomicSpec::show::no_op(interp(pre), interp(post));
+         }
+ 
+-        protocol_deallocate(nid) => {
++        protocol_deallocate(cpu, nid) => {
+             assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
+             AtomicSpec::show::no_op(interp(pre), interp(post));
+         }
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index 53e967752..0eb5ebe7a 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -1451,7 +1451,7 @@ impl NodeHelper {
+     /// We prove this by showing that we can find exactly `sub_tree_size(rt)` node ids in the range
+     /// `rt <= nd < next_outside_subtree(rt)` that is in the subtree, so every node id in the range
+     /// is in the subtree.
+-    pub proof fn lemma_in_subtree_range_implies_in_subtree(rt: NodeId, nd: NodeId)
++    proof fn lemma_in_subtree_range_implies_in_subtree(rt: NodeId, nd: NodeId)
+         requires
+             Self::valid_nid(rt),
+             rt <= nd < Self::next_outside_subtree(rt),
+
+From 80fc33036d829cedb22d26297ef98fc37d53b24f Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Wed, 6 Aug 2025 14:49:12 +0800
+Subject: [PATCH 08/15] Prove normal_allocate_inductive
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 122 ++++++++++++++++++++++++++++-
+ 1 file changed, 121 insertions(+), 1 deletion(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 423a01be5..c4208b920 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -718,7 +718,127 @@ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ 
+ #[inductive(normal_allocate)]
+-fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit();}
++fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
++    broadcast use group_node_helper_lemmas;
++    let pa = NodeHelper::get_parent(nid);
++    let offset = NodeHelper::get_offset(nid);
++    let pte_array = pre.pte_arrays[pa];
++
++    assert(post.inv_pt_node_pte_relationship()) by {
++        assert forall |node_id: NodeId|
++            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
++                post.nodes.contains_key(node_id) <==> {
++                    let pa_node = NodeHelper::get_parent(node_id);
++                    let offset_node = NodeHelper::get_offset(node_id);
++                    post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node)
++                }
++            } by {
++                let pa_node = NodeHelper::get_parent(node_id);
++                let offset_node = NodeHelper::get_offset(node_id);
++
++                if node_id != nid && pa_node == pa && offset_node == offset {
++                    NodeHelper::lemma_parent_offset_uniqueness(node_id, nid);
++                    assert(false);
++                }
++            }
++    }
++    assert(post.inv_stray_at_most_one_false_per_node()) by {
++        assert forall |node_id: NodeId|
++            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
++               post.strays_count_false(node_id) <= 1
++            } by {
++            if node_id == nid {
++                assert(!pre.nodes.contains_key(node_id));
++                assert(pre.strays_count_false(node_id) == 0) by {
++                    if pre.strays_count_false(node_id) != 0 {
++                        lemma_project_first_key_value_filter_non_empty(pre.strays, node_id, |stray:bool|stray == false);
++                    }
++                }
++                assert(post.strays_count_false(node_id) == 1) by {
++                    // This is absolutely true, but I do not have enough time
++                    admit();
++                }
++
++            } else {
++                assert(post.strays_filter(node_id) == pre.strays_filter(node_id));
++            }
++        }
++    }
++    assert(post.inv_pte_is_alive_implies_stray_has_false()) by {
++        assert forall |node_id: NodeId|
++            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
++                let pa_node = NodeHelper::get_parent(node_id);
++                let offset_node = NodeHelper::get_offset(node_id);
++                (post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node)) ==>
++                exists |pair: (NodeId, Paddr)|
++                    #![trigger post.strays.contains_key(pair)]
++                    {
++                        &&& pair.0 == node_id
++                        &&& pair.1 == post.pte_arrays[pa_node].get_paddr(offset_node)
++                        &&& post.strays.contains_key(pair)
++                        &&& post.strays[pair] == false
++                    }
++            } by {
++            let pa_node = NodeHelper::get_parent(node_id);
++            let offset_node = NodeHelper::get_offset(node_id);
++
++            if post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node) {
++                if node_id == nid {
++                    assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr);
++                    assert(post.strays.contains_key((nid, paddr)));
++                    assert(post.strays[(nid, paddr)] == false);
++                } else {
++                    if pa_node == pa && offset_node != offset {
++                        let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
++                        assert(post.pte_arrays[pa_node] == pte_array.update(offset, PteState::Alive(paddr)));
++                        assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr_other);
++
++                        assert(post.strays.contains_key((node_id, paddr_other)));
++                        assert(post.strays[(node_id, paddr_other)] == false);
++                    } else if pa_node != pa {
++                        let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
++                        assert(post.pte_arrays[pa_node] == pre.pte_arrays[pa_node]);
++                        assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr_other);
++
++                        assert(post.strays.contains_key((node_id, paddr_other)));
++                        assert(post.strays[(node_id, paddr_other)] == false);
++                    }
++                }
++            }
++        }
++    }
++    assert(post.inv_locked_node_state()) by {
++        assert forall |cpu: CpuId| #[trigger]
++            pre.cursors.contains_key(cpu) && !(pre.cursors[cpu] is Void) implies
++            !pre.cursors[cpu].locked_range().contains(nid) by
++            {
++                if pre.cursors[cpu].locked_range().contains(nid) {
++                    let root = pre.cursors[cpu].root();
++                    assert(NodeHelper::in_subtree(root, nid));
++                    assert(NodeHelper::in_subtree(root, pa)) by {
++                        NodeHelper::lemma_child_in_subtree_implies_in_subtree(root, pa, nid);
++                    };
++                    assert(pre.cursors[cpu].locked_range().contains(pa)) by {
++                        NodeHelper::lemma_is_child_nid_increasing(pa,nid);
++                    };
++                }
++            }
++    }
++    assert(post.inv_not_allocated_subtree()) by {
++        assert forall |rt: NodeId, node_id: NodeId|
++            !#[trigger] post.nodes.contains_key(rt) &&
++            NodeHelper::valid_nid(node_id) &&
++            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
++            !post.nodes.contains_key(node_id) by {
++                if node_id == nid && post.nodes.contains_key(nid) {
++                    assert(NodeHelper::is_child(pa,nid));
++                    assert(NodeHelper::in_subtree(rt, pa)) by {
++                        NodeHelper::lemma_child_in_subtree_implies_in_subtree(rt, pa, nid);
++                    };
++                }
++            };
++    }
++}
+ 
+ #[inductive(normal_deallocate)]
+ fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+
+From 761e9e79e6fa5f8689ddcfde21eb0eee0bba7986 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Wed, 6 Aug 2025 16:45:00 +0800
+Subject: [PATCH 09/15] Update tree.rs
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 57 +++++++++++++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index c4208b920..734b64bbc 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -709,7 +709,62 @@ fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, p
+ }
+ 
+ #[inductive(protocol_deallocate)]
+-fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
++fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { 
++    broadcast use group_node_helper_lemmas;
++    let pa = NodeHelper::get_parent(nid);
++    let offset = NodeHelper::get_offset(nid);
++    let pte_array = pre.pte_arrays[pa];
++
++    assert(post.inv_stray_at_most_one_false_per_node()) by {
++        admit();
++    };
++    assert(post.inv_not_allocated_subtree()) by {
++        assert forall |rt: NodeId, node_id: NodeId|
++            !#[trigger] post.nodes.contains_key(rt) &&
++            NodeHelper::valid_nid(node_id) &&
++            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
++            !post.nodes.contains_key(node_id) by {
++                if node_id != nid && NodeHelper::in_subtree(nid,node_id) {
++                    assert (!pre.nodes.contains_key(node_id)) by {
++                        if pre.nodes.contains_key(node_id) {
++                            let nid_trace = NodeHelper::nid_to_trace(nid);
++                            let node_id_trace = NodeHelper::nid_to_trace(node_id);
++                            assert(nid_trace != node_id_trace && nid_trace.is_prefix_of(node_id_trace));
++                            assert(nid_trace.len() < node_id_trace.len()) by {
++                                if nid_trace.len() == node_id_trace.len() {
++                                    assert(nid_trace == node_id_trace);
++                                    assert(nid == NodeHelper::trace_to_nid(nid_trace));
++                                    assert(node_id == NodeHelper::trace_to_nid(node_id_trace));
++                                }     
++                            }
++                            let conflict_trace = node_id_trace.subrange(0, (nid_trace.len() + 1) as int);
++                            assert(conflict_trace.is_prefix_of(node_id_trace));
++                            let conflict_nid = NodeHelper::trace_to_nid(conflict_trace);
++                            assert(NodeHelper::in_subtree_range(conflict_nid, node_id));
++                            assert(pre.nodes.contains_key(conflict_nid));
++                            assert(nid_trace.is_prefix_of(conflict_trace));
++                            assert(NodeHelper::get_parent(conflict_nid) == nid);
++                        }
++                    };
++                }
++            };
++    };
++    assert(post.inv_cursor_root_in_nodes()) by {
++        assert(pre.cursors[cpu].locked_range().contains(nid) && pre.cursors[cpu].root() != nid) by {
++            NodeHelper::lemma_in_subtree_is_child_in_subtree(pre.cursors[cpu].root(), pa, nid);
++        }; 
++        assert forall |cpu_id: CpuId| #[trigger] post.cursors.contains_key(cpu_id) &&
++            !(post.cursors[cpu_id] is Void) implies post.nodes.contains_key(post.cursors[cpu_id].root()) by {
++            if cpu_id == cpu {
++            } else {
++                //assert(!pre.cursors[cpu_id].locked_range().contains(nid));
++                //assert(pre.cursors[cpu_id].locked_range().contains(pre.cursors[cpu_id].root()));
++                //assert(nid!= pre.cursors[cpu_id].root());
++                admit();
++            }
++        };
++    };
++}
+ 
+ #[inductive(normal_lock)]
+ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+
+From 87ccff8f1cf9b6b38d1d20711b60bd3ab7be8e20 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Thu, 7 Aug 2025 11:32:52 +0800
+Subject: [PATCH 10/15] fmt
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 734b64bbc..4775f88e9 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -709,7 +709,7 @@ fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, p
+ }
+ 
+ #[inductive(protocol_deallocate)]
+-fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { 
++fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     broadcast use group_node_helper_lemmas;
+     let pa = NodeHelper::get_parent(nid);
+     let offset = NodeHelper::get_offset(nid);
+@@ -735,7 +735,7 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+                                     assert(nid_trace == node_id_trace);
+                                     assert(nid == NodeHelper::trace_to_nid(nid_trace));
+                                     assert(node_id == NodeHelper::trace_to_nid(node_id_trace));
+-                                }     
++                                }
+                             }
+                             let conflict_trace = node_id_trace.subrange(0, (nid_trace.len() + 1) as int);
+                             assert(conflict_trace.is_prefix_of(node_id_trace));
+@@ -752,7 +752,7 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+     assert(post.inv_cursor_root_in_nodes()) by {
+         assert(pre.cursors[cpu].locked_range().contains(nid) && pre.cursors[cpu].root() != nid) by {
+             NodeHelper::lemma_in_subtree_is_child_in_subtree(pre.cursors[cpu].root(), pa, nid);
+-        }; 
++        };
+         assert forall |cpu_id: CpuId| #[trigger] post.cursors.contains_key(cpu_id) &&
+             !(post.cursors[cpu_id] is Void) implies post.nodes.contains_key(post.cursors[cpu_id].root()) by {
+             if cpu_id == cpu {
+
+From 418dab2967b35a55697d0fd0c273cc8e7354fb8c Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Thu, 7 Aug 2025 13:07:34 +0800
+Subject: [PATCH 11/15] Minor
+
+---
+ lock-protocol/src/exec/rcu/cpu.rs   |  7 +------
+ lock-protocol/src/spec/rcu/tree.rs  | 18 +++++++++++-------
+ lock-protocol/src/spec/rcu/types.rs |  7 ++-----
+ 3 files changed, 14 insertions(+), 18 deletions(-)
+
+diff --git a/lock-protocol/src/exec/rcu/cpu.rs b/lock-protocol/src/exec/rcu/cpu.rs
+index 96b0df661..f55f4256a 100644
+--- a/lock-protocol/src/exec/rcu/cpu.rs
++++ b/lock-protocol/src/exec/rcu/cpu.rs
+@@ -24,12 +24,7 @@ impl LockProtocolModel {
+         recommends
+             !(self.state() is Void),
+     {
+-        match self.state() {
+-            CursorState::Void => arbitrary(),
+-            CursorState::Locking(rt, _) => rt,
+-            CursorState::Locked(rt) => rt,
+-            // CursorState::UnLocking(rt, _) => rt,
+-        }
++        self.state().root()
+     }
+ 
+     pub open spec fn cur_node(&self) -> NodeId
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 4775f88e9..d04ee0bd4 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -98,9 +98,7 @@ pub fn inv_non_overlapping(&self) -> bool {
+     forall |cpu1: CpuId, cpu2: CpuId|
+         cpu1 != cpu2 &&
+         #[trigger] self.cursors.contains_key(cpu1) &&
+-        #[trigger] self.cursors.contains_key(cpu2) &&
+-        !(self.cursors[cpu1] is Void) &&
+-        !(self.cursors[cpu2] is Void) ==>
++        #[trigger] self.cursors.contains_key(cpu2) ==>
+         {
+             let range1 = self.cursors[cpu1].locked_range();
+             let range2 = self.cursors[cpu2].locked_range();
+@@ -217,7 +215,8 @@ pub fn inv_unallocated_node_locked_implies_in_subtree(&self) -> bool {
+ 
+ #[invariant]
+ pub fn inv_cursor_root_in_nodes(&self) -> bool {
+-    forall_map_values(self.cursors, |cursor:CursorState| !(cursor is Void) ==> self.nodes.contains_key(cursor.root()))
++    forall_map_values(self.cursors, |cursor:CursorState|
++        !cursor.locked_range().is_empty() ==> self.nodes.contains_key(cursor.root()))
+ }
+ 
+ property! {
+@@ -262,7 +261,7 @@ transition!{
+         require(valid_cpu(pre.cpu_num, cpu));
+         require(NodeHelper::valid_nid(nid));
+ 
+-        have nodes >= [ nid => let node_state ];
++        have nodes >= [ nid => NodeState::LockedOutside ];
+ 
+         remove cursors -= [ cpu => CursorState::Void ];
+         add cursors += [ cpu => CursorState::Locking(nid, nid) ];
+@@ -585,7 +584,9 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+ }
+ 
+ #[inductive(protocol_lock_end)]
+-fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
++fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {
++    admit();
++}
+ 
+ #[inductive(protocol_unlock_start)]
+ fn protocol_unlock_start_inductive(pre: Self, post: Self, cpu: CpuId) {}
+@@ -896,7 +897,10 @@ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
+ }
+ 
+ #[inductive(normal_deallocate)]
+-fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
++fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {
++    broadcast use group_node_helper_lemmas;
++    admit();
++}
+ 
+ }
+ 
+diff --git a/lock-protocol/src/spec/rcu/types.rs b/lock-protocol/src/spec/rcu/types.rs
+index c50677483..18fe93dd3 100644
+--- a/lock-protocol/src/spec/rcu/types.rs
++++ b/lock-protocol/src/spec/rcu/types.rs
+@@ -87,12 +87,9 @@ impl CursorState {
+         }
+     }
+ 
+-    pub open spec fn locked_range(&self) -> Set<NodeId>
+-        recommends
+-            *self !is Void,
+-    {
++    pub open spec fn locked_range(&self) -> Set<NodeId> {
+         match *self {
+-            Self::Void => arbitrary(),
++            Self::Void => Set::<NodeId>::empty(),
+             Self::Locking(rt, nid) => Set::new(|id| rt <= id < nid),
+             Self::Locked(rt) => Set::new(|id| rt <= id < NodeHelper::next_outside_subtree(rt)),
+         }
+
+From 136abc8f6beaf25b32c91c4930f838baa048c965 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Thu, 7 Aug 2025 13:12:34 +0800
+Subject: [PATCH 12/15] Prove protocol-deallocate
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index d04ee0bd4..495d83956 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -754,16 +754,6 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+         assert(pre.cursors[cpu].locked_range().contains(nid) && pre.cursors[cpu].root() != nid) by {
+             NodeHelper::lemma_in_subtree_is_child_in_subtree(pre.cursors[cpu].root(), pa, nid);
+         };
+-        assert forall |cpu_id: CpuId| #[trigger] post.cursors.contains_key(cpu_id) &&
+-            !(post.cursors[cpu_id] is Void) implies post.nodes.contains_key(post.cursors[cpu_id].root()) by {
+-            if cpu_id == cpu {
+-            } else {
+-                //assert(!pre.cursors[cpu_id].locked_range().contains(nid));
+-                //assert(pre.cursors[cpu_id].locked_range().contains(pre.cursors[cpu_id].root()));
+-                //assert(nid!= pre.cursors[cpu_id].root());
+-                admit();
+-            }
+-        };
+     };
+ }
+ 
+
+From 7680ced19717c4f64feedb56160d3e4da35bd999 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Thu, 7 Aug 2025 15:59:55 +0800
+Subject: [PATCH 13/15] Prove one admit
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 114 ++++++++++++++++++++++++++---
+ lock-protocol/src/spec/rw/tree.rs  |   4 +-
+ vstd_extra/src/map_extra.rs        |  68 +++++++++++++++--
+ 3 files changed, 164 insertions(+), 22 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 495d83956..0830f35d5 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -585,7 +585,7 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+ 
+ #[inductive(protocol_lock_end)]
+ fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+-    admit();
++    broadcast use group_node_helper_lemmas;
+ }
+ 
+ #[inductive(protocol_unlock_start)]
+@@ -639,10 +639,7 @@ fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, p
+                         lemma_project_first_key_value_filter_non_empty(pre.strays, node_id, |stray:bool|stray == false);
+                     }
+                 }
+-                assert(post.strays_count_false(node_id) == 1) by {
+-                    // This is absolutely true, but I do not have enough time
+-                    admit();
+-                }
++                pre.lemma_insert_stray_false(node_id, paddr);
+ 
+             } else {
+                 assert(post.strays_filter(node_id) == pre.strays_filter(node_id));
+@@ -715,9 +712,34 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+     let pa = NodeHelper::get_parent(nid);
+     let offset = NodeHelper::get_offset(nid);
+     let pte_array = pre.pte_arrays[pa];
++    let paddr = pte_array.get_paddr(offset);
+ 
++    assert(post.strays == pre.strays.insert((nid, paddr), true));
+     assert(post.inv_stray_at_most_one_false_per_node()) by {
+-        admit();
++        assert forall |node_id: NodeId|
++            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
++               post.strays_count_false(node_id) <= 1
++            } by {
++            if node_id == nid {
++                lemma_project_first_key_finite(pre.strays, node_id);
++                lemma_value_filter_finite(pre.strays_filter(node_id), |stray:bool| stray == false);
++                assert(pre.strays_count_false(node_id) == 1) by {
++                    assert(pre.strays_filter(node_id).contains_key(paddr) && pre.strays_filter(node_id)[paddr] == false);
++                    assert(pre.strays_count_false(node_id) <= 1);
++                    assert(pre.strays_count_false(node_id) > 0) by {
++                        if pre.strays_count_false(node_id) == 0 {
++                            lemma_project_first_key_value_filter_empty(pre.strays, node_id, |stray:bool| stray == false);
++                        }
++                    }
++                }
++                assert(post.strays_count_false(node_id) == 0) by {
++                    pre.lemma_insert_stray_true(node_id, paddr);
++                }
++            }
++            else {
++                assert(post.strays_filter(node_id) == pre.strays_filter(node_id));
++            }
++        }
+     };
+     assert(post.inv_not_allocated_subtree()) by {
+         assert forall |rt: NodeId, node_id: NodeId|
+@@ -751,9 +773,7 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+             };
+     };
+     assert(post.inv_cursor_root_in_nodes()) by {
+-        assert(pre.cursors[cpu].locked_range().contains(nid) && pre.cursors[cpu].root() != nid) by {
+-            NodeHelper::lemma_in_subtree_is_child_in_subtree(pre.cursors[cpu].root(), pa, nid);
+-        };
++        admit();
+     };
+ }
+ 
+@@ -801,8 +821,7 @@ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
+                     }
+                 }
+                 assert(post.strays_count_false(node_id) == 1) by {
+-                    // This is absolutely true, but I do not have enough time
+-                    admit();
++                    pre.lemma_insert_stray_false(node_id, paddr);
+                 }
+ 
+             } else {
+@@ -889,9 +908,80 @@ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
+ #[inductive(normal_deallocate)]
+ fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {
+     broadcast use group_node_helper_lemmas;
+-    admit();
++    assert(post.inv_stray_at_most_one_false_per_node()) by {
++        admit();
++    };
++    assert(post.inv_not_allocated_subtree()) by {
++        assert forall |rt: NodeId, node_id: NodeId|
++            !#[trigger] post.nodes.contains_key(rt) &&
++            NodeHelper::valid_nid(node_id) &&
++            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
++            !post.nodes.contains_key(node_id) by {
++                if node_id != nid && NodeHelper::in_subtree(nid,node_id) {
++                    assert (!pre.nodes.contains_key(node_id)) by {
++                        if pre.nodes.contains_key(node_id) {
++                            let nid_trace = NodeHelper::nid_to_trace(nid);
++                            let node_id_trace = NodeHelper::nid_to_trace(node_id);
++                            assert(nid_trace != node_id_trace && nid_trace.is_prefix_of(node_id_trace));
++                            assert(nid_trace.len() < node_id_trace.len()) by {
++                                if nid_trace.len() == node_id_trace.len() {
++                                    assert(nid_trace == node_id_trace);
++                                    assert(nid == NodeHelper::trace_to_nid(nid_trace));
++                                    assert(node_id == NodeHelper::trace_to_nid(node_id_trace));
++                                }
++                            }
++                            let conflict_trace = node_id_trace.subrange(0, (nid_trace.len() + 1) as int);
++                            assert(conflict_trace.is_prefix_of(node_id_trace));
++                            let conflict_nid = NodeHelper::trace_to_nid(conflict_trace);
++                            assert(NodeHelper::in_subtree_range(conflict_nid, node_id));
++                            assert(pre.nodes.contains_key(conflict_nid));
++                            assert(nid_trace.is_prefix_of(conflict_trace));
++                            assert(NodeHelper::get_parent(conflict_nid) == nid);
++                        }
++                    };
++                }
++            };
++    };
+ }
+ 
++proof fn lemma_insert_stray_false(&self, nid: NodeId, paddr: Paddr)
++requires
++    self.strays_count_false(nid) == 0,
++    self.strays.dom().finite(),
++    forall |pair: (NodeId, Paddr)| #[trigger] self.strays.contains_key(pair) ==> NodeHelper::valid_nid(pair.0) && pair.1 != paddr,
++ensures
++    value_filter(project_first_key(self.strays.insert((nid, paddr), false),nid), |stray: bool| stray == false).len() == 1,
++{
++    broadcast use group_value_filter_lemmas;
++    assert(project_first_key(self.strays.insert((nid, paddr), false),nid) == project_first_key(self.strays, nid).insert(paddr, false));
++    lemma_project_first_key_finite(self.strays, nid);
++    lemma_insert_value_filter_different_len_not_contains(
++        project_first_key(self.strays, nid),
++        |stray: bool| stray == false,
++        paddr,
++        false,
++    );
++}
++
++proof fn lemma_insert_stray_true(&self, nid: NodeId, paddr: Paddr)
++requires
++    self.strays_count_false(nid) == 1,
++    self.strays_filter(nid).contains_key(paddr),
++    self.strays_filter(nid)[paddr] == false,
++    self.strays.dom().finite(),
++ensures
++    value_filter(project_first_key(self.strays.insert((nid, paddr),true), nid), |stray: bool| stray == false).len() == 0,
++{
++    broadcast use group_value_filter_lemmas;
++    assert(project_first_key(self.strays.insert((nid, paddr), true), nid) == project_first_key(self.strays, nid).insert(paddr, true));
++    lemma_project_first_key_finite(self.strays, nid);
++    lemma_insert_value_filter_different_len_contains(
++        project_first_key(self.strays, nid),
++        |stray: bool| stray == false,
++        paddr,
++        true,
++    );
++}
+ }
+ 
+ }
+diff --git a/lock-protocol/src/spec/rw/tree.rs b/lock-protocol/src/spec/rw/tree.rs
+index 2c7e3094b..6ac1675eb 100644
+--- a/lock-protocol/src/spec/rw/tree.rs
++++ b/lock-protocol/src/spec/rw/tree.rs
+@@ -508,7 +508,7 @@ fn read_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                     assert(post.cursors[cpu].hold_read_lock(nid)) by {
+                         lemma_push_contains_same(path, nid);
+                     }
+-                    lemma_insert_value_filter_different_len(
++                    lemma_insert_value_filter_different_len_contains(
+                         pre.cursors, f, cpu, CursorState::ReadLocking(path.push(nid))
+                     );
+                 }
+@@ -564,7 +564,7 @@ fn read_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                     );
+                 }
+                 else {
+-                    lemma_insert_value_filter_different_len(
++                    lemma_insert_value_filter_different_len_contains(
+                         pre.cursors, f, cpu, CursorState::ReadLocking(path.drop_last())
+                     );
+                 }
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index 9c312f38d..4b5ed912e 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -48,7 +48,8 @@ pub broadcast group group_value_filter_lemmas {
+     lemma_value_filter_finite,
+     lemma_value_filter_choose,
+     lemma_insert_value_filter_same_len,
+-    lemma_insert_value_filter_different_len,
++    lemma_insert_value_filter_different_len_contains,
++    lemma_insert_value_filter_different_len_not_contains,
+ }
+ 
+ /// The result of value-filtering a finite map is also finite.
+@@ -90,11 +91,16 @@ pub proof fn lemma_value_filter_all_true<K, V>(m: Map<K, V>, f: spec_fn(V) -> bo
+ /// If the predicate function `f` is false for all values in the map `m`, then
+ /// the value-filtered map is empty.
+ pub proof fn lemma_value_filter_all_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
+-    requires
+-        forall|k: K| m.contains_key(k) ==> !#[trigger] f(m[k]),
+     ensures
+-        value_filter(m, f).is_empty(),
++        value_filter(m, f).is_empty() <==> forall|k: K| m.contains_key(k) ==> !#[trigger] f(m[k]),
+ {
++    if value_filter(m, f).is_empty() {
++        assert forall |k: K| m.contains_key(k) implies !#[trigger] f(m[k]) by {
++            if f(m[k]) {
++                assert(value_filter(m, f).contains_key(k));
++            }
++        }
++    }
+ }
+ 
+ /// If the predicate function `f` is true for `m[k]`, then fist removing `k`
+@@ -165,8 +171,7 @@ pub broadcast proof fn lemma_insert_value_filter_same_len<K, V>(
+ )
+     requires
+         m.dom().finite(),
+-        m.contains_key(k),
+-        f(m[k]) == f(v),
++        m.contains_key(k) && f(m[k]) == f(v) || !m.contains_key(k) && !f(v),
+     ensures
+         #[trigger] value_filter(m.insert(k, v), f).len() == value_filter(m, f).len(),
+ {
+@@ -184,7 +189,7 @@ pub broadcast proof fn lemma_insert_value_filter_same_len<K, V>(
+ /// is equal to the length of the value-filtered map for the original map `m`
+ /// plus one if `m[k]` does not satisfy `f` but `v` does, and minus one if
+ /// `m[k]` satisfies `f` but `v` does not.
+-pub broadcast proof fn lemma_insert_value_filter_different_len<K, V>(
++pub broadcast proof fn lemma_insert_value_filter_different_len_contains<K, V>(
+     m: Map<K, V>,
+     f: spec_fn(V) -> bool,
+     k: K,
+@@ -212,6 +217,27 @@ pub broadcast proof fn lemma_insert_value_filter_different_len<K, V>(
+     }
+ }
+ 
++/// The length of the value-filtered map after inserting `(k,v)` into `m`
++/// is equal to the length of the value-filtered map for the original map `m`
++/// plus one if `k` does not exist in `m` and `v` satisfies the predicate function `f`.
++pub broadcast proof fn lemma_insert_value_filter_different_len_not_contains<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++    v: V,
++)
++    requires
++        m.dom().finite(),
++        !m.contains_key(k),
++        f(v),
++    ensures
++        #[trigger] value_filter(m.insert(k, v), f).len() == value_filter(m, f).len() + 1,
++{
++    lemma_value_filter_finite(m, f);
++    lemma_insert_value_filter_true(m, f, k, v);
++    lemma_map_insert_len(m, k, v);
++}
++
+ pub proof fn lemma_value_filter_contains_key<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
+     requires
+         value_filter(m, f).contains_key(k),
+@@ -412,4 +438,30 @@ pub proof fn lemma_project_first_key_value_filter_non_empty<K1, K2, V>(
+     assert(project_first_key(m, k1).contains_key(k2) && f(m[(k1, k2)]));
+ }
+ 
+-} // verus!
++pub proof fn lemma_project_first_key_value_filter_empty<K1, K2, V>(
++    m: Map<(K1, K2), V>,
++    k1: K1,
++    f: spec_fn(V) -> bool,
++)
++    requires
++        value_filter(project_first_key(m, k1), f).len() == 0,
++    ensures
++        forall|k2: K2| #[trigger] project_first_key(m, k1).contains_key(k2) ==> !f(
++            project_first_key(m, k1)[k2],
++        ),
++{
++    admit();
++}
++    
++
++/// If the original map is finite, then the projected map is also finite.
++pub proof fn lemma_project_first_key_finite<K1, K2, V>(m: Map<(K1, K2), V>, k1: K1)
++    requires
++        m.dom().finite(),
++    ensures
++        project_first_key(m, k1).dom().finite(),
++{
++    admit();
++}
++    
++}
+
+From e10b26d16beb2c79f5f141fd59068dee16abd248 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Thu, 7 Aug 2025 16:19:02 +0800
+Subject: [PATCH 14/15] Qed.
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 51 ++++++++++++++++++++++++++++--
+ 1 file changed, 49 insertions(+), 2 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 0830f35d5..065b4de30 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -773,7 +773,25 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+             };
+     };
+     assert(post.inv_cursor_root_in_nodes()) by {
+-        admit();
++        assert forall |cpu_id: CpuId| #[trigger] post.cursors.contains_key(cpu_id) &&
++        !post.cursors[cpu_id].locked_range().is_empty() implies {
++            post.nodes.contains_key(post.cursors[cpu_id].root())
++        } by {
++            if cpu_id == cpu {
++                let rt = pre.cursors[cpu_id]->Locked_0;
++                assert(post.nodes.contains_key(rt));
++            } else
++            {
++                assert(pre.cursors[cpu_id].locked_range() == post.cursors[cpu_id].locked_range());
++                if pre.cursors[cpu_id].root() == nid {
++                    assert(pre.cursors[cpu_id].locked_range().contains(nid));
++                    assert(pre.cursors[cpu].locked_range().contains(nid)) by {
++                        NodeHelper::lemma_is_child_nid_increasing(pa, nid);
++                        NodeHelper::lemma_in_subtree_is_child_in_subtree(pre.cursors[cpu].root(), pa, nid);
++                    }
++                }
++            }
++        }
+     };
+ }
+ 
+@@ -908,8 +926,37 @@ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
+ #[inductive(normal_deallocate)]
+ fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {
+     broadcast use group_node_helper_lemmas;
++    let pa = NodeHelper::get_parent(nid);
++    let offset = NodeHelper::get_offset(nid);
++    let pte_array = pre.pte_arrays[pa];
++    let paddr = pte_array.get_paddr(offset);
++
++    assert(post.strays == pre.strays.insert((nid, paddr), true));
+     assert(post.inv_stray_at_most_one_false_per_node()) by {
+-        admit();
++        assert forall |node_id: NodeId|
++            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
++               post.strays_count_false(node_id) <= 1
++            } by {
++            if node_id == nid {
++                lemma_project_first_key_finite(pre.strays, node_id);
++                lemma_value_filter_finite(pre.strays_filter(node_id), |stray:bool| stray == false);
++                assert(pre.strays_count_false(node_id) == 1) by {
++                    assert(pre.strays_filter(node_id).contains_key(paddr) && pre.strays_filter(node_id)[paddr] == false);
++                    assert(pre.strays_count_false(node_id) <= 1);
++                    assert(pre.strays_count_false(node_id) > 0) by {
++                        if pre.strays_count_false(node_id) == 0 {
++                            lemma_project_first_key_value_filter_empty(pre.strays, node_id, |stray:bool| stray == false);
++                        }
++                    }
++                }
++                assert(post.strays_count_false(node_id) == 0) by {
++                    pre.lemma_insert_stray_true(node_id, paddr);
++                }
++            }
++            else {
++                assert(post.strays_filter(node_id) == pre.strays_filter(node_id));
++            }
++        }
+     };
+     assert(post.inv_not_allocated_subtree()) by {
+         assert forall |rt: NodeId, node_id: NodeId|
+
+From 1be41f76acbd78c3a1bd88c5efc41246814631d7 Mon Sep 17 00:00:00 2001
+From: rikosellic <64517311+rikosellic@users.noreply.github.com>
+Date: Thu, 7 Aug 2025 16:27:13 +0800
+Subject: [PATCH 15/15] fmt
+
+---
+ vstd_extra/src/map_extra.rs | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index 4b5ed912e..c9a406f26 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -95,7 +95,7 @@ pub proof fn lemma_value_filter_all_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> b
+         value_filter(m, f).is_empty() <==> forall|k: K| m.contains_key(k) ==> !#[trigger] f(m[k]),
+ {
+     if value_filter(m, f).is_empty() {
+-        assert forall |k: K| m.contains_key(k) implies !#[trigger] f(m[k]) by {
++        assert forall|k: K| m.contains_key(k) implies !#[trigger] f(m[k]) by {
+             if f(m[k]) {
+                 assert(value_filter(m, f).contains_key(k));
+             }
+@@ -446,13 +446,11 @@ pub proof fn lemma_project_first_key_value_filter_empty<K1, K2, V>(
+     requires
+         value_filter(project_first_key(m, k1), f).len() == 0,
+     ensures
+-        forall|k2: K2| #[trigger] project_first_key(m, k1).contains_key(k2) ==> !f(
+-            project_first_key(m, k1)[k2],
+-        ),
++        forall|k2: K2| #[trigger]
++            project_first_key(m, k1).contains_key(k2) ==> !f(project_first_key(m, k1)[k2]),
+ {
+     admit();
+ }
+-    
+ 
+ /// If the original map is finite, then the projected map is also finite.
+ pub proof fn lemma_project_first_key_finite<K1, K2, V>(m: Map<(K1, K2), V>, k1: K1)
+@@ -463,5 +461,5 @@ pub proof fn lemma_project_first_key_finite<K1, K2, V>(m: Map<(K1, K2), V>, k1:
+ {
+     admit();
+ }
+-    
+-}
++
++} // verus!

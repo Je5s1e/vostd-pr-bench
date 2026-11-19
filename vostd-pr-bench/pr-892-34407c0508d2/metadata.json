@@ -10,7 +10,6 @@
   "base_sha": "6686001fc39720b71d8b79c96246150924ed4d5a",
   "head_sha": "34407c0508d29986bb36209aeb6c2795bcf1b487",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/mm/frame/frame_specs.rs",

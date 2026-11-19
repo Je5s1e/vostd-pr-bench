@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-656-ffafeb7a696a",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-656-ffafeb7a696a:issue-comment-5019089808",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "`CursorKind` is a proof-only model enum but is declared as an ordinary enum instead of a ghost type.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/mod.rs",
+          "start_line": 536,
+          "end_line": 539
+        }
+      ],
+      "rationale": "CursorKind is only carried by ghost/tracked embedding state and has no executable role. The maintainer explicitly requested making it a ghost type; the next commit changes it to `pub ghost enum CursorKind`, and the final review was approved. This is a verified model-type classification issue, not a runtime semantic failure.",
+      "source_evidence": "after/ostd/specs/mm/embedding/mod.rs\n536: pub enum CursorKind {\n537:     ReadOnly,\n538:     Mutable,\n539: }",
+      "rule_ids": [
+        "prefer-ghost-model-structs"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/656#issuecomment-5019089808",
+      "related_comment_ids": [
+        "5019089808"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "5019089808",
+          "url": "https://github.com/asterinas/vostd/pull/656#issuecomment-5019089808",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Confirmed proof-only uses, maintainer request, and the immediate ghost-enum fix in commit 96e04e705b5d1a6932391f22352d12a979ec2ee2."
+    }
+  ]
+}

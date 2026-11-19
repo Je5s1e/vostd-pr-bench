@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-617-a00a7b6fa954",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-617-a00a7b6fa954:issue-comment-4902219841",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The DMA accessors expose values through fresh ghost snapshots that are only required to satisfy the inner invariant and are never related to this `DmaStream` or to a tracked observation of its current `RwArc` state, so the contracts do not establish that returned values describe the receiver being queried.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "start_line": 443,
+          "end_line": 448
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "start_line": 464,
+          "end_line": 478
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "start_line": 580,
+          "end_line": 614
+        }
+      ],
+      "rationale": "`read_inner` is an external-body bridge whose postcondition says only that the receiver remains well formed and that the returned guard's data satisfies `inv()`; it does not connect the guard to `self.inner`. Each public accessor then returns a fresh `Ghost<DmaStreamInner<M>>` and relates the executable result only to that snapshot. Since the snapshot is not tied to the receiver identity, the RwArc owner, or an observation token/time, callers cannot know that it represents this stream's current state. The collaborator explicitly asks who provides/tracks the snapshot and who ensures it is the current DMA stream state, concludes that the design looks unsound, and reiterates that an invariant without reasoning about how it mutates has little verification meaning. The PR remains open at the same head with no response or repair.",
+      "source_evidence": "after/ostd/src/mm/dma/dma_stream.rs\n443: #[verifier::external_body]\n444: #[verus_spec(r =>\n445:     ensures\n446:         self.inner.wf(),\n447:         r@.inv(),\n\n464: #[verus_spec(r =>\n465:     with\n466:         -> inner_snapshot: Ghost<DmaStreamInner<M>>,\n471:         inner_snapshot@.inv(),\n472:         r == inner_snapshot@.start_daddr,\n\nThe same unlinked output-snapshot pattern is repeated by direction, paddr, nframes, and nbytes.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/617#issuecomment-4902219841",
+      "related_comment_ids": [
+        "4902219841",
+        "4902238359"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4902219841",
+          "url": "https://github.com/asterinas/vostd/pull/617#issuecomment-4902219841",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4902238359",
+          "url": "https://github.com/asterinas/vostd/pull/617#issuecomment-4902238359",
+          "commit_id": null
+        }
+      ],
+      "verification": "Source-only; historical Verus not executed. Confirmed the archived head is still the current open head, inspected the complete two-commit history and full diff, and confirmed there are no later replies, reviews, or commits resolving the collaborator's finding."
+    }
+  ]
+}

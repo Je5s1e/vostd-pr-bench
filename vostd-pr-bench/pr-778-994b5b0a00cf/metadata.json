@@ -10,7 +10,6 @@
   "base_sha": "69f005898d5d203bc59c9e7ffd8428be608222c2",
   "head_sha": "994b5b0a00cf41de243932d5a12b0e172a5784a9",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/mm/frame/memory_region_specs.rs",

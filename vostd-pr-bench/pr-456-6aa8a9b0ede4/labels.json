@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-456-6aa8a9b0ede4",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-456-6aa8a9b0ede4:review-comment-3256109828",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`DmaCoherent::map` accepts non-cache-coherent devices but no longer changes the CPU mapping to uncacheable, so the returned mapping does not provide the advertised coherent CPU/device view.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_coherent.rs",
+          "start_line": 51,
+          "end_line": 58
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_coherent.rs",
+          "start_line": 90,
+          "end_line": 109
+        }
+      ],
+      "rationale": "The base implementation handles `is_cache_coherent == false` by changing the linear mapping to `CachePolicy::Uncacheable` before exposing it to DMA. The reviewed implementation still accepts the flag and stores it, but explicitly marks it unused and performs no cache-policy transition anywhere. On a device that is not CPU-cache-coherent, cached CPU accesses can therefore diverge from device-visible memory. The inline review states this failure condition and the author replies that it will be done later; the final merged head retains the TODO. This is a semantic regression and also violates `preserve-exec-code`, because the verification rewrite drops established hardware behavior rather than preserving or rejecting the unsupported mode.",
+      "source_evidence": "after/ostd/src/mm/dma/dma_coherent.rs\n51: pub struct DmaCoherentInner<M: AnyUFrameMeta + ?Sized> {\n54:     pub segment: Segment<M>,\n55:     pub start_daddr: Daddr,\n56:     /// TODO: restore cache-policy switching once the page-table API is verified.\n57:     #[expect(unused)]\n58:     pub is_cache_coherent: bool,\n\n90: /// Creates a coherent DMA mapping backed by `segment`.\n92: /// The `is_cache_coherent` argument specifies whether the target device can\n103: pub fn map(segment: Segment<M>, is_cache_coherent: bool) -> Result<Self, DmaError> {\n107:     if !check_and_insert_dma_mapping(start_paddr, frame_count) {",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/456#discussion_r3256109828",
+      "related_comment_ids": [
+        "3256109828",
+        "3256127591"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3256109828",
+          "url": "https://github.com/asterinas/vostd/pull/456#discussion_r3256109828",
+          "commit_id": "3b85bbbb491fa38c5d7afc93d829c380ee347d82"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3256127591",
+          "url": "https://github.com/asterinas/vostd/pull/456#discussion_r3256127591",
+          "commit_id": "3b85bbbb491fa38c5d7afc93d829c380ee347d82"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the base implementation, original review commit, final merged head, complete archived discussion, and complete live remote discussion."
+    },
+    {
+      "id": "pr-456-6aa8a9b0ede4:review-4306980141",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Both DMA backends return a device address without performing their required platform setup: TDX pages remain private on the direct path and the IOMMU path installs no mappings.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_coherent.rs",
+          "start_line": 111,
+          "end_line": 135
+        }
+      ],
+      "rationale": "The base direct-DMA path calls `unprotect_gpa_range` when TDX is enabled so the host/device can access the guest pages, while the base IOMMU path calls `iommu::map` for every frame. The reviewed code replaces both operations with TODOs: direct mode immediately returns the private physical address, and IOMMU mode loops over frames but only assigns `_paddr` before returning the physical address as `Daddr`. Consequently, TDX devices cannot access private pages and remapped DMA devices receive an address with no IOMMU translation. These are two backend manifestations of the same root cause—platform DMA mapping setup was removed during the verification rewrite—and are combined into one issue. The review body identifies both exact failures, and fixed before/after source independently confirms them. This violates `preserve-exec-code` and is semantic because the returned mapping is unusable on the affected configurations.",
+      "source_evidence": "after/ostd/src/mm/dma/dma_coherent.rs\n111: let start_daddr = match dma_type() {\n112:     DmaType::Direct => {\n113:         // TODO: restore TDX GPA sharing once the arch hook is verified.\n114:         start_paddr as Daddr\n116:     DmaType::Iommu => {\n128:         while i < frame_count {\n129:             let _paddr = start_paddr + i * PAGE_SIZE;\n130:             // TODO: restore iommu::map once the IOMMU API is verified.\n131:             i += 1;\n134:         start_paddr as Daddr",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/456#pullrequestreview-4306980141",
+      "related_comment_ids": [
+        "4306980141"
+      ],
+      "sources": [
+        {
+          "kind": "review",
+          "id": "4306980141",
+          "url": "https://github.com/asterinas/vostd/pull/456#pullrequestreview-4306980141",
+          "commit_id": "3b85bbbb491fa38c5d7afc93d829c380ee347d82"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. The AI review was used only as a lead; the label was independently established by comparing the fixed base behavior with the unchanged final source and backend failure conditions."
+    }
+  ]
+}

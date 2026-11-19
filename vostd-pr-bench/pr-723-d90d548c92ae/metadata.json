@@ -10,7 +10,6 @@
   "base_sha": "9ffe51b669aae6f91e32e4af897de6a25c075d0e",
   "head_sha": "d90d548c92aef102bb7297aea0c0369a06a9c6b0",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "verified_libs/vstd_extra/src/lib.rs",

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-615-b995aae1ffdb",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-615-b995aae1ffdb:review-comment-3534950852",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Two proof helpers that construct tracked entries are named with the `lemma_` prefix instead of the repository's `tracked_` prefix for tracked-value helpers.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/vm_space_embedding.rs",
+          "start_line": 404,
+          "end_line": 409
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/vm_space_embedding.rs",
+          "start_line": 432,
+          "end_line": 437
+        }
+      ],
+      "rationale": "Both selected-revision functions are documented as tracked constructors, consume tracked owners, and return tracked entries, but are named `lemma_cursor_entry_new` and `lemma_vm_io_entry_new`. Same-commit AGENTS.md line 31 distinguishes `lemma_` proof lemmas from `tracked_` helpers that expose ghost values in tracked mode. Reviewer hiroki-chen applies that convention to both declarations, summarizes it in issue comment 4901943075, requests changes, and then approves the exact final rename to `tracked_cursor_entry_new` and `tracked_vm_io_entry_new`. The two occurrences share one naming root cause and are therefore one issue.",
+      "source_evidence": "after/ostd/specs/mm/vm_space_embedding.rs\n404: /// Tracked constructor for [`CursorEntry`].\n405: pub proof fn lemma_cursor_entry_new<'rcu>(\n408:     tracked owner: CursorOwner<'rcu, UserPtConfig>,\n409: ) -> (tracked res: CursorEntry<'rcu>)\n\n432: /// Tracked constructor for [`VmIoEntry`].\n433: pub proof fn lemma_vm_io_entry_new<'a>(\n436:     tracked owner: VmIoOwner,\n437: ) -> (tracked res: VmIoEntry)\n\nSame-commit AGENTS.md line 31: prefix proof lemmas using `lemma_` and prefix `tracked_` for helpers that lift ghost values into tracked mode. Final commit 023860d44e94591b08f572e6c8b74798bcf9726c renames both declarations and their call sites to the requested `tracked_` names.",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/615#discussion_r3534950852",
+      "related_comment_ids": [
+        "3534950852",
+        "3534953281",
+        "4643307189",
+        "4901943075",
+        "4643544079"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3534950852",
+          "url": "https://github.com/asterinas/vostd/pull/615#discussion_r3534950852",
+          "commit_id": "b995aae1ffdbd4bf67d730e91013f04b82647f66"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3534953281",
+          "url": "https://github.com/asterinas/vostd/pull/615#discussion_r3534953281",
+          "commit_id": "b995aae1ffdbd4bf67d730e91013f04b82647f66"
+        },
+        {
+          "kind": "review",
+          "id": "4643307189",
+          "url": "https://github.com/asterinas/vostd/pull/615#pullrequestreview-4643307189",
+          "commit_id": "b995aae1ffdbd4bf67d730e91013f04b82647f66"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4901943075",
+          "url": "https://github.com/asterinas/vostd/pull/615#issuecomment-4901943075",
+          "commit_id": null
+        },
+        {
+          "kind": "review",
+          "id": "4643544079",
+          "url": "https://github.com/asterinas/vostd/pull/615#pullrequestreview-4643544079",
+          "commit_id": "023860d44e94591b08f572e6c8b74798bcf9726c"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Read the complete archived and current remote discussions, selected the exact review commit, checked the same-commit AGENTS.md naming rule, inspected both declarations and call sites, and compared the final approved rename commit."
+    }
+  ]
+}

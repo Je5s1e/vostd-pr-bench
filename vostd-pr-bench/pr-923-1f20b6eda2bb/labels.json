@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-923-1f20b6eda2bb",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-923-1f20b6eda2bb:issue-comment-6863347639",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The newly verified executable heap APIs keep legacy Verus signature/body syntax inside `verus!` instead of attaching contracts with `#[verus_spec]` attribute-mode macros.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot.rs",
+          "start_line": 63,
+          "end_line": 72
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot.rs",
+          "start_line": 98,
+          "end_line": 139
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot.rs",
+          "start_line": 196,
+          "end_line": 233
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot_list.rs",
+          "start_line": 55,
+          "end_line": 63
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot_list.rs",
+          "start_line": 110,
+          "end_line": 177
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/slot_list.rs",
+          "start_line": 252,
+          "end_line": 323
+        }
+      ],
+      "rationale": "The selected archived head places executable methods, their Verus contracts, tracked destructuring, and proof statements together inside `verus!` using legacy return-signature syntax. The maintainer requested `#[verus_spec]` macros for the PR as a whole. The immediate next remote commit converts the same APIs to ordinary Rust signatures under `#[verus_verify]`, moves contracts to `#[verus_spec(...)]`, and isolates erased declarations/expressions with `proof_decl!`, `proof!`, and `verus_exec_expr!`. This exactly implements the same-head `separate-verus-modes` rule requiring executable code, specifications, and proofs to remain visually distinct. The issue is organization/convention rather than a semantic failure.",
+      "source_evidence": "after/ostd/src/mm/heap/slot.rs\n64-72: `SlotInfo::size` uses a Verus `returns` clause directly in its executable signature.\n99-105: `into_memory` mixes an executable return with tracked destructuring in the same body.\n117-139: `HeapSlot::new` embeds requires/ensures and tracked binding in the executable declaration.\n197-233: the public getters likewise use legacy inline contracts.\n\nafter/ostd/src/mm/heap/slot_list.rs\n55-63: `Default::default` embeds its ensures clause.\n110-177: `new` and `push` mix contracts and proof declarations with executable code.\n252-323: `pop` does the same.\n\nafter/AGENTS.md\n30-33: Follow the VOSTD Verus Coding Guidelines for coding, specification, proof, naming, and review conventions.\n\nFixed rule at the same commit, docs/coding-guidelines/maintainability.md:3-9: keep executable code, specifications, and proofs in visually distinct groups.",
+      "rule_ids": [
+        "separate-verus-modes"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/923#issuecomment-6863347639",
+      "related_comment_ids": [
+        "6863347639"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "6863347639",
+          "url": "https://github.com/asterinas/vostd/pull/923#issuecomment-6863347639",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently compared the selected archived Git object with immediate remote successor 38f3177997b09129271cbdebbce9c6243c551542, confirmed the systematic `#[verus_spec]` conversion, and checked the same-head separate-modes rule."
+    }
+  ]
+}

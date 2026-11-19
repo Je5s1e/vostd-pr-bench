@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-923-1f20b6eda2bb",
+  "pr_number": 923,
+  "title": "Verify heap slots and free-slot list",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/923",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "6e20764d1cf4006b193ace48e4afcff59517badb",
+  "head_sha": "1f20b6eda2bb1d78af70f4b23150834557a69994",
+  "base_method": "git merge-base of archived GitHub base 6e20764d1cf4006b193ace48e4afcff59517badb and selected archived review head 1f20b6eda2bb1d78af70f4b23150834557a69994; computed from official Git objects; the macro-style issue remains in this head and is fixed by the later remote head 38f3177997b09129271cbdebbce9c6243c551542",
+  "archive_base_sha": "6e20764d1cf4006b193ace48e4afcff59517badb",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/heap/mod.rs",
+    "ostd/src/mm/heap/slot.rs",
+    "ostd/src/mm/heap/slot_list.rs",
+    "ostd/src/mm/mod.rs"
+  ],
+  "diff_sha256": "a99111e3cc78b98f72928ba69d20b59d8c2db1e96d853d802688462e93b82683",
+  "versions": {
+    "before": {
+      "commit": "6e20764d1cf4006b193ace48e4afcff59517badb",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "1f20b6eda2bb1d78af70f4b23150834557a69994",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "OPEN",
+  "collection": {
+    "collected_at": "2026-11-17T04:41:43.900967+00:00",
+    "reviewed_at": "2026-11-13T19:54:50Z",
+    "upstream_updated_at": "2026-11-16T08:00:40Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/923",
+      "https://github.com/asterinas/vostd/pull/923#issuecomment-6863347639"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "1f20b6eda2bb1d78af70f4b23150834557a69994",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/1f20b6eda2bb1d78af70f4b23150834557a69994/AGENTS.md#L30-L33"
+      },
+      {
+        "commit": "1f20b6eda2bb1d78af70f4b23150834557a69994",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/1f20b6eda2bb1d78af70f4b23150834557a69994/docs/coding-guidelines/maintainability.md#L3-L9"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00923"
+  }
+}

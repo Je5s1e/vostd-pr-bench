@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-701-a6a2b2dbee26",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-701-a6a2b2dbee26:issue-comment-5238480335",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The DV submodule is advanced to a newer Verus toolchain without regenerating the root `Cargo.lock`, leaving the committed dependency versions inconsistent with the toolchain used by verification.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "dv/src/verus.rs",
+          "start_line": 1551,
+          "end_line": 1575
+        }
+      ],
+      "rationale": "The reviewed revision changes only the DV gitlink, whose upgrade path pulls/builds a newer Verus checkout and synchronizes the workspace toolchain. It leaves the root lockfile pinned to the prior 2026-08-02 Verus package set. The first Ubuntu workflow verifies successfully but then fails its clean-worktree check after the build/format pipeline refreshes generated dependency state. The reviewer explicitly requests running `make verus-upgrade` and updating `Cargo.lock`; the author force-pushes a replacement head whose only additional root change updates `verus_builtin`, `verus_builtin_macros`, `verus_prettyplease`, and `vstd` to the 2026-08-09 versions, after which all checks pass. The failure condition is a non-reproducible committed workspace: a clean checkout mutates tracked dependency resolution during the required verification workflow.",
+      "source_evidence": "after/dv/src/verus.rs\n1551: pub fn exec_upgrade(options: &VerusInstallOpts) -> Result<(), DynError> {\n1557: // git pull the Verus repo\n1564: git_pull(&verus_dir, branch, options.force_reset)?;\n1568: // Build Verus\n1569: build_verus(options.release, &options.build_args)?;\n1571: // Update the workspace toolchain\n1572-1575: toolchain::sync_toolchain(... projects::get_root().join(\"rust-toolchain.toml\"));\n\nThe historical root `Cargo.lock` remains byte-identical to the base and still records the prior 2026-08-02 Verus package versions; it is not part of the mechanical export because it was not changed by this reviewed revision.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/701#issuecomment-5238480335",
+      "related_comment_ids": [
+        "5238480335"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "5238480335",
+          "url": "https://github.com/asterinas/vostd/pull/701#issuecomment-5238480335",
+          "commit_id": null
+        }
+      ],
+      "verification": "source plus official historical CI metadata; historical Verus not executed locally. Recovered head a6a2b2d from GitHub Actions run 31366696780, fetched the exact object from the PR fork, verified its merge-base and one-file DV-only diff, confirmed the workflow passed verification but failed `Check for formatting changes`, and compared the force-pushed final head, which adds exactly the requested Cargo.lock version refresh and passes all checks. Historical job logs have expired with GitHub HTTP 410, so the step-level Actions metadata is the retained CI evidence."
+    }
+  ]
+}

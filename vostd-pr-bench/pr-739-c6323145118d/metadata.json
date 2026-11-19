@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-739-c6323145118d",
+  "pr_number": 739,
+  "title": "Prove simple kvirt area obligations",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/739",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+  "head_sha": "c6323145118d4e2ea93c8f0cc7cf880afa725549",
+  "base_method": "git merge-base(archived base_sha bc7200b7a8e3d65c33e072f671a2cb1c2fe9bbc8, original review commit c6323145118d4e2ea93c8f0cc7cf880afa725549); result 40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/kspace/kvirt_area.rs"
+  ],
+  "diff_sha256": "887930fb5ef78cb2f2e55e7e8618455685021e54274888fd24b5caeb288b4b05",
+  "versions": {
+    "before": {
+      "commit": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6d6502d142b049f691055d9de76709ef47c664d6",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "c6323145118d4e2ea93c8f0cc7cf880afa725549",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6d6502d142b049f691055d9de76709ef47c664d6",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:16:52.306191+00:00",
+    "reviewed_at": "2026-09-03T04:44:38Z",
+    "upstream_updated_at": "2026-10-21T06:31:40Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/739",
+      "https://github.com/asterinas/vostd/pull/739#discussion_r3921094503",
+      "https://github.com/asterinas/vostd/pull/739#discussion_r3921097448"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00739"
+  }
+}

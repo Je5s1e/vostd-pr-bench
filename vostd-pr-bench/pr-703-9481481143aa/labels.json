@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-703-9481481143aa",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-703-9481481143aa:review-comment-3763958841",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The fields of a `ghost struct` redundantly repeat the `ghost` mode marker.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 24,
+          "end_line": 25
+        }
+      ],
+      "rationale": "Fields of a `ghost struct` are already ghost by construction, so repeating `ghost` on both fields adds no mode boundary or ownership information. The reviewer calls this out directly; the author acknowledges the skill mismatch, and the final approved head removes the entire custom model, including both redundant markers. This is the exact historical example cited by `avoid-redundant-mode-markers`.",
+      "source_evidence": "after/ostd/src/util/range_alloc.rs\n23: pub ghost struct RangeAllocatorModel {\n24:     pub ghost start: int,\n25:     pub ghost end: int,\n26: }",
+      "rule_ids": [
+        "avoid-redundant-mode-markers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/703#discussion_r3763958841",
+      "related_comment_ids": [
+        "3763958841",
+        "3763965236"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3763958841",
+          "url": "https://github.com/asterinas/vostd/pull/703#discussion_r3763958841",
+          "commit_id": "9481481143aad952657f6ef584b8247fecc63c89"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3763965236",
+          "url": "https://github.com/asterinas/vostd/pull/703#discussion_r3763965236",
+          "commit_id": "9481481143aad952657f6ef584b8247fecc63c89"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the fixed review source, final approved head, complete archived thread, and complete remote discussion."
+    },
+    {
+      "id": "pr-703-9481481143aa:review-comment-3763971349",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The allocator range is modeled with a custom ghost struct instead of the canonical `Range<int>` model.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/range_alloc.rs",
+          "start_line": 22,
+          "end_line": 40
+        }
+      ],
+      "rationale": "`RangeAllocatorModel` duplicates the two endpoints and constructor semantics already provided by `Range<int>`, adding a bespoke type, constructor, and view representation without extra invariants. The reviewer asks why the standard range is not used, the author confirms KVerus now prefers it, and the final approved head replaces the whole custom model with `type V = Range<int>`. This is the exact historical example cited by `canonical-spec-models`.",
+      "source_evidence": "after/ostd/src/util/range_alloc.rs\n22: /// Spec model capturing the managed full range of a [`RangeAllocator`].\n23: pub ghost struct RangeAllocatorModel {\n24:     pub ghost start: int,\n25:     pub ghost end: int,\n28: impl RangeAllocatorModel {\n29:     pub open spec fn new(start: int, end: int) -> Self {\n34: impl View for RangeAllocator {\n35:     type V = RangeAllocatorModel;\n38:     closed spec fn view(&self) -> RangeAllocatorModel {",
+      "rule_ids": [
+        "canonical-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/703#discussion_r3763971349",
+      "related_comment_ids": [
+        "3763971349",
+        "3763989475"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3763971349",
+          "url": "https://github.com/asterinas/vostd/pull/703#discussion_r3763971349",
+          "commit_id": "9481481143aad952657f6ef584b8247fecc63c89"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3763989475",
+          "url": "https://github.com/asterinas/vostd/pull/703#discussion_r3763989475",
+          "commit_id": "9481481143aad952657f6ef584b8247fecc63c89"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the bespoke model in the fixed review source, its `Range<int>` replacement in the final approved head, and the complete archived and remote thread."
+    }
+  ]
+}

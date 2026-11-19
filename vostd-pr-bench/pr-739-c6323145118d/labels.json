@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-739-c6323145118d",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-739-c6323145118d:review-comment-3921094503",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The patch inserts an inline Verus `returns` clause into the signature of an already-verified executable getter instead of attaching the new contract with `#[verus_spec]`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 370,
+          "end_line": 375
+        }
+      ],
+      "rationale": "`KVirtArea::range` already existed as verified executable Rust. The reviewed revision changes its function declaration to include an inline `returns self.range` clause. The reviewer asks whether the guideline prefers `verus_spec` and notes the function was already proven. The later addressing commit preserves the original executable signature and attaches exactly the same contract as `#[verus_spec(returns self.range)]`, explicitly recording that there are no additional executable changes relative to main; the same reviewer later approves. Under `preserve-exec-code`, a proof-only contract for existing executable code should use the external attribute form rather than rewriting the executable item syntax.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n370: pub fn range(&self) -> Range<Vaddr>\n371:     returns\n372:         self.range,\n373: {\n374:     self.range.start..self.range.end\n375: }",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/739#discussion_r3921094503",
+      "related_comment_ids": [
+        "3921094503",
+        "3921097448"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3921094503",
+          "url": "https://github.com/asterinas/vostd/pull/739#discussion_r3921094503",
+          "commit_id": "c6323145118d4e2ea93c8f0cc7cf880afa725549"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3921097448",
+          "url": "https://github.com/asterinas/vostd/pull/739#discussion_r3921097448",
+          "commit_id": "c6323145118d4e2ea93c8f0cc7cf880afa725549"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the original review commit, addressing commit, final approved head, complete archived discussion, and complete live remote discussion."
+    }
+  ]
+}

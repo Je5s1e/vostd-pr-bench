@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-395-6ae195e508a8",
+  "pr_number": 395,
+  "title": "prove: sync::rwmutex",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/395",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "84ece6c32f28a049e7a4851c31d9deb2776ab726",
+  "head_sha": "6ae195e508a8c8cf7d7e12a42d5a8a73a8d6be0a",
+  "base_method": "git merge-base(archived base_sha, selected historical review commit 6ae195e508a8c8cf7d7e12a42d5a8a73a8d6be0a) = 84ece6c32f28a049e7a4851c31d9deb2776ab726",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/sync/mod.rs",
+    "ostd/src/sync/rwmutex.rs"
+  ],
+  "diff_sha256": "078e05fd96fc087bd9e0c979b235bb3330cf70cb72a8657df38dc2b7dbde9c1f",
+  "versions": {
+    "before": {
+      "commit": "84ece6c32f28a049e7a4851c31d9deb2776ab726",
+      "file_count": 314,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "6ae195e508a8c8cf7d7e12a42d5a8a73a8d6be0a",
+      "file_count": 314,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T11:40:36.686767+00:00",
+    "reviewed_at": "2026-04-02T11:59:57Z",
+    "upstream_updated_at": "2026-04-03T06:32:54Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/395",
+      "https://github.com/asterinas/vostd/pull/395#discussion_r3027624660",
+      "https://github.com/asterinas/vostd/pull/395#pullrequestreview-4050190316"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00395"
+  }
+}

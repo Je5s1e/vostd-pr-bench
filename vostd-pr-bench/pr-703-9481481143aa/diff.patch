@@ -1,0 +1,179 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index f1945994d8410c60443291a9887365ee3d11ad8f..92c2f90e6441a49dcc367a3f51a09ff2c632a98e 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -595,11 +595,11 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_builtin"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ 
+ [[package]]
+ name = "verus_builtin_macros"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ dependencies = [
+  "convert_case",
+  "proc-macro2",
+@@ -612,7 +612,7 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_prettyplease"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ dependencies = [
+  "proc-macro2",
+  "verus_syn",
+@@ -651,7 +651,7 @@ checksum = "af8ca9a5d4debca0633e697c88269395493cebf2e10db21ca2dbde37c1356452"
+ 
+ [[package]]
+ name = "vstd"
+-version = "0.0.0-2026-08-02-0125"
++version = "0.0.0-2026-08-09-0044"
+ dependencies = [
+  "verus_builtin",
+  "verus_builtin_macros",
+diff --git a/ostd/src/util/mod.rs b/ostd/src/util/mod.rs
+index 84e2c6133eb17c8363c4648774800668c9b580d3..03282f0c88bfcce6be4d7a6a6ddc405f01142f9c 100644
+--- a/ostd/src/util/mod.rs
++++ b/ostd/src/util/mod.rs
+@@ -3,6 +3,6 @@
+ mod either;
+ //mod macros;
+ //pub(crate) mod ops;
+-//pub(crate) mod range_alloc;
++pub(crate) mod range_alloc;
+ 
+ pub use either::Either;
+diff --git a/ostd/src/util/range_alloc.rs b/ostd/src/util/range_alloc.rs
+index 11116b2b55db96ce23d4cc7fb6458421737295ce..35ccd795606846a4ede90f61d8e25981843ba344 100644
+--- a/ostd/src/util/range_alloc.rs
++++ b/ostd/src/util/range_alloc.rs
+@@ -2,18 +2,52 @@
+ use alloc::collections::btree_map::BTreeMap;
+ use core::ops::Range;
+ 
++use vstd::prelude::*;
++
+ use crate::sync::{PreemptDisabled, SpinLock, SpinLockGuard};
+ 
++#[verus_verify]
+ pub struct RangeAllocator {
+     fullrange: Range<usize>,
+-    freelist: SpinLock<Option<BTreeMap<usize, FreeRange>>>,
++    freelist: SpinLock<Option<BTreeMap<usize, FreeRange>>, PreemptDisabled>,
+ }
+ 
+ /// An error returned when allocating from a [`RangeAllocator`].
++#[verus_verify]
+ #[derive(Debug)]
+ pub struct RangeAllocError;
+ 
++verus! {
++
++/// Spec model capturing the managed full range of a [`RangeAllocator`].
++pub ghost struct RangeAllocatorModel {
++    pub ghost start: int,
++    pub ghost end: int,
++}
++
++impl RangeAllocatorModel {
++    pub open spec fn new(start: int, end: int) -> Self {
++        RangeAllocatorModel { start, end }
++    }
++}
++
++impl View for RangeAllocator {
++    type V = RangeAllocatorModel;
++
++    /// Specification view of the allocator's managed full range.
++    closed spec fn view(&self) -> RangeAllocatorModel {
++        RangeAllocatorModel { start: self.fullrange.start as int, end: self.fullrange.end as int }
++    }
++}
++
++} // verus!
++#[verus_verify]
+ impl RangeAllocator {
++    #[verus_spec(ret =>
++        ensures
++            ret@.start == fullrange.start,
++            ret@.end == fullrange.end,
++    )]
+     pub const fn new(fullrange: Range<usize>) -> Self {
+         Self {
+             fullrange,
+@@ -21,11 +55,23 @@ impl RangeAllocator {
+         }
+     }
+ 
++    #[verus_spec(ret =>
++        ensures
++            ret.start == self@.start,
++            ret.end == self@.end,
++    )]
+     pub const fn fullrange(&self) -> &Range<usize> {
+         &self.fullrange
+     }
+ 
+     /// Allocates a specific kernel virtual area.
++    #[verifier::external_body]
++    #[verus_spec(res =>
++        requires allocate_range.start < allocate_range.end,
++        ensures
++            res is Ok ==> (self@.start <= allocate_range.start
++                && allocate_range.end <= self@.end),
++    )]
+     pub fn alloc_specific(&self, allocate_range: &Range<usize>) -> Result<(), RangeAllocError> {
+         debug_assert!(allocate_range.start < allocate_range.end);
+ 
+@@ -69,6 +115,13 @@ impl RangeAllocator {
+     /// Allocates a range specific by the `size`.
+     ///
+     /// This is currently implemented with a simple FIRST-FIT algorithm.
++    #[verifier::external_body]
++    #[verus_spec(res =>
++        ensures
++            res is Ok ==> (res->Ok_0.end - res->Ok_0.start == size),
++            res is Ok ==> (self@.start <= res->Ok_0.start
++                && res->Ok_0.end <= self@.end),
++    )]
+     pub fn alloc(&self, size: usize) -> Result<Range<usize>, RangeAllocError> {
+         let mut lock_guard = self.get_freelist_guard();
+         let freelist = lock_guard.as_mut().unwrap();
+@@ -101,6 +154,7 @@ impl RangeAllocator {
+     }
+ 
+     /// Frees a `range`.
++    #[verifier::external_body]
+     pub fn free(&self, range: Range<usize>) {
+         let mut lock_guard = self.freelist.lock();
+         let freelist = lock_guard.as_mut().unwrap_or_else(|| {
+@@ -137,6 +191,7 @@ impl RangeAllocator {
+         }
+     }
+ 
++    #[verifier::external_body]
+     fn get_freelist_guard(
+         &self,
+     ) -> SpinLockGuard<Option<BTreeMap<usize, FreeRange>>, PreemptDisabled> {
+@@ -150,11 +205,18 @@ impl RangeAllocator {
+     }
+ }
+ 
++#[verus_verify]
+ struct FreeRange {
+     block: Range<usize>,
+ }
+ 
++#[verus_verify]
+ impl FreeRange {
++    #[verus_spec(ret =>
++        ensures
++            ret.block.start == range.start,
++            ret.block.end == range.end,
++    )]
+     const fn new(range: Range<usize>) -> Self {
+         Self { block: range }
+     }

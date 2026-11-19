@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-127-ac14d35923e4",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-127-ac14d35923e4:issue-comment-3121739038",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The Windows bootstrap silently falls back to legacy Windows PowerShell even though that shell has a known module-loading failure for the installer command, leaving users without actionable guidance to use pwsh.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "xtask/src/main.rs",
+          "start_line": 47,
+          "end_line": 55
+        }
+      ],
+      "rationale": "At the selected pre-comment head, `get_powershell_command` returns `powershell` whenever its `/ ?`-style availability probe succeeds, without telling the user that this is legacy Windows PowerShell 5.x or that the later installer command can abort while loading `Microsoft.PowerShell.Security`. Collaborator comment 3121739038 reports that concrete failure and requests a warning recommending PowerShell 7 (`pwsh`). Commit ef0cb9fd2aecf00afd1e4c8ac08980e1bb092710 adds exactly that warning before returning the fallback, and the reviewer then approves the change. The failure condition is Windows without working `pwsh`, with `powershell` installed but unable to execute the installer because `Get-ExecutionPolicy`'s module cannot load.",
+      "source_evidence": "after/xtask/src/main.rs\n47:     let check_ps = Command::new(\"powershell\")\n48:         .arg(\"/?\")\n49:         .stdout(std::process::Stdio::null())\n50:         .stderr(std::process::Stdio::null())\n51:         .status();\n53:     if matches!(check_ps, Ok(status) if status.success()) {\n54:         return Ok(Command::new(\"powershell\"));\n55:     }\n\nRepair commit ef0cb9fd2aecf00afd1e4c8ac08980e1bb092710 inserts a warning at this branch explaining the module-loading failure and recommending `pwsh`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/127#issuecomment-3121739038",
+      "related_comment_ids": [
+        "3121739038",
+        "3125798365",
+        "3126156030"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "3121739038",
+          "url": "https://github.com/asterinas/vostd/pull/127#issuecomment-3121739038",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "3125798365",
+          "url": "https://github.com/asterinas/vostd/pull/127#issuecomment-3125798365",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "3126156030",
+          "url": "https://github.com/asterinas/vostd/pull/127#issuecomment-3126156030",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Windows bootstrap and Verus were not executed. Selected the latest PR head before issue comment 3121739038 by commit/comment chronology, confirmed its official merge-base, and compared repair commit ef0cb9fd2aecf00afd1e4c8ac08980e1bb092710 plus the final reviewer approval."
+    }
+  ]
+}

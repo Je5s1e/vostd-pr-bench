@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-440-0ba029a82c8d",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-440-0ba029a82c8d:issue-comment-4411678323",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The migrated frame-mapping loops still spell out the owned iterator’s internal snapshot conversion instead of using the public `it.seq()` specification interface.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 541,
+          "end_line": 554
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 568,
+          "end_line": 569
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 801,
+          "end_line": 817
+        }
+      ],
+      "rationale": "The reviewed revision accesses the complete iterator sequence through `vec::into_iter_elts(it.snapshot@)` in invariants, indexing expressions, and page-size proofs. Verus’s iterator migration guide defines `iter.seq()` as the uniform public interface and specifically replaces iterator-specific snapshot/element representations with `iter.seq()` plus `iter.index()`. The maintainer requested that exact change, and immediate commit 05074fd95721e3e84ed9b950789376c451ec8e17 replaces every raw snapshot conversion in these loops with `it.seq()`. This is an API/migration guideline issue rather than a claim that the raw expression changes runtime behavior. The current reuse-existing-specifications rule supports using the public sequence model here.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n4: use vstd::std_specs::vec;\n541: forall |i: int| it.index() <= i < vec::into_iter_elts(it.snapshot@).len() ==> {\n543:     vec::into_iter_elts(it.snapshot@)[i].ptr.addr());\n546: &&& frame_entry_wf(vec::into_iter_elts(it.snapshot@)[i], prop, entry_owners[pa])\n552: forall |i: int| it.index() <= i < vec::into_iter_elts(it.snapshot@).len() ==>\n568-569: frame_as_dynframe(vec::into_iter_elts(it.snapshot@).index(it.index() as int))\n801-813: [the second loop repeatedly uses `vec::into_iter_elts(it.snapshot@)` for its sequence, elements, and length]\n817:     + sum_page_sizes_spec(vec::into_iter_elts(it.snapshot@), 0, it.index() as int)\n\nVerus migration guide at 5727c58567311a1a76dc6bd04451f693b4de0d4d, Change 3: the new interface uses `iter.index()` and `iter.seq()` instead of iterator-specific internal element/position fields.",
+      "rule_ids": [
+        "reuse-existing-specifications"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/440#issuecomment-4411678323",
+      "related_comment_ids": [
+        "4411678323"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4411678323",
+          "url": "https://github.com/asterinas/vostd/pull/440#issuecomment-4411678323",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Checked fixed head 0ba029a82c8d3c9f85af70604d3ed5be7bf84fc7, the complete archived/live discussion, the fixed Verus migration guide at 5727c58567311a1a76dc6bd04451f693b4de0d4d, and immediate commit 05074fd95721e3e84ed9b950789376c451ec8e17 where every raw snapshot conversion is replaced by `it.seq()`."
+    }
+  ]
+}

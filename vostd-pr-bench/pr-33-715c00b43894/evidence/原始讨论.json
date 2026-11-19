@@ -1,0 +1,229 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/33",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 33,
+    "title": "Fix rw version",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/33",
+    "state": "CLOSED",
+    "createdAt": "2025-05-28T15:35:21Z",
+    "updatedAt": "2025-11-25T02:52:37Z",
+    "closedAt": "2025-06-03T01:07:45Z",
+    "mergedAt": null,
+    "author": {
+      "login": "Xungan2"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "faf896b9bd5e20836b2e48ca9e58ad46aca4d423",
+    "headRefName": "temp",
+    "headRefOid": "715c00b438943d760c67a6dad9bc2286f001f0f1",
+    "changedFiles": 11,
+    "additions": 107,
+    "deletions": 99,
+    "labels": {
+      "nodes": [
+        {
+          "name": "exec code"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 11,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MTE"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/helpers/bits.rs",
+          "additions": 16,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "lock-protocol/src/helpers/mod.rs",
+          "additions": 1,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/utils.rs",
+          "additions": 7,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/exec/common.rs",
+          "additions": 5,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/exec/cursor.rs",
+          "additions": 65,
+          "deletions": 22,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/exec/frame.rs",
+          "additions": 5,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/exec/mod.rs",
+          "additions": 3,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/exec/page_table.rs",
+          "additions": 3,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/mod.rs",
+          "additions": 2,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs",
+          "additions": 0,
+          "deletions": 54,
+          "changeType": "DELETED"
+        },
+        {
+          "path": "lock-protocol/src/test/rw_version/vstd_extra/mod.rs",
+          "additions": 0,
+          "deletions": 2,
+          "changeType": "DELETED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/2918513851",
+      "html_url": "https://github.com/asterinas/vostd/pull/33#issuecomment-2918513851",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/33",
+      "id": 2918513851,
+      "node_id": "IC_kwDONtWm_c6t9Py7",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2025-05-29T07:04:45Z",
+      "updated_at": "2025-05-29T07:08:43Z",
+      "body_html": "<p dir=\"auto\">CI/CD fails because of missing <code class=\"notranslate\">lock-protocol/src/test/rw_version/exec/utils.rs</code>. The <code class=\"notranslate\">utils.rs</code> in <code class=\"notranslate\">test/rw_version/spec/utils.rs</code> has been merged into <code class=\"notranslate\">spec/utils.rs</code>, maybe we should avoid redundancy if there is any code copied from <code class=\"notranslate\">spec/utils.rs</code>?</p>\n<p dir=\"auto\">P.S. Please run <code class=\"notranslate\">cargo xtask update</code> to update to the latest verus. Also, remember to <code class=\"notranslate\">cargo xtask fmt</code> before submitting.</p>",
+      "body_text": "CI/CD fails because of missing lock-protocol/src/test/rw_version/exec/utils.rs. The utils.rs in test/rw_version/spec/utils.rs has been merged into spec/utils.rs, maybe we should avoid redundancy if there is any code copied from spec/utils.rs?\nP.S. Please run cargo xtask update to update to the latest verus. Also, remember to cargo xtask fmt before submitting.",
+      "body": "CI/CD fails because of missing `lock-protocol/src/test/rw_version/exec/utils.rs`. The `utils.rs` in `test/rw_version/spec/utils.rs` has been merged into `spec/utils.rs`, maybe we should avoid redundancy if there is any code copied from `spec/utils.rs`?\r\n\r\nP.S. Please run `cargo xtask update` to update to the latest verus. Also, remember to `cargo xtask fmt` before submitting. ",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/2918513851/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

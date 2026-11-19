@@ -1,0 +1,693 @@
+// SPDX-License-Identifier: MPL-2.0
+//! The unique frame pointer that is not shared with others.
+use vstd::atomic::PermissionU64;
+use vstd::prelude::*;
+use vstd::simple_pptr::{self, PPtr};
+
+use crate::specs::mm::frame::meta_owners::MetaSlotOwner;
+use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+
+use vstd_extra::cast_ptr::*;
+use vstd_extra::drop_tracking::*;
+use vstd_extra::ownership::*;
+
+use super::Frame;
+use super::meta::{AnyFrameMeta, GetFrameError, MetaSlot, has_safe_slot};
+
+use core::{marker::PhantomData, sync::atomic::Ordering};
+
+use super::meta::mapping::{
+    META_SLOT_SIZE, frame_to_index, frame_to_meta, max_meta_slots, meta_addr, meta_to_frame,
+};
+use super::meta::{REF_COUNT_UNIQUE, REF_COUNT_UNUSED};
+use crate::mm::{MAX_NR_PAGES, MAX_PADDR, PAGE_SIZE, Paddr, PagingConsts, PagingLevel};
+use crate::specs::mm::frame::meta_owners::MetaSlotStorage;
+use crate::specs::mm::frame::meta_owners::Metadata;
+use crate::specs::mm::frame::meta_specs::lemma_meta_addr_to_index;
+use crate::specs::mm::frame::unique::UniqueFrameOwner;
+
+verus! {
+
+pub struct UniqueFrame<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> {
+    pub ptr: PPtr<MetaSlot>,
+    pub _marker: PhantomData<M>,
+}
+
+#[verifier::external]
+unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + Send> Send for UniqueFrame<M> {
+
+}
+
+#[verifier::external]
+unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + Sync> Sync for UniqueFrame<M> {
+
+}
+
+/*
+impl<M: AnyFrameMeta + ?Sized> core::fmt::Debug for UniqueFrame<M> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "UniqueFrame({:#x})", self.start_paddr())
+    }
+}*/
+
+#[verus_verify]
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+    /// Gets a [`UniqueFrame`] with a specific usage from a raw, unused page.
+    ///
+    /// The caller should provide the initial metadata of the page.
+    /// # Verified Properties
+    /// ## Preconditions
+    /// The page must be unused and the metadata region must be well-formed.
+    /// ## Postconditions
+    /// If the page is valid, the function returns a unique frame.
+    /// ## Safety
+    /// If `paddr` is misaligned or out of bounds, the function will return an error. If it returns a frame,
+    /// it also returns an owner for that frame, indicating that the caller now has exclusive ownership of it.
+    /// See [Safe Encapsulation] for more details.
+    #[verus_spec(res =>
+        with
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+                -> owner: Tracked<Option<UniqueFrameOwner<M>>>,
+        requires
+            old(regions).slot_owners.contains_key(frame_to_index(paddr)),
+            old(regions).slot_owners[frame_to_index(paddr)].usage is Unused,
+            old(regions).inv(),
+        ensures
+            !has_safe_slot(paddr) ==> res is Err,
+            res is Ok ==> res.unwrap().wf(owner@->0),
+            // Creating a live value mints its pending-Drop obligation.
+            res is Ok ==> final(regions).frame_obligations == old(
+                regions,
+            ).frame_obligations.insert(frame_to_index(paddr)),
+            res is Err ==> final(regions).frame_obligations == old(regions).frame_obligations,
+            final(regions).inv(),
+    )]
+    pub fn from_unused(paddr: Paddr, metadata: M) -> Result<Self, GetFrameError> {
+        #[verus_spec(with Tracked(regions))]
+        let from_unused = MetaSlot::get_from_unused(paddr, metadata, true);
+
+        if let Err(err) = from_unused {
+            proof_with!(|= Tracked(None));
+            Err(err)
+        } else {
+            let (ptr, Tracked(slot_perm)) = from_unused.unwrap();
+            let ghost idx = frame_to_index(paddr);
+
+            proof_decl! {
+                regions.slots.tracked_insert(idx, slot_perm);
+                let tracked owner = UniqueFrameOwner::<M>::tracked_from_unused_owner(regions, paddr);
+            }
+            proof {
+                // The freshly-created live value owes a Drop: mint it.
+                let tracked _ = regions.tracked_mint_frame_obligation(idx);
+            }
+
+            proof_with!(|= Tracked(Some(owner)));
+            Ok(Self { ptr, _marker: PhantomData })
+        }
+    }
+
+    pub open spec fn transmute_spec<M1: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf>(
+        self,
+        transmuted: UniqueFrame<M1>,
+    ) -> bool {
+        &&& transmuted.ptr.addr() == self.ptr.addr()
+        &&& transmuted._marker == PhantomData::<M1>
+    }
+
+    #[verifier::external_body]
+    #[verus_spec(res =>
+        ensures
+            Self::transmute_spec(self, res),
+    )]
+    pub fn transmute<M1: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf>(self) -> UniqueFrame<M1> {
+        unimplemented!()
+    }
+
+    /// Repurposes the frame with a new metadata.
+    /// # Verified Properties
+    /// ## Preconditions
+    /// - The caller must provide a valid owner for the frame, and the metadata region invariants must hold.
+    /// - The meta slot's reference count must be `REF_COUNT_UNIQUE`.
+    /// ## Postconditions
+    /// The function returns a new owner for the frame with the new metadata,
+    /// and the metadata region invariants are preserved.
+    /// ## Safety
+    /// The existence of a valid owner guarantees that the memory is initialized with metadata of type `M`,
+    /// and represents that the caller has exclusive ownership of the frame.
+    #[verus_spec(res =>
+        with
+            Tracked(owner): Tracked<UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+                -> new_owner: Tracked<UniqueFrameOwner<M1>>,
+        requires
+            self.wf(owner),
+            owner.inv(),
+            owner.global_inv(*old(regions)),
+            old(regions).slot_owners[frame_to_index(meta_to_frame(self.ptr.addr()))].inner_perms.in_list.value() == 0,
+            old(regions).inv(),
+        ensures
+            res.wf(new_owner@),
+            new_owner@.meta_perm_of(*final(regions)).value().metadata == metadata,
+            final(regions).inv(),
+    )]
+    pub fn repurpose<M1: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf>(
+        self,
+        metadata: M1,
+    ) -> UniqueFrame<M1> {
+        let ghost idx = frame_to_index(meta_to_frame(self.ptr.addr()));
+        proof {
+            lemma_meta_addr_to_index(owner.slot_index);
+        }
+        let tracked mut slot_own = regions.slot_owners.tracked_remove(idx);
+        let tracked perm_ref = regions.slots.tracked_borrow(idx);
+
+        #[verus_spec(with Tracked(perm_ref))]
+        let slot = self.slot();
+
+        assert(slot_own.inv()) by {
+            assert(old(regions).slot_owners.contains_key(idx));
+            assert(old(regions).slot_owners[idx].inv());
+        }
+
+        // SAFETY: We are the sole owner and the metadata is initialized.
+        unsafe {
+            #[verus_spec(with Tracked(&mut slot_own))]
+            slot.drop_meta_in_place()
+        };
+
+        let tracked mut inner_perms = slot_own.take_inner_perms();
+
+        proof {
+            assert(inner_perms.storage.id() == perm_ref.value().storage.id());
+        }
+
+        let slot = self.ptr.borrow(Tracked(perm_ref));
+
+        unsafe {
+            #[verus_spec(with
+                Tracked(&mut inner_perms.storage),
+                Tracked(&mut inner_perms.vtable_ptr)
+            )]
+            slot.write_meta(metadata)
+        };
+
+        proof {
+            slot_own.sync_inner(&inner_perms);
+            regions.slot_owners.tracked_insert(idx, slot_own);
+        }
+
+        let tracked mut new_owner = UniqueFrameOwner::<M1>::tracked_from_unused_owner(
+            regions,
+            meta_to_frame(self.ptr.addr()),
+        );
+
+        // SAFETY: The metadata is initialized with type `M1`.
+        proof_with!(|= Tracked(new_owner));
+        self.transmute()
+    }
+
+    /// Gets the metadata of this page.
+    /// Note that this function body differs from the original, because `as_meta_ptr` returns
+    /// a `ReprPtr<MetaSlot, Metadata<M>>` instead of a `*M`. So in order to keep the immutable borrow, we
+    /// borrow the metadata value from that pointer.
+    /// # Verified Properties
+    /// ## Preconditions
+    /// The caller must provide a valid owner for the frame.
+    /// ## Postconditions
+    /// The function returns the metadata of the frame.
+    /// ## Safety
+    /// The existence of a valid owner guarantees that the memory is initialized with metadata of type `M`,
+    /// and represents that the caller has exclusive ownership of the frame.
+    #[verus_spec(l =>
+        with
+            Tracked(owner): Tracked<&'a UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&'a MetaRegionOwners>,
+        requires
+            owner.inv(),
+            self.wf(*owner),
+            owner.global_inv(*regions),
+        ensures
+            owner.meta_perm_of(*regions).mem_contents().value().metadata == l,
+    )]
+    pub fn meta<'a>(&self) -> &'a M {
+        let tracked outer = regions.slots.tracked_borrow(owner.slot_index);
+        // SAFETY: The type is tracked by the type system.
+        #[verus_spec(with Tracked(outer))]
+        let slot = self.slot();
+
+        #[verus_spec(with Tracked(outer))]
+        let ptr = slot.as_meta_ptr();
+
+        let tracked tp = regions.borrow_typed_perm::<M>(owner.slot_index);
+        &ptr.borrow(Tracked(tp)).metadata
+    }
+
+    /// Gets the mutable metadata of this page.
+    /// Verified Properties
+    /// ## Preconditions
+    /// The caller must provide a valid owner for the frame.
+    /// ## Postconditions
+    /// The function returns the mutable metadata of the frame.
+    /// ## Safety
+    /// The existence of a valid owner guarantees that the memory is initialized with metadata of type `M`,
+    /// and represents that the caller has exclusive ownership of the frame. (See [Safe Encapsulation])
+    #[verus_spec(res =>
+        with
+            Tracked(owner): Tracked<&UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&MetaRegionOwners>,
+        requires
+            owner.inv(),
+            old(self).wf(*owner),
+            owner.global_inv(*regions),
+        ensures
+            res.addr() == final(self).ptr.addr(),
+            res.ptr.addr() == final(self).ptr.addr(),
+            *final(self) == *old(self),
+    )]
+    pub fn meta_mut(&mut self) -> ReprPtr<MetaSlot, Metadata<M>> {
+        let tracked outer = regions.slots.tracked_borrow(owner.slot_index);
+        // SAFETY: The type is tracked by the type system.
+        // And we have the exclusive access to the metadata.
+        #[verus_spec(with Tracked(outer))]
+        let slot = self.slot();
+
+        #[verus_spec(with Tracked(outer))]
+        slot.as_meta_ptr()
+    }
+}
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + ?Sized> UniqueFrame<M> {
+    /// Gets the size of this page in bytes.
+    pub const fn size(&self) -> usize {
+        PAGE_SIZE
+    }
+
+    /// Gets the paging level of this page.
+    ///
+    /// This is the level of the page table entry that maps the frame,
+    /// which determines the size of the frame.
+    ///
+    /// Currently, the level is always 1, which means the frame is a regular
+    /// page frame.
+    pub const fn level(&self) -> PagingLevel {
+        1
+    }
+}
+
+#[verus_verify]
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + ?Sized> UniqueFrame<M> {
+    /// Gets the physical address of the start of the frame.
+    #[verus_spec(
+        with
+            Tracked(owner): Tracked<&UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&MetaRegionOwners>,
+        requires
+            owner.inv(),
+            self.wf(*owner),
+            regions.inv(),
+        returns
+            meta_to_frame(self.ptr.addr()),
+    )]
+    pub fn start_paddr(&self) -> Paddr {
+        proof {
+            assert(regions.slot_owners.contains_key(owner.slot_index));
+        }
+        let tracked outer = regions.slots.tracked_borrow(owner.slot_index);
+        #[verus_spec(with Tracked(outer))]
+        let slot = self.slot();
+
+        #[verus_spec(with Tracked(outer))]
+        slot.frame_paddr()
+    }
+
+    /*    /// Gets the dynamically-typed metadata of this frame.
+    ///
+    /// If the type is known at compile time, use [`Frame::meta`] instead.
+
+    #[verifier::external_body]
+    pub fn dyn_meta(&self) -> &M {
+        // SAFETY: The metadata is initialized and valid.
+        unsafe { &*self.slot().dyn_meta_ptr::<M>() }
+    }
+
+    /// Gets the dynamically-typed metadata of this frame.
+    ///
+    /// If the type is known at compile time, use [`Frame::meta`] instead.
+
+    #[verifier::external_body]
+    pub fn dyn_meta_mut(&mut self) -> &mut FrameMeta {
+        // SAFETY: The metadata is initialized and valid. We have the exclusive
+        // access to the frame.
+        unsafe { &mut *self.slot().dyn_meta_ptr() }
+    }*/
+    pub open spec fn into_raw_requires(self, regions: MetaRegionOwners) -> bool {
+        &&& regions.slot_owners.contains_key(
+            frame_to_index(meta_to_frame(self.ptr.addr())),
+        )
+        // `self` is a live value with a pending Drop; forgetting it (`MD::new`)
+        // discharges that obligation.
+        &&& regions.frame_obligations.count(frame_to_index(meta_to_frame(self.ptr.addr()))) > 0
+        &&& regions.inv()
+    }
+
+    pub open spec fn into_raw_ensures(
+        self,
+        old_regions: MetaRegionOwners,
+        regions: MetaRegionOwners,
+        r: Paddr,
+    ) -> bool {
+        &&& r == meta_to_frame(self.ptr.addr())
+        &&& regions.inv()
+        &&& regions.slots == old_regions.slots
+        &&& regions.slot_owners == old_regions.slot_owners
+        &&& regions.frame_obligations == old_regions.frame_obligations.remove(
+            frame_to_index(meta_to_frame(self.ptr.addr())),
+        )
+    }
+
+    /// Resets the frame to unused without up-calling the allocator.
+    ///
+    /// This is solely useful for the allocator implementation/testing and
+    /// is highly experimental. Usage of this function is discouraged.
+    ///
+    /// Usage of this function other than the allocator would actually leak
+    /// the frame since the allocator would not be aware of the frame.
+    //
+    // FIXME: We may have a better `Segment` and `UniqueSegment` design to
+    // allow the allocator hold the ownership of all the frames in a chunk
+    // instead of the head. Then this weird public API can be `#[cfg(ktest)]`.
+    #[verus_spec(
+        with
+            Tracked(owner): Tracked<UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+        requires
+            self.wf(owner),
+            owner.inv(),
+            old(regions).inv(),
+            old(regions).slot_owners.contains_key(owner.slot_index),
+            old(regions).slot_owners[owner.slot_index].self_addr == meta_addr(owner.slot_index),
+            old(regions).slot_owners[owner.slot_index].inner_perms.ref_count.value() == REF_COUNT_UNIQUE,
+            old(regions).slot_owners[owner.slot_index].inner_perms.in_list.value() == 0,
+            old(regions).slot_owners[owner.slot_index].inner_perms.storage.is_init(),
+            old(regions).slot_owners[owner.slot_index].inner_perms.vtable_ptr.is_init(),
+            old(regions).slot_owners[owner.slot_index].paths_in_pt.is_empty(),
+        ensures
+            final(regions).inv(),
+    )]
+    pub fn reset_as_unused(self) {
+        let ghost idx = owner.slot_index;
+        let tracked mut slot_own = regions.slot_owners.tracked_remove(idx);
+        let tracked perm_ref = regions.slots.tracked_borrow(idx);
+
+        #[verus_spec(with Tracked(perm_ref))]
+        let slot = self.slot();
+        slot.ref_count.store(Tracked(&mut slot_own.inner_perms.ref_count), 0);
+
+        // SAFETY: We are the sole owner and the reference count is 0.
+        // The slot is initialized.
+        unsafe {
+            #[verus_spec(with Tracked(&mut slot_own))]
+            slot.drop_last_in_place()
+        };
+
+        proof {
+            regions.slot_owners.tracked_insert(idx, slot_own);
+        }
+    }
+
+    /// Converts this frame into a raw physical address.
+    #[verus_spec(r =>
+        with
+            Tracked(owner): Tracked<&UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+        requires
+            Self::into_raw_requires(self, *old(regions)),
+            self.wf(*owner),
+            owner.inv(),
+            old(regions).inv(),
+            old(regions).slot_owners[frame_to_index(meta_to_frame(self.ptr.addr()))].inner_perms.ref_count.value() != REF_COUNT_UNUSED,
+        ensures
+            Self::into_raw_ensures(self, *old(regions), *final(regions), r),
+            final(regions).inv(),
+    )]
+    pub(crate) fn into_raw(self) -> Paddr {
+        #[verus_spec(with Tracked(owner), Tracked(&*regions))]
+        let paddr = self.start_paddr();
+
+        // `ManuallyDrop::new` consumes `self`'s pending-Drop obligation; the
+        // caller's `count > 0` precondition guarantees it is outstanding.
+        let _ = ManuallyDrop::new(self, Tracked(regions));
+
+        paddr
+    }
+
+    /// Restores a raw physical address back into a unique frame.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the physical address is valid and points to
+    /// a forgotten frame that was previously casted by [`Self::into_raw`].
+    #[verus_spec(res =>
+        with
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+            Tracked(meta_own): Tracked<M::Owner>,
+        requires
+            paddr < MAX_PADDR,
+            paddr % PAGE_SIZE == 0,
+            old(regions).inv(),
+            old(regions).slot_owners.contains_key(frame_to_index(paddr)),
+            old(regions).slot_owners[frame_to_index(paddr)].inner_perms.ref_count.value() == REF_COUNT_UNIQUE,
+        ensures
+            res.0.ptr.addr() == frame_to_meta(paddr),
+            res.0.wf(res.1@),
+            res.1@.meta_own == meta_own,
+            res.1@.slot_index == frame_to_index(paddr),
+            final(regions).inv(),
+            final(regions).slots == old(regions).slots,
+            // `from_raw` reconstitutes a live value (`slot_owners` unchanged,
+            // `raw_count` dormant) and MINTS its pending-Drop obligation.
+            final(regions).slot_owners == old(regions).slot_owners,
+            final(regions).frame_obligations == old(regions).frame_obligations.insert(
+                frame_to_index(paddr),
+            ),
+    )]
+    pub(crate) unsafe fn from_raw(paddr: Paddr) -> (Self, Tracked<UniqueFrameOwner<M>>) {
+        let vaddr = frame_to_meta(paddr);
+        let ptr = vstd::simple_pptr::PPtr::<MetaSlot>::from_addr(vaddr);
+
+        proof {
+            // The reconstituted value owes a Drop: mint its obligation.
+            let tracked _ = regions.tracked_mint_frame_obligation(frame_to_index(paddr));
+        }
+
+        let tracked owner = UniqueFrameOwner { meta_own, slot_index: frame_to_index(paddr) };
+
+        (Self { ptr, _marker: PhantomData }, Tracked(owner))
+    }
+
+    #[verifier::external_body]
+    #[verus_spec(
+        with
+            Tracked(slot_perm): Tracked<&'a vstd::simple_pptr::PointsTo<MetaSlot>>,
+        requires
+            slot_perm.pptr() == self.ptr,
+            slot_perm.is_init(),
+        returns
+            slot_perm.value(),
+    )]
+    pub fn slot<'a>(&self) -> &'a MetaSlot {
+        unimplemented!()
+        // SAFETY: `ptr` points to a valid `MetaSlot` that will never be
+        // mutably borrowed, so taking an immutable reference to it is safe.
+        //        unsafe { &*self.ptr }
+
+    }
+}
+
+/*
+impl<M: AnyFrameMeta + ?Sized> Drop for UniqueFrame<M> {
+    fn drop(&mut self) {
+        self.slot().ref_count.store(0, Ordering::Relaxed);
+        // SAFETY: We are the sole owner and the reference count is 0.
+        // The slot is initialized.
+        unsafe { self.slot().drop_last_in_place() };
+
+        super::allocator::get_global_frame_allocator().dealloc(self.start_paddr(), PAGE_SIZE);
+    }
+} */
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + ?Sized> UniqueFrame<M> {
+    #[verus_spec(
+        with
+            Tracked(owner): Tracked<UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+        requires
+            old(self).wf(owner),
+            owner.inv(),
+            old(regions).slot_owners.contains_key(owner.slot_index),
+            old(regions).slot_owners[owner.slot_index].self_addr == meta_addr(owner.slot_index),
+            old(regions).slot_owners[owner.slot_index].inner_perms.ref_count.value() == REF_COUNT_UNIQUE,
+            old(regions).slot_owners[owner.slot_index].inner_perms.in_list.value() == 0,
+            old(regions).slot_owners[owner.slot_index].inner_perms.storage.is_init(),
+            old(regions).slot_owners[owner.slot_index].inner_perms.vtable_ptr.is_init(),
+            old(regions).inv(),
+            old(regions).slot_owners[owner.slot_index].paths_in_pt.is_empty(),
+            old(regions).frame_obligations.count(owner.slot_index) > 0,
+        ensures
+            final(regions).inv(),
+            final(regions).slots == old(regions).slots,
+            forall|i: usize| #![trigger final(regions).slot_owners[i]]
+                i != owner.slot_index ==> final(regions).slot_owners[i]
+                    == old(regions).slot_owners[i],
+            final(regions).frame_obligations == old(regions).frame_obligations.remove(
+                owner.slot_index,
+            ),
+    )]
+    pub(crate) fn drop(&mut self) {
+        let ghost idx = owner.slot_index;
+
+        proof {
+            // Running `Drop` discharges the value's pending-Drop obligation.
+            let tracked redeem_tok = vstd_extra::drop_tracking::DropObligation::tracked_mint(idx);
+            regions.tracked_redeem_frame_obligation(redeem_tok);
+        }
+
+        let tracked mut slot_own = regions.slot_owners.tracked_remove(idx);
+        let tracked perm_ref = regions.slots.tracked_borrow(idx);
+
+        // SAFETY: We are the sole owner and the reference count is 0.
+        // The slot is initialized.
+        #[verus_spec(with Tracked(perm_ref))]
+        let slot = self.slot();
+
+        unsafe {
+            #[verus_spec(with Tracked(&mut slot_own))]
+            slot.drop_last_in_place()
+        };
+
+        proof {
+            regions.slot_owners.tracked_insert(idx, slot_own);
+        }
+
+        //        super::allocator::get_global_frame_allocator().dealloc(self.start_paddr(), PAGE_SIZE);
+    }
+}
+
+#[verus_verify]
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> Frame<M> {
+    /// Converts a unique frame into a shared one by setting ref_count = 1.
+    /// Inherent sibling of `From<UniqueFrame<M>> for Frame<M>`: freed from
+    /// the trait-signature straitjacket, this version can thread the tracked
+    /// `MetaRegionOwners` via `verus_spec`.
+    #[verus_spec(res =>
+        with
+            Tracked(owner): Tracked<UniqueFrameOwner<M>>,
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+        requires
+            unique.wf(owner),
+            owner.inv(),
+            old(regions).inv(),
+        ensures
+            final(regions).slots == old(regions).slots,
+            final(regions).slot_owners.dom() == old(regions).slot_owners.dom(),
+    )]
+    pub fn from_unique(unique: UniqueFrame<M>) -> Self {
+        let ghost idx = frame_to_index(meta_to_frame(unique.ptr.addr()));
+        proof {
+            broadcast use crate::mm::frame::meta::mapping::group_page_meta;
+
+            lemma_meta_addr_to_index(owner.slot_index);
+            regions.inv_implies_correct_addr(meta_to_frame(unique.ptr.addr()));
+            assert(idx == owner.slot_index);
+            assert(regions.slots[idx].addr() == unique.ptr.addr());
+            assert(regions.slots[idx].pptr() == unique.ptr);
+        }
+        let tracked mut slot_own = regions.slot_owners.tracked_remove(idx);
+        let tracked slot_perm = regions.slots.tracked_borrow(idx);
+        let tracked mut inner_perms = slot_own.take_inner_perms();
+
+        #[verus_spec(with Tracked(&slot_perm))]
+        let slot = unique.slot();
+        slot.ref_count.store(Tracked(&mut inner_perms.ref_count), 1);
+
+        proof {
+            slot_own.sync_inner(&inner_perms);
+            regions.slot_owners.tracked_insert(idx, slot_own);
+        }
+
+        // UniqueFrame and Frame have identical layout (ptr + PhantomData),
+        // so reconstructing Frame from unique's ptr preserves the handle.
+        Frame { ptr: unique.ptr, _marker: PhantomData }
+    }
+}
+
+#[verus_verify]
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+    /// Tries to convert a shared frame into a unique one by CAS'ing ref_count
+    /// from 1 to `REF_COUNT_UNIQUE`. Inherent sibling of
+    /// `TryFrom<Frame<M>> for UniqueFrame<M>`.
+    #[verus_spec(res =>
+        with
+            Tracked(regions): Tracked<&mut MetaRegionOwners>,
+        requires
+            frame.inv(),
+            old(regions).inv(),
+        ensures
+            final(regions).slots == old(regions).slots,
+            final(regions).slot_owners.dom() == old(regions).slot_owners.dom(),
+    )]
+    pub fn try_from_shared(frame: Frame<M>) -> Result<Self, Frame<M>> {
+        let ghost idx = frame_to_index(meta_to_frame(frame.ptr.addr()));
+        proof {
+            broadcast use crate::mm::frame::meta::mapping::group_page_meta;
+
+            regions.inv_implies_correct_addr(meta_to_frame(frame.ptr.addr()));
+            assert(regions.slots[idx].addr() == frame.ptr.addr());
+            assert(regions.slots[idx].pptr() == frame.ptr);
+        }
+        let tracked mut slot_own = regions.slot_owners.tracked_remove(idx);
+        let tracked slot_perm = regions.slots.tracked_borrow(idx);
+        let tracked mut inner_perms = slot_own.take_inner_perms();
+
+        #[verus_spec(with Tracked(&slot_perm))]
+        let slot = frame.slot();
+        let res = slot.ref_count.compare_exchange(
+            Tracked(&mut inner_perms.ref_count),
+            1,
+            REF_COUNT_UNIQUE,
+        );
+
+        proof {
+            slot_own.sync_inner(&inner_perms);
+            regions.slot_owners.tracked_insert(idx, slot_own);
+        }
+
+        match res {
+            // Frame and UniqueFrame share layout; construct directly.
+            Ok(_) => Ok(UniqueFrame { ptr: frame.ptr, _marker: PhantomData }),
+            Err(_) => Err(frame),
+        }
+    }
+}
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> From<UniqueFrame<M>> for Frame<M> {
+    #[verifier::external_body]
+    fn from(unique: UniqueFrame<M>) -> Self {
+        Frame::from_unique(unique)
+    }
+}
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> TryFrom<Frame<M>> for UniqueFrame<M> {
+    type Error = Frame<M>;
+
+    /// Tries to get a unique frame from a shared frame.
+    ///
+    /// If the reference count is not 1, the frame is returned back.
+    #[verifier::external_body]
+    fn try_from(frame: Frame<M>) -> Result<Self, Self::Error> {
+        UniqueFrame::try_from_shared(frame)
+    }
+}
+
+} // verus!

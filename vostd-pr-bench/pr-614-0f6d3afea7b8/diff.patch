@@ -1,0 +1,1345 @@
+diff --git a/ostd/specs/mm/embedding/frame.rs b/ostd/specs/mm/embedding/frame.rs
+index 896271119ace73d44889a5acb6f4a0123b7cdf31..118ef159ca681c6016d44b631fa4f989778c8272 100644
+--- a/ostd/specs/mm/embedding/frame.rs
++++ b/ostd/specs/mm/embedding/frame.rs
+@@ -41,7 +41,7 @@ use crate::specs::mm::frame::meta_owners::PageUsage;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::cursor::owners::CursorOwner;
+ 
+-use super::{FrameEntry, axiom_frame_entry_new};
++use super::{FrameEntry, lemma_frame_entry_new};
+ 
+ verus! {
+ 
+@@ -292,7 +292,7 @@ pub(super) proof fn from_unused_step(
+ {
+     let tracked outcome = frame_from_unused_embedded(regions, paddr);
+     match outcome {
+-        Option::Some(()) => Option::Some(axiom_frame_entry_new(paddr)),
++        Option::Some(()) => Option::Some(lemma_frame_entry_new(paddr)),
+         Option::None => Option::None,
+     }
+ }
+@@ -333,7 +333,7 @@ pub(super) proof fn from_in_use_step(
+ {
+     let tracked outcome = frame_from_in_use_embedded(regions, paddr);
+     match outcome {
+-        Option::Some(()) => Option::Some(axiom_frame_entry_new(paddr)),
++        Option::Some(()) => Option::Some(lemma_frame_entry_new(paddr)),
+         Option::None => Option::None,
+     }
+ }
+diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
+index 7dd7c12e8da50b4ff8341de49b9ced829dc57da2..2513037f9a1023b87396fd180005370f4cf491b4 100644
+--- a/ostd/specs/mm/embedding/mod.rs
++++ b/ostd/specs/mm/embedding/mod.rs
+@@ -213,7 +213,7 @@ pub type UniqueId = int;
+ /// Multiple `FrameEntry`s may share the same `paddr`; each contributes
+ /// `+1` to that slot's `inner_perms.ref_count`.
+ pub tracked struct FrameEntry {
+-    pub paddr: Paddr,
++    pub ghost paddr: Paddr,
+ }
+ 
+ /// Per-Segment entry in the store. Represents one outstanding
+@@ -232,7 +232,7 @@ pub tracked struct FrameEntry {
+ ///
+ /// [`Segment::relate_regions`]: crate::mm::frame::Segment::relate_regions
+ pub tracked struct SegmentEntry {
+-    pub range: Range<Paddr>,
++    pub ghost range: Range<Paddr>,
+ }
+ 
+ /// Per-`UniqueFrame` entry in the store. Represents the sole exclusive
+@@ -243,7 +243,7 @@ pub tracked struct SegmentEntry {
+ /// injectivity clause), mirroring the exec exclusivity of
+ /// `UniqueFrame<M>`.
+ pub tracked struct UniqueEntry {
+-    pub paddr: Paddr,
++    pub ghost paddr: Paddr,
+ }
+ 
+ /// Number of outstanding `Segment` handles covering the frame slot
+@@ -278,7 +278,6 @@ pub proof fn lemma_segment_cover_witness(
+     let covering = segments.dom().filter(
+         |sid: SegmentId| segments[sid].range.start <= paddr && paddr < segments[sid].range.end,
+     );
+-    assert(covering.len() > 0);
+     let sid = covering.choose();
+     assert(covering.contains(sid));
+     sid
+@@ -452,38 +451,10 @@ pub proof fn lemma_frame_drop_pre_derivable<'rcu>(s: VmStore<'rcu>, fid: FrameId
+ {
+     let paddr = s.frames[fid].paddr;
+     let idx = frame_to_index(paddr);
+-    // `fid` registered ⟹ paddr in-bound ⟹ idx is a managed slot.
+-    assert(has_safe_slot(paddr));
+     s.regions.inv_implies_correct_addr(paddr);
+-    // `fid` registered ⟹ handle_count(s.frames, idx) >= 1.
+     assert(s.frames.dom().filter(
+         |gid: FrameId| frame_to_index(s.frames[gid].paddr) == idx,
+     ).contains(fid));
+-    assert(handle_count(s.frames, idx) >= 1);
+-    // Structural FrameId⟹Frame-usage at idx.
+-    assert(s.regions.slot_owners[idx].usage == PageUsage::Frame);
+-    // Accounting clause 3 + 4 (active head Frame): pin rc, storage.
+-    let so = s.regions.slot_owners[idx];
+-    let rc = so.inner_perms.ref_count.value();
+-    assert(rc != REF_COUNT_UNUSED);
+-    assert(rc != REF_COUNT_UNIQUE);
+-    assert(rc == handle_count(s.frames, idx) + so.paths_in_pt.len());
+-    assert(so.inner_perms.storage.is_init());
+-    // rc != UNUSED ⟹ rc > 0 (UNUSED is u64::MAX; rc could still be 0,
+-    // but clause 4 gives rc == H + P ≥ 1).
+-    // `MetaSlotOwner::inv` SHARED branch: 0 < rc <= MAX ⟹ storage.is_init,
+-    // in_list == 0, vtable_ptr.is_init.
+-    assert(s.regions.slot_owners.contains_key(idx));
+-    // rc != UNUSED ∧ rc != UNIQUE ∧ rc > 0 ⟹ rc ∈ [1, MAX]
+-    // (forbidden range MAX < rc < UNIQUE is empty per MetaSlotOwner::inv).
+-    assert(so.inner_perms.in_list.value() == 0);
+-    // rc == 1 ⟹ paths empty (from rc == H + P and H >= 1).
+-    if rc == 1 {
+-        assert(handle_count(s.frames, idx) + so.paths_in_pt.len() == 1);
+-        assert(so.paths_in_pt.len() == 0);
+-        assert(so.paths_in_pt == Set::empty());
+-        assert(handle_count(s.frames, idx) == 1);
+-    }
+ }
+ 
+ /// Whether a [`VmIoOwner`] backs a `VmReader` or a `VmWriter`.
+@@ -1859,7 +1830,7 @@ proof fn step_query<'rcu>(tracked s: &mut VmStore<'rcu>, c: CursorId)
+             s.regions.inv_implies_correct_addr(paddr);
+             let ghost id = fresh_frame_id(s.frames);
+             lemma_fresh_frame_id_not_in_dom(s.frames);
+-            let tracked frame_entry = axiom_frame_entry_new(paddr);
++            let tracked frame_entry = lemma_frame_entry_new(paddr);
+             s.insert_frame(id, frame_entry);
+             // Pre target_idx: usage == Frame (axiom), so by pre clause 3
+             // either H_pre > 0 or paths_pre > 0; clause 4 gives
+@@ -3427,10 +3398,10 @@ proof fn step_segment_split<'rcu>(tracked s: &mut VmStore<'rcu>, sid: SegmentId,
+     // Now extract and insert.
+     let tracked _orig = s.extract_segment(sid);
+     assert(!s.segments.dom().contains(id_left));
+-    let tracked entry_l = axiom_segment_entry_new(range.start..mid);
++    let tracked entry_l = lemma_segment_entry_new(range.start..mid);
+     s.insert_segment(id_left, entry_l);
+     assert(!s.segments.dom().contains(id_right));
+-    let tracked entry_r = axiom_segment_entry_new(mid..range.end);
++    let tracked entry_r = lemma_segment_entry_new(mid..range.end);
+     s.insert_segment(id_right, entry_r);
+     // Re-establish structural_inv + accounting_inv. Regions is
+     // unchanged; the partition lemma gives per-paddr cover_count
+@@ -3630,13 +3601,13 @@ proof fn step_segment_next<'rcu>(tracked s: &mut VmStore<'rcu>, sid: SegmentId)
+     // Register the new FrameEntry FIRST (s.inv() still holds).
+     let ghost fid = fresh_frame_id(s.frames);
+     lemma_fresh_frame_id_not_in_dom(s.frames);
+-    let tracked frame_entry = axiom_frame_entry_new(paddr);
++    let tracked frame_entry = lemma_frame_entry_new(paddr);
+     s.insert_frame(fid, frame_entry);
+     // Now segment manipulation.
+     let tracked _old_entry = s.extract_segment(sid);
+     segment::segment_next_embedded(&mut s.regions, paddr);
+     if !will_become_empty {
+-        let tracked new_entry = axiom_segment_entry_new(new_range_start..new_range_end);
++        let tracked new_entry = lemma_segment_entry_new(new_range_start..new_range_end);
+         s.insert_segment(sid, new_entry);
+         assert(new_entry == new_entry_ghost);
+         assert(s.segments == old_segments.remove(sid).insert(sid, new_entry_ghost));
+@@ -3891,7 +3862,7 @@ proof fn step_segment_clone_range<'rcu>(
+     let ghost sid2 = fresh_segment_id(s.segments);
+     lemma_fresh_segment_id_not_in_dom(s.segments);
+     assert(sid2 != sid);
+-    let tracked new_entry = axiom_segment_entry_new(sub_range);
++    let tracked new_entry = lemma_segment_entry_new(sub_range);
+     s.insert_segment(sid2, new_entry);
+     assert(new_entry =~= new_entry_ghost);
+     assert(s.segments =~= old_segments.insert(sid2, new_entry_ghost));
+@@ -4169,7 +4140,7 @@ proof fn step_unique_from_unused<'rcu>(tracked s: &mut VmStore<'rcu>, paddr: Pad
+         // Register the fresh UniqueEntry at a fresh id.
+         let ghost uid = fresh_unique_id(s.unique_frames);
+         lemma_fresh_unique_id_not_in_dom(s.unique_frames);
+-        let tracked entry = axiom_unique_entry_new(paddr);
++        let tracked entry = tracked_unique_entry_new(paddr);
+         s.insert_unique(uid, entry);
+         assert(s.unique_frames =~= old_unique.insert(uid, UniqueEntry { paddr }));
+         assert(s.frames == old_frames);
+@@ -4570,7 +4541,7 @@ proof fn step_from_unique<'rcu>(tracked s: &mut VmStore<'rcu>, uid: UniqueId)
+     // Register the fresh shared FrameEntry.
+     let ghost fid = fresh_frame_id(s.frames);
+     lemma_fresh_frame_id_not_in_dom(s.frames);
+-    let tracked fe = axiom_frame_entry_new(paddr);
++    let tracked fe = lemma_frame_entry_new(paddr);
+     s.insert_frame(fid, fe);
+     assert(s.frames =~= old_frames.insert(fid, FrameEntry { paddr }));
+     assert(s.unique_frames =~= old_unique.remove(uid));
+@@ -4763,7 +4734,7 @@ proof fn step_try_from_shared<'rcu>(tracked s: &mut VmStore<'rcu>, fid: FrameId)
+         // Register the fresh exclusive UniqueEntry.
+         let ghost uid = fresh_unique_id(s.unique_frames);
+         lemma_fresh_unique_id_not_in_dom(s.unique_frames);
+-        let tracked ue = axiom_unique_entry_new(paddr);
++        let tracked ue = tracked_unique_entry_new(paddr);
+         s.insert_unique(uid, ue);
+         assert(s.unique_frames =~= old_unique.insert(uid, UniqueEntry { paddr }));
+         assert(s.segments == old_segments);
+@@ -5423,16 +5394,22 @@ pub axiom fn axiom_vm_io_entry_new<'a>(
+ ;
+ 
+ /// Tracked constructor for [`FrameEntry`].
+-pub axiom fn axiom_frame_entry_new(paddr: Paddr) -> (tracked res: FrameEntry)
+-    ensures
+-        res.paddr == paddr,
+-;
++pub proof fn lemma_frame_entry_new(paddr: Paddr) -> tracked FrameEntry
++    returns
++        (FrameEntry { paddr }),
++{
++    let tracked res = FrameEntry { paddr };
++    res
++}
+ 
+ /// Tracked constructor for [`SegmentEntry`].
+-pub axiom fn axiom_segment_entry_new(range: Range<Paddr>) -> (tracked res: SegmentEntry)
+-    ensures
+-        res.range == range,
+-;
++pub proof fn lemma_segment_entry_new(range: Range<Paddr>) -> tracked SegmentEntry
++    returns
++        (SegmentEntry { range }),
++{
++    let tracked res = SegmentEntry { range };
++    res
++}
+ 
+ /// Fresh-id helper for the segment id space.
+ pub open spec fn fresh_segment_id(m: Map<SegmentId, SegmentEntry>) -> SegmentId {
+@@ -5447,10 +5424,13 @@ pub proof fn lemma_fresh_segment_id_not_in_dom(m: Map<SegmentId, SegmentEntry>)
+ }
+ 
+ /// Tracked constructor for [`UniqueEntry`].
+-pub axiom fn axiom_unique_entry_new(paddr: Paddr) -> (tracked res: UniqueEntry)
+-    ensures
+-        res.paddr == paddr,
+-;
++pub proof fn tracked_unique_entry_new(paddr: Paddr) -> tracked UniqueEntry
++    returns
++        (UniqueEntry { paddr }),
++{
++    let tracked res = UniqueEntry { paddr };
++    res
++}
+ 
+ /// Picks a [`UniqueId`] not currently in `m.dom()`.
+ pub open spec fn fresh_unique_id(m: Map<UniqueId, UniqueEntry>) -> UniqueId {
+diff --git a/ostd/specs/mm/embedding/segment.rs b/ostd/specs/mm/embedding/segment.rs
+index 8a4c4c17425386827ae62275305fa3a49fce01f5..2e9d00186ac2c27863271460add81fbb77e711d2 100644
+--- a/ostd/specs/mm/embedding/segment.rs
++++ b/ostd/specs/mm/embedding/segment.rs
+@@ -43,7 +43,7 @@ use crate::specs::mm::frame::meta_owners::PageUsage;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::cursor::owners::CursorOwner;
+ 
+-use super::{axiom_segment_entry_new, SegmentEntry};
++use super::{lemma_segment_entry_new, SegmentEntry};
+ 
+ verus! {
+ 
+@@ -327,7 +327,7 @@ pub(super) proof fn from_unused_step(
+ {
+     let ghost outcome = segment_from_unused_embedded(regions, range);
+     match outcome {
+-        Option::Some(()) => Option::Some(axiom_segment_entry_new(range)),
++        Option::Some(()) => Option::Some(lemma_segment_entry_new(range)),
+         Option::None => Option::None,
+     }
+ }
+diff --git a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+index 5c9a1c8f633779dc5009e3a3ef115c753bc25314..f9832daf7b06f293bc4a310bfea8594d54674090 100644
+--- a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
++++ b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+@@ -996,7 +996,7 @@ impl Inv for CursorModel {
+ 
+ pub tracked struct CursorOwner<M: AnyFrameMeta + Repr<MetaSlotSmall>> {
+     pub list_own: LinkedListOwner<M>,
+-    pub index: int,
++    pub ghost index: int,
+ }
+ 
+ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Inv for CursorOwner<M> {
+@@ -1164,18 +1164,24 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorOwner<M> {
+         CursorOwner::<M> { list_own: list_own, index: index }
+     }
+ 
+-    pub axiom fn tracked_cursor_mut_at_owner(
+-        list_own: LinkedListOwner<M>,
++    pub proof fn tracked_cursor_mut_at_owner(
++        tracked list_own: LinkedListOwner<M>,
+         index: int,
+-    ) -> (tracked res: Self)
+-        ensures
+-            res == Self::cursor_mut_at_owner(list_own, index),
+-    ;
++    ) -> tracked Self
++        returns
++            Self::cursor_mut_at_owner(list_own, index),
++    {
++        let tracked res = CursorOwner::<M> { list_own, index };
++        res
++    }
+ 
+-    pub axiom fn tracked_front_owner(list_own: LinkedListOwner<M>) -> (tracked res: Self)
+-        ensures
+-            res == Self::front_owner(list_own),
+-    ;
++    pub proof fn tracked_front_owner(tracked list_own: LinkedListOwner<M>) -> tracked Self
++        returns
++            Self::front_owner(list_own),
++    {
++        let tracked res = CursorOwner::<M> { list_own, index: 0 };
++        res
++    }
+ 
+     pub open spec fn back_owner(list_own: LinkedListOwner<M>) -> Self {
+         CursorOwner::<M> {
+@@ -1279,9 +1285,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Repr<MetaSlot> for MetadataAsLink<M>
+     proof fn to_from_repr(r: MetaSlot, perm: MetadataInnerPerms) {
+         let md = <Metadata<Link<M>> as Repr<MetaSlot>>::from_repr_spec(r, perm);
+         <Metadata<Link<M>> as Repr<MetaSlot>>::to_from_repr(r, perm);
+-        assert(<Metadata<Link<M>> as FromSpec<MetadataAsLink<M>>>::from_spec(
+-            <MetadataAsLink<M> as FromSpec<Metadata<Link<M>>>>::from_spec(md),
+-        ) == md);
++
+     }
+ 
+     proof fn to_repr_wf(self, perm: MetadataInnerPerms) {
+diff --git a/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs b/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs
+index ebb776828290760e494f4e902446f8c6af2950b2..4f74c3163f129dba61d9ad3ec2a9830657ee161d 100644
+--- a/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs
++++ b/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs
+@@ -5,7 +5,7 @@ use crate::mm::page_table::*;
+ use crate::mm::{PagingConstsTrait, Vaddr};
+ use crate::specs::arch::{NR_LEVELS, PAGE_SIZE};
+ use crate::specs::mm::frame::mapping::frame_to_index;
+-use crate::specs::mm::frame::meta_owners::is_mmio_paddr;
++use crate::specs::mm::frame::meta_owners::{PageUsage, is_mmio_paddr};
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::*;
+ use crate::specs::mm::page_table::{cursor::owners::*, is_valid_range_spec};
+@@ -160,6 +160,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+         let (pa, level, prop) = C::item_into_raw(item);
+         let idx = frame_to_index(pa);
+         &&& regions.slots.contains_key(idx)
++        &&& regions.slot_owners[idx].usage != PageUsage::PageTable
+         &&& regions.slot_owners[idx].inner_perms.ref_count.value()
+             != REF_COUNT_UNUSED
+         // Tracked items hold a refcount; untracked (MMIO) don't.
+diff --git a/ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs b/ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs
+index 5ea38d0979321464fc2eb6245cc039e6acaff2e1..019e74202c5d566c6f31f568b82b2ec86eb8cc53 100644
+--- a/ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs
++++ b/ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs
+@@ -21,6 +21,7 @@ use crate::mm::frame::meta::REF_COUNT_UNUSED;
+ use crate::mm::page_size;
+ use crate::mm::page_table::*;
+ use crate::specs::arch::*;
++use crate::specs::mm::frame::meta_owners::PageUsage;
+ use crate::specs::mm::frame::{mapping::frame_to_index, meta_region_owners::MetaRegionOwners};
+ use crate::specs::mm::page_table::Mapping;
+ use crate::specs::mm::page_table::cursor::owners::{CursorContinuation, CursorOwner};
+@@ -97,12 +98,9 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+     }
+ 
+     /// Discharge `no_node_at_idx(changed_idx)` from the observation that
+-    /// `changed_idx` is the index of a slot currently sitting in the free
+-    /// pool (`regions.slots.contains_key(changed_idx)`). The argument uses
+-    /// `EntryOwner::active_entry_not_in_free_pool`: an active node's
+-    /// metadata slot is never simultaneously in the free pool, so any node
+-    /// in the cursor tree must have a different slot index than
+-    /// `changed_idx`.
++    /// `changed_idx` is not a page-table slot. Active node entries always
++    /// occupy metadata slots whose usage is `PageTable`, so any node in the
++    /// cursor tree must have a different slot index than `changed_idx`.
+     ///
+     /// Callers doing a `paths_in_pt.insert` at a frame's data-slot
+     /// (e.g., `map` and the huge-page split) use this helper to
+@@ -114,6 +112,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             regions.inv(),
+             self.metaregion_sound(regions),
+             regions.slots.contains_key(changed_idx),
++            regions.slot_owners[changed_idx].usage != PageUsage::PageTable,
+         ensures
+             self.no_node_at_idx(changed_idx),
+     {
+@@ -127,7 +126,11 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             assert forall|entry: EntryOwner<C>, path: TreePath<NR_ENTRIES>|
+                 entry.inv() && msp(entry, path) implies #[trigger] target(entry, path) by {
+                 if entry.is_node() && entry.meta_slot_paddr() is Some {
+-                    EntryOwner::<C>::active_entry_not_in_free_pool(entry, regions, changed_idx);
++                    let idx = frame_to_index(entry.meta_slot_paddr().unwrap());
++                    assert(regions.slot_owners[idx].usage == PageUsage::PageTable);
++                    if idx == changed_idx {
++                        assert(false);
++                    }
+                 }
+             };
+         };
+@@ -143,7 +146,11 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         } by {
+             let entry = self.continuations[i].entry_own;
+             if entry.is_node() && entry.meta_slot_paddr() is Some {
+-                EntryOwner::<C>::active_entry_not_in_free_pool(entry, regions, changed_idx);
++                let idx = frame_to_index(entry.meta_slot_paddr().unwrap());
++                assert(regions.slot_owners[idx].usage == PageUsage::PageTable);
++                if idx == changed_idx {
++                    assert(false);
++                }
+             }
+         };
+     }
+@@ -589,6 +596,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             regions0.inv(),
+             regions0.slot_owners.contains_key(removed_idx),
+             regions0.slots.contains_key(removed_idx),
++            regions0.slot_owners[removed_idx].usage != PageUsage::PageTable,
+             self@.mappings == owner_before_replace@.mappings - PageTableOwner(
+                 owner_before_replace.cur_subtree(),
+             )@.mappings,
+@@ -609,6 +617,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         ensures
+             self.metaregion_sound(regions1),
+     {
++        assert(regions0.slot_owners[removed_idx].usage != PageUsage::PageTable);
+         self.no_node_at_idx_from_slot_key(regions0, removed_idx);
+ 
+         owner_before_replace.cur_subtree_eq_filtered_mappings_path();
+diff --git a/ostd/specs/mm/page_table/cursor/owners.rs b/ostd/specs/mm/page_table/cursor/owners.rs
+index bee23f48a6899fe9a84fd93dfbdbe8a798bede1b..a5240a4dd382c61625ecd4da387c7a6481bcbc95 100644
+--- a/ostd/specs/mm/page_table/cursor/owners.rs
++++ b/ostd/specs/mm/page_table/cursor/owners.rs
+@@ -43,7 +43,7 @@ verus! {
+ 
+ pub tracked struct CursorContinuation<'rcu, C: PageTableConfig> {
+     pub entry_own: EntryOwner<C>,
+-    pub idx: usize,
++    pub ghost idx: usize,
+     pub tree_level: nat,
+     pub children: Seq<Option<OwnerSubtree<C>>>,
+     pub path: TreePath<NR_ENTRIES>,
+@@ -536,63 +536,6 @@ impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+         ensures
+             self.inv(),
+     {
+-        let cont_idx = self.idx as int;
+-        let new_parent = self.entry_own.node();
+-        let new_child = self.children[cont_idx].unwrap();
+-
+-        // (1) inv_children: every Some child is inv.
+-        assert(self.inv_children()) by {
+-            let pred = |child: Option<OwnerSubtree<C>>| child is Some ==> child.unwrap().inv();
+-            assert forall|i: int| 0 <= i < self.children.len() implies #[trigger] pred(
+-                self.children[i],
+-            ) by {
+-                if i != cont_idx {
+-                    if self.children[i] is Some {
+-                        assert(self.children[i] == cont_old.children[i]);
+-                        cont_old.inv_children_unroll(i);
+-                    }
+-                }
+-            };
+-            assert(self.children.all(pred));
+-        };
+-
+-        // (2) inv_children_rel: each Some child satisfies the structural
+-        // predicate against entry_own.node = new_parent.
+-        assert(self.inv_children_rel()) by {
+-            let pred = self.inv_children_rel_pred();
+-            assert forall|i: int| 0 <= i < self.children.len() implies #[trigger] pred(
+-                i,
+-                self.children[i],
+-            ) by {
+-                if i != cont_idx {
+-                    if self.children[i] is Some {
+-                        cont_old.inv_children_rel_unroll(i);
+-                        assert(self.children[i] == cont_old.children[i]);
+-                    }
+-                }
+-            };
+-        };
+-
+-        // (3) pt_inv_children: each Some child has PageTableOwner(child).pt_inv().
+-        // For j != idx, transferred from cont_old's pt_inv_children. For
+-        // j == idx, supplied by the caller as a precondition since `pt_inv`
+-        // is operation-specific.
+-        assert(self.pt_inv_children()) by {
+-            let pred = Self::pt_inv_children_pred();
+-            assert forall|i: int| 0 <= i < self.children.len() implies #[trigger] pred(
+-                i,
+-                self.children[i],
+-            ) by {
+-                if i == cont_idx {
+-                    assert(PageTableOwner(self.children[cont_idx].unwrap()).pt_inv());
+-                } else {
+-                    if self.children[i] is Some {
+-                        cont_old.pt_inv_children_unroll(i);
+-                        assert(self.children[i] == cont_old.children[i]);
+-                    }
+-                }
+-            };
+-        };
+     }
+ 
+     pub proof fn new_child(
+@@ -645,7 +588,7 @@ impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+ pub tracked struct CursorOwner<'rcu, C: PageTableConfig> {
+     pub level: PagingLevel,
+     pub continuations: Map<int, CursorContinuation<'rcu, C>>,
+-    pub va: AbstractVaddr,
++    pub ghost va: AbstractVaddr,
+     pub guard_level: PagingLevel,
+     pub prefix: AbstractVaddr,
+     pub popped_too_high: bool,
+@@ -707,6 +650,7 @@ impl<'rcu, C: PageTableConfig> Inv for CursorOwner<'rcu, C> {
+             // The prefix's top-level index is within the configured page-table range.
+             // This is established at construction (when prefix == va, which itself starts
+             // strictly in-range) and preserved by all cursor operations (none touch prefix).
++        &&& self.prefix.index[NR_LEVELS - 1] >= C::TOP_LEVEL_INDEX_RANGE().start
+         &&& self.prefix.index[NR_LEVELS - 1]
+             < C::TOP_LEVEL_INDEX_RANGE().end
+         // Top-of-address-space sentinel reservation: none of our `PtConfig`s actually use
+@@ -730,8 +674,11 @@ impl<'rcu, C: PageTableConfig> Inv for CursorOwner<'rcu, C> {
+             == self.prefix.leading_bits
+         // Established at construction (new initializes both va and
+         // prefix with LEADING_BITS_spec()) and preserved by cursor ops.
+-        &&& self.prefix.leading_bits
+-            == C::LEADING_BITS_spec()
++        &&& self.prefix.leading_bits == C::LEADING_BITS_spec()
++        &&& self.level <= self.guard_level ==> forall|i: int|
++            #![auto]
++            self.guard_level <= i < NR_LEVELS ==> self.continuations[i].idx
++                == self.prefix.index[i]
+         // The cursor's VA shares upper indices with the prefix when the
+         // cursor hasn't popped above guard_level AND is either in_locked_range
+         // OR strictly below guard_level. The wrap branch of
+@@ -906,14 +853,14 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         let current_addr = self.cur_entry_owner().node().meta_addr_self();
+         let f = Self::node_unlocked_except(guards0, current_addr);
+         let g = Self::node_unlocked(guards1);
+-        assert(OwnerSubtree::implies(f, g));
++
+         self.map_children_implies(f, g);
+     }
+ 
+     /// After dropping the guard for the popped level, `nodes_locked` is preserved
+     /// for the new (higher-level) owner, because the dropped guard's address is not
+     /// among those checked by `nodes_locked` (which covers levels >= self.level - 1).
+-    pub axiom fn never_drop_restores_nodes_locked(
++    pub proof fn never_drop_restores_nodes_locked(
+         self,
+         guard: PageTableGuard<'rcu, C>,
+         guards0: Guards<'rcu>,
+@@ -937,7 +884,22 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+                     != guard.inner.inner@.ptr.addr(),
+         ensures
+             self.nodes_locked(guards1),
+-    ;
++    {
++        let dropped_addr = guard.inner.inner@.ptr.addr();
++        assert(guards1.guards == guards0.guards.remove(dropped_addr));
++        assert forall|i: int|
++            #![trigger self.continuations[i]]
++            self.level - 1 <= i < self.guard_level implies {
++            self.continuations[i].node_locked(guards1)
++        } by {
++            let cont_addr = self.continuations[i].guard.inner.inner@.ptr.addr();
++            assert(self.level - 1 <= i < NR_LEVELS);
++            assert(cont_addr != dropped_addr);
++            assert(self.continuations[i].node_locked(guards0));
++            assert(guards0.guards.contains(cont_addr));
++            assert(guards1.guards.contains(cont_addr));
++        };
++    }
+ 
+     /// After a `protect` operation that only modifies `frame.prop` of the current entry,
+     /// `CursorOwner::inv()` and `metaregion_sound` are preserved.
+@@ -1002,7 +964,10 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         self.popped_too_high = false;
+         let tracked mut cont = self.continuations.tracked_remove(self.level - 1);
+         cont.do_inc_index();
+-        self.va.index.tracked_insert(self.level - 1, cont.idx as int);
++        self.va = AbstractVaddr {
++            index: self.va.index.insert(self.level - 1, cont.idx as int),
++            ..self.va
++        };
+         self.continuations.tracked_insert(self.level - 1, cont);
+         assert(self.continuations == old(self).continuations.insert(self.level - 1, cont));
+         assert(self.va.index.dom() == Set::<int>::range(0, NR_LEVELS as int));
+diff --git a/ostd/specs/mm/page_table/cursor/va_lemmas.rs b/ostd/specs/mm/page_table/cursor/va_lemmas.rs
+index 616192aa04e8d43c60f17e1f698dc3daa21aba66..1e8790d7db6c8230c5c6e3611ba94d9eb6f2fff4 100644
+--- a/ostd/specs/mm/page_table/cursor/va_lemmas.rs
++++ b/ostd/specs/mm/page_table/cursor/va_lemmas.rs
+@@ -17,11 +17,13 @@ use vstd_extra::ownership::*;
+ 
+ use crate::mm::page_table::*;
+ use crate::mm::{Paddr, PagingLevel, Vaddr, page_size};
+-use crate::specs::arch::{NR_ENTRIES, NR_LEVELS};
++use crate::specs::arch::{NR_ENTRIES, NR_LEVELS, PAGE_SIZE};
+ use crate::specs::mm::page_table::AbstractVaddr;
+ use crate::specs::mm::page_table::Mapping;
+ use crate::specs::mm::page_table::cursor::owners::{CursorContinuation, CursorOwner};
+-use crate::specs::mm::page_table::cursor::page_size_lemmas::lemma_page_size_ge_page_size;
++use crate::specs::mm::page_table::cursor::page_size_lemmas::{
++    lemma_page_size_divides, lemma_page_size_ge_page_size, lemma_page_size_spec_values,
++};
+ use crate::specs::mm::page_table::owners::*;
+ use vstd_extra::arithmetic::nat_align_down;
+ 
+@@ -112,13 +114,39 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         self.va.align_down_shape(self.level as int);
+     }
+ 
+-    pub axiom fn do_zero_below_level(tracked &mut self)
++    pub proof fn do_zero_below_level(tracked &mut self)
+         requires
+             old(self).inv(),
++            old(self).level <= old(self).guard_level,
+         ensures
+             *final(self) == old(self).zero_below_level(),
+             final(self).inv(),
+-    ;
++    {
++        let ghost old_self = *self;
++        old_self.va.align_down_shape(old_self.level as int);
++        old_self.va.align_down_leading_bits(old_self.level as int);
++        self.va = old_self.va.align_down(old_self.level as int);
++
++        old_self.locked_range_span();
++        lemma_page_size_ge_page_size(old_self.level as PagingLevel);
++        lemma_page_size_ge_page_size(old_self.guard_level as PagingLevel);
++        lemma_page_size_divides(old_self.level as PagingLevel, old_self.guard_level as PagingLevel);
++        old_self.va.align_down_to_vaddr_nat_align_down(old_self.level as int);
++
++        let ghost old_va_val = old_self.va.to_vaddr() as nat;
++        let ghost new_va_val = self.va.to_vaddr() as nat;
++        let ghost prefix_va_val = old_self.prefix.to_vaddr() as nat;
++        let ghost ps = page_size(old_self.level as PagingLevel) as nat;
++        let ghost guard_ps = page_size(old_self.guard_level as PagingLevel) as nat;
++        let ghost start = old_self.locked_range().start as nat;
++        let ghost end = old_self.locked_range().end as nat;
++
++        vstd_extra::arithmetic::lemma_nat_align_down_monotone(prefix_va_val, ps, guard_ps);
++        assert(start % ps == 0);
++        vstd::arithmetic::div_mod::lemma_add_mod_noop(start as int, guard_ps as int, ps as int);
++
++        vstd_extra::arithmetic::lemma_nat_align_down_sound(old_va_val, ps);
++    }
+ 
+     pub proof fn zero_rec_preserves_all_but_va(self, level: PagingLevel)
+         ensures
+@@ -159,14 +187,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         let inc = self.inc_index();
+         inc.zero_preserves_all_but_va();
+         inc.zero_below_level_va();
+-        assert(inc.va.inv()) by {
+-            assert forall|i: int| 0 <= i < NR_LEVELS implies inc.va.index.contains_key(i) && 0
+-                <= #[trigger] inc.va.index[i] && inc.va.index[i] < NR_ENTRIES by {
+-                if i != self.level - 1 {
+-                    assert(inc.va.index[i] == self.va.index[i]);
+-                }
+-            };
+-        };
++
+         let ps = page_size(self.level as PagingLevel) as nat;
+         let self_va = self.va.to_vaddr() as nat;
+         lemma_page_size_ge_page_size(self.level as PagingLevel);
+@@ -174,7 +195,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         // Step 1: inc_index adds page_size to the vaddr.
+         self.va.index_increment_adds_page_size(self.level as int);
+         let inc_va = inc.va.to_vaddr() as nat;
+-        assert(inc_va == self_va + ps);
+ 
+         // Step 2: zero_below_level().va == inc.va.align_down(level).
+         // align_down_concrete gives .reflect(nat_align_down(inc_va, ps)).
+@@ -193,14 +213,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         // and self_va % ps < ps.
+         vstd::arithmetic::div_mod::lemma_fundamental_div_mod(self_va as int, ps as int);
+         vstd::arithmetic::div_mod::lemma_mod_bound(self_va as int, ps as int);
+-        let ad = vstd_extra::arithmetic::nat_align_down(self_va, ps);
+-        assert(ad + ps > self_va) by {
+-            vstd_extra::arithmetic::lemma_nat_align_down_sound(self_va, ps);
+-        };
+-        assert(new_va == ad + ps) by {
+-            vstd_extra::arithmetic::lemma_nat_align_down_sound(self_va, ps);
+-            vstd_extra::arithmetic::lemma_nat_align_down_sound(inc_va, ps);
+-        };
+     }
+ 
+     // ─── Proofs: VA range / view ─────────────────────────────────────────
+@@ -235,28 +247,18 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             page_size: ps,
+             property: frame.prop,
+         };
+-        assert(PageTableOwner(subtree).view_rec(path) == set![m]);
++
+         assert(PageTableOwner(subtree).view_rec(path).contains(m));
+         self.lemma_view_mappings_intro(m, (self.level - 1) as int);
+         assert(m.inv());
+ 
+         self.cur_va_in_subtree_range();
+         crate::specs::mm::page_table::owners::lemma_vaddr_of_eq_int::<C>(path);
+-        assert(m.va_range.start <= self@.cur_va < m.va_range.end);
+ 
+         let filtered = self@.mappings.filter(
+             |m2: Mapping| m2.va_range.start <= self@.cur_va < m2.va_range.end,
+         );
+         vstd::set::lemma_set_choose_len(filtered);
+-        let qm = self@.query_mapping();
+-        assert(qm == m) by {
+-            if qm != m {
+-                assert(self@.mappings.contains(qm));
+-                assert(self@.mappings.contains(m));
+-                assert(!(qm.va_range.end <= m.va_range.start || m.va_range.end
+-                    <= qm.va_range.start));
+-            }
+-        };
+ 
+         let cur_va = self.va.to_vaddr() as nat;
+         let ps_nat = ps as nat;
+@@ -268,8 +270,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         // cursor (offset is 0, the `to_vaddr_indices(0)` positional sum
+         // equals `vaddr(path)`, and the `leading_bits * 2^48` is the same
+         // `LEADING_BITS * 2^48` that `vaddr_of` adds).
+-        assert(vaddr_of::<C>(path) as int % ps as int == 0);
+-        assert(vaddr_of::<C>(path) <= cur_va < vaddr_of::<C>(path) + ps);
++
+         assert(nat_align_down(cur_va, ps_nat) == vaddr_of::<C>(path) as nat) by {
+             vstd::arithmetic::div_mod::lemma_fundamental_div_mod(cur_va as int, ps as int);
+             vstd::arithmetic::div_mod::lemma_fundamental_div_mod(
+@@ -295,13 +296,12 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+                 assert(false);
+             }
+         };
+-        assert(nat_align_down(cur_va, ps_nat) + ps_nat == (vaddr_of::<C>(path) + ps) as nat);
++
+         self.locked_range_page_aligned();
+         self.va.to_vaddr_bounded();
+         self.in_locked_range_level_le_guard_level();
+         self.va_plus_page_size_no_overflow(self.level as PagingLevel);
+         self.va.align_up_advances_general(self.level as int);
+-        assert(self.va.align_up(self.level as int).to_vaddr() == vaddr_of::<C>(path) + ps);
+ 
+         AbstractVaddr::from_vaddr_to_vaddr_roundtrip(nat_align_down(cur_va, ps_nat) as Vaddr);
+         AbstractVaddr::from_vaddr_to_vaddr_roundtrip((vaddr_of::<C>(path) + ps) as Vaddr);
+@@ -368,14 +368,59 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         self.va.vaddr_range_from_path(L - 1);
+     }
+ 
++    pub proof fn locked_range_vaddr_prefix_match(self, new_va: AbstractVaddr)
++        requires
++            self.inv(),
++            new_va.inv(),
++            new_va.offset == 0,
++            new_va.leading_bits == self.prefix.leading_bits,
++            self.locked_range().start <= new_va.to_vaddr() < self.locked_range().end,
++        ensures
++            forall|i: int|
++                #![trigger new_va.index[i]]
++                self.guard_level - 1 <= i < NR_LEVELS ==> new_va.index[i] == self.prefix.index[i],
++    {
++        let gl = self.guard_level;
++        let start = self.locked_range().start;
++        let ps = page_size(gl as PagingLevel);
++        let new_val = new_va.to_vaddr();
++        let prefix_val = self.prefix.to_vaddr();
++
++        self.locked_range_span();
++        self.prefix_aligned_to_guard_level();
++        self.prefix_plus_ps_no_overflow();
++        self.prefix.aligned_align_down_is_self(gl as int);
++        self.prefix.aligned_align_up_advances(gl as int);
++
++        lemma_page_size_spec_values();
++        if gl == 1 {
++            new_va.reflect_to_vaddr();
++
++            AbstractVaddr::same_page_aligned_vaddrs_equal(new_val, prefix_val, start);
++            AbstractVaddr::to_vaddr_from_vaddr_roundtrip(new_va);
++            AbstractVaddr::to_vaddr_from_vaddr_roundtrip(self.prefix);
++        } else {
++            AbstractVaddr::to_vaddr_from_vaddr_roundtrip(new_va);
++            AbstractVaddr::to_vaddr_from_vaddr_roundtrip(self.prefix);
++            AbstractVaddr::same_node_indices_match(
++                new_val,
++                prefix_val,
++                start,
++                (gl - 1) as PagingLevel,
++            );
++        }
++    }
++
+     // ─── Axioms: VA mutation ─────────────────────────────────────────────
+     /// When jumping within the same page-table node, only indices at levels
+     /// >= level are guaranteed to match. The entry-within-node index (level - 1)
+     /// may change, so we update continuations[level-1].idx along with va.
+-    pub axiom fn tracked_set_va_in_node(tracked &mut self, new_va: AbstractVaddr)
++    pub proof fn tracked_set_va_in_node(tracked &mut self, new_va: AbstractVaddr)
+         requires
+             old(self).inv(),
+             new_va.inv(),
++            new_va.offset == 0,
++            new_va.leading_bits == old(self).prefix.leading_bits,
+             forall|i: int|
+                 #![auto]
+                 old(self).level <= i < NR_LEVELS ==> new_va.index[i] == old(self).va.index[i],
+@@ -389,7 +434,26 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         ensures
+             *final(self) == old(self).set_va_in_node(new_va),
+             final(self).inv(),
+-    ;
++    {
++        let ghost old_self = *self;
++        let tracked mut cont = self.continuations.tracked_remove(self.level - 1);
++
++        assert(new_va.index.contains_key(old_self.level - 1));
++
++        cont.idx = new_va.index[old_self.level - 1] as usize;
++
++        self.continuations.tracked_insert(self.level - 1, cont);
++        self.va = new_va;
++        self.popped_too_high = false;
++
++        assert(self.continuations == old_self.continuations.insert(old_self.level - 1, cont));
++
++        old_self.locked_range_vaddr_prefix_match(new_va);
++
++        if old_self.level < old_self.guard_level {
++            old_self.prefix_in_locked_range();
++        }
++    }
+ }
+ 
+ } // verus!
+diff --git a/ostd/specs/mm/page_table/mod.rs b/ostd/specs/mm/page_table/mod.rs
+index 5dfdea8854322f154e39db1945a154c69ab93d3f..2762eafcafb60709198e6fa155e1043ef9f2df89 100644
+--- a/ostd/specs/mm/page_table/mod.rs
++++ b/ostd/specs/mm/page_table/mod.rs
+@@ -794,6 +794,93 @@ impl AbstractVaddr {
+         }
+     }
+ 
++    /// Two virtual addresses in the same page_size(level+1) aligned block
++    /// also have the same leading bits. Cursor jumps use this for the
++    /// canonical-half component that is not covered by page-table indices.
++    pub proof fn same_node_leading_bits_match(
++        va1: Vaddr,
++        va2: Vaddr,
++        node_start: Vaddr,
++        level: PagingLevel,
++    )
++        requires
++            1 <= level,
++            level <= NR_LEVELS,
++            node_start <= va1,
++            va1 - node_start < page_size((level + 1) as PagingLevel),
++            node_start <= va2,
++            va2 - node_start < page_size((level + 1) as PagingLevel),
++            node_start as nat % page_size((level + 1) as PagingLevel) as nat == 0,
++        ensures
++            Self::from_vaddr(va1).leading_bits == Self::from_vaddr(va2).leading_bits,
++    {
++        lemma_page_size_spec_values();
++        let ns = node_start;
++        if level == 1 {
++            assert(va1 / 0x1_0000_0000_0000usize == va2 / 0x1_0000_0000_0000usize) by (bit_vector)
++                requires
++                    va1 >= ns,
++                    va1 - ns < 0x20_0000usize,
++                    va2 >= ns,
++                    va2 - ns < 0x20_0000usize,
++                    ns % 0x20_0000usize == 0usize,
++            ;
++        } else if level == 2 {
++            assert(va1 / 0x1_0000_0000_0000usize == va2 / 0x1_0000_0000_0000usize) by (bit_vector)
++                requires
++                    va1 >= ns,
++                    va1 - ns < 0x4000_0000usize,
++                    va2 >= ns,
++                    va2 - ns < 0x4000_0000usize,
++                    ns % 0x4000_0000usize == 0usize,
++            ;
++        } else if level == 3 {
++            assert(va1 / 0x1_0000_0000_0000usize == va2 / 0x1_0000_0000_0000usize) by (bit_vector)
++                requires
++                    va1 >= ns,
++                    va1 - ns < 0x80_0000_0000usize,
++                    va2 >= ns,
++                    va2 - ns < 0x80_0000_0000usize,
++                    ns % 0x80_0000_0000usize == 0usize,
++            ;
++        } else {
++            assert(level == 4);
++            assert(va1 / 0x1_0000_0000_0000usize == va2 / 0x1_0000_0000_0000usize) by (bit_vector)
++                requires
++                    va1 >= ns,
++                    va1 - ns < 0x1_0000_0000_0000usize,
++                    va2 >= ns,
++                    va2 - ns < 0x1_0000_0000_0000usize,
++                    ns % 0x1_0000_0000_0000usize == 0usize,
++            ;
++        }
++    }
++
++    pub proof fn same_page_aligned_vaddrs_equal(va1: Vaddr, va2: Vaddr, page_start: Vaddr)
++        requires
++            page_start <= va1,
++            va1 - page_start < PAGE_SIZE,
++            page_start <= va2,
++            va2 - page_start < PAGE_SIZE,
++            va1 % PAGE_SIZE == 0,
++            va2 % PAGE_SIZE == 0,
++            page_start % PAGE_SIZE == 0,
++        ensures
++            va1 == va2,
++    {
++        assert(va1 == va2) by (bit_vector)
++            requires
++                page_start <= va1,
++                va1 - page_start < 4096usize,
++                page_start <= va2,
++                va2 - page_start < 4096usize,
++                va1 % 4096usize == 0usize,
++                va2 % 4096usize == 0usize,
++                page_start % 4096usize == 0usize,
++                PAGE_SIZE == 4096usize,
++        ;
++    }
++
+     pub open spec fn align_up(self, level: int) -> Self {
+         let lower_aligned = self.align_down(level);
+         lower_aligned.next_index(level)
+diff --git a/ostd/specs/mm/page_table/node/entry_owners.rs b/ostd/specs/mm/page_table/node/entry_owners.rs
+index 06b36f07430203ea28256a8e702261892094fff7..17ed13f89f78870706950318aca160aadb63ba4e 100644
+--- a/ostd/specs/mm/page_table/node/entry_owners.rs
++++ b/ostd/specs/mm/page_table/node/entry_owners.rs
+@@ -17,6 +17,7 @@ use crate::mm::{Paddr, PagingConstsTrait, PagingLevel, Vaddr};
+ use crate::specs::arch::*;
+ use crate::specs::arch::{NR_ENTRIES, NR_LEVELS, PAGE_SIZE};
+ use crate::specs::mm::frame::mapping::{frame_to_index, meta_addr};
++use crate::specs::mm::frame::meta_owners::PageUsage;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::node::entry_view::*;
+ use crate::specs::mm::page_table::*;
+@@ -34,10 +35,10 @@ verus! {
+ /// - `is_tracked` refers to whether the frame is ref-counted (when `true`) or
+ ///   raw MMIO (when `false`).
+ pub tracked struct FrameEntryOwner {
+-    pub mapped_pa: usize,
+-    pub size: usize,
+-    pub prop: PageProperty,
+-    pub is_tracked: bool,
++    pub ghost mapped_pa: usize,
++    pub ghost size: usize,
++    pub ghost prop: PageProperty,
++    pub ghost is_tracked: bool,
+ }
+ 
+ pub tracked enum EntryOwnerKind<C: PageTableConfig> {
+@@ -253,7 +254,7 @@ impl<C: PageTableConfig> EntryOwner<C> {
+         }
+     }
+ 
+-    pub axiom fn tracked_new_frame(
++    pub proof fn tracked_new_frame(
+         paddr: Paddr,
+         path: TreePath<NR_ENTRIES>,
+         parent_level: PagingLevel,
+@@ -262,7 +263,20 @@ impl<C: PageTableConfig> EntryOwner<C> {
+     ) -> tracked Self
+         returns
+             Self::new_frame(paddr, path, parent_level, prop, is_tracked),
+-    ;
++    {
++        Self {
++            kind: EntryOwnerKind::Frame(
++                FrameEntryOwner {
++                    mapped_pa: paddr,
++                    size: page_size(parent_level),
++                    prop,
++                    is_tracked,
++                },
++            ),
++            path,
++            parent_level,
++        }
++    }
+ 
+     /// Structural connection between a frame entry's recorded `is_tracked` flag and
+     /// the trackedness of the item that would be reconstructed by `item_from_raw_spec`.
+@@ -599,9 +613,9 @@ impl<C: PageTableConfig> EntryOwner<C> {
+             &&& regions.slots.contains_key(idx)
+             &&& regions.slots[idx].addr() == meta_addr(idx)
+             &&& regions.slots[idx].is_init()
+-            &&& regions.slots[idx].value().wf(
+-                regions.slot_owners[idx],
+-            )
++            &&& regions.slots[idx].value().wf(regions.slot_owners[idx])
++            &&& regions.slot_owners[idx].usage
++                != PageUsage::PageTable
+             // Tracked vs MMIO discriminator is the slot's `usage`. MMIO slots
+             // stay in the free pool with `rc == UNUSED`; tracked slots have
+             // `rc > 0`. The slot's `usage == MMIO` is pinned by the paddr's
+@@ -623,12 +637,9 @@ impl<C: PageTableConfig> EntryOwner<C> {
+         }
+     }
+ 
+-    /// PointsTo uniqueness: if meta slot `free_idx` is in the free pool (`regions.slots`),
+-    /// no active page table NODE entry can own a PointsTo at the same slot address.
+-    /// Justified by Verus's linear ownership of `PointsTo<MetaSlot>`:
+-    /// the node's PointsTo is either in `regions.slots` OR held by the node, never both.
+-    /// (Frames no longer own their PointsTo — they read from `regions.slots` directly.)
+-    pub axiom fn active_entry_not_in_free_pool(
++    /// An active page-table node cannot occupy a metadata slot whose refcount is
++    /// still `REF_COUNT_UNUSED`.
++    pub proof fn active_entry_not_in_free_pool(
+         entry: Self,
+         regions: MetaRegionOwners,
+         free_idx: usize,
+@@ -639,9 +650,16 @@ impl<C: PageTableConfig> EntryOwner<C> {
+             entry.is_node(),
+             entry.metaregion_sound(regions),
+             regions.slots.contains_key(free_idx),
++            regions.slot_owners[free_idx].inner_perms.ref_count.value() == REF_COUNT_UNUSED,
+         ensures
+             frame_to_index(entry.meta_slot_paddr()->0) != free_idx,
+-    ;
++    {
++        let idx = frame_to_index(entry.meta_slot_paddr().unwrap());
++        assert(regions.slot_owners[idx].inner_perms.ref_count.value() != REF_COUNT_UNUSED);
++        if idx == free_idx {
++            assert(false);
++        }
++    }
+ 
+     pub open spec fn meta_slot_paddr(self) -> Option<Paddr> {
+         if self.is_node() {
+diff --git a/ostd/specs/mm/page_table/node/owners.rs b/ostd/specs/mm/page_table/node/owners.rs
+index 0d2a3a22a03828069d0f1297be0c217e0e648e62..e2f5e55ec6996e4149327f35233acda2611feed9 100644
+--- a/ostd/specs/mm/page_table/node/owners.rs
++++ b/ostd/specs/mm/page_table/node/owners.rs
+@@ -301,26 +301,6 @@ impl<C: PageTableConfig> NodeOwner<C> {
+ }
+ 
+ impl<C: PageTableConfig> NodeOwner<C> {
+-    // TODO: this is a bizzare structure; `set_children_perm` needs to actually be
+-    // defined to satisfy the axiom, which can then be deleted.
+-    pub uninterp spec fn set_children_perm(self, idx: usize, pte: C::E) -> Self;
+-
+-    #[verifier::external_body]
+-    pub axiom fn set_children_perm_axiom(self, idx: usize, pte: C::E)
+-        requires
+-            self.inv(),
+-            idx < NR_ENTRIES,
+-        ensures
+-            self.set_children_perm(idx, pte).inv(),
+-            self.set_children_perm(idx, pte).meta_own == self.meta_own,
+-            self.set_children_perm(idx, pte).slot_index == self.slot_index,
+-            self.set_children_perm(idx, pte).level == self.level,
+-            self.set_children_perm(idx, pte).tree_level == self.tree_level,
+-            self.set_children_perm(idx, pte).children_perm.addr() == self.children_perm.addr(),
+-            self.set_children_perm(idx, pte).children_perm.value()
+-                == self.children_perm.value().update(idx as int, pte),
+-    ;
+-
+     /// If a slot in `children_perm` holds a non-present PTE, then
+     /// `nr_children < NR_ENTRIES`. Proven (no longer axiomatized) from the
+     /// `count_consistent` invariant: `nr_children` counts present PTEs, and an
+diff --git a/ostd/specs/mm/page_table/owners.rs b/ostd/specs/mm/page_table/owners.rs
+index 99a8e2c7ee2eb1b1cc475c989c47d307acbaef09..94a93eab867d79ed4f78c035649990396c1f9b4f 100644
+--- a/ostd/specs/mm/page_table/owners.rs
++++ b/ostd/specs/mm/page_table/owners.rs
+@@ -122,6 +122,7 @@ pub proof fn lemma_vaddr_strict_bound(path: TreePath<NR_ENTRIES>)
+         assert(rec_vaddr(path, 0) == 0);
+     } else if path.len() == 1 {
+         let i0 = path.index(0);
++        assert(i0 < 512);
+         assert(rec_vaddr(path, 1) == 0);
+         assert(rec_vaddr(path, 0) == vaddr_make::<NR_LEVELS>(0, i0) as usize);
+         assert(vaddr_make::<NR_LEVELS>(0, i0) == 0x80_0000_0000usize * i0) by (compute);
+@@ -132,6 +133,8 @@ pub proof fn lemma_vaddr_strict_bound(path: TreePath<NR_ENTRIES>)
+     } else if path.len() == 2 {
+         let i0 = path.index(0);
+         let i1 = path.index(1);
++        assert(i0 < 512);
++        assert(i1 < 512);
+         assert(rec_vaddr(path, 2) == 0);
+         assert(rec_vaddr(path, 1) == vaddr_make::<NR_LEVELS>(1, i1) as usize);
+         assert(rec_vaddr(path, 0) == (vaddr_make::<NR_LEVELS>(0, i0) + vaddr_make::<NR_LEVELS>(
+@@ -150,6 +153,9 @@ pub proof fn lemma_vaddr_strict_bound(path: TreePath<NR_ENTRIES>)
+         let i0 = path.index(0);
+         let i1 = path.index(1);
+         let i2 = path.index(2);
++        assert(i0 < 512);
++        assert(i1 < 512);
++        assert(i2 < 512);
+         assert(rec_vaddr(path, 3) == 0);
+         assert(rec_vaddr(path, 2) == vaddr_make::<NR_LEVELS>(2, i2) as usize);
+         assert(rec_vaddr(path, 1) == (vaddr_make::<NR_LEVELS>(1, i1) + vaddr_make::<NR_LEVELS>(
+@@ -176,6 +182,10 @@ pub proof fn lemma_vaddr_strict_bound(path: TreePath<NR_ENTRIES>)
+         let i1 = path.index(1);
+         let i2 = path.index(2);
+         let i3 = path.index(3);
++        assert(i0 < 512);
++        assert(i1 < 512);
++        assert(i2 < 512);
++        assert(i3 < 512);
+         assert(rec_vaddr(path, 4) == 0);
+         assert(rec_vaddr(path, 3) == vaddr_make::<NR_LEVELS>(3, i3) as usize);
+         assert(rec_vaddr(path, 2) == (vaddr_make::<NR_LEVELS>(2, i2) + vaddr_make::<NR_LEVELS>(
+@@ -223,6 +233,7 @@ pub proof fn lemma_vaddr_top_index_cell(path: TreePath<NR_ENTRIES>)
+     vstd::arithmetic::power2::lemma2_to64();
+     vstd::arithmetic::power2::lemma2_to64_rest();
+     let i0 = path.index(0);
++    assert(i0 < 512);
+     if path.len() == 1 {
+         assert(rec_vaddr(path, 1) == 0);
+         assert(rec_vaddr(path, 0) == vaddr_make::<NR_LEVELS>(0, i0) as usize);
+@@ -232,6 +243,7 @@ pub proof fn lemma_vaddr_top_index_cell(path: TreePath<NR_ENTRIES>)
+             by (nonlinear_arith);
+     } else if path.len() == 2 {
+         let i1 = path.index(1);
++        assert(i1 < 512);
+         assert(rec_vaddr(path, 2) == 0);
+         assert(rec_vaddr(path, 1) == vaddr_make::<NR_LEVELS>(1, i1) as usize);
+         assert(rec_vaddr(path, 0) == (vaddr_make::<NR_LEVELS>(0, i0) + vaddr_make::<NR_LEVELS>(
+@@ -251,6 +263,8 @@ pub proof fn lemma_vaddr_top_index_cell(path: TreePath<NR_ENTRIES>)
+     } else if path.len() == 3 {
+         let i1 = path.index(1);
+         let i2 = path.index(2);
++        assert(i1 < 512);
++        assert(i2 < 512);
+         assert(rec_vaddr(path, 3) == 0);
+         assert(rec_vaddr(path, 2) == vaddr_make::<NR_LEVELS>(2, i2) as usize);
+         assert(rec_vaddr(path, 1) == (vaddr_make::<NR_LEVELS>(1, i1) + vaddr_make::<NR_LEVELS>(
+@@ -278,6 +292,9 @@ pub proof fn lemma_vaddr_top_index_cell(path: TreePath<NR_ENTRIES>)
+         let i1 = path.index(1);
+         let i2 = path.index(2);
+         let i3 = path.index(3);
++        assert(i1 < 512);
++        assert(i2 < 512);
++        assert(i3 < 512);
+         assert(rec_vaddr(path, 4) == 0);
+         assert(rec_vaddr(path, 3) == vaddr_make::<NR_LEVELS>(3, i3) as usize);
+         assert(rec_vaddr(path, 2) == (vaddr_make::<NR_LEVELS>(2, i2) + vaddr_make::<NR_LEVELS>(
+diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
+index 64845c9e6ab155cb7d9537cd3cc3fc8424729297..e6ddb7d88eb173fb278da822fd9861a9fc77c5e7 100644
+--- a/ostd/src/mm/frame/linked_list.rs
++++ b/ostd/src/mm/frame/linked_list.rs
+@@ -219,7 +219,8 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> LinkedList<M> {
+     )]
+     pub fn push_front(&mut self, frame: UniqueFrame<Link<M>>) {
+         let current = self.front;
+-        let tracked mut cursor_own = CursorOwner::tracked_front_owner(*owner);
++        let tracked owner0 = LinkedListOwner::tracked_take(owner);
++        let tracked mut cursor_own = CursorOwner::tracked_front_owner(owner0);
+         let mut cursor = CursorMut { list: self, current };
+ 
+         #[verus_spec(with Tracked(regions), Tracked(&mut cursor_own), Tracked(frame_own))]
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 365eef6571b03acf5497d74966417feef8f3c86a..7a2fe3da3850ac831c071f6c4c306ea271f97e90 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -48,7 +48,7 @@ use crate::mm::frame::{AnyFrameMeta, Frame};
+ use crate::mm::page_table::*;
+ use crate::mm::{MAX_PADDR, Paddr, Vaddr, page_size};
+ use crate::specs::mm::frame::mapping::{frame_to_index, max_meta_slots, meta_addr};
+-use crate::specs::mm::frame::meta_owners::{MetaSlotOwner, is_mmio_paddr};
++use crate::specs::mm::frame::meta_owners::{MetaSlotOwner, PageUsage, is_mmio_paddr};
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::cursor::page_size_lemmas::*;
+ 
+@@ -1575,7 +1575,13 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {
+                     if self.level < NR_LEVELS as PagingLevel {
+                         AbstractVaddr::same_node_indices_match(va, old_va, node_start, self.level);
+                     }
++                    assert(node_start <= old_va);
++                    assert(old_va - node_start < node_size);
++                    AbstractVaddr::same_node_leading_bits_match(va, old_va, node_start, self.level);
+                     AbstractVaddr::from_vaddr_to_vaddr_roundtrip(va);
++                    assert(owner.va.reflect(old_va));
++                    assert(new_va.leading_bits == owner.va.leading_bits);
++                    assert(new_va.leading_bits == owner.prefix.leading_bits);
+ 
+                     owner.tracked_set_va_in_node(new_va);
+                 }
+@@ -3148,6 +3154,10 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+             assert(regions_before_new_child.slots.contains_key(pa_idx_install)) by {
+                 assert(Self::item_slot_in_regions(item, regions_before_new_child));
+             };
++            assert(regions_before_new_child.slot_owners[pa_idx_install].usage
++                != PageUsage::PageTable) by {
++                assert(Self::item_slot_in_regions(item, regions_before_new_child));
++            };
+             owner1.no_node_at_idx_from_slot_key(regions_before_new_child, pa_idx_install);
+             owner1.metaregion_preserved_under_path_insert(
+                 regions_before_new_child,
+@@ -3499,6 +3509,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+         }
+ 
+         let ghost owner_before_replace = *owner;
++        let ghost regions_before_replace = *regions;
+         let ghost va_after_find = self.0.va;
+         let ghost level_after_find = self.0.level;
+ 
+@@ -3513,6 +3524,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+         }
+         #[verus_spec(with Tracked(owner), Tracked(subtree), Tracked(regions), Tracked(guards))]
+         let frag = self.replace_cur_entry(Child::None);
++        let ghost regions_after_replace = *regions;
+ 
+         proof {
+             owner.move_forward_increases_va();
+@@ -3606,6 +3618,20 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+                 let ghost removed_idx = frame_to_index(cur_st.value.frame().mapped_pa);
+                 let ghost removed_path = cur_st.value.path;
+                 let ghost regions_pre_remove = *regions;
++                assert(owner_before_replace.cur_entry_owner().is_frame());
++                assert(owner_before_replace.cur_entry_owner().frame().mapped_pa
++                    == cur_st.value.frame().mapped_pa);
++                assert(owner_before_replace.metaregion_sound(regions_before_replace));
++                assert(owner_before_replace.path_metaregion_sound(regions_before_replace));
++                assert(owner_before_replace.cur_entry_owner().metaregion_sound(
++                    regions_before_replace,
++                ));
++                assert(regions_before_replace.slot_owners[removed_idx].usage
++                    != PageUsage::PageTable);
++                assert(regions_after_replace.slot_owners[removed_idx]
++                    == regions_before_replace.slot_owners[removed_idx]);
++                assert(regions_pre_remove.slot_owners[removed_idx]
++                    == regions_after_replace.slot_owners[removed_idx]);
+                 let tracked mut so_rm = regions.slot_owners.tracked_remove(removed_idx);
+                 so_rm.paths_in_pt = so_rm.paths_in_pt.remove(removed_path);
+                 regions.slot_owners.tracked_insert(removed_idx, so_rm);
+@@ -3616,6 +3642,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+                 assert(owner_final.metaregion_sound(regions_pre_remove));
+                 assert(regions_pre_remove.slot_owners.contains_key(removed_idx));
+                 assert(regions_pre_remove.slots.contains_key(removed_idx));
++                assert(regions_pre_remove.slot_owners[removed_idx].usage != PageUsage::PageTable);
+                 let ghost obr_subtree = PageTableOwner(
+                     owner_before_replace.cur_subtree(),
+                 )@.mappings;
+@@ -3925,6 +3952,9 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+             // When `res is None` (⇔ pre-replace cur_entry was absent), `Entry::replace`
+             // fully preserves `regions.slots`.
+             res is None ==> final(regions).slots == old(regions).slots,
++            res is Some && res->0 is Mapped && new_owner.value.is_absent() ==> forall|idx: usize|
++                #![trigger final(regions).slot_owners[idx]]
++                final(regions).slot_owners[idx] == old(regions).slot_owners[idx],
+     )]
+     #[verifier::spinoff_prover]
+     #[verifier::rlimit(infinity)]
+@@ -4197,8 +4227,6 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+             }
+ 
+             assert(owner.path_metaregion_sound(*regions)) by {
+-                // Hoist loop-invariant setup: establish old child's metaregion_sound
+-                // and path length when the old child is a node.
+                 if old_child_pre_replace.is_node() {
+                     owner0.inv_continuation(owner0.level - 1);
+                     cont0.inv_children_unroll(cont0.idx as int);
+diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
+index a18a3eac185068663d520b26dbe27a56e5bdd164..83ec9115f7fb789d8447410a133e3f028e690dfd 100644
+--- a/ostd/src/mm/page_table/mod.rs
++++ b/ostd/src/mm/page_table/mod.rs
+@@ -460,8 +460,14 @@ impl<C: PageTableConfig> PagingConstsTrait for C {
+         C::C::NR_LEVELS_spec()
+     }
+ 
+-    fn NR_LEVELS() -> PagingLevel {
+-        C::C::NR_LEVELS()
++    fn NR_LEVELS() -> (res: PagingLevel) {
++        let res = C::C::NR_LEVELS();
++        proof {
++            assert(Self::NR_LEVELS_spec() == C::C::NR_LEVELS_spec());
++            assert(res == C::C::NR_LEVELS_spec());
++            assert(res == Self::NR_LEVELS_spec());
++        }
++        res
+     }
+ 
+     open spec fn HIGHEST_TRANSLATION_LEVEL_spec() -> PagingLevel {
+diff --git a/ostd/src/mm/page_table/node/child.rs b/ostd/src/mm/page_table/node/child.rs
+index 2c097542e293043ccd19815503e9cdc6da83b968..f3853a49d6b7da05d9d9caa48c26bd0d1ef5d2de 100644
+--- a/ostd/src/mm/page_table/node/child.rs
++++ b/ostd/src/mm/page_table/node/child.rs
+@@ -245,30 +245,11 @@ impl<C: PageTableConfig> ChildRef<'_, C> {
+             };
+ 
+             proof {
+-                // borrow_paddr postcondition gives raw_count == 1 and field-by-field preservation.
+-                // Since raw_count was already 1 (entry is in PTE),
+-                // slot_owners[idx] == old(slot_owners[idx]) follows field by field.
+-                // slots: borrow_paddr inserts at borrow_idx. Prove existing keys preserved.
+-                // The node's slot was NOT in old.slots: by active_entry_not_in_free_pool,
+-                // a node entry's index can't equal any free-pool index.
+-                let borrow_idx = frame_to_index(paddr);
+-                let ghost entry_snap = *entry_owner;
+-                assert(!old(regions).slots.contains_key(borrow_idx)) by {
+-                    if old(regions).slots.contains_key(borrow_idx) {
+-                        EntryOwner::<C>::active_entry_not_in_free_pool(
+-                            entry_snap,
+-                            *old(regions),
+-                            borrow_idx,
+-                        );
+-                        // gives borrow_idx != borrow_idx — contradiction
+-                    }
+-                };
+-                // Since borrow_idx was not in old.slots, insert preserves all old keys.
++                // `borrow_paddr` preserves the region maps, so every old slot key keeps
++                // the same permission value.
+                 assert forall|k: usize| old(regions).slots.contains_key(k) implies old(
+                     regions,
+-                ).slots[k] == #[trigger] regions.slots[k] by {
+-                    // regions.slots == old.slots.insert(borrow_idx, _), and k != borrow_idx
+-                };
++                ).slots[k] == #[trigger] regions.slots[k] by {};
+             }
+ 
+             return ChildRef::PageTable(node);
+diff --git a/ostd/src/mm/page_table/node/entry.rs b/ostd/src/mm/page_table/node/entry.rs
+index c13fec796e1f2845cebae07e6fef381fbbfa3805..0d858e5df9243fc703cded7827df13a47bc5cef4 100644
+--- a/ostd/src/mm/page_table/node/entry.rs
++++ b/ostd/src/mm/page_table/node/entry.rs
+@@ -660,7 +660,6 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+                 let pte = C::E::new_pt_spec(
+                     meta_to_frame(new_node_owner.value.node().meta_addr_self()),
+                 );
+-                old(parent_owner).set_children_perm_axiom(self.idx, pte);
+                 C::E::lemma_page_table_entry_properties();
+             }
+ 
+@@ -1826,7 +1825,6 @@ impl<'rcu, C: PageTableConfig> PageTableGuard<'rcu, C> {
+             let pte = C::E::new_pt_spec(
+                 meta_to_frame(new_node_owner.value.node().meta_addr_self()),
+             );
+-            old(parent_owner).set_children_perm_axiom(idx, pte);
+             C::E::lemma_page_table_entry_properties();
+         }
+ 
+diff --git a/ostd/src/mm/page_table/node/mod.rs b/ostd/src/mm/page_table/node/mod.rs
+index 20549ccc5ef68c1ca8b0cfef7e99fca16a2fd7f1..868096c36ee190656aeb5ff7b91680ad613eda9f 100644
+--- a/ostd/src/mm/page_table/node/mod.rs
++++ b/ostd/src/mm/page_table/node/mod.rs
+@@ -525,7 +525,15 @@ impl<C: PageTableConfig> PageTableNode<C> {
+                 #[trigger] old(regions).slot_owners[i].inner_perms.ref_count.value() != REF_COUNT_UNUSED
+                 ==> i != frame_to_index(meta_to_frame(owner@.value.node().meta_addr_self())),
+             owner@.value.match_pte(C::E::new_pt_spec(meta_to_frame(owner@.value.node().meta_addr_self())), level as PagingLevel),
+-            *final(parent_owner) == old(parent_owner).set_children_perm(idx, C::E::new_pt_spec(meta_to_frame(owner@.value.node().meta_addr_self()))),
++            final(parent_owner).meta_own == old(parent_owner).meta_own,
++            final(parent_owner).slot_index == old(parent_owner).slot_index,
++            final(parent_owner).level == old(parent_owner).level,
++            final(parent_owner).tree_level == old(parent_owner).tree_level,
++            final(parent_owner).children_perm.addr() == old(parent_owner).children_perm.addr(),
++            final(parent_owner).children_perm.value() == old(parent_owner).children_perm.value().update(
++                idx as int,
++                C::E::new_pt_spec(meta_to_frame(owner@.value.node().meta_addr_self())),
++            ),
+             final(regions).slots.contains_key(owner@.value.node().slot_index),
+             owner@.value.node().metaregion_sound_node(*final(regions)),
+     )]

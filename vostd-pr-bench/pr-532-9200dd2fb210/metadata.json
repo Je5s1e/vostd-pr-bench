@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-532-9200dd2fb210",
+  "pr_number": 532,
+  "title": "fix: Decouple arch-specific constants from `PagingConstsTrait` trait definitions, fix specifications, and prove axioms.",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/532",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "856819ef6631169061dbc1fed1e2a3e0238c6e76",
+  "head_sha": "9200dd2fb210d89a6e08ae08d2a216419e6caaff",
+  "base_method": "git merge-base(archived base_sha 856819ef6631169061dbc1fed1e2a3e0238c6e76, reviewed head 9200dd2fb210d89a6e08ae08d2a216419e6caaff); result 856819ef6631169061dbc1fed1e2a3e0238c6e76",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Makefile",
+    "ostd/specs/arch/x86/mod.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/mod.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/entry_view.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/src/arch/loongarch/mm/mod.rs",
+    "ostd/src/arch/x86/mm/mod.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "verified_libs/vstd_extra/src/external/smart_ptr.rs"
+  ],
+  "diff_sha256": "7a37a97a7c6cf56df01213c77d8653e190d75a509680ca7fa3f64eb8bc1e2f06",
+  "versions": {
+    "before": {
+      "commit": "856819ef6631169061dbc1fed1e2a3e0238c6e76",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "9200dd2fb210d89a6e08ae08d2a216419e6caaff",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "CLOSED",
+  "collection": {
+    "collected_at": "2026-11-17T04:40:26.544641+00:00",
+    "reviewed_at": "2026-06-22T02:40:42Z",
+    "upstream_updated_at": "2026-09-15T06:59:13Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/532",
+      "https://github.com/asterinas/vostd/pull/532#discussion_r3449524410",
+      "https://github.com/asterinas/vostd/pull/532#discussion_r3449528343",
+      "https://github.com/asterinas/vostd/pull/532#discussion_r3449530105",
+      "https://github.com/asterinas/vostd/pull/532#issuecomment-5676128376"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00532"
+  }
+}

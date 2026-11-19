@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-454-1db47ee9a94b",
+  "pr_number": 454,
+  "title": "prove: cursor_mut_at at mm::frame::linked_list",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/454",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "c404572bbef9bbe72f7b26c0609f9bdec2341acb",
+  "head_sha": "1db47ee9a94bf4d4f4d5ba5fa63b8c16eb1f7650",
+  "base_method": "git merge-base(remote PR base 98aaa837b7a02758c55c783ec2a91550de0ce725, final unmerged head 1db47ee9a94bf4d4f4d5ba5fa63b8c16eb1f7650); human issue comments after the final commit confirm the permission-precondition defect remains in this head",
+  "archive_base_sha": "98aaa837b7a02758c55c783ec2a91550de0ce725",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/src/mm/frame/linked_list.rs"
+  ],
+  "diff_sha256": "63413470d1d452ad6c8594d6ac8fe7b4203f94fab87b3ce9dd0c0013e4d622ec",
+  "versions": {
+    "before": {
+      "commit": "c404572bbef9bbe72f7b26c0609f9bdec2341acb",
+      "file_count": 329,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "ddb70f71e8ac0e0fb683b09ad2a0f10d0c229ccf",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "1db47ee9a94bf4d4f4d5ba5fa63b8c16eb1f7650",
+      "file_count": 329,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "ddb70f71e8ac0e0fb683b09ad2a0f10d0c229ccf",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "CLOSED",
+  "collection": {
+    "collected_at": "2026-11-17T04:40:08.320240+00:00",
+    "reviewed_at": "2026-05-22T07:14:04Z",
+    "upstream_updated_at": "2026-07-22T06:20:43Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/454",
+      "https://github.com/asterinas/vostd/pull/454#discussion_r3252020451",
+      "https://github.com/asterinas/vostd/pull/454#issuecomment-4516225147",
+      "https://github.com/asterinas/vostd/pull/454#issuecomment-4516892458",
+      "https://github.com/asterinas/vostd/pull/454#issuecomment-4537882561"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00454"
+  }
+}

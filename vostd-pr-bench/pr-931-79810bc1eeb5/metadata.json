@@ -10,7 +10,6 @@
   "base_sha": "c25ca6f98633e7de6c09c66e9e981061ed51cfb4",
   "head_sha": "79810bc1eeb5a65acb4ec81370d0671253ab48c9",
   "base_method": "merge-base(head, historical main first-parent tip 8e681282d19b29bdc1b6e715930fe9224a0c88dc before first selected review comment at 2026-11-16T06:55:59Z); historical tip selected by commit timestamp",
-  "original_split": "incremental",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/libs/linux-bzimage/builder/src/lib.rs",

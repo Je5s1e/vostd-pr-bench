@@ -1,0 +1,30 @@
+{
+  "number": 595,
+  "title": "refactor: using cargo verus and improve the verus update in Makefile",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "refactor: using cargo verus and improve the verus update in Makefile",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/595",
+      "excerpt": "Now VOSTD is transfered to using `cargo verus` now.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "dv",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": ".PHONY: all verify $(VERIFICATION_TARGETS) fmt clean verus update .PHONY: all verify $(VERIFICATION_TARGETS) fmt clean verus verus-upgrade doc: verify build: cargo dv build doc: build verus update: cargo d",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 4
+}

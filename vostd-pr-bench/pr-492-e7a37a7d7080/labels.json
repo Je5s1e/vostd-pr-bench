@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-492-e7a37a7d7080",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-492-e7a37a7d7080:review-comment-3339106905",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The generated flags field redundantly combines a `ghost` field marker with the `Ghost<T>` wrapper type.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_bitflags/src/lib.rs",
+          "start_line": 93,
+          "end_line": 93
+        }
+      ],
+      "rationale": "The field is declared as `ghost flags: Ghost<Set<...>>`, expressing the same proof-only mode twice. The human reviewer explicitly required choosing either the `ghost` marker or the `Ghost` wrapper, and the author agreed. The human-approved follow-up commit removes the field marker and retains the wrapper. The repository later codified this convention as `avoid-redundant-mode-markers`; that later fixed guideline is used for present adjudication and is not claimed to have existed at the historical review commit.",
+      "source_evidence": "after/verified_bitflags/src/lib.rs\n87:             $(#[$outer])*\n88:             #[repr(transparent)]\n89:             #[allow(repr_transparent_non_zst_fields)]\n90:             $vis struct $name {\n91:                 /// The raw bits backing this flags value.\n92:                 bits: $T,\n93:                 ghost flags: ::vstd::prelude::Ghost<::vstd::set::Set<[< __ghost $name >]>>,\n94:             }",
+      "rule_ids": [
+        "avoid-redundant-mode-markers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/492#discussion_r3339106905",
+      "related_comment_ids": [
+        "3339106905",
+        "3339204060"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3339106905",
+          "url": "https://github.com/asterinas/vostd/pull/492#discussion_r3339106905",
+          "commit_id": "e7a37a7d708026cb6b0321df32c611613ce6bfaf"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3339204060",
+          "url": "https://github.com/asterinas/vostd/pull/492#discussion_r3339204060",
+          "commit_id": "e7a37a7d708026cb6b0321df32c611613ce6bfaf"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Confirmed both comments are anchored to this exact historical head, inspected the generated field, compared the accepted follow-up fix, and checked the later official avoid-redundant-mode-markers guideline."
+    },
+    {
+      "id": "pr-492-e7a37a7d7080:review-comment-3339110119",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The exported macro's Clone implementation uses an unqualified `Ghost` constructor and unconditionally evaluates a ghost-only specification, breaking downstream or documentation builds where that name or ghost code is unavailable.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_bitflags/src/lib.rs",
+          "start_line": 106,
+          "end_line": 109
+        }
+      ],
+      "rationale": "`bitflags!` is exported and expands in downstream crates, but `clone` constructs `flags` with the bare identifier `Ghost` without importing or fully qualifying it in that scope. It also calls `Self::flags_from_bits` unconditionally even though the same revision explicitly gates the analogous initialization in `from_bits_unchecked` for doc/non-`verus_keep_ghost` builds. Thus expansion can fail name resolution at a call site, or reintroduce the documentation-build failure the patch is intended to avoid. The initial report was automated, so it is not accepted on that basis alone: the exact follow-up commit `0a22c7f44e967b51d14cfbfbd8fc996570939722` replaces this expression with `flags: self.flags`, and a human reviewer approved that commit.",
+      "source_evidence": "after/verified_bitflags/src/lib.rs\n96:             impl ::core::clone::Clone for $name {\n97:                 #[inline]\n98:                 fn clone(&self) -> (r: Self)\n99:                     ensures\n100:                         r.bits() == self.bits(),\n101:                 {\n102:                     proof {\n103:                         use ::vstd::prelude::use_type_invariant;\n104:                         use_type_invariant(self);\n105:                     }\n106:                     Self {\n107:                         bits: self.bits,\n108:                         flags: Ghost(Self::flags_from_bits(self.bits)),\n109:                     }\n110:                 }",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/492#discussion_r3339110119",
+      "related_comment_ids": [
+        "3339110119",
+        "4407721645"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3339110119",
+          "url": "https://github.com/asterinas/vostd/pull/492#discussion_r3339110119",
+          "commit_id": "e7a37a7d708026cb6b0321df32c611613ce6bfaf"
+        },
+        {
+          "kind": "review",
+          "id": "4407721645",
+          "url": "https://github.com/asterinas/vostd/pull/492#pullrequestreview-4407721645",
+          "commit_id": "0a22c7f44e967b51d14cfbfbd8fc996570939722"
+        }
+      ],
+      "verification": "source-only; historical Verus and rustdoc not executed. Confirmed the unqualified identifier and unconditional spec call in the exact reviewed source, inspected the cfg-gated sibling constructor, compared the precise fix in 0a22c7f44e967b51d14cfbfbd8fc996570939722, and confirmed that fix commit received human APPROVED review."
+    }
+  ]
+}

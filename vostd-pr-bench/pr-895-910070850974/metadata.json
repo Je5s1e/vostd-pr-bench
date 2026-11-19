@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-895-910070850974",
+  "pr_number": 895,
+  "title": "prove: verify PCI foundations",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/895",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "84cf149cc9806d84f523e63a93731314ff183007",
+  "head_sha": "910070850974fb29c0b9e28b92db37d2997e08b3",
+  "base_method": "official compare API merge-base of current remote PR base 46d3b1e7e4a54ad7b420b2b8b321f9174a06d355 and original review commit 910070850974fb29c0b9e28b92db37d2997e08b3; comment 4597064433 and CHANGES_REQUESTED review are anchored to this head",
+  "archive_base_sha": "b6db6df974cf0af881255cf88613836613fc6ce4",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/bus/mod.rs",
+    "ostd/src/bus/pci/capability/mod.rs",
+    "ostd/src/bus/pci/capability/msix.rs",
+    "ostd/src/bus/pci/capability/vendor.rs",
+    "ostd/src/bus/pci/cfg_space.rs",
+    "ostd/src/bus/pci/device_info.rs",
+    "ostd/src/bus/pci/mod.rs",
+    "ostd/src/lib.rs"
+  ],
+  "diff_sha256": "6503a0535aa9289a616c0b1813b7ce63a07c5ba16e21374f9ffcae26f704fdba",
+  "versions": {
+    "before": {
+      "commit": "84cf149cc9806d84f523e63a93731314ff183007",
+      "file_count": 324,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "910070850974fb29c0b9e28b92db37d2997e08b3",
+      "file_count": 324,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "OPEN",
+  "collection": {
+    "collected_at": "2026-11-18T13:41:46.527522+00:00",
+    "reviewed_at": "2026-11-17T08:29:20Z",
+    "upstream_updated_at": "2026-11-17T10:47:47Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/895",
+      "https://github.com/asterinas/vostd/pull/895#discussion_r4597064433",
+      "https://github.com/asterinas/vostd/pull/895#discussion_r4597387688",
+      "https://github.com/asterinas/vostd/pull/895#pullrequestreview-5935180738",
+      "https://github.com/asterinas/vostd/pull/895#pullrequestreview-5937031996",
+      "https://github.com/asterinas/vostd/commit/5ed7a2c167d0faaf215beb1b5844fefe125e2a65"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "910070850974fb29c0b9e28b92db37d2997e08b3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/910070850974fb29c0b9e28b92db37d2997e08b3/docs/coding-guidelines/maintainability.md#pair-exec-helpers-with-spec-models"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00895"
+  }
+}

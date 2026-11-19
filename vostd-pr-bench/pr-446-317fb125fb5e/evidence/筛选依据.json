@@ -1,0 +1,32 @@
+{
+  "number": 446,
+  "title": "Add `default` interface for `VmSpace`",
+  "selected": true,
+  "category": "正文或讨论涉及验证",
+  "evidence": [
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/446",
+      "excerpt": "Per the request in the doc, I added this as a member function as Verus forbids declaring preconditions for trait impls.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/446#issuecomment-4436478625",
+      "excerpt": "- Use `ExTrait` and add a spec impl glue so that we can specify preconditions/postconditions but this might not be general for all cases and sometimes unstraightforward. I chose to avoid the second one since sometimes Verus ha",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/446#issuecomment-4436541114",
+      "excerpt": "* Use `ExTrait` and add a spec impl glue so that we can specify preconditions/postconditions but this might not be general for all cases and sometimes unstraightforward. > > I chose to avoid the second one since sometimes Veru",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "#[inline] #[verus_spec(r => with Tracked(regions): Tracked<&mut MetaRegionOwners>, Tracked(guards_k): Tracked<&mut Guards<'static, KernelPtConfig>>,",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 4
+}

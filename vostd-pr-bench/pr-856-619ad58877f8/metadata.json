@@ -10,7 +10,6 @@
   "base_sha": "18aea7a127610ad471325235b85395afe82710da",
   "head_sha": "619ad58877f84f3c310358e393f2ac3257311de8",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/mm/dma/dma_coherent.rs"

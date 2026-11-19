@@ -1,0 +1,291 @@
+{
+  "number": 424,
+  "source_pr": "https://github.com/asterinas/vostd/pull/424",
+  "base_sha": "835ea7642b955f8a8329d4d1748911e201bdff49",
+  "head_sha": "f053bca745487764bae9d1ab5ff7e9ccdfad08d1",
+  "files": {
+    "totalCount": 43,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "NDM"
+    },
+    "nodes": [
+      {
+        "path": "ostd/specs/arch/x86_64/kspace.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/frame_specs.rs",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/meta_owners.rs",
+        "additions": 44,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+        "additions": 10,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+        "additions": 12,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+        "additions": 457,
+        "deletions": 224,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+        "additions": 38,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+        "additions": 51,
+        "deletions": 21,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+        "additions": 655,
+        "deletions": 112,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+        "additions": 7,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+        "additions": 165,
+        "deletions": 24,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+        "additions": 4,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+        "additions": 18,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/mapping_set_lemmas.rs",
+        "additions": 7,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/mod.rs",
+        "additions": 712,
+        "deletions": 30,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/entry.rs",
+        "additions": 16,
+        "deletions": 12,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "additions": 104,
+        "deletions": 30,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/entry_view.rs",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/mod.rs",
+        "additions": 3,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/owners.rs",
+        "additions": 4,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/owners.rs",
+        "additions": 84,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+        "additions": 97,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "ostd/specs/mm/virt_mem_example.rs",
+        "additions": 0,
+        "deletions": 137,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "ostd/specs/mm/virt_mem_newer.rs",
+        "additions": 25,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/vm_space.rs",
+        "additions": 5,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/meta.rs",
+        "additions": 4,
+        "deletions": 4,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/mod.rs",
+        "additions": 14,
+        "deletions": 23,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/segment.rs",
+        "additions": 186,
+        "deletions": 241,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/io.rs",
+        "additions": 381,
+        "deletions": 63,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "additions": 289,
+        "deletions": 156,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "additions": 126,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/mod.rs",
+        "additions": 4,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "additions": 228,
+        "deletions": 85,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/mod.rs",
+        "additions": 600,
+        "deletions": 396,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "additions": 269,
+        "deletions": 84,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/entry.rs",
+        "additions": 217,
+        "deletions": 152,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/mod.rs",
+        "additions": 34,
+        "deletions": 26,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/vm_space.rs",
+        "additions": 173,
+        "deletions": 81,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "vstd_extra/src/external/mod.rs",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "vstd_extra/src/external/range.rs",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "vstd_extra/src/external/slice.rs",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "vstd_extra/src/lib.rs",
+        "additions": 0,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/424",
+    "accept": "application/vnd.github.diff",
+    "bytes": 643157,
+    "sha256": "abc105138eeb135de7befc52948b93013ec6e8c41647c3504c6c28f668ee2612",
+    "fetched_at": "2026-11-13T21:15:22.383344+00:00",
+    "diff_file_sections": 43,
+    "expected_changed_files": 43
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/424",
+    "accept": "application/vnd.github.patch",
+    "bytes": 9735237,
+    "sha256": "afb3877a446a0ac9b35e0f99c17121b6b5495003297ab47cfe154772f08ccac8",
+    "fetched_at": "2026-11-13T21:23:06.037939+00:00"
+  }
+}

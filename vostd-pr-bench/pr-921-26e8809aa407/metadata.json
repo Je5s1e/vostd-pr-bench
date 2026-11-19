@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-921-26e8809aa407",
+  "pr_number": 921,
+  "title": "prove: verify task stack-size parsing",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/921",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d079460c09249fe2be21b4fa4fe0559a44c372fa",
+  "head_sha": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+  "base_method": "git merge-base of the selected historical review head and the PR base d079460c09249fe2be21b4fa4fe0559a44c372fa; the remote PR still reported this base when the selected head was reviewed",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/task/kernel_stack.rs",
+    "ostd/src/task/mod.rs",
+    "verified_libs/vstd_extra/src/lib.rs",
+    "verified_libs/vstd_extra/src/number.rs"
+  ],
+  "diff_sha256": "1c27bb7e8431e5bb9a38beadf435714a367f029834b9fe25eeba49cf2bb09a44",
+  "versions": {
+    "before": {
+      "commit": "d079460c09249fe2be21b4fa4fe0559a44c372fa",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-17T04:41:43.443957+00:00",
+    "reviewed_at": "2026-11-16T03:30:51Z",
+    "upstream_updated_at": "2026-11-16T05:30:42Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/921",
+      "https://github.com/asterinas/vostd/pull/921#discussion_r4581710848"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00921"
+  }
+}

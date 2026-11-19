@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-171-81a05f39c6ad",
+  "pr_number": 171,
+  "title": "WIP：Fix rcu tree spec",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/171",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "4efaff81c5aa153f082c8f5b507e6477ab76ffc0",
+  "head_sha": "81a05f39c6ad67659e23333f8046c05ada5d83a3",
+  "base_method": "git merge-base of archived GitHub base 4efaff81c5aa153f082c8f5b507e6477ab76ffc0 and selected final head 81a05f39c6ad67659e23333f8046c05ada5d83a3; computed from official Git objects; the post-approval non-overlap issue remains in this head",
+  "archive_base_sha": "4efaff81c5aa153f082c8f5b507e6477ab76ffc0",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/rcu/node/mod.rs",
+    "lock-protocol/src/exec/rcu/types.rs",
+    "lock-protocol/src/spec/rcu/tree.rs",
+    "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+    "vstd_extra/src/map_extra.rs"
+  ],
+  "diff_sha256": "ec05f94d3dbb71823d6f6ec36caf034dd1e469e9c87cf687ce5b8bb258ff0cf5",
+  "versions": {
+    "before": {
+      "commit": "4efaff81c5aa153f082c8f5b507e6477ab76ffc0",
+      "file_count": 7,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "81a05f39c6ad67659e23333f8046c05ada5d83a3",
+      "file_count": 7,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:39:13.670562+00:00",
+    "reviewed_at": "2025-08-04T08:32:39Z",
+    "upstream_updated_at": "2025-08-07T09:58:00Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/171",
+      "https://github.com/asterinas/vostd/pull/171#issuecomment-3149322765",
+      "https://github.com/asterinas/vostd/pull/171#issuecomment-3149637962"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00171"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-862-637c0417fccd",
+  "pr_number": 862,
+  "title": "Fix empty-set partition specification",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/862",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0e46d8246b29659c4fbdd3027b50af78d0f4b424",
+  "head_sha": "637c0417fccd8d7046b3744390f04ec5873954bd",
+  "base_method": "git merge-base(remote PR base 0e46d8246b29659c4fbdd3027b50af78d0f4b424, issue-fix head 637c0417fccd8d7046b3744390f04ec5873954bd) = 0e46d8246b29659c4fbdd3027b50af78d0f4b424; PR body identifies the base specification bug and maintainer issue comment confirms it",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "verified_libs/vstd_extra/src/set_extra.rs"
+  ],
+  "diff_sha256": "df17118a98cf8a34ac008f57d8f4c766c710eb670ca7c4850a4102f51f3047e5",
+  "versions": {
+    "before": {
+      "commit": "0e46d8246b29659c4fbdd3027b50af78d0f4b424",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "637c0417fccd8d7046b3744390f04ec5873954bd",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:41:32.349574+00:00",
+    "reviewed_at": "2026-10-26T03:25:19Z",
+    "upstream_updated_at": "2026-10-26T05:38:19Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/862",
+      "https://github.com/asterinas/vostd/pull/862#issuecomment-6407527948"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00862"
+  }
+}

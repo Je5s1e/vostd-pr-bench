@@ -10,7 +10,6 @@
   "base_sha": "9c7677deee6fbe7ac154158b571282a801ecea8a",
   "head_sha": "902b28e1956088886fea720640507623d8d11239",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/task/irq.rs",

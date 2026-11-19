@@ -37,7 +37,7 @@
       "rationale": "Independent comment diff_hunk is LEFT-side deletion of preserved original Rust debug assertions/replaced path expression, not a comment at the same line number in head. Head retains adapted corresponding push_level/child-entry code and lacks originals; no revert/removal makes preservation obsolete. KVerus-review Step3 explicitly flags this migration-provenance loss. Group related comments under one root cause.",
       "source_evidence": "@@ -1924,25 +1841,15 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {\n     )]\n     #[verifier::spinoff_prover]\n     fn push_level(&mut self, child_pt: PageTableGuard<'rcu, C>) {\n-        assert(owner.va.index.contains_key(owner.level - 2)) by {\n-            assert(owner.level >= 2 && owner.va.inv());\n-        };\n-\n         self.level = self.level - 1;\n-        // debug_assert_eq!(self.level, child_pt.level());",
       "rule_ids": [
-        "kverus-review:deleted-original-comments"
+        "preserve-exec-code"
       ],
       "review_url": "https://github.com/asterinas/vostd/pull/763#discussion_r4001922460",
       "related_comment_ids": [

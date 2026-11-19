@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-534-5ba756b22a68",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-534-5ba756b22a68:review-comment-3432633664",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "A loop invariant redundantly casts every address and size operand to `int` instead of stating the same equality in their native arithmetic form.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 765,
+          "end_line": 766
+        }
+      ],
+      "rationale": "The loop already relates `mapped_pages` to `it.index()` and states the same cursor equation using native values on the preceding line. The additional invariant restates it with four explicit `as int` casts. The reviewer identified the casts as unnecessary, the author confirmed the line was inherited and would be removed, and the next commit rewrites it as the direct equality without any casts. Under the same-commit requirement that routine proof edits remain lightweight and minimal, these redundant coercions add noise without an independent obligation.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n758: mapped_pages == it.index(),\n764: cursor.0.va == range.start + map_offset + it.index() * PAGE_SIZE,\n765: cursor.0.va as int == range.start as int + map_offset as int + mapped_pages\n766:     * PAGE_SIZE as int,\n\nafter/AGENTS.md\n47: Keep routine edits lightweight.\n54: Keep edits minimal and localized to the smallest necessary dependency closure.",
+      "rule_ids": [
+        "avoid-redundant-as-int-casts"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/534#discussion_r3432633664",
+      "related_comment_ids": [
+        "3432633664",
+        "3432660518"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3432633664",
+          "url": "https://github.com/asterinas/vostd/pull/534#discussion_r3432633664",
+          "commit_id": "5ba756b22a68dfba31f21b9d5ae499798fe87e0e"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3432660518",
+          "url": "https://github.com/asterinas/vostd/pull/534#discussion_r3432660518",
+          "commit_id": "5ba756b22a68dfba31f21b9d5ae499798fe87e0e"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently checked the selected official Git object, surrounding loop invariants, same-commit minimal-edit rule, author confirmation, and immediate cast-free rewrite."
+    }
+  ]
+}

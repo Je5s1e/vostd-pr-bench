@@ -1,0 +1,206 @@
+{
+  "number": 44,
+  "source_pr": "https://github.com/asterinas/vostd/pull/44",
+  "base_sha": "d117354453d864636ba6e10b36a77dcb0409ecb0",
+  "head_sha": "a75fa49663cc93ae148085648af1d8666b4e7896",
+  "files": {
+    "totalCount": 29,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "Mjk"
+    },
+    "nodes": [
+      {
+        "path": "lock-protocol/src/exec/mod.rs",
+        "additions": 4,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/common.rs",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/cpu.rs",
+        "additions": 45,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "additions": 84,
+        "deletions": 30,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/frame.rs",
+        "additions": 31,
+        "deletions": 35,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/mod.rs",
+        "additions": 7,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/page_table.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/types.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rw/utils.rs",
+        "additions": 87,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "lock-protocol/src/helpers/bits.rs",
+        "additions": 16,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "lock-protocol/src/helpers/mod.rs",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/atomic.rs",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/spec/atomic_spec.rs",
+        "additions": 0,
+        "deletions": 121,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/spec/common.rs",
+        "additions": 227,
+        "deletions": 111,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/concrete_refines_range.rs",
+        "additions": 0,
+        "deletions": 252,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/spec/concrete_tree_spec.rs",
+        "additions": 0,
+        "deletions": 687,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/spec/mod.rs",
+        "additions": 3,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/range_refines_atomic.rs",
+        "additions": 0,
+        "deletions": 152,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/spec/range_spec.rs",
+        "additions": 0,
+        "deletions": 709,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/spec/tree.rs",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "lock-protocol/src/spec/utils.rs",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/test/mod.rs",
+        "additions": 0,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/exec/mod.rs",
+        "additions": 0,
+        "deletions": 9,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/mod.rs",
+        "additions": 0,
+        "deletions": 5,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/spec/common.rs",
+        "additions": 0,
+        "deletions": 297,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/spec/mod.rs",
+        "additions": 0,
+        "deletions": 4,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/spec/stability.rs",
+        "additions": 0,
+        "deletions": 220,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs",
+        "additions": 0,
+        "deletions": 54,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "lock-protocol/src/test/rw_version/vstd_extra/mod.rs",
+        "additions": 0,
+        "deletions": 2,
+        "changeType": "DELETED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://patch-diff.githubusercontent.com/raw/asterinas/vostd/pull/44.diff",
+    "bytes": 129068,
+    "sha256": "98f36765f1a3865776807d3c53cfdc4dd6031691ff8b47d601a2e07c7f6fc217",
+    "fetched_at": "2026-11-13T21:09:42.217722+00:00",
+    "diff_file_sections": 29,
+    "expected_changed_files": 29
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/44",
+    "accept": "application/vnd.github.patch",
+    "bytes": 133259,
+    "sha256": "80196a7a21aac5b8e8a6cd3dda58c41941dc1bdaabc7f5455cc60661e3508b2a",
+    "fetched_at": "2026-11-13T21:20:23.805815+00:00"
+  }
+}

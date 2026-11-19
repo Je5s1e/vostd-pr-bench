@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-782-4f44ff343670",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-782-4f44ff343670:review-comment-4044719227",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The `Deref` contract spells sequence-view equality as a length clause plus a triggered pointwise quantifier instead of one direct model equality.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 263,
+          "end_line": 267
+        }
+      ],
+      "rationale": "The two clauses manually encode equality element by element and introduce an explicit trigger. The collaborator requests a simpler model-level equality; the final commit replaces both clauses with `ret@.map_values(|region| region@) == self@.regions`, preserving the necessary element-view conversion while eliminating the quantifier. This is the local `quantifiers-and-triggers` preference for a direct standard expression when no indexing/trigger need justifies a manual quantifier.",
+      "source_evidence": "after/ostd/src/boot/memory_region.rs\n263:     #[verus_spec(ret =>\n264:         ensures\n265:             ret@.len() == self@.regions.len(),\n266:             forall|i: int| 0 <= i < ret@.len() ==> (#[trigger] ret@[i])@ == self@.regions[i],\n267:     )]",
+      "rule_ids": [
+        "quantifiers-and-triggers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/782#discussion_r4044719227",
+      "related_comment_ids": [
+        "4044719227"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4044719227",
+          "url": "https://github.com/asterinas/vostd/pull/782#discussion_r4044719227",
+          "commit_id": "4f44ff3436707695dd8fd858dba8c5cd86e529f3"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the original review commit, final fixing commit, final merged head, complete archived discussion, and complete live remote discussion."
+    }
+  ]
+}

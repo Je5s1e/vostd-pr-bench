@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-909-a2d5bf577533",
+  "pr_number": 909,
+  "title": "prove: ktest in rcu",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/909",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "6295299f34fedf630fc371a6a23e9081758dd262",
+  "head_sha": "a2d5bf5775339e41efbfa8d32b65f21fbbe00ef8",
+  "base_method": "git merge-base(archived base 30581d3014f3ddf537d406f997ddc3abe416b514, selected historical review commit a2d5bf5775339e41efbfa8d32b65f21fbbe00ef8)",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/mod.rs",
+    "ostd/specs/layout.rs",
+    "ostd/specs/mod.rs",
+    "ostd/src/arch/x86/kernel/apic/xapic.rs",
+    "ostd/src/sync/rcu/non_null/either.rs",
+    "ostd/src/sync/rcu/non_null/mod.rs",
+    "verified_libs/vstd_extra/src/external/nonnull.rs",
+    "verified_libs/vstd_extra/src/external/smart_ptr.rs"
+  ],
+  "diff_sha256": "6714a5986de6341c131a497cc3fa295a72d628e8a56a2f8d4a480a0709623b4c",
+  "versions": {
+    "before": {
+      "commit": "6295299f34fedf630fc371a6a23e9081758dd262",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "a2d5bf5775339e41efbfa8d32b65f21fbbe00ef8",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "8343580379369b11b27ae16ca7526886bf1f5072",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T09:38:49.128115+00:00",
+    "reviewed_at": "2026-11-11T09:02:56Z",
+    "upstream_updated_at": "2026-11-12T13:34:21Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/909",
+      "https://github.com/asterinas/vostd/pull/909#discussion_r4535917662"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "a2d5bf5775339e41efbfa8d32b65f21fbbe00ef8",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/a2d5bf5775339e41efbfa8d32b65f21fbbe00ef8/docs/coding-guidelines/proof-engineering.md#reuse-existing-specifications"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00909"
+  }
+}

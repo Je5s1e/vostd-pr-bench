@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-505-cb2be5a80af1",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-505-cb2be5a80af1:review-comment-3361399035",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The PR publicly enables the heap module while commenting out required allocation APIs and global allocator wiring, leaving downstream heap consumers unable to compile or allocate correctly.",
+      "locations": [
+        {"version":"after","path":"ostd/src/mm/mod.rs","start_line":19,"end_line":22},
+        {"version":"after","path":"ostd/src/mm/heap/slot.rs","start_line":104,"end_line":157},
+        {"version":"after","path":"ostd/src/mm/heap/slab.rs","start_line":176,"end_line":229},
+        {"version":"after","path":"ostd/src/mm/heap/mod.rs","start_line":104,"end_line":112}
+      ],
+      "rationale": "mm::heap is exported unconditionally, but HeapSlot::alloc_large/dealloc_large, Slab::new/dealloc, the alloc error handler, and the global allocator declaration are all enclosed in block comments. These are executable APIs and wiring used by downstream heap allocator code, not proof-only helpers. Removing them from the public module breaks callers at compile time and disables large/slab allocation paths rather than merely limiting verification. The review reports were AI-assisted, but the fixed final head independently confirms every deletion and the PR remains open without a replacement implementation; the threads being marked resolved does not change the source behavior.",
+      "source_evidence": "after/ostd/src/mm/mod.rs\n19: pub(crate) mod dma;\n20: pub mod frame;\n21: pub mod heap;\n\nafter/ostd/src/mm/heap/slot.rs\n113:     /*\n114:     pub fn alloc_large(size: usize) -> Result<Self, AllocError> {\n141:     /*\n142:     pub fn dealloc_large(self) {\n\nafter/ostd/src/mm/heap/slab.rs\n176: /*\n177: impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {\n182:     pub fn new() -> crate::prelude::Result<Self> {\n217:     pub fn dealloc(&mut self, slot: HeapSlot) -> Result<(), AllocError> {\n229: */\n\nafter/ostd/src/mm/heap/mod.rs\n104: /*\n105: #[alloc_error_handler]\n110: #[global_allocator]\n112: */",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/505#discussion_r3361399035",
+      "related_comment_ids": ["3361399035","3361399095","3361399117","3361399135","3361399148"],
+      "sources": [
+        {"kind":"review-comment","id":"3361399035","url":"https://github.com/asterinas/vostd/pull/505#discussion_r3361399035","commit_id":"03c6dd6eff3b4574a00e10b35921230fc6ef76bd"},
+        {"kind":"review-comment","id":"3361399095","url":"https://github.com/asterinas/vostd/pull/505#discussion_r3361399095","commit_id":"03c6dd6eff3b4574a00e10b35921230fc6ef76bd"},
+        {"kind":"review-comment","id":"3361399117","url":"https://github.com/asterinas/vostd/pull/505#discussion_r3361399117","commit_id":"03c6dd6eff3b4574a00e10b35921230fc6ef76bd"},
+        {"kind":"review-comment","id":"3361399135","url":"https://github.com/asterinas/vostd/pull/505#discussion_r3361399135","commit_id":"03c6dd6eff3b4574a00e10b35921230fc6ef76bd"},
+        {"kind":"review-comment","id":"3361399148","url":"https://github.com/asterinas/vostd/pull/505#discussion_r3361399148","commit_id":"03c6dd6eff3b4574a00e10b35921230fc6ef76bd"}
+      ],
+      "verification": "source-only; historical runtime/build not executed. Compared before/after, complete archived and current remote threads, remote final head cb2be5a80af1, downstream API names cited by the reviews, and the still-open PR state."
+    }
+  ]
+}

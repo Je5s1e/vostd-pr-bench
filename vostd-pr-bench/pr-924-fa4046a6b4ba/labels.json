@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-924-fa4046a6b4ba",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-924-fa4046a6b4ba:review-comment-4560116876",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Executable rewrites and removals in the migrated MM tests are not preserved in the required reasoned `Origin Rust:` blocks.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/test.rs",
+          "start_line": 48,
+          "end_line": 52
+        },
+        {
+          "version": "before",
+          "path": "ostd/src/mm/test.rs",
+          "start_line": 47,
+          "end_line": 48
+        },
+        {
+          "version": "before",
+          "path": "ostd/src/mm/test.rs",
+          "start_line": 58,
+          "end_line": 59
+        }
+      ],
+      "rationale": "The selected head rewrites constructors and fallible operations to thread tracked owners, but records them with unsupported `// Origin:` comments that give no concrete reason. It also removes runtime equality assertions from the original test without preserving them at all. The preserve-exec-code guideline in this same head requires every actual executable replacement, addition, or removal to retain a concise adjacent `Origin Rust:` block containing both the original code and the concrete reason for the change. Review comments 4560116871 and 4560116876 identify the two manifestations, and direct comparison of the exported before/after files confirms they remain in the final head.",
+      "source_evidence": "before/ostd/src/mm/test.rs\n35:         let writer = VmWriter::from(&mut buffer[..]);\n37:         let mut writer_infallible =\n38:             unsafe { VmWriter::from_kernel_space(writer.cursor(), buffer.len()) };\n44:         writer_infallible.write_val(&val1).unwrap();\n45:         writer_infallible.write_val(&val2).unwrap();\n47:         assert_eq!(&buffer[..4], &val1.to_le_bytes()[..]);\n48:         assert_eq!(&buffer[4..], &val2.to_le_bytes()[..]);\n55:         let read_val1: u32 = reader_infallible.read_val().unwrap();\n56:         let read_val2: u32 = reader_infallible.read_val().unwrap();\n58:         assert_eq!(val1, read_val1);\n59:         assert_eq!(val2, read_val2);\n\nafter/ostd/src/mm/test.rs\n48:         // Origin: let writer = VmWriter::from(&mut buffer[..]);\n49:         //         let mut writer_infallible =\n50:         //             unsafe { VmWriter::from_kernel_space(writer.cursor(), buffer.len()) };\n51:         let mut writer_infallible = #[verus_spec(with => Tracked(writer_owner))]\n52:         VmWriter::from(&mut buffer[..]);\n57:         // Origin: writer_infallible.write_val(&val1).unwrap();\n58:         let res1 = #[verus_spec(with Tracked(&mut writer_owner))]\n59:         writer_infallible.write_val(&val1);\n60:         assert!(res1.is_ok());\n75:         // Origin: let read_val1: u32 = reader_infallible.read_val().unwrap();\n76:         let r1: crate::prelude::Result<u32> = #[verus_spec(with Tracked(&mut reader_owner))]\n77:         reader_infallible.read_val();\n78:         assert!(r1.is_ok());\n\nafter/docs/coding-guidelines/maintainability.md\n410: For an actual executable rewrite required by Verus, retain a concise adjacent\n411: `Origin Rust:` block with the original code and the concrete reason for the\n412: change. This requirement applies to executable replacements, additions, or\n413: removals, not to wrapping unchanged code in a comment or adding specs, proofs,",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/924#discussion_r4560116876",
+      "related_comment_ids": [
+        "4560116871",
+        "4560116876"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4560116871",
+          "url": "https://github.com/asterinas/vostd/pull/924#discussion_r4560116871",
+          "commit_id": "1ce04683d651fc3262f6c754d7dfebf0ce3619e5"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4560116876",
+          "url": "https://github.com/asterinas/vostd/pull/924#discussion_r4560116876",
+          "commit_id": "1ce04683d651fc3262f6c754d7dfebf0ce3619e5"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Independently compared the exported base and final head, checked the pinned preserve-exec-code guideline, and read all remote review threads, reviews, issue comments, and commits. The source review was AI-assisted, so it was used only as a lead and the final label was established from the fixed source evidence."
+    },
+    {
+      "id": "pr-924-fa4046a6b4ba:review-comment-4560116924",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The disabled vmspace test module adds migration rationale inside the block wrapper instead of preserving the unchanged code verbatim.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/test.rs",
+          "start_line": 678,
+          "end_line": 682
+        }
+      ],
+      "rationale": "The selected head inserts three explanatory lines between the opening block-comment delimiter and the original `mod vmspace` text. The same-head preserve-exec-code guideline says unchanged imports or code disabled only because it is outside the verification scope must be wrapped directly in `/* ... */`, without a reason or status narration. The review comment remains applicable to the final exported head, and the adjacent module text is otherwise the original disabled code.",
+      "source_evidence": "after/ostd/src/mm/test.rs\n678: /* The vm-space tests exercise real page tables, activation and TLB flushes\n679:  * that are outside the current verification scope; kept verbatim for the\n680:  * migration.\n681: \n682: mod vmspace {\n\nafter/docs/coding-guidelines/maintainability.md\n399: When temporarily disabling unchanged imports or code outside the verified\n400: scope, wrap the original text directly in `/* ... */`. Do not add a reason,\n401: `Origin Rust:` label, or repeated status narration to each block. Put the\n402: closing delimiter immediately after the last original line:",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/924#discussion_r4560116924",
+      "related_comment_ids": [
+        "4560116924"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4560116924",
+          "url": "https://github.com/asterinas/vostd/pull/924#discussion_r4560116924",
+          "commit_id": "1ce04683d651fc3262f6c754d7dfebf0ce3619e5"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Independently checked the final exported source and the pinned same-head guideline after using the AI-assisted review comment only as a lead."
+    }
+  ]
+}

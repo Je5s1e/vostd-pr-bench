@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 2,
+  "inline_review_comment_count": 10,
+  "review_count": 11,
+  "core_lesson": "可升级锁的失败分支必须归还原来的守卫资源",
+  "category": "并发与锁",
+  "all_content_unadjudicated": true
+}

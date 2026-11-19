@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-403-a1f2685897f4",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-403-a1f2685897f4:issue-comment-4235004952",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The take/put axioms can return linear pointer permissions while leaving an equivalent copy stored in the original PointsTo object, allowing tracked ownership to be duplicated or replaced without a borrow relationship.",
+      "locations": [
+        {
+          "version": "before",
+          "path": "vstd_extra/src/cast_ptr.rs",
+          "start_line": 243,
+          "end_line": 262
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/cast_ptr.rs",
+          "start_line": 257,
+          "end_line": 277
+        }
+      ],
+      "rationale": "In the base, `take_inner_perms(&mut self)` returns a tracked value equal to `old(self).inner_perms`, but its postcondition also leaves the enclosing object's address and points-to state unchanged and does not consume or invalidate `final(self).inner_perms`. `take_points_to` has the same problem for the underlying linear points-to permission, while `put_inner_perms` can replace the field axiomatically. These contracts can therefore manufacture an independently owned permission equal to one still retained in `self`, defeating the exclusivity that the tracked resource is meant to enforce. The collaborator explicitly identifies these helpers as unsound and requests replacement with new mutable-reference support; the final commit removes the take/put axioms and exposes mutable borrows whose postconditions tie the returned reference to the corresponding final field. A second collaborator confirms that replacing the axioms with borrows is the correct direction.",
+      "source_evidence": "before/vstd_extra/src/cast_ptr.rs\n243: pub axiom fn take_inner_perms(tracked &mut self) -> (tracked result: T::Perm)\n245:     result == old(self).inner_perms,\n246-247: final(self) retains the same address and points_to\n250: pub axiom fn put_inner_perms(...)\n257: pub axiom fn take_points_to(...)\n259:     result == old(self).points_to\n\nafter/vstd_extra/src/cast_ptr.rs\n259: pub proof fn borrow_mut_inner_perms(...) -> (tracked result: &mut T::Perm)\n264: final(self).inner_perms == *final(result)\n271: pub proof fn borrow_mut_points_to(...) -> (tracked result: &mut simple_pptr::PointsTo<R>)\n275: final(self).points_to == *final(result)",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4235004952",
+      "related_comment_ids": [
+        "4235004952",
+        "4241021752",
+        "4241679125"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4235004952",
+          "url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4235004952",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4241021752",
+          "url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4241021752",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4241679125",
+          "url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4241679125",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Rust and Verus were not executed. Checked the complete archived and live discussion, all eight official PR commits, the exact fixed base/head objects, the unsound base axiom postconditions, the final borrow-based replacement, and the absence of the take/put helpers in the fixed tree."
+    }
+  ]
+}

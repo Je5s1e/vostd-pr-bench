@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-171-81a05f39c6ad",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-171-81a05f39c6ad:issue-comment-3149637962",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The non-overlap invariant ignores the nodes already write-locked by a `Locking` cursor, so it cannot establish exclusive ownership when that cursor becomes `Locked`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "start_line": 97,
+          "end_line": 110
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "start_line": 481,
+          "end_line": 520
+        }
+      ],
+      "rationale": "`inv_non_overlapping` constrains only pairs of cursors that are already in `Locked`; it says nothing about a `Locking(rt, nid)` cursor even though the protocol has already changed every traversed node in `[rt, nid)` from `Free` to `Locked`. Consequently, the pre-state of `protocol_lock_end` may satisfy the invariant while another CPU owns an overlapping `Locked` subtree, and the transition then creates two overlapping `Locked` cursors. The preservation proof exposes exactly this missing fact: both cases in which the completing CPU is one of the compared cursors end in `admit()`. The author first reported that a stronger invariant tracking different cursor states was needed, and the human reviewer then independently clarified that RCU `Locking(nid1, nid2)` represents write ownership of `[nid1, nid2)` and requested a change to `inv_non_overlapping`. This issue remains in the fixed final source.",
+      "source_evidence": "after/lock-protocol/src/spec/rcu/tree.rs\n97: pub fn inv_non_overlapping(&self) -> bool {\n102:     self.cursors[cpu1] is Locked &&\n103:     self.cursors[cpu2] is Locked ==>\n108-109: [only two Locked roots are checked for subtree overlap]\n\n481: #[inductive(protocol_lock_end)]\n482: fn protocol_lock_end_inductive(...) {\n511-513: [the proof notes that the pre-state has one Locking cursor, so the invariant provides no relationship to the other Locked cursor]\n517: admit();\n518: } else if cpu2 == cpu {\n520:     admit();",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/171#issuecomment-3149637962",
+      "related_comment_ids": [
+        "3149322765",
+        "3149637962"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "3149322765",
+          "url": "https://github.com/asterinas/vostd/pull/171#issuecomment-3149322765",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "3149637962",
+          "url": "https://github.com/asterinas/vostd/pull/171#issuecomment-3149637962",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently inspected the final invariant, lock transitions, and inductive preservation proof. The missing Locking-vs-Locked ownership relation admits an overlapping-cursor pre-state, and both affected proof branches remain explicitly admitted in the final head."
+    }
+  ]
+}

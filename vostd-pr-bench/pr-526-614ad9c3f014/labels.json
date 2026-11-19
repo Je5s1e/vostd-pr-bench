@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-526-614ad9c3f014",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-526-614ad9c3f014:review-comment-3412368616",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The `ktest` page-table configuration no longer implements all required `PageTableConfig` proof methods, so the test configuration cannot build.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "start_line": 186,
+          "end_line": 222
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/test.rs",
+          "start_line": 88,
+          "end_line": 111
+        }
+      ],
+      "rationale": "`PageTableConfig` adds `lemma_top_level_index_range_bounds` and `lemma_leading_bits_only_when_high_half` as required trait methods with no default bodies. The `#[cfg(ktest)]` module's `TestPtConfig` implementation defines its constants, associated types, and item conversion methods but implements neither new proof method. When that configuration is compiled, the trait implementation is incomplete and compilation fails before any test can run. The review comment was AI-assisted, so it was treated only as a lead; the missing required members and failure condition were independently confirmed from the fixed final source, where the issue remains.",
+      "source_evidence": "after/ostd/src/mm/page_table/mod.rs\n189: proof fn lemma_top_level_index_range_bounds()\n212: ;\n216: proof fn lemma_leading_bits_only_when_high_half()\n222: ;\n\nafter/ostd/src/mm/page_table/test.rs\n89: pub struct TestPtConfig;\n92: unsafe impl PageTableConfig for TestPtConfig {\n93:     const TOP_LEVEL_INDEX_RANGE: Range<usize> = 0..256;\n95:     type E = PageTableEntry;\n96:     type C = VeryHugePagingConsts;\n98:     type Item = (Paddr, PagingLevel, PageProperty);\n100-110: [only item conversion methods are implemented]\n111: }",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/526#discussion_r3412368616",
+      "related_comment_ids": [
+        "3412368616"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3412368616",
+          "url": "https://github.com/asterinas/vostd/pull/526#discussion_r3412368616",
+          "commit_id": "6957f3dcc73250e9f5f44cbd4244d7d77d15b9bb"
+        }
+      ],
+      "verification": "source-only; the historical ktest target was not compiled. Independently inspected the final trait declaration and cfg(ktest) implementation and confirmed that both required, non-default methods are absent. The remote thread remains current rather than outdated."
+    },
+    {
+      "id": "pr-526-614ad9c3f014:review-comment-3412368685",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Two new page-table proof bodies import arithmetic helpers that are never referenced in their function scopes.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/vm_space.rs",
+          "start_line": 1626,
+          "end_line": 1630
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/mod.rs",
+          "start_line": 170,
+          "end_line": 174
+        }
+      ],
+      "rationale": "Both `lemma_top_level_index_range_bounds` bodies import `nr_subpage_per_huge`, `nr_pte_index_bits`, `pte_index_bit_offset_spec`, and `pow2`, but their remaining statements use none of those names. Because the imports are function-scoped, uses in the separate `lemma_leading_bits_only_when_high_half` body do not make them live. The duplicate unused imports add proof noise and remain in the final head. The same-head AGENTS.md requires routine proof edits to stay lightweight and all edits to be minimal and localized.",
+      "source_evidence": "after/ostd/src/mm/vm_space.rs\n1626: proof fn lemma_top_level_index_range_bounds() {\n1627:     use crate::mm::nr_subpage_per_huge;\n1628:     use crate::mm::page_table::{nr_pte_index_bits, pte_index_bit_offset_spec};\n1629:     use vstd::arithmetic::power2::{lemma2_to64, lemma2_to64_rest, lemma_pow2_adds, pow2};\n1632-1638: [only lemma2_to64, lemma2_to64_rest, lemma_pow2_adds and lemma_usize_pow2_ilog2 are used]\n\nafter/ostd/src/mm/kspace/mod.rs\n170: proof fn lemma_top_level_index_range_bounds() {\n171:     use crate::mm::nr_subpage_per_huge;\n172:     use crate::mm::page_table::{nr_pte_index_bits, pte_index_bit_offset_spec};\n173:     use vstd::arithmetic::power2::{lemma2_to64, lemma2_to64_rest, lemma_pow2_adds, pow2};\n176-182: [the same four imported names are not referenced]\n\nafter/AGENTS.md\n47: Keep routine edits lightweight.\n54: Keep edits minimal and localized to the smallest necessary dependency closure.",
+      "rule_ids": [
+        "organize-proof-imports"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/526#discussion_r3412368685",
+      "related_comment_ids": [
+        "3412368685",
+        "3412368726"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3412368685",
+          "url": "https://github.com/asterinas/vostd/pull/526#discussion_r3412368685",
+          "commit_id": "6957f3dcc73250e9f5f44cbd4244d7d77d15b9bb"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3412368726",
+          "url": "https://github.com/asterinas/vostd/pull/526#discussion_r3412368726",
+          "commit_id": "6957f3dcc73250e9f5f44cbd4244d7d77d15b9bb"
+        }
+      ],
+      "verification": "source-only; historical Verus and warning-as-error builds were not executed. The AI-assisted comments were used only as leads. Independently checked each function scope in the final source and the same-head minimal-edit rule; the imports remain unused in both selected locations."
+    }
+  ]
+}

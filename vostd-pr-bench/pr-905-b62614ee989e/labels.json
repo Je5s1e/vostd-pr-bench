@@ -19,7 +19,7 @@
       "rationale": "Actual diff removes unchanged-execution CPUID leaf-description/formula comments and rewrites them as new prose; no proof requires this rewrite. Historical reviewer explicitly asks preserving source comments. This is a localized scope/convention issue, not an executable behavioral bug.",
       "source_evidence": "129:         return None;\n130:     }\n131: \n132:     // Leaf 0x15: TSC frequency = crystal Hz * EBX / EAX, with kHz truncation.\n133:     let mut cpuid = cpuid!(0x15);\n134:     proof! {\n135:         *samples = Ghost(CpuidSamples {\n136:             leaf15: Some((cpuid.eax, cpuid.ebx, cpuid.ecx)),\n137:             ..samples@\n138:         });\n139:     }",
       "rule_ids": [
-        "review-convention:preserve-original-comments"
+        "preserve-exec-code"
       ],
       "review_url": "https://github.com/asterinas/vostd/pull/905#discussion_r4525099006",
       "related_comment_ids": [

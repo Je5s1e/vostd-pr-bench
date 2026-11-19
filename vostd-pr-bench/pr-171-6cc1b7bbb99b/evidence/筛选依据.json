@@ -1,0 +1,46 @@
+{
+  "number": 171,
+  "title": "WIP：Fix rcu tree spec",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "WIP：Fix rcu tree spec",
+      "category": "证明与规约"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/171#issuecomment-3149221772",
+      "excerpt": "at states every paddr in `strays` is not free. - Delete a lot of proofs because Verus can solve them automatically.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/171#issuecomment-3149322765",
+      "excerpt": "invariant than `inv_non_overlapping` because it is nontrivial to prove `protocol_lock_end`. Just like we need `inv_rw_lock` to prove non-overlapping in `rw`, a stronger invariant must simultaneously track different curso",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rcu/tree.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "vstd_extra/src/map_extra.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "// Allocator is trusted so we can assume the paddr is free. #[verifier::external_body] pub proof fn assume_free_paddr_token(inst: SpecInstance) -> (res: FreePaddrToken) ensures res.instance_id() =",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 7
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-485-6fac7bc837f6",
+  "pr_number": 485,
+  "title": "Permission refactor, verify `cursor_mut_at` and `PageTablePageMeta::on_drop`",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/485",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "ef16b5e9bc42a08cd053d92e50913fda70eea959",
+  "head_sha": "6fac7bc837f67c2aa8702adf03205a6202ac6663",
+  "base_method": "git merge-base(archived base_sha da8d1358d493a940ee10fbd7922ea77c1c657019, selected historical review merge commit 6fac7bc837f67c2aa8702adf03205a6202ac6663) = ef16b5e9bc42a08cd053d92e50913fda70eea959",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/cursor.rs",
+    "ostd/specs/mm/embedding/frame.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/segment.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/node/child.rs",
+    "ostd/specs/mm/page_table/node/entry.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/mod.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "vstd_extra/src/cast_ptr.rs",
+    "vstd_extra/src/trans_macros.rs"
+  ],
+  "diff_sha256": "fbd4c83a1785c64db5f48c5d6e5c956af7526b5a5574167d88cc5451085f4d83",
+  "versions": {
+    "before": {
+      "commit": "ef16b5e9bc42a08cd053d92e50913fda70eea959",
+      "file_count": 331,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "561c8a2afe325a9ee02229e65c5479bea1bb5bbe",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "6fac7bc837f67c2aa8702adf03205a6202ac6663",
+      "file_count": 332,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "561c8a2afe325a9ee02229e65c5479bea1bb5bbe",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T11:36:20.320092+00:00",
+    "reviewed_at": "2026-06-01T09:44:28Z",
+    "upstream_updated_at": "2026-06-02T03:02:57Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/485",
+      "https://github.com/asterinas/vostd/pull/485#discussion_r3333153971",
+      "https://github.com/asterinas/vostd/pull/485#discussion_r3333154020",
+      "https://github.com/asterinas/vostd/pull/485#discussion_r3333154051",
+      "https://github.com/asterinas/vostd/pull/485#discussion_r3337746980",
+      "https://github.com/asterinas/vostd/pull/485#discussion_r3337798437"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00485"
+  }
+}

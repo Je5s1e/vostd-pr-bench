@@ -1,0 +1,39 @@
+{
+  "number": 350,
+  "source_pr": "https://github.com/asterinas/vostd/pull/350",
+  "base_sha": "b6efad3637b4efa21056f1c9c941bcc36d8cbc93",
+  "head_sha": "5cbda0832ce0122bc9d922dd2e7256904376cf39",
+  "files": {
+    "totalCount": 1,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MQ"
+    },
+    "nodes": [
+      {
+        "path": "ostd/src/sync/rwarc.rs",
+        "additions": 24,
+        "deletions": 12,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/350",
+    "accept": "application/vnd.github.diff",
+    "bytes": 2898,
+    "sha256": "61f8770b0a4106ca09d2c9ad615f60632bd672abd462affa91dac66d517f1008",
+    "fetched_at": "2026-11-13T21:15:12.415287+00:00",
+    "diff_file_sections": 1,
+    "expected_changed_files": 1
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/350",
+    "accept": "application/vnd.github.patch",
+    "bytes": 3228,
+    "sha256": "d46bfb3787e28b53528cc8b54ade65fd9c9b6d9d56593d18f558a703d18c49eb",
+    "fetched_at": "2026-11-13T21:21:34.239460+00:00"
+  }
+}

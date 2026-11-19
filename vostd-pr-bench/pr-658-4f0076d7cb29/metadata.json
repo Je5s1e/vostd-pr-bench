@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-658-4f0076d7cb29",
+  "pr_number": 658,
+  "title": "fix: Redesign `TrackDrop`",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/658",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "357a589b5af41aad0acd6ff79af3398962cbb4bb",
+  "head_sha": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4",
+  "base_method": "git merge-base(remote PR base af25300f95bada747e76bddc38dd916f014a5661, original review commit 4f0076d7cb29d45d992d01b72b062288ba1ae9c4); the human review and author reply identify the plain-T field at this exact revision, and commit 757d75d9ef1b8528b697b830277d441ea614d374 fixes it",
+  "archive_base_sha": "af25300f95bada747e76bddc38dd916f014a5661",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/frame_specs.rs",
+    "ostd/specs/mm/frame/segment.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/node/child.rs",
+    "ostd/specs/mm/page_table/node/mod.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "verified_libs/vstd_extra/src/drop_tracking.rs"
+  ],
+  "diff_sha256": "3f4659a95b5bc192f8ce4b412cea4526296fc2cddc6da8f161369408e6eca9b0",
+  "versions": {
+    "before": {
+      "commit": "357a589b5af41aad0acd6ff79af3398962cbb4bb",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:22:00.585144+00:00",
+    "reviewed_at": "2026-07-21T02:59:11Z",
+    "upstream_updated_at": "2026-07-21T06:28:21Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/658",
+      "https://github.com/asterinas/vostd/pull/658#issuecomment-5029674957",
+      "https://github.com/asterinas/vostd/pull/658#discussion_r3619118783",
+      "https://github.com/asterinas/vostd/pull/658#discussion_r3619199960",
+      "https://github.com/asterinas/vostd/pull/658#issuecomment-5030350841",
+      "https://github.com/asterinas/vostd/pull/658#issuecomment-5030794102",
+      "https://github.com/asterinas/vostd/commit/757d75d9ef1b8528b697b830277d441ea614d374"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00658"
+  }
+}

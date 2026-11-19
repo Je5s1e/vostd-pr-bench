@@ -1,0 +1,649 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/658",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 658,
+    "title": "fix: Redesign `TrackDrop`",
+    "body": "The current `ManuallyDrop<T: TrackDrop>` is unsound. It consumes the obligation immediately after `ManuallyDrop::new`, so the `Drop` can never be called because the obligation is leaked! This PR completely redesigns the `TrackDrop` infrastructure:\r\n- `Key` and `DropObligation<Self::Key>` in `TrackDrop` are replaced by a general `Obligation` associated type, because `DropObligation` can be created from nowhere, violating the linear requirement of the permission if the user needs it.\r\n- `ManuallyDrop<T: TrackedDrop>` now carries the obligation with it, instead of consuming it immediately, so that the obligation can be returned.\r\n- `constructor_*/ consume_*` are removed because they are not used anymore.\r\n- A `tracked_redeem(State) -> Obligation` method is added so that the state can emit an obligation.\r\n\r\nNote1: The unsound `frame_obligation` design in `MetaRegionOwners` is not changed in this PR. Its replacement with fractional permission is left for a future PR.\r\n\r\nNote2: This new design retains the ability to track whether a memory leak occurs. It is just the responsibility of the trait implementor, like before.",
+    "bodyHTML": "<p dir=\"auto\">The current <code class=\"notranslate\">ManuallyDrop&lt;T: TrackDrop&gt;</code> is unsound. It consumes the obligation immediately after <code class=\"notranslate\">ManuallyDrop::new</code>, so the <code class=\"notranslate\">Drop</code> can never be called because the obligation is leaked! This PR completely redesigns the <code class=\"notranslate\">TrackDrop</code> infrastructure:</p>\n<ul dir=\"auto\">\n<li><code class=\"notranslate\">Key</code> and <code class=\"notranslate\">DropObligation&lt;Self::Key&gt;</code> in <code class=\"notranslate\">TrackDrop</code> are replaced by a general <code class=\"notranslate\">Obligation</code> associated type, because <code class=\"notranslate\">DropObligation</code> can be created from nowhere, violating the linear requirement of the permission if the user needs it.</li>\n<li><code class=\"notranslate\">ManuallyDrop&lt;T: TrackedDrop&gt;</code> now carries the obligation with it, instead of consuming it immediately, so that the obligation can be returned.</li>\n<li><code class=\"notranslate\">constructor_*/ consume_*</code> are removed because they are not used anymore.</li>\n<li>A <code class=\"notranslate\">tracked_redeem(State) -&gt; Obligation</code> method is added so that the state can emit an obligation.</li>\n</ul>\n<p dir=\"auto\">Note1: The unsound <code class=\"notranslate\">frame_obligation</code> design in <code class=\"notranslate\">MetaRegionOwners</code> is not changed in this PR. Its replacement with fractional permission is left for a future PR.</p>\n<p dir=\"auto\">Note2: This new design retains the ability to track whether a memory leak occurs. It is just the responsibility of the trait implementor, like before.</p>",
+    "url": "https://github.com/asterinas/vostd/pull/658",
+    "state": "MERGED",
+    "createdAt": "2026-07-20T07:55:28Z",
+    "updatedAt": "2026-07-21T06:28:21Z",
+    "closedAt": "2026-07-21T06:28:17Z",
+    "mergedAt": "2026-07-21T06:28:17Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "af25300f95bada747e76bddc38dd916f014a5661",
+    "headRefName": "frame-obligations",
+    "headRefOid": "c8360b166bcc9cfd62ba5d5a64b0e7d8e12a3c66",
+    "changedFiles": 14,
+    "additions": 292,
+    "deletions": 438,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        },
+        {
+          "name": "model design"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0wNy0yMVQwMzoyMDo1OFq0MjAyNi0wNy0yMVQwMzoyMDo1N1rPAAAAARqU9j4="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c8AAAABGpN5Nw",
+          "databaseId": 4740839735,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-07-21T02:59:14Z",
+          "createdAt": "2026-07-21T02:59:11Z",
+          "updatedAt": "2026-07-21T02:59:14Z",
+          "url": "https://github.com/asterinas/vostd/pull/658#pullrequestreview-4740839735",
+          "author": {
+            "login": "hiroki-chen"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABGpT2Pg",
+          "databaseId": 4740937278,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-07-21T03:20:58Z",
+          "createdAt": "2026-07-21T03:20:57Z",
+          "updatedAt": "2026-07-21T03:20:58Z",
+          "url": "https://github.com/asterinas/vostd/pull/658#pullrequestreview-4740937278",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0wNy0yMVQwMjo1OToxMVrOknIp9g=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c6Scin2",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "verified_libs/vstd_extra/src/drop_tracking.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 76,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "rikosellic"
+          },
+          "comments": {
+            "totalCount": 2,
+            "nodes": [
+              {
+                "databaseId": 3619118783
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 14,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MTQ"
+      },
+      "nodes": [
+        {
+          "path": "ostd/specs/mm/frame/frame_specs.rs",
+          "additions": 17,
+          "deletions": 46,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/frame/segment.rs",
+          "additions": 13,
+          "deletions": 35,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/frame/unique.rs",
+          "additions": 21,
+          "deletions": 43,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+          "additions": 4,
+          "deletions": 16,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/child.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/mod.rs",
+          "additions": 12,
+          "deletions": 36,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/frame_ref.rs",
+          "additions": 21,
+          "deletions": 10,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "additions": 14,
+          "deletions": 44,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/mod.rs",
+          "additions": 8,
+          "deletions": 7,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/segment.rs",
+          "additions": 17,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/unique.rs",
+          "additions": 8,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/cursor/mod.rs",
+          "additions": 21,
+          "deletions": 9,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/node/child.rs",
+          "additions": 7,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "verified_libs/vstd_extra/src/drop_tracking.rs",
+          "additions": 128,
+          "deletions": 184,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5029674957",
+      "html_url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5029674957",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/658",
+      "id": 5029674957,
+      "node_id": "IC_kwDONtWm_c8AAAABK8q_zQ",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-07-21T02:58:25Z",
+      "updated_at": "2026-07-21T02:58:25Z",
+      "body_html": "<p dir=\"auto\">The design looks good to me overall but there is one issue left regarding the independent executable-semantics issue. The <code class=\"notranslate\">ManuallyDrop</code> still stores the <code class=\"notranslate\">value: T</code> which means the vanilla Rust drop glue drops <code class=\"notranslate\">T</code> when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be <code class=\"notranslate\">core::mem::ManuallyDrop&lt;T&gt;</code> instead&gt; Otherwise this is problematic.</p>",
+      "body_text": "The design looks good to me overall but there is one issue left regarding the independent executable-semantics issue. The ManuallyDrop still stores the value: T which means the vanilla Rust drop glue drops T when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be core::mem::ManuallyDrop<T> instead> Otherwise this is problematic.",
+      "body": "The design looks good to me overall but there is one issue left regarding the independent executable-semantics issue. The `ManuallyDrop` still stores the `value: T` which means the vanilla Rust drop glue drops `T` when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be `core::mem::ManuallyDrop<T>` instead> Otherwise this is problematic.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5029674957/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5030350841",
+      "html_url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5030350841",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/658",
+      "id": 5030350841,
+      "node_id": "IC_kwDONtWm_c8AAAABK9UP-Q",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-07-21T05:05:08Z",
+      "updated_at": "2026-07-21T05:05:08Z",
+      "body_html": "<p dir=\"auto\">Looks good to me, removes a lot of redundancy! And having <code class=\"notranslate\">ManuallyDrop</code> carry the obligation is correct.</p>\n<blockquote>\n<p dir=\"auto\">The design looks good to me overall but there is one issue left regarding the independent executable-semantics issue. The <code class=\"notranslate\">ManuallyDrop</code> still stores the <code class=\"notranslate\">value: T</code> which means the vanilla Rust drop glue drops <code class=\"notranslate\">T</code> when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be <code class=\"notranslate\">core::mem::ManuallyDrop&lt;T&gt;</code> instead&gt; Otherwise this is problematic.</p>\n</blockquote>\n<p dir=\"auto\">Do we plan to use an executable semantics on the Verus code? If so this makes a lot of sense, and I will follow similar patterns in the future to make sure that the behavior matches.</p>",
+      "body_text": "Looks good to me, removes a lot of redundancy! And having ManuallyDrop carry the obligation is correct.\n\nThe design looks good to me overall but there is one issue left regarding the independent executable-semantics issue. The ManuallyDrop still stores the value: T which means the vanilla Rust drop glue drops T when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be core::mem::ManuallyDrop<T> instead> Otherwise this is problematic.\n\nDo we plan to use an executable semantics on the Verus code? If so this makes a lot of sense, and I will follow similar patterns in the future to make sure that the behavior matches.",
+      "body": "Looks good to me, removes a lot of redundancy! And having `ManuallyDrop` carry the obligation is correct.\r\n\r\n> The design looks good to me overall but there is one issue left regarding the independent executable-semantics issue. The `ManuallyDrop` still stores the `value: T` which means the vanilla Rust drop glue drops `T` when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be `core::mem::ManuallyDrop<T>` instead> Otherwise this is problematic.\r\n\r\nDo we plan to use an executable semantics on the Verus code? If so this makes a lot of sense, and I will follow similar patterns in the future to make sure that the behavior matches.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5030350841/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5030794102",
+      "html_url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5030794102",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/658",
+      "id": 5030794102,
+      "node_id": "IC_kwDONtWm_c8AAAABK9vTdg",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-07-21T06:21:09Z",
+      "updated_at": "2026-07-21T06:21:09Z",
+      "body_html": "<p dir=\"auto\">I think we should keep the behaviour aligned with Rust. And making this change makes it eaiser to migrate if Verus adds more support for <code class=\"notranslate\">Drop</code> and <code class=\"notranslate\">ManuallyDrop</code> later.</p>",
+      "body_text": "I think we should keep the behaviour aligned with Rust. And making this change makes it eaiser to migrate if Verus adds more support for Drop and ManuallyDrop later.",
+      "body": "I think we should keep the behaviour aligned with Rust. And making this change makes it eaiser to migrate if Verus adds more support for `Drop` and `ManuallyDrop` later.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5030794102/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3619118783",
+      "pull_request_review_id": 4740839735,
+      "id": 3619118783,
+      "node_id": "PRRC_kwDONtWm_c7Xt16_",
+      "diff_hunk": "@@ -1,233 +1,175 @@\n-use core::{marker::PhantomData, ops::Deref};\n+use core::ops::Deref;\n use vstd::prelude::*;\n use vstd::resource::Loc;\n \n use crate::resource::ghost_resource::excl::ExclusiveGhost;\n \n verus! {\n \n-/// A linear-looking \"must drop\" obligation tied to a value of type `R`.\n+/// A protocol for associating a value with a permission used by its verified\n+/// drop implementation.\n ///\n-/// `R` is the *key* type used to identify the resource in the State's\n-/// obligation ledger — e.g. `Range<Paddr>` for a `Segment<M>`, `usize` for a\n-/// per-slot resource, `()` for impls that pipe the token through without a\n-/// per-instance ledger. Two-layer enforcement (the design that survives\n-/// Verus's affineness):\n+/// This trait only defines the shape of the protocol. Implementing it does not\n+/// by itself guarantee that [`TrackDrop::Obligation`] is linear, unforgeable,\n+/// or authoritatively tied to [`TrackDrop::State`]. In particular, an\n+/// implementation may intentionally use a trivial obligation and perform no\n+/// drop-permission checking.\n ///\n-/// 1. **Token (this type)**: an `ExclusiveGhost<R>` wrapper. Each `alloc`\n-///    produces a unique [`Loc`]; two outstanding tokens can be proven\n-///    distinct via [`DropObligation::validate_with_other`]. No external_body\n-///    axioms — the allocation is verified by `vstd`'s resource algebra.\n-/// 2. **Ledger (in State)**: optional. For impls that opt in, the State\n-///    carries a set/multiset of outstanding keys; mint adds, redeem removes,\n-///    and the State's `clean_inv()` (or any boundary predicate) requires the\n-///    set to be empty (or the per-slot counter to be zero). Combined with\n-///    `1`, the linear guarantee is sound: silently dropping the token leaves\n-///    the ledger non-empty and breaks the boundary check.\n+/// Implementations that rely on this protocol for safety are responsible for\n+/// establishing all of the following properties in their concrete\n+/// specifications and proofs:\n ///\n-/// Impls that don't add a per-state ledger still pass tokens through —\n-/// they get the API uniformity but not the enforcement.\n-#[verifier::reject_recursive_types(R)]\n-pub tracked struct DropObligation<R> {\n-    inner: ExclusiveGhost<R>,\n-}\n-\n-impl<R> DropObligation<R> {\n-    pub closed spec fn value(self) -> R {\n-        self.inner.view()\n-    }\n-\n-    /// Unique identifier of this token. Two outstanding `DropObligation`s\n-    /// can be proven distinct via [`Self::validate_with_other`].\n-    pub closed spec fn id(self) -> Loc {\n-        self.inner.id()\n-    }\n-\n-    /// Mint a fresh obligation token. Sound on its own (no axiom — the\n-    /// allocation goes through `vstd`'s resource algebra and is verified).\n-    /// Two legitimate uses:\n-    ///\n-    /// - Inside an impl that opts out of per-state-ledger enforcement\n-    ///   (e.g. `Key = ()` impls): the token is a no-op marker; the trait\n-    ///   API stays uniform but no `clean_inv()` enforcement applies.\n-    /// - As the underlying allocator for a paired mint axiom on\n-    ///   [`HasObligations`] — the axiom adds the ledger entry alongside.\n-    pub proof fn tracked_mint(value: R) -> (tracked res: DropObligation<R>)\n-        ensures\n-            res.value() == value,\n-    {\n-        DropObligation { inner: ExclusiveGhost::alloc(value) }\n-    }\n-\n-    /// Two outstanding obligations have distinct `Loc`s.\n-    pub proof fn validate_with_other(tracked &mut self, tracked other: &Self)\n-        ensures\n-            *old(self) == *final(self),\n-            final(self).id() != other.id(),\n-    {\n-        self.inner.validate_with_other(&other.inner);\n-    }\n-}\n-\n-/// State that carries an obligation ledger keyed by `K`.\n-pub trait HasObligations<K> {\n-    spec fn obligations(self) -> Set<K>;\n-}\n-\n+/// - an issued obligation is associated with the value for which it was\n+///   issued;\n+/// - the obligation cannot be forged or duplicated;\n+/// - the state records enough authoritative information to detect a lost\n+///   outstanding obligation; and\n+/// - [`Drop::drop`] consumes the obligation and performs the corresponding\n+///   state transition exactly once.\n pub trait TrackDrop: Sized {\n+    /// A ghost state that originally holds the authoritative drop permission.\n     type State;\n \n-    /// Identifies which obligation this resource holds in the ledger.\n-    type Key;\n-\n-    /// The ledger key for *this* instance. Pinned by\n-    /// `constructor_spec`'s ensures and `Drop::drop`'s requires.\n-    spec fn key(self) -> Self::Key;\n+    /// The type of the drop permission.\n+    ///\n+    /// This permission does not necessarily represent the full permission to\n+    /// drop the value, as [`TrackDrop::drop_requires`] still takes a\n+    /// [`TrackDrop::State`] parameter.\n+    type Obligation;\n \n-    spec fn constructor_requires(self, s: Self::State) -> bool;\n+    spec fn tracked_redeem_requires(self, s: Self::State) -> bool;\n \n-    spec fn constructor_ensures(self, s0: Self::State, s1: Self::State, obl_key: Self::Key) -> bool;\n+    spec fn tracked_redeem_ensures(\n+        self,\n+        s0: Self::State,\n+        s1: Self::State,\n+        obl: Self::Obligation,\n+    ) -> bool;\n \n-    proof fn constructor_spec(self, tracked s: &mut Self::State) -> (tracked obl: DropObligation<\n-        Self::Key,\n-    >)\n+    /// Gives the drop permission to the value.\n+    proof fn tracked_redeem(self, tracked s: &mut Self::State) -> (tracked obl: Self::Obligation)\n         requires\n-            self.constructor_requires(*old(s)),\n+            self.tracked_redeem_requires(*old(s)),\n         ensures\n-            self.constructor_ensures(*old(s), *final(s), obl.value()),\n-            obl.value() == self.key(),\n+            self.tracked_redeem_ensures(*old(s), *final(s), obl),\n     ;\n \n-    spec fn drop_requires(self, s: Self::State) -> bool;\n-\n-    /// Postcondition of [`Drop::drop`]. `obl_id` is the [`Loc`] of the\n-    /// consumed obligation token — ledger-enforcing impls reference it\n-    /// to pin the ledger transition (e.g. \"the entry at `obl_id` was\n-    /// removed\"); ledger-less impls ignore it.\n-    spec fn drop_ensures(self, s0: Self::State, s1: Self::State, obl_key: Self::Key) -> bool;\n+    /// Precondition of [`Drop::drop`].\n+    spec fn drop_requires(self, s: Self::State, obl: Self::Obligation) -> bool;\n \n-    /// Precondition for \"consume the obligation without running the\n-    /// destructor\" (see [`ConsumeDrop`]). `obl_id` is exposed so\n-    /// ledger-enforcing impls can require the entry to be outstanding.\n-    spec fn consume_requires(self, s: Self::State, obl_key: Self::Key) -> bool;\n-\n-    /// Postcondition for consuming an obligation. Encodes any ledger\n-    /// mutation (e.g. redeeming the entry at `obl_id`). Impls without\n-    /// a ledger keep `s0 == s1`.\n-    spec fn consume_ensures(self, s0: Self::State, s1: Self::State, obl_key: Self::Key) -> bool;\n-\n-    /// Consume the obligation token without running the destructor body.\n-    /// Used by [`ConsumeDrop::new`] to discharge the verifier's\n-    /// linear-drop obligation when the underlying resource is\n-    /// intentionally leaked (or freed via a separate path).\n-    ///\n-    /// Impls with a real ledger should call a paired redeem axiom here;\n-    /// impls without (`Key = ()`) can leave the body empty — `obl` is\n-    /// silently dropped, which is fine because no ledger entry needs to\n-    /// shrink to match.\n-    proof fn consume_obligation(\n-        self,\n-        tracked s: &mut Self::State,\n-        tracked obl: DropObligation<Self::Key>,\n-    )\n-        requires\n-            self.consume_requires(*old(s), obl.value()),\n-            obl.value() == self.key(),\n-        ensures\n-            self.consume_ensures(*old(s), *final(s), obl.value()),\n-    ;\n+    /// Postcondition of [`Drop::drop`].\n+    spec fn drop_ensures(self, s0: Self::State, s1: Self::State, obl: Self::Obligation) -> bool;\n }\n \n pub trait Drop: TrackDrop {\n-    fn drop(\n-        self,\n-        Tracked(s): Tracked<&mut Self::State>,\n-        Tracked(obl): Tracked<DropObligation<Self::Key>>,\n-    )\n+    fn drop(self, Tracked(s): Tracked<&mut Self::State>, Tracked(obl): Tracked<Self::Obligation>)\n         requires\n-    // The body must call `self.consume_obligation(s, obl)` first\n-    // (redeeming the token / shrinking the ledger), then run the\n-    // destructor work. Both preconditions are required up front.\n-\n-            self.consume_requires(*old(s), obl.value()),\n-            self.drop_requires(*old(s)),\n-            obl.value() == self.key(),\n+            self.drop_requires(*old(s), obl),\n         ensures\n-            self.drop_ensures(*old(s), *final(s), obl.value()),\n+            self.drop_ensures(*old(s), *final(s), obl),\n     ;\n }\n \n-/// Linear-drop obligation wrapper. `ManuallyDrop::new(t, regions)`\n-/// **consumes** the State-side obligation entry for `t.key()` (via\n-/// `T::consume_obligation`) and wraps the value. The wrapper carries only\n-/// the value — no embedded obligation — and can be silently dropped\n-/// affinely; the linear-drop guarantee comes from the State-side ledger.\n-///\n-/// The precondition `consume_requires` (e.g. `frame_obligations.count(idx)\n-/// > 0` for Frame) is the load-bearing safety check: callers must\n-/// establish an outstanding obligation entry at `t.key()`. Producers\n-/// like `Frame::from_raw`, `Frame::clone`, `Frame::from_unused`,\n-/// `Frame::from_in_use` mint that entry. The mint + consume pair is\n-/// net-zero on the ledger — \"the borrow ends here.\"\n-///\n-/// # Unsoundness warning\n-///\n-/// **It is unsound to extract the inner `T` from `ManuallyDrop<T>` via\n-/// `take`/`into_inner`-style operations** without minting a fresh\n-/// obligation at the extraction site. A `ManuallyDrop<T>` carries no\n-/// obligation, so the extracted `T` would have none either — but\n-/// `T::drop` (e.g. `Frame::drop`) requires an obligation as input, so the\n-/// extracted value cannot legally be dropped. Any extraction site must\n-/// mint a fresh entry into the State-side ledger, gated by a soundness\n-/// justification (typically `ref_count >= 1` for `MD<Frame>`, mirroring\n-/// `Frame::from_raw`'s safety condition).\n-///\n-/// At the time of this redesign no ostd callsite extracts a `Frame` from\n-/// a `ManuallyDrop<Frame>` (only `Deref` borrows are taken; the one\n-/// `into_inner` is on `MD<Arc<T>>`, not `MD<Frame>`). Adding such an\n-/// extraction without the matching mint resurrects the double-counting\n-/// bug that motivated this redesign.\n-pub struct ManuallyDrop<T: TrackDrop>(pub T);\n+} // verus!\n+#[verus_verify]\n+pub struct ManuallyDrop<T: TrackDrop> {\n+    value: T,",
+      "path": "verified_libs/vstd_extra/src/drop_tracking.rs",
+      "commit_id": "f322ad4c758809f8dad6c87fb01e6fb05c0a503a",
+      "original_commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Should it be `core::mem::ManuallyDrop<T>`?",
+      "created_at": "2026-07-21T02:59:11Z",
+      "updated_at": "2026-07-21T04:53:22Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/658#discussion_r3619118783",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/658",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3619118783"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/658#discussion_r3619118783"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/658"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Should it be <code class=\"notranslate\">core::mem::ManuallyDrop&lt;T&gt;</code>?</p>",
+      "body_text": "Should it be core::mem::ManuallyDrop<T>?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3619118783/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 76,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 237,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3619199960",
+      "pull_request_review_id": 4740937278,
+      "id": 3619199960,
+      "node_id": "PRRC_kwDONtWm_c7XuJvY",
+      "diff_hunk": "@@ -1,233 +1,175 @@\n-use core::{marker::PhantomData, ops::Deref};\n+use core::ops::Deref;\n use vstd::prelude::*;\n use vstd::resource::Loc;\n \n use crate::resource::ghost_resource::excl::ExclusiveGhost;\n \n verus! {\n \n-/// A linear-looking \"must drop\" obligation tied to a value of type `R`.\n+/// A protocol for associating a value with a permission used by its verified\n+/// drop implementation.\n ///\n-/// `R` is the *key* type used to identify the resource in the State's\n-/// obligation ledger — e.g. `Range<Paddr>` for a `Segment<M>`, `usize` for a\n-/// per-slot resource, `()` for impls that pipe the token through without a\n-/// per-instance ledger. Two-layer enforcement (the design that survives\n-/// Verus's affineness):\n+/// This trait only defines the shape of the protocol. Implementing it does not\n+/// by itself guarantee that [`TrackDrop::Obligation`] is linear, unforgeable,\n+/// or authoritatively tied to [`TrackDrop::State`]. In particular, an\n+/// implementation may intentionally use a trivial obligation and perform no\n+/// drop-permission checking.\n ///\n-/// 1. **Token (this type)**: an `ExclusiveGhost<R>` wrapper. Each `alloc`\n-///    produces a unique [`Loc`]; two outstanding tokens can be proven\n-///    distinct via [`DropObligation::validate_with_other`]. No external_body\n-///    axioms — the allocation is verified by `vstd`'s resource algebra.\n-/// 2. **Ledger (in State)**: optional. For impls that opt in, the State\n-///    carries a set/multiset of outstanding keys; mint adds, redeem removes,\n-///    and the State's `clean_inv()` (or any boundary predicate) requires the\n-///    set to be empty (or the per-slot counter to be zero). Combined with\n-///    `1`, the linear guarantee is sound: silently dropping the token leaves\n-///    the ledger non-empty and breaks the boundary check.\n+/// Implementations that rely on this protocol for safety are responsible for\n+/// establishing all of the following properties in their concrete\n+/// specifications and proofs:\n ///\n-/// Impls that don't add a per-state ledger still pass tokens through —\n-/// they get the API uniformity but not the enforcement.\n-#[verifier::reject_recursive_types(R)]\n-pub tracked struct DropObligation<R> {\n-    inner: ExclusiveGhost<R>,\n-}\n-\n-impl<R> DropObligation<R> {\n-    pub closed spec fn value(self) -> R {\n-        self.inner.view()\n-    }\n-\n-    /// Unique identifier of this token. Two outstanding `DropObligation`s\n-    /// can be proven distinct via [`Self::validate_with_other`].\n-    pub closed spec fn id(self) -> Loc {\n-        self.inner.id()\n-    }\n-\n-    /// Mint a fresh obligation token. Sound on its own (no axiom — the\n-    /// allocation goes through `vstd`'s resource algebra and is verified).\n-    /// Two legitimate uses:\n-    ///\n-    /// - Inside an impl that opts out of per-state-ledger enforcement\n-    ///   (e.g. `Key = ()` impls): the token is a no-op marker; the trait\n-    ///   API stays uniform but no `clean_inv()` enforcement applies.\n-    /// - As the underlying allocator for a paired mint axiom on\n-    ///   [`HasObligations`] — the axiom adds the ledger entry alongside.\n-    pub proof fn tracked_mint(value: R) -> (tracked res: DropObligation<R>)\n-        ensures\n-            res.value() == value,\n-    {\n-        DropObligation { inner: ExclusiveGhost::alloc(value) }\n-    }\n-\n-    /// Two outstanding obligations have distinct `Loc`s.\n-    pub proof fn validate_with_other(tracked &mut self, tracked other: &Self)\n-        ensures\n-            *old(self) == *final(self),\n-            final(self).id() != other.id(),\n-    {\n-        self.inner.validate_with_other(&other.inner);\n-    }\n-}\n-\n-/// State that carries an obligation ledger keyed by `K`.\n-pub trait HasObligations<K> {\n-    spec fn obligations(self) -> Set<K>;\n-}\n-\n+/// - an issued obligation is associated with the value for which it was\n+///   issued;\n+/// - the obligation cannot be forged or duplicated;\n+/// - the state records enough authoritative information to detect a lost\n+///   outstanding obligation; and\n+/// - [`Drop::drop`] consumes the obligation and performs the corresponding\n+///   state transition exactly once.\n pub trait TrackDrop: Sized {\n+    /// A ghost state that originally holds the authoritative drop permission.\n     type State;\n \n-    /// Identifies which obligation this resource holds in the ledger.\n-    type Key;\n-\n-    /// The ledger key for *this* instance. Pinned by\n-    /// `constructor_spec`'s ensures and `Drop::drop`'s requires.\n-    spec fn key(self) -> Self::Key;\n+    /// The type of the drop permission.\n+    ///\n+    /// This permission does not necessarily represent the full permission to\n+    /// drop the value, as [`TrackDrop::drop_requires`] still takes a\n+    /// [`TrackDrop::State`] parameter.\n+    type Obligation;\n \n-    spec fn constructor_requires(self, s: Self::State) -> bool;\n+    spec fn tracked_redeem_requires(self, s: Self::State) -> bool;\n \n-    spec fn constructor_ensures(self, s0: Self::State, s1: Self::State, obl_key: Self::Key) -> bool;\n+    spec fn tracked_redeem_ensures(\n+        self,\n+        s0: Self::State,\n+        s1: Self::State,\n+        obl: Self::Obligation,\n+    ) -> bool;\n \n-    proof fn constructor_spec(self, tracked s: &mut Self::State) -> (tracked obl: DropObligation<\n-        Self::Key,\n-    >)\n+    /// Gives the drop permission to the value.\n+    proof fn tracked_redeem(self, tracked s: &mut Self::State) -> (tracked obl: Self::Obligation)\n         requires\n-            self.constructor_requires(*old(s)),\n+            self.tracked_redeem_requires(*old(s)),\n         ensures\n-            self.constructor_ensures(*old(s), *final(s), obl.value()),\n-            obl.value() == self.key(),\n+            self.tracked_redeem_ensures(*old(s), *final(s), obl),\n     ;\n \n-    spec fn drop_requires(self, s: Self::State) -> bool;\n-\n-    /// Postcondition of [`Drop::drop`]. `obl_id` is the [`Loc`] of the\n-    /// consumed obligation token — ledger-enforcing impls reference it\n-    /// to pin the ledger transition (e.g. \"the entry at `obl_id` was\n-    /// removed\"); ledger-less impls ignore it.\n-    spec fn drop_ensures(self, s0: Self::State, s1: Self::State, obl_key: Self::Key) -> bool;\n+    /// Precondition of [`Drop::drop`].\n+    spec fn drop_requires(self, s: Self::State, obl: Self::Obligation) -> bool;\n \n-    /// Precondition for \"consume the obligation without running the\n-    /// destructor\" (see [`ConsumeDrop`]). `obl_id` is exposed so\n-    /// ledger-enforcing impls can require the entry to be outstanding.\n-    spec fn consume_requires(self, s: Self::State, obl_key: Self::Key) -> bool;\n-\n-    /// Postcondition for consuming an obligation. Encodes any ledger\n-    /// mutation (e.g. redeeming the entry at `obl_id`). Impls without\n-    /// a ledger keep `s0 == s1`.\n-    spec fn consume_ensures(self, s0: Self::State, s1: Self::State, obl_key: Self::Key) -> bool;\n-\n-    /// Consume the obligation token without running the destructor body.\n-    /// Used by [`ConsumeDrop::new`] to discharge the verifier's\n-    /// linear-drop obligation when the underlying resource is\n-    /// intentionally leaked (or freed via a separate path).\n-    ///\n-    /// Impls with a real ledger should call a paired redeem axiom here;\n-    /// impls without (`Key = ()`) can leave the body empty — `obl` is\n-    /// silently dropped, which is fine because no ledger entry needs to\n-    /// shrink to match.\n-    proof fn consume_obligation(\n-        self,\n-        tracked s: &mut Self::State,\n-        tracked obl: DropObligation<Self::Key>,\n-    )\n-        requires\n-            self.consume_requires(*old(s), obl.value()),\n-            obl.value() == self.key(),\n-        ensures\n-            self.consume_ensures(*old(s), *final(s), obl.value()),\n-    ;\n+    /// Postcondition of [`Drop::drop`].\n+    spec fn drop_ensures(self, s0: Self::State, s1: Self::State, obl: Self::Obligation) -> bool;\n }\n \n pub trait Drop: TrackDrop {\n-    fn drop(\n-        self,\n-        Tracked(s): Tracked<&mut Self::State>,\n-        Tracked(obl): Tracked<DropObligation<Self::Key>>,\n-    )\n+    fn drop(self, Tracked(s): Tracked<&mut Self::State>, Tracked(obl): Tracked<Self::Obligation>)\n         requires\n-    // The body must call `self.consume_obligation(s, obl)` first\n-    // (redeeming the token / shrinking the ledger), then run the\n-    // destructor work. Both preconditions are required up front.\n-\n-            self.consume_requires(*old(s), obl.value()),\n-            self.drop_requires(*old(s)),\n-            obl.value() == self.key(),\n+            self.drop_requires(*old(s), obl),\n         ensures\n-            self.drop_ensures(*old(s), *final(s), obl.value()),\n+            self.drop_ensures(*old(s), *final(s), obl),\n     ;\n }\n \n-/// Linear-drop obligation wrapper. `ManuallyDrop::new(t, regions)`\n-/// **consumes** the State-side obligation entry for `t.key()` (via\n-/// `T::consume_obligation`) and wraps the value. The wrapper carries only\n-/// the value — no embedded obligation — and can be silently dropped\n-/// affinely; the linear-drop guarantee comes from the State-side ledger.\n-///\n-/// The precondition `consume_requires` (e.g. `frame_obligations.count(idx)\n-/// > 0` for Frame) is the load-bearing safety check: callers must\n-/// establish an outstanding obligation entry at `t.key()`. Producers\n-/// like `Frame::from_raw`, `Frame::clone`, `Frame::from_unused`,\n-/// `Frame::from_in_use` mint that entry. The mint + consume pair is\n-/// net-zero on the ledger — \"the borrow ends here.\"\n-///\n-/// # Unsoundness warning\n-///\n-/// **It is unsound to extract the inner `T` from `ManuallyDrop<T>` via\n-/// `take`/`into_inner`-style operations** without minting a fresh\n-/// obligation at the extraction site. A `ManuallyDrop<T>` carries no\n-/// obligation, so the extracted `T` would have none either — but\n-/// `T::drop` (e.g. `Frame::drop`) requires an obligation as input, so the\n-/// extracted value cannot legally be dropped. Any extraction site must\n-/// mint a fresh entry into the State-side ledger, gated by a soundness\n-/// justification (typically `ref_count >= 1` for `MD<Frame>`, mirroring\n-/// `Frame::from_raw`'s safety condition).\n-///\n-/// At the time of this redesign no ostd callsite extracts a `Frame` from\n-/// a `ManuallyDrop<Frame>` (only `Deref` borrows are taken; the one\n-/// `into_inner` is on `MD<Arc<T>>`, not `MD<Frame>`). Adding such an\n-/// extraction without the matching mint resurrects the double-counting\n-/// bug that motivated this redesign.\n-pub struct ManuallyDrop<T: TrackDrop>(pub T);\n+} // verus!\n+#[verus_verify]\n+pub struct ManuallyDrop<T: TrackDrop> {\n+    value: T,",
+      "path": "verified_libs/vstd_extra/src/drop_tracking.rs",
+      "commit_id": "f322ad4c758809f8dad6c87fb01e6fb05c0a503a",
+      "original_commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Indeed! Although currently Verus's support for `Drop` is very poor, and we have to call all `drop`s manually, this is definitely a flaw that I failed to catch in the source code.",
+      "created_at": "2026-07-21T03:20:58Z",
+      "updated_at": "2026-07-21T03:20:58Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/658#discussion_r3619199960",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/658",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3619199960"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/658#discussion_r3619199960"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/658"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Indeed! Although currently Verus's support for <code class=\"notranslate\">Drop</code> is very poor, and we have to call all <code class=\"notranslate\">drop</code>s manually, this is definitely a flaw that I failed to catch in the source code.</p>",
+      "body_text": "Indeed! Although currently Verus's support for Drop is very poor, and we have to call all drops manually, this is definitely a flaw that I failed to catch in the source code.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3619199960/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 76,
+      "side": "RIGHT",
+      "in_reply_to_id": 3619118783,
+      "author_association": "COLLABORATOR",
+      "original_position": 237,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

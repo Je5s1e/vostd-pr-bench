@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-44-a75fa49663cc",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-44-a75fa49663cc:issue-comment-2954551230",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The `allocate` and `lock_range` verification boundaries trust their complete contracts because `allocate` fails a precondition and `lock_range` crashes Verus around `ManuallyDrop`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 274,
+          "end_line": 275
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 410,
+          "end_line": 411
+        }
+      ],
+      "rationale": "Collaborator rikosellic reports two concrete verification failures on the selected head: `allocate` encounters a failed precondition and `lock_range` triggers a Verus panic involving `ManuallyDrop`. The immediately following commit is explicitly named `Add external_body`, and the selected source marks both complete functions as external bodies. Consequently Verus assumes their postconditions without checking their implementations; callers may rely on `allocate` preserving the protocol/model state and on `lock_range` returning a well-formed write-locked cursor even though neither guarantee is established. The two manifestations are grouped because the review describes one deliberate whole-function trust-boundary workaround applied in the same commit and file.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/cursor.rs\n274:     #[verifier::external_body]\n275:     pub fn allocate(\n\nafter/lock-protocol/src/exec/rw/cursor.rs\n410: #[verifier::external_body]\n411: pub fn lock_range<'a>(",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/44#issuecomment-2954551230",
+      "related_comment_ids": [
+        "2954551230"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "2954551230",
+          "url": "https://github.com/asterinas/vostd/pull/44#issuecomment-2954551230",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Rust/Verus was not executed. Read the complete archived and current remote discussion, confirmed the comment predates commit a75fa49663cc93ae148085648af1d8666b4e7896 by seconds, and inspected the fixed selected head where both functions retain whole-function external_body annotations."
+    }
+  ]
+}

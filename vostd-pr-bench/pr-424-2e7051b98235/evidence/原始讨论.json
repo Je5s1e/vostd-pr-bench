@@ -1,0 +1,1710 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/424",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 424,
+    "title": "Interrelated arithmetic, &mut porting, and panic handling fixes",
+    "body": "Lots going on in this PR. `PageTableGuard` uses &mut again, which simplifies our ability to check code equivalence. I turned some arithmetic axioms into verified proofs, which had knock-on effects at their call sites as some of them had to be split into different cases.\r\n\r\nI used the panic handling changes to improve the `kvirt_area` specs and eliminate unnecessary preconditions, and did the `panic_cond` propagation in the remaining places that I hadn't in the last PR. That's for all of the explicit `panic_cond` predicates, though, I still need to go through `segment.rs` and `io.rs` because some of those functions followed the pattern without obeying the naming convention. The `kvirt_area` fixes also involved more precise modeling of untracked frames.",
+    "bodyHTML": "<p dir=\"auto\">Lots going on in this PR. <code class=\"notranslate\">PageTableGuard</code> uses &amp;mut again, which simplifies our ability to check code equivalence. I turned some arithmetic axioms into verified proofs, which had knock-on effects at their call sites as some of them had to be split into different cases.</p>\n<p dir=\"auto\">I used the panic handling changes to improve the <code class=\"notranslate\">kvirt_area</code> specs and eliminate unnecessary preconditions, and did the <code class=\"notranslate\">panic_cond</code> propagation in the remaining places that I hadn't in the last PR. That's for all of the explicit <code class=\"notranslate\">panic_cond</code> predicates, though, I still need to go through <code class=\"notranslate\">segment.rs</code> and <code class=\"notranslate\">io.rs</code> because some of those functions followed the pattern without obeying the naming convention. The <code class=\"notranslate\">kvirt_area</code> fixes also involved more precise modeling of untracked frames.</p>",
+    "url": "https://github.com/asterinas/vostd/pull/424",
+    "state": "MERGED",
+    "createdAt": "2026-04-27T08:15:24Z",
+    "updatedAt": "2026-04-30T08:57:28Z",
+    "closedAt": "2026-04-30T08:57:28Z",
+    "mergedAt": "2026-04-30T08:57:28Z",
+    "author": {
+      "login": "SNoAnd"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "835ea7642b955f8a8329d4d1748911e201bdff49",
+    "headRefName": "phaseII/verified",
+    "headRefOid": "f053bca745487764bae9d1ab5ff7e9ccdfad08d1",
+    "changedFiles": 43,
+    "additions": 5104,
+    "deletions": 1985,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 17
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 4,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0wNC0zMFQwODo1NzowOVq0MjAyNi0wNC0zMFQwODo1NzowOVrO-pCqJw=="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c75fNix",
+          "databaseId": 4185708721,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-04-28T03:41:52Z",
+          "createdAt": "2026-04-28T03:41:52Z",
+          "updatedAt": "2026-04-28T03:41:52Z",
+          "url": "https://github.com/asterinas/vostd/pull/424#pullrequestreview-4185708721",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c76B2TY",
+          "databaseId": 4194788568,
+          "body": "",
+          "bodyHTML": "",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-04-29T07:04:24Z",
+          "createdAt": "2026-04-29T07:04:14Z",
+          "updatedAt": "2026-04-29T07:04:24Z",
+          "url": "https://github.com/asterinas/vostd/pull/424#pullrequestreview-4194788568",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c76CMBp",
+          "databaseId": 4194877545,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-04-29T07:22:48Z",
+          "createdAt": "2026-04-29T07:22:48Z",
+          "updatedAt": "2026-04-29T07:22:48Z",
+          "url": "https://github.com/asterinas/vostd/pull/424#pullrequestreview-4194877545",
+          "author": {
+            "login": "hiroki-chen"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c76kKon",
+          "databaseId": 4203784743,
+          "body": "",
+          "bodyHTML": "",
+          "state": "APPROVED",
+          "submittedAt": "2026-04-30T08:57:09Z",
+          "createdAt": "2026-04-30T08:57:09Z",
+          "updatedAt": "2026-04-30T08:57:09Z",
+          "url": "https://github.com/asterinas/vostd/pull/424#pullrequestreview-4203784743",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0wNC0yOVQwNzowNDoxNVrOfllnZA=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c5-Awdx",
+          "isResolved": false,
+          "isOutdated": false,
+          "path": "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+          "line": 1,
+          "startLine": null,
+          "originalLine": 1,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": null,
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 3151428789
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c5-WWdk",
+          "isResolved": false,
+          "isOutdated": true,
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "line": 1,
+          "startLine": null,
+          "originalLine": 1,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": null,
+          "comments": {
+            "totalCount": 2,
+            "nodes": [
+              {
+                "databaseId": 3159151317
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 43,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "NDM"
+      },
+      "nodes": [
+        {
+          "path": "ostd/specs/arch/x86_64/kspace.rs",
+          "additions": 2,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/frame/frame_specs.rs",
+          "additions": 4,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/frame/meta_owners.rs",
+          "additions": 44,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+          "additions": 10,
+          "deletions": 9,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+          "additions": 12,
+          "deletions": 9,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+          "additions": 457,
+          "deletions": 224,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+          "additions": 38,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+          "additions": 51,
+          "deletions": 21,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+          "additions": 655,
+          "deletions": 112,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+          "additions": 8,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+          "additions": 7,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+          "additions": 165,
+          "deletions": 24,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+          "additions": 4,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+          "additions": 18,
+          "deletions": 10,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/mapping_set_lemmas.rs",
+          "additions": 7,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/mod.rs",
+          "additions": 712,
+          "deletions": 30,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/entry.rs",
+          "additions": 16,
+          "deletions": 12,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+          "additions": 104,
+          "deletions": 30,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/entry_view.rs",
+          "additions": 3,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/mod.rs",
+          "additions": 3,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/owners.rs",
+          "additions": 4,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/owners.rs",
+          "additions": 84,
+          "deletions": 10,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+          "additions": 97,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "ostd/specs/mm/virt_mem_example.rs",
+          "additions": 0,
+          "deletions": 137,
+          "changeType": "DELETED"
+        },
+        {
+          "path": "ostd/specs/mm/virt_mem_newer.rs",
+          "additions": 25,
+          "deletions": 8,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/vm_space.rs",
+          "additions": 5,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/meta.rs",
+          "additions": 4,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/mod.rs",
+          "additions": 14,
+          "deletions": 23,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/segment.rs",
+          "additions": 186,
+          "deletions": 241,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/io.rs",
+          "additions": 381,
+          "deletions": 63,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "additions": 289,
+          "deletions": 156,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/kspace/mod.rs",
+          "additions": 126,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/mod.rs",
+          "additions": 4,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "additions": 228,
+          "deletions": 85,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/cursor/mod.rs",
+          "additions": 600,
+          "deletions": 396,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "additions": 269,
+          "deletions": 84,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/node/entry.rs",
+          "additions": 217,
+          "deletions": 152,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/node/mod.rs",
+          "additions": 34,
+          "deletions": 26,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/vm_space.rs",
+          "additions": 173,
+          "deletions": 81,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/external/mod.rs",
+          "additions": 4,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/external/range.rs",
+          "additions": 40,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "vstd_extra/src/external/slice.rs",
+          "additions": 0,
+          "deletions": 0,
+          "changeType": "RENAMED"
+        },
+        {
+          "path": "vstd_extra/src/lib.rs",
+          "additions": 0,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4325744364",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4325744364",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4325744364,
+      "node_id": "IC_kwDONtWm_c8AAAABAdWe7A",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-27T09:22:11Z",
+      "updated_at": "2026-04-27T09:22:11Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a> We have also encountered some build errors earlier today. Maybe you can try <code class=\"notranslate\">#[verifier::spinoff_prover]</code>.</p>",
+      "body_text": "@SNoAnd We have also encountered some build errors earlier today. Maybe you can try #[verifier::spinoff_prover].",
+      "body": "@SNoAnd We have also encountered some build errors earlier today. Maybe you can try `#[verifier::spinoff_prover]`.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4325744364/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4327559057",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4327559057",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4327559057,
+      "node_id": "IC_kwDONtWm_c8AAAABAfFPkQ",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-27T13:57:12Z",
+      "updated_at": "2026-04-27T13:57:12Z",
+      "body_html": "<p dir=\"auto\">Why every time there are so many commits in PR 👀</p>",
+      "body_text": "Why every time there are so many commits in PR 👀",
+      "body": "Why every time there are so many commits in PR 👀",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4327559057/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4329325613",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4329325613",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4329325613,
+      "node_id": "IC_kwDONtWm_c8AAAABAgxELQ",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-27T18:00:11Z",
+      "updated_at": "2026-04-27T18:00:11Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a>: Yeah, it's annoying, the PR seems to take every commit since we migrated to main. I'm not sure why, maybe a github configuration issue. The actual delta here starts with <a class=\"commit-link\" data-hovercard-type=\"commit\" data-hovercard-url=\"https://github.com/asterinas/vostd/commit/3ac88a705be5de56a2ed087a514ea0cba57fcb17/hovercard\" href=\"https://github.com/asterinas/vostd/commit/3ac88a705be5de56a2ed087a514ea0cba57fcb17\"><tt>3ac88a7</tt></a>.</p>",
+      "body_text": "@Marsman1996: Yeah, it's annoying, the PR seems to take every commit since we migrated to main. I'm not sure why, maybe a github configuration issue. The actual delta here starts with 3ac88a7.",
+      "body": "@Marsman1996: Yeah, it's annoying, the PR seems to take every commit since we migrated to main. I'm not sure why, maybe a github configuration issue. The actual delta here starts with 3ac88a705.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4329325613/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 1
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4331811086",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4331811086",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4331811086,
+      "node_id": "IC_kwDONtWm_c8AAAABAjIxDg",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-28T02:01:47Z",
+      "updated_at": "2026-04-28T02:01:47Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a>: Yeah, it's annoying, the PR seems to take every commit since we migrated to main. I'm not sure why, maybe a github configuration issue. The actual delta here starts with <a href=\"https://github.com/asterinas/vostd/commit/3ac88a705be5de56a2ed087a514ea0cba57fcb17\">3ac88a7</a>.</p>\n</blockquote>\n<p dir=\"auto\">I think this is likely caused by the commit history difference, since changes on the <code class=\"notranslate\">main</code> branch are merged via squash-and-merge.</p>\n<p dir=\"auto\">To avoid this issue, we should probably keep <code class=\"notranslate\">phaseII/verified</code> synced with the latest main branch.<br>\nAlternatively, next time we can fork from the VOSTD <code class=\"notranslate\">main</code> branch directly and open the PR from that branch.</p>",
+      "body_text": "@Marsman1996: Yeah, it's annoying, the PR seems to take every commit since we migrated to main. I'm not sure why, maybe a github configuration issue. The actual delta here starts with 3ac88a7.\n\nI think this is likely caused by the commit history difference, since changes on the main branch are merged via squash-and-merge.\nTo avoid this issue, we should probably keep phaseII/verified synced with the latest main branch.\nAlternatively, next time we can fork from the VOSTD main branch directly and open the PR from that branch.",
+      "body": "> @Marsman1996: Yeah, it's annoying, the PR seems to take every commit since we migrated to main. I'm not sure why, maybe a github configuration issue. The actual delta here starts with [3ac88a7](https://github.com/asterinas/vostd/commit/3ac88a705be5de56a2ed087a514ea0cba57fcb17).\r\n\r\nI think this is likely caused by the commit history difference, since changes on the `main` branch are merged via squash-and-merge.\r\n\r\nTo avoid this issue, we should probably keep `phaseII/verified` synced with the latest main branch. \r\nAlternatively, next time we can fork from the VOSTD `main` branch directly and open the PR from that branch.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4331811086/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4332218658",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4332218658",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4332218658,
+      "node_id": "IC_kwDONtWm_c8AAAABAjhpIg",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-28T03:46:56Z",
+      "updated_at": "2026-04-29T02:25:39Z",
+      "body_html": "<p dir=\"auto\">I see a major code change in <code class=\"notranslate\">dma</code>. Is this consistent with the previous PR by <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/hiroki-chen/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/hiroki-chen\">@hiroki-chen</a>? <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a></p>",
+      "body_text": "I see a major code change in dma. Is this consistent with the previous PR by @hiroki-chen? @SNoAnd",
+      "body": "I see a major code change in `dma`. Is this consistent with the previous PR by @hiroki-chen? @SNoAnd ",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4332218658/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341516336",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341516336",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4341516336,
+      "node_id": "IC_kwDONtWm_c8AAAABAsZIMA",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T06:52:50Z",
+      "updated_at": "2026-04-29T06:52:50Z",
+      "body_html": "<p dir=\"auto\">Unfortunately not, the <code class=\"notranslate\">dma_stream</code> in this PR seems outdated. <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a>, could you please update it?</p>",
+      "body_text": "Unfortunately not, the dma_stream in this PR seems outdated. @SNoAnd, could you please update it?",
+      "body": "Unfortunately not, the `dma_stream` in this PR seems outdated. @SNoAnd, could you please update it?",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341516336/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341557118",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341557118",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4341557118,
+      "node_id": "IC_kwDONtWm_c8AAAABAsbnfg",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T07:01:32Z",
+      "updated_at": "2026-04-29T07:01:32Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a> <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/hiroki-chen/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/hiroki-chen\">@hiroki-chen</a> That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.</p>",
+      "body_text": "@SNoAnd @hiroki-chen That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.",
+      "body": "@SNoAnd @hiroki-chen That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341557118/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341660416",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341660416",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4341660416,
+      "node_id": "IC_kwDONtWm_c8AAAABAsh7AA",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T07:22:11Z",
+      "updated_at": "2026-04-29T07:22:11Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a> <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/hiroki-chen/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/hiroki-chen\">@hiroki-chen</a> That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.</p>\n</blockquote>\n<p dir=\"auto\">I think we may delete this branch after this one has been fixed?</p>",
+      "body_text": "@SNoAnd @hiroki-chen That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.\n\nI think we may delete this branch after this one has been fixed?",
+      "body": "> @SNoAnd @hiroki-chen That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.\r\n\r\nI think we may delete this branch after this one has been fixed?",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341660416/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341677846",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341677846",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4341677846,
+      "node_id": "IC_kwDONtWm_c8AAAABAsi_Fg",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T07:25:36Z",
+      "updated_at": "2026-04-29T07:25:36Z",
+      "body_html": "<blockquote>\n<blockquote>\n<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a> <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/hiroki-chen/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/hiroki-chen\">@hiroki-chen</a> That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.</p>\n</blockquote>\n<p dir=\"auto\">I think we may delete this branch after this one has been fixed?</p>\n</blockquote>\n<p dir=\"auto\">Yes, I think so. We shall fork from the VOSTD main branch directly in our own repo and open the PR from that branch.</p>",
+      "body_text": "@SNoAnd @hiroki-chen That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.\n\nI think we may delete this branch after this one has been fixed?\n\nYes, I think so. We shall fork from the VOSTD main branch directly in our own repo and open the PR from that branch.",
+      "body": "> > @SNoAnd @hiroki-chen That was a close call, the issue almost caused serious consequences. I suggest that we always create a new branch from main each time, instead of continuing to reuse the old verified branch.\r\n> \r\n> I think we may delete this branch after this one has been fixed?\r\n\r\nYes, I think so. We shall fork from the VOSTD main branch directly in our own repo and open the PR from that branch.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341677846/reactions",
+        "total_count": 3,
+        "+1": 3,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341682409",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341682409",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4341682409,
+      "node_id": "IC_kwDONtWm_c8AAAABAsjQ6Q",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T07:26:30Z",
+      "updated_at": "2026-04-29T07:26:30Z",
+      "body_html": "<p dir=\"auto\">Actually, I've deleted this branch before, right after <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"3889539271\" data-permission-text=\"Title is private\" data-url=\"https://github.com/asterinas/vostd/issues/295\" data-hovercard-type=\"pull_request\" data-hovercard-url=\"/asterinas/vostd/pull/295/hovercard\" href=\"https://github.com/asterinas/vostd/pull/295\">#295</a>. It seems the branch was later pushed back to the remote repository from a local machine.</p>",
+      "body_text": "Actually, I've deleted this branch before, right after #295. It seems the branch was later pushed back to the remote repository from a local machine.",
+      "body": "Actually, I've deleted this branch before, right after https://github.com/asterinas/vostd/pull/295. It seems the branch was later pushed back to the remote repository from a local machine.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4341682409/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342103554",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342103554",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4342103554,
+      "node_id": "IC_kwDONtWm_c8AAAABAs8-Ag",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T08:38:44Z",
+      "updated_at": "2026-04-29T08:38:44Z",
+      "body_html": "<p dir=\"auto\">OK, I'll fix the dma issue and then also switch to using the main branch in our repo as the source for PRs.</p>",
+      "body_text": "OK, I'll fix the dma issue and then also switch to using the main branch in our repo as the source for PRs.",
+      "body": "OK, I'll fix the dma issue and then also switch to using the main branch in our repo as the source for PRs.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342103554/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342537876",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342537876",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4342537876,
+      "node_id": "IC_kwDONtWm_c8AAAABAtXelA",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T09:44:25Z",
+      "updated_at": "2026-04-29T09:44:25Z",
+      "body_html": "<p dir=\"auto\">DMA is restored from <a class=\"commit-link\" data-hovercard-type=\"commit\" data-hovercard-url=\"https://github.com/asterinas/vostd/commit/3716ba9de59d4628379c473807483278c61ebce1/hovercard\" href=\"https://github.com/asterinas/vostd/commit/3716ba9de59d4628379c473807483278c61ebce1\"><tt>3716ba9</tt></a>. It builds fine; <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/hiroki-chen/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/hiroki-chen\">@hiroki-chen</a>, please give it a quick look to make sure nothing is missing. This push also contains more admit/assume closures, and work on the segment and io transcription issues, though the latter are not fully done.</p>",
+      "body_text": "DMA is restored from 3716ba9. It builds fine; @hiroki-chen, please give it a quick look to make sure nothing is missing. This push also contains more admit/assume closures, and work on the segment and io transcription issues, though the latter are not fully done.",
+      "body": "DMA is restored from 3716ba9d. It builds fine; @hiroki-chen, please give it a quick look to make sure nothing is missing. This push also contains more admit/assume closures, and work on the segment and io transcription issues, though the latter are not fully done.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342537876/reactions",
+        "total_count": 2,
+        "+1": 2,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342559572",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342559572",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4342559572,
+      "node_id": "IC_kwDONtWm_c8AAAABAtYzVA",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T09:46:44Z",
+      "updated_at": "2026-04-29T09:46:44Z",
+      "body_html": "<p dir=\"auto\">And sorry about the branch mixup!</p>",
+      "body_text": "And sorry about the branch mixup!",
+      "body": "And sorry about the branch mixup!",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342559572/reactions",
+        "total_count": 2,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 2,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342629612",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342629612",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4342629612,
+      "node_id": "IC_kwDONtWm_c8AAAABAtdE7A",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T09:54:03Z",
+      "updated_at": "2026-04-29T09:54:03Z",
+      "body_html": "<p dir=\"auto\">I took a look and this seems fine to me</p>",
+      "body_text": "I took a look and this seems fine to me",
+      "body": "I took a look and this seems fine to me",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342629612/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342695998",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342695998",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4342695998,
+      "node_id": "IC_kwDONtWm_c8AAAABAthIPg",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-29T10:02:01Z",
+      "updated_at": "2026-04-29T10:02:01Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a>, Can you put assumptions in <code class=\"notranslate\">std_extra</code> into modules of <code class=\"notranslate\">vstd_extra::external</code>? This can make things clearer, thanks!</p>",
+      "body_text": "@SNoAnd, Can you put assumptions in std_extra into modules of vstd_extra::external? This can make things clearer, thanks!",
+      "body": "@SNoAnd, Can you put assumptions in `std_extra` into modules of `vstd_extra::external`? This can make things clearer, thanks!",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4342695998/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4350099569",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4350099569",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4350099569,
+      "node_id": "IC_kwDONtWm_c8AAAABA0lAcQ",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-30T06:11:39Z",
+      "updated_at": "2026-04-30T06:11:39Z",
+      "body_html": "<p dir=\"auto\">Merged <code class=\"notranslate\">std_extra</code> into <code class=\"notranslate\">external</code>.</p>",
+      "body_text": "Merged std_extra into external.",
+      "body": "Merged `std_extra` into `external`.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4350099569/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4351078484",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4351078484",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/424",
+      "id": 4351078484,
+      "node_id": "IC_kwDONtWm_c8AAAABA1gwVA",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-30T08:57:24Z",
+      "updated_at": "2026-04-30T08:57:24Z",
+      "body_html": "<p dir=\"auto\">Thanks for your contribution!</p>",
+      "body_text": "Thanks for your contribution!",
+      "body": "Thanks for your contribution!",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4351078484/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3151428789",
+      "pull_request_review_id": 4185708721,
+      "id": 3151428789,
+      "node_id": "PRRC_kwDONtWm_c671vy1",
+      "diff_hunk": "",
+      "path": "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+      "commit_id": "f053bca745487764bae9d1ab5ff7e9ccdfad08d1",
+      "original_commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "#[verifier::spinoff_prover] will eliminate these codes.",
+      "created_at": "2026-04-28T03:41:52Z",
+      "updated_at": "2026-04-28T03:41:52Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#discussion_r3151428789",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/424",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3151428789"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/424#discussion_r3151428789"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/424"
+        }
+      },
+      "body_html": "<p dir=\"auto\">#[verifier::spinoff_prover] will eliminate these codes.</p>",
+      "body_text": "#[verifier::spinoff_prover] will eliminate these codes.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3151428789/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 1,
+      "original_line": 1,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 1,
+      "position": 1,
+      "subject_type": "file",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3159151317",
+      "pull_request_review_id": 4194788568,
+      "id": 3159151317,
+      "node_id": "PRRC_kwDONtWm_c68TNLV",
+      "diff_hunk": "",
+      "path": "ostd/src/mm/dma/dma_stream.rs",
+      "commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707",
+      "original_commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This file is outdated.",
+      "created_at": "2026-04-29T07:04:15Z",
+      "updated_at": "2026-04-29T07:04:25Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#discussion_r3159151317",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/424",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3159151317"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/424#discussion_r3159151317"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/424"
+        }
+      },
+      "body_html": "<p dir=\"auto\">This file is outdated.</p>",
+      "body_text": "This file is outdated.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3159151317/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 1,
+      "original_line": 1,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 1,
+      "position": 1,
+      "subject_type": "file",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3159232533",
+      "pull_request_review_id": 4194877545,
+      "id": 3159232533,
+      "node_id": "PRRC_kwDONtWm_c68ThAV",
+      "diff_hunk": "",
+      "path": "ostd/src/mm/dma/dma_stream.rs",
+      "commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707",
+      "original_commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "The dependencies should also be updated",
+      "created_at": "2026-04-29T07:22:48Z",
+      "updated_at": "2026-04-29T07:22:48Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/424#discussion_r3159232533",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/424",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3159232533"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/424#discussion_r3159232533"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/424"
+        }
+      },
+      "body_html": "<p dir=\"auto\">The dependencies should also be updated</p>",
+      "body_text": "The dependencies should also be updated",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3159232533/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 1,
+      "original_line": 1,
+      "side": "RIGHT",
+      "in_reply_to_id": 3159151317,
+      "author_association": "COLLABORATOR",
+      "original_position": 1,
+      "position": 1,
+      "subject_type": "file",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

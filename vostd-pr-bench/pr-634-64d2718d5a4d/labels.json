@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-634-64d2718d5a4d",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-634-64d2718d5a4d:review-comment-3592805724",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "A reusable checked proof fact is named `segment_drop_embedded` instead of using the required `lemma_` prefix.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/segment.rs",
+          "start_line": 148,
+          "end_line": 148
+        }
+      ],
+      "rationale": "The function is a checked `proof fn` that establishes a reusable segment-drop fact and does not construct a tracked resource. The same-commit AGENTS.md explicitly requires proof lemmas to use the `lemma_` prefix. The reviewer requested that prefix and the next reviewed revision renames the function to `lemma_segment_drop_embedded`, directly confirming the fix.",
+      "source_evidence": "after/ostd/specs/mm/embedding/segment.rs\n148: pub proof fn segment_drop_embedded(\n\nafter/AGENTS.md\n31: prefix proof lemmas using `lemma_` ... prefix axioms using `axiom_`",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/634#discussion_r3592805724",
+      "related_comment_ids": [
+        "3592805724"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3592805724",
+          "url": "https://github.com/asterinas/vostd/pull/634#discussion_r3592805724",
+          "commit_id": "64d2718d5a4d1aa1792e0d181b134f24cea3e263"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Checked the complete function, same-commit naming rule, review comment, and immediate rename in the next reviewed revision."
+    }
+  ]
+}

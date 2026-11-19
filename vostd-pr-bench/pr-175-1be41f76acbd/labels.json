@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-175-1be41f76acbd",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-175-1be41f76acbd:issue-comment-3158423715",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`protocol_lock_start` leaves the subtree root in `LockedOutside` and creates an empty `Locking(nid, nid)` range even though execution has already locked that root, so the protocol state does not represent the lock held at the end of traversal.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "start_line": 260,
+          "end_line": 267
+        }
+      ],
+      "rationale": "The execution path acquires the non-stray subtree-root lock before entering the locking protocol. The transition should therefore consume `NodeState::LockedOutside`, install `NodeState::Locked`, and initialize the cursor with a range that already contains the root (`Locking(nid, nid + 1)`). Instead, the fixed head merely checks that the node remains `LockedOutside` and records `Locking(nid, nid)`. Since `locked_range` is the half-open interval `[rt, nid)`, that cursor claims no node is locked; the newly added root/state invariants are vacuous for this empty range and do not repair the abstraction mismatch. The model can consequently reason about a protocol state that lags the lock actually held by execution. The author explicitly identifies this as a fundamental error, and later PR #185 applies the exact state and range correction proposed in the comment.",
+      "source_evidence": "after/lock-protocol/src/spec/rcu/tree.rs\n260: protocol_lock_start(cpu: CpuId, nid: NodeId) {\n264:     have nodes >= [ nid => NodeState::LockedOutside ];\n266:     remove cursors -= [ cpu => CursorState::Void ];\n267:     add cursors += [ cpu => CursorState::Locking(nid, nid) ];\n\nafter/lock-protocol/src/spec/rcu/types.rs\n90: pub open spec fn locked_range(&self) -> Set<NodeId> {\n93:     Self::Locking(rt, nid) => Set::new(|id| rt <= id < nid),\n\nThus `Locking(nid, nid)` has an empty locked range while the concrete traversal has already locked `nid`. PR #185 later replaces the `have` with a `LockedOutside` removal, adds `NodeState::Locked`, and uses `Locking(nid, nid + 1)`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/175#issuecomment-3158423715",
+      "related_comment_ids": [
+        "3158423715",
+        "3163063975"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "3158423715",
+          "url": "https://github.com/asterinas/vostd/pull/175#issuecomment-3158423715",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "3163063975",
+          "url": "https://github.com/asterinas/vostd/pull/175#issuecomment-3163063975",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Read the complete archived and current remote discussion, inspected the final transition, cursor range semantics, and added invariants, confirmed the issue remains at fixed head 1be41f76acbd78c3a1bd88c5efc41246814631d7, verified the recorded base is its GitHub merge-base, and checked that merged PR #185 later makes the exact proposed correction."
+    }
+  ]
+}

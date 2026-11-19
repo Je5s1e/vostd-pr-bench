@@ -1,0 +1,322 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/175",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 175,
+    "title": "Prove rcu tree spec",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/175",
+    "state": "MERGED",
+    "createdAt": "2025-08-04T09:34:35Z",
+    "updatedAt": "2025-08-08T02:17:07Z",
+    "closedAt": "2025-08-07T09:54:02Z",
+    "mergedAt": "2025-08-07T09:54:02Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "63f6a052f73706b2db5282e46ef75f7da96d3c63",
+    "headRefName": "prove-rcu-tree",
+    "headRefOid": "1be41f76acbd78c3a1bd88c5efc41246814631d7",
+    "changedFiles": 7,
+    "additions": 535,
+    "deletions": 100,
+    "labels": {
+      "nodes": [
+        {
+          "name": "pure proof"
+        },
+        {
+          "name": "model design"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNS0wOC0wN1QwOTo0NDozM1q0MjAyNS0wOC0wN1QwOTo0NDozM1rOuI2aJg=="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c64jZom",
+          "databaseId": 3096287782,
+          "body": "",
+          "bodyHTML": "",
+          "state": "APPROVED",
+          "submittedAt": "2025-08-07T09:44:33Z",
+          "createdAt": "2025-08-07T09:44:33Z",
+          "updatedAt": "2025-08-07T09:44:33Z",
+          "url": "https://github.com/asterinas/vostd/pull/175#pullrequestreview-3096287782",
+          "author": {
+            "login": "Xungan2"
+          },
+          "authorAssociation": "NONE",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 7,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Nw"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/exec/rcu/cpu.rs",
+          "additions": 1,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "additions": 461,
+          "deletions": 79,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+          "additions": 2,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/types.rs",
+          "additions": 11,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rw/tree.rs",
+          "additions": 2,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/utils.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/map_extra.rs",
+          "additions": 57,
+          "deletions": 7,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3158423715",
+      "html_url": "https://github.com/asterinas/vostd/pull/175#issuecomment-3158423715",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/175",
+      "id": 3158423715,
+      "node_id": "IC_kwDONtWm_c68Qbij",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2025-08-06T09:01:27Z",
+      "updated_at": "2025-08-06T09:01:27Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Xungan2/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Xungan2\">@Xungan2</a>  It seems there is a fundamental error in <code class=\"notranslate\">protocol_lock_start</code>. At the end of the traverse phase, we do lock the subtree root if it is not stray, so <code class=\"notranslate\">protocol_lock_start</code> will create a locked cursor <code class=\"notranslate\">Locking(nid,nid+1)</code> instead of locking nothing <code class=\"notranslate\">Locking(nid, nid)</code>. I think a correct <code class=\"notranslate\">protocol_lock_start</code> should be something like</p>\n<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"transition! {\n    protocol_lock_start(cpu: CpuId, nid: NodeId) {\n        require(valid_cpu(pre.cpu_num, cpu));\n        require(NodeHelper::valid_nid(nid));\n\n        remove nodes -= [ nid =&gt; NodeState::LockedOutside ];\n        remove cursors -= [ cpu =&gt; CursorState::Void ];\n        add nodes += [nid =&gt; NodeState::Locked];\n        add cursors += [ cpu =&gt; CursorState::Locking(nid, nid+1) ];\n    }\n}\"><pre class=\"notranslate\"><code class=\"notranslate\">transition! {\n    protocol_lock_start(cpu: CpuId, nid: NodeId) {\n        require(valid_cpu(pre.cpu_num, cpu));\n        require(NodeHelper::valid_nid(nid));\n\n        remove nodes -= [ nid =&gt; NodeState::LockedOutside ];\n        remove cursors -= [ cpu =&gt; CursorState::Void ];\n        add nodes += [nid =&gt; NodeState::Locked];\n        add cursors += [ cpu =&gt; CursorState::Locking(nid, nid+1) ];\n    }\n}\n</code></pre></div>\n<p dir=\"auto\">Note that it changes a <code class=\"notranslate\">LockedOutside</code> node in the traverse phase into a <code class=\"notranslate\">Locked</code> node in the locking phase. Perhaps we should add another requirement regarding the <code class=\"notranslate\">strays</code> condition in the transition, and also modify the well-formedness of <code class=\"notranslate\">CursorState::Locking</code> to ensure that the root is both present and locked.</p>",
+      "body_text": "@Xungan2  It seems there is a fundamental error in protocol_lock_start. At the end of the traverse phase, we do lock the subtree root if it is not stray, so protocol_lock_start will create a locked cursor Locking(nid,nid+1) instead of locking nothing Locking(nid, nid). I think a correct protocol_lock_start should be something like\ntransition! {\n    protocol_lock_start(cpu: CpuId, nid: NodeId) {\n        require(valid_cpu(pre.cpu_num, cpu));\n        require(NodeHelper::valid_nid(nid));\n\n        remove nodes -= [ nid => NodeState::LockedOutside ];\n        remove cursors -= [ cpu => CursorState::Void ];\n        add nodes += [nid => NodeState::Locked];\n        add cursors += [ cpu => CursorState::Locking(nid, nid+1) ];\n    }\n}\n\nNote that it changes a LockedOutside node in the traverse phase into a Locked node in the locking phase. Perhaps we should add another requirement regarding the strays condition in the transition, and also modify the well-formedness of CursorState::Locking to ensure that the root is both present and locked.",
+      "body": "@Xungan2  It seems there is a fundamental error in `protocol_lock_start`. At the end of the traverse phase, we do lock the subtree root if it is not stray, so `protocol_lock_start` will create a locked cursor `Locking(nid,nid+1)` instead of locking nothing `Locking(nid, nid)`. I think a correct `protocol_lock_start` should be something like \r\n```\r\ntransition! {\r\n    protocol_lock_start(cpu: CpuId, nid: NodeId) {\r\n        require(valid_cpu(pre.cpu_num, cpu));\r\n        require(NodeHelper::valid_nid(nid));\r\n\r\n        remove nodes -= [ nid => NodeState::LockedOutside ];\r\n        remove cursors -= [ cpu => CursorState::Void ];\r\n        add nodes += [nid => NodeState::Locked];\r\n        add cursors += [ cpu => CursorState::Locking(nid, nid+1) ];\r\n    }\r\n}\r\n```\r\nNote that it changes a `LockedOutside` node in the traverse phase into a `Locked` node in the locking phase. Perhaps we should add another requirement regarding the `strays` condition in the transition, and also modify the well-formedness of `CursorState::Locking` to ensure that the root is both present and locked.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3158423715/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3163063975",
+      "html_url": "https://github.com/asterinas/vostd/pull/175#issuecomment-3163063975",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/175",
+      "id": 3163063975,
+      "node_id": "IC_kwDONtWm_c68iIan",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2025-08-07T08:25:46Z",
+      "updated_at": "2025-08-07T08:25:46Z",
+      "body_html": "<ul dir=\"auto\">\n<li>Add <code class=\"notranslate\">inv_cursor_root_in_nodes</code>: Every non-empty cursor's root should be locked.</li>\n<li>Add <code class=\"notranslate\">inv_not_allocated_subtree</code>: Every unallocated node's descendants can not be allocated.</li>\n<li>Add <code class=\"notranslate\">inv_locked_node_state</code>: Every node in the range of cursor should either be locked or not allocated.</li>\n<li>Add <code class=\"notranslate\">inv_inv_unallocated_node_locked_implies_in_subtree</code>: The other direction of <code class=\"notranslate\">inv_locked_node_state</code>.</li>\n<li>Use <code class=\"notranslate\">Set</code> to represent <code class=\"notranslate\">locked_range</code></li>\n<li>Add the <code class=\"notranslate\">cpu</code> parameter in <code class=\"notranslate\">protocol_allocate</code>, <code class=\"notranslate\">protocol_deallocate</code>.</li>\n<li>Other minor modifications in transitions.</li>\n</ul>",
+      "body_text": "Add inv_cursor_root_in_nodes: Every non-empty cursor's root should be locked.\nAdd inv_not_allocated_subtree: Every unallocated node's descendants can not be allocated.\nAdd inv_locked_node_state: Every node in the range of cursor should either be locked or not allocated.\nAdd inv_inv_unallocated_node_locked_implies_in_subtree: The other direction of inv_locked_node_state.\nUse Set to represent locked_range\nAdd the cpu parameter in protocol_allocate, protocol_deallocate.\nOther minor modifications in transitions.",
+      "body": "- Add `inv_cursor_root_in_nodes`: Every non-empty cursor's root should be locked.\r\n- Add `inv_not_allocated_subtree`: Every unallocated node's descendants can not be allocated.\r\n- Add `inv_locked_node_state`: Every node in the range of cursor should either be locked or not allocated.\r\n- Add `inv_inv_unallocated_node_locked_implies_in_subtree`: The other direction of `inv_locked_node_state`.\r\n- Use `Set` to represent `locked_range`\r\n- Add the `cpu` parameter in `protocol_allocate`, `protocol_deallocate`.\r\n- Other minor modifications in transitions.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3163063975/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

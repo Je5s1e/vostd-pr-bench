@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-577-94715eb8c48e",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-577-94715eb8c48e:review-comment-3496139332",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The public `SegmentOwner` verification documentation still describes per-frame permissions and an obligation token that the simplified type no longer contains.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/segment.rs",
+          "start_line": 95,
+          "end_line": 100
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/segment.rs",
+          "start_line": 107,
+          "end_line": 141
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/segment.rs",
+          "start_line": 145,
+          "end_line": 160
+        }
+      ],
+      "rationale": "After the permission redesign, `SegmentOwner` contains only a ghost range and marker, and its invariant checks only range alignment and bounds. Its public rustdoc nevertheless says that it holds permission tokens, that its invariant checks the number, addresses, initialization and well-formedness of permissions plus a bundled obligation token, and that the slot permission lives in `self.perms`. The type has no `perms` or obligation-token field; adjacent current documentation explicitly says it holds neither, and `relate_regions` requires the slot to remain in `regions.slots`. The review thread independently identifies the owner as no longer providing information after the redesign. The same-head AGENTS.md requires public verified APIs to document behavior and proof obligations, which stale and internally contradictory rustdoc does not satisfy.",
+      "source_evidence": "after/ostd/specs/mm/frame/segment.rs\n95: /// A [`SegmentOwner<M>`] holds the permission tokens for all frames in the\n100: /// connection between `perms` and the segment's frames.\n107: // FIXME: is this necessary?\n108: pub tracked struct SegmentOwner<M: AnyFrameMeta + ?Sized> {\n111:     /// Design B (Arc-style): the owner no longer holds the per-frame slot\n116:     /// Per-frame linear-drop: the owner carries *no* obligation token.\n124:     pub ghost range: Range<Paddr>,\n125:     pub _marker: core::marker::PhantomData<M>,\n132:     /// - the number of permissions matches the number of frames in the range;\n136:     /// - the bundled obligation token is keyed to this owner's `range`.\n137:     open spec fn inv(self) -> bool {\n138:         &&& self.range.start % PAGE_SIZE == 0\n140:         &&& self.range.start <= self.range.end <= MAX_PADDR\n153:     /// - the slot's perm is *not* in `regions.slots` (it lives in `self.perms`),\n169:                 &&& regions.slots.contains_key(idx)\n\nafter/AGENTS.md\n33: Public verified APIs should include rustdoc comments explaining both behavior and proof obligations.",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/577#discussion_r3496139332",
+      "related_comment_ids": [
+        "3496134890",
+        "3496139332",
+        "3496251674"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3496134890",
+          "url": "https://github.com/asterinas/vostd/pull/577#discussion_r3496134890",
+          "commit_id": "6ffd5e4237a510563b8dd0d53e7b35391d7244f5"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3496139332",
+          "url": "https://github.com/asterinas/vostd/pull/577#discussion_r3496139332",
+          "commit_id": "6ffd5e4237a510563b8dd0d53e7b35391d7244f5"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3496251674",
+          "url": "https://github.com/asterinas/vostd/pull/577#discussion_r3496251674",
+          "commit_id": "6ffd5e4237a510563b8dd0d53e7b35391d7244f5"
+        }
+      ],
+      "verification": "source-only; historical Verus and rustdoc were not executed. Independently checked all remote discussions, the final fixed Git object, the same-head AGENTS.md rule, and the final type/invariant/relation implementation. The contradiction remains in the selected final head."
+    }
+  ]
+}

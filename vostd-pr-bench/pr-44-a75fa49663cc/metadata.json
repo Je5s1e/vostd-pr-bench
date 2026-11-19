@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-44-a75fa49663cc",
+  "pr_number": 44,
+  "title": "fix the rw version and reorganize files",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/44",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d117354453d864636ba6e10b36a77dcb0409ecb0",
+  "head_sha": "a75fa49663cc93ae148085648af1d8666b4e7896",
+  "base_method": "git merge-base of archived GitHub base d117354453d864636ba6e10b36a77dcb0409ecb0 and selected review head a75fa49663cc93ae148085648af1d8666b4e7896; confirmed by the official comparison API",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/mod.rs",
+    "lock-protocol/src/exec/rw/common.rs",
+    "lock-protocol/src/exec/rw/cpu.rs",
+    "lock-protocol/src/exec/rw/cursor.rs",
+    "lock-protocol/src/exec/rw/frame.rs",
+    "lock-protocol/src/exec/rw/mod.rs",
+    "lock-protocol/src/exec/rw/page_table.rs",
+    "lock-protocol/src/exec/rw/types.rs",
+    "lock-protocol/src/exec/rw/utils.rs",
+    "lock-protocol/src/helpers/bits.rs",
+    "lock-protocol/src/helpers/mod.rs",
+    "lock-protocol/src/spec/atomic.rs",
+    "lock-protocol/src/spec/atomic_spec.rs",
+    "lock-protocol/src/spec/common.rs",
+    "lock-protocol/src/spec/concrete_refines_range.rs",
+    "lock-protocol/src/spec/concrete_tree_spec.rs",
+    "lock-protocol/src/spec/mod.rs",
+    "lock-protocol/src/spec/range_refines_atomic.rs",
+    "lock-protocol/src/spec/range_spec.rs",
+    "lock-protocol/src/spec/tree.rs",
+    "lock-protocol/src/spec/utils.rs",
+    "lock-protocol/src/test/mod.rs",
+    "lock-protocol/src/test/rw_version/exec/common.rs",
+    "lock-protocol/src/test/rw_version/exec/cursor.rs",
+    "lock-protocol/src/test/rw_version/exec/frame.rs",
+    "lock-protocol/src/test/rw_version/exec/mod.rs",
+    "lock-protocol/src/test/rw_version/exec/page_table.rs",
+    "lock-protocol/src/test/rw_version/exec/types.rs",
+    "lock-protocol/src/test/rw_version/mod.rs",
+    "lock-protocol/src/test/rw_version/spec/atomic.rs",
+    "lock-protocol/src/test/rw_version/spec/common.rs",
+    "lock-protocol/src/test/rw_version/spec/mod.rs",
+    "lock-protocol/src/test/rw_version/spec/stability.rs",
+    "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "lock-protocol/src/test/rw_version/vstd_extra/manually_drop.rs",
+    "lock-protocol/src/test/rw_version/vstd_extra/mod.rs"
+  ],
+  "diff_sha256": "f77fb7901e40f0a0c41755c5f1965cf63500cb4535f58ca4b2e85f9e0c18d2e0",
+  "versions": {
+    "before": {
+      "commit": "d117354453d864636ba6e10b36a77dcb0409ecb0",
+      "file_count": 25,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "a75fa49663cc93ae148085648af1d8666b4e7896",
+      "file_count": 17,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-17T04:39:02.408242+00:00",
+    "reviewed_at": "2026-11-18T18:47:51Z",
+    "upstream_updated_at": "2025-08-09T02:49:37Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/44",
+      "https://github.com/asterinas/vostd/pull/44#issuecomment-2954551230"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00044"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-924-fa4046a6b4ba",
+  "pr_number": 924,
+  "title": "prove: mm ktests with strengthened VmReader/VmWriter contracts",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/924",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "46440af7206dc3132253ebb8cb5e190a5d711e76",
+  "head_sha": "fa4046a6b4bab0664e7f6504cb1a7efcd87c298f",
+  "base_method": "git merge-base of the archived GitHub base 46440af7206dc3132253ebb8cb5e190a5d711e76 and selected final review head fa4046a6b4bab0664e7f6504cb1a7efcd87c298f; the confirmed issues remain in this head",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "docs/coding-guidelines/maintainability.md",
+    "ostd/specs/mm/io.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/kspace/test.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/test.rs",
+    "verified_libs/vstd_extra/src/layout.rs"
+  ],
+  "diff_sha256": "7cb8bf4136250da17e7e8ea1ba1121de6b9cdaa73abd9f7859b53fff4e1400a6",
+  "versions": {
+    "before": {
+      "commit": "46440af7206dc3132253ebb8cb5e190a5d711e76",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "fa4046a6b4bab0664e7f6504cb1a7efcd87c298f",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-17T04:41:44.136363+00:00",
+    "reviewed_at": "2026-11-13T05:50:18Z",
+    "upstream_updated_at": "2026-11-13T13:41:08Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/924",
+      "https://github.com/asterinas/vostd/pull/924#discussion_r4560116871",
+      "https://github.com/asterinas/vostd/pull/924#discussion_r4560116876",
+      "https://github.com/asterinas/vostd/pull/924#discussion_r4560116924"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4046a6b4bab0664e7f6504cb1a7efcd87c298f",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4046a6b4bab0664e7f6504cb1a7efcd87c298f/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00924"
+  }
+}

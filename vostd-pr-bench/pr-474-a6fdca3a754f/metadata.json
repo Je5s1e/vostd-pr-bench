@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-474-a6fdca3a754f",
+  "pr_number": 474,
+  "title": "Try to use `dyn InAtomicMode`",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/474",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "953aaa28c2e769d569d3c9f1e1fda22b96de5cd9",
+  "head_sha": "a6fdca3a754f8b7500f4facaf5ae472c621d3c3f",
+  "base_method": "git merge-base(remote PR base 953aaa28c2e769d569d3c9f1e1fda22b96de5cd9, selected final PR head a6fdca3a754f8b7500f4facaf5ae472c621d3c3f); the reported guard-lifetime issue remains in this head after all four PR commits",
+  "archive_base_sha": "953aaa28c2e769d569d3c9f1e1fda22b96de5cd9",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/lib.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/specs/task/mod.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "ostd/src/sync/rcu/mod.rs",
+    "ostd/src/task/atomic_mode.rs",
+    "ostd/src/task/mod.rs",
+    "ostd/src/task/preempt/guard.rs"
+  ],
+  "diff_sha256": "e5cebe4a053bb0ead8b3d95bd2129cc7b2f9edfb90bef411c8037d68d65e186c",
+  "versions": {
+    "before": {
+      "commit": "953aaa28c2e769d569d3c9f1e1fda22b96de5cd9",
+      "file_count": 329,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "ddb70f71e8ac0e0fb683b09ad2a0f10d0c229ccf",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "a6fdca3a754f8b7500f4facaf5ae472c621d3c3f",
+      "file_count": 328,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "ddb70f71e8ac0e0fb683b09ad2a0f10d0c229ccf",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "CLOSED",
+  "collection": {
+    "collected_at": "2026-11-17T04:40:12.935755+00:00",
+    "reviewed_at": "2026-11-18T16:37:08Z",
+    "upstream_updated_at": "2026-11-11T05:59:09Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/474",
+      "https://github.com/asterinas/vostd/pull/474#issuecomment-4531285586",
+      "https://github.com/asterinas/vostd/pull/474#issuecomment-4531408222",
+      "https://github.com/asterinas/vostd/pull/474#issuecomment-4531703863",
+      "https://github.com/asterinas/vostd/pull/474#issuecomment-4532937293",
+      "https://github.com/asterinas/vostd/pull/474#issuecomment-4533046504"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00474"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Final closed PR head. It follows the initial lifetime-unsoundness comments, and its fixed source still gives KVirtArea::query static tracked guard state while creating only a local DisabledPreemptGuard; no later PR commit fixes the reported root cause.",
+    "zero_issues_meaning": "Not applicable: one semantic issue was adjudicated.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

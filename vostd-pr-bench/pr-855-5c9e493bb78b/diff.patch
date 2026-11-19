@@ -1,0 +1,1130 @@
+diff --git a/ostd/specs/arch/loongarch/mod.rs b/ostd/specs/arch/loongarch/mod.rs
+index ca8d49e33793f907be019c278ab7313841900d2a..2bf6a8ad8360187a87b389aa85a84caa0e1a76bb 100644
+--- a/ostd/specs/arch/loongarch/mod.rs
++++ b/ostd/specs/arch/loongarch/mod.rs
+@@ -1,24 +1,12 @@
+-use vstd::{
+-    arithmetic::power2::{lemma2_to64, lemma2_to64_rest, pow2},
+-    prelude::*,
+-};
+-use vstd_extra::external::ilog2::lemma_usize_pow2_ilog2;
++use vstd::prelude::*;
+ 
+-use crate::specs::{
+-    arch::model::ArchAddressSpaceModel,
+-    mm::page_table::{
+-        leading_bits_spec, nr_page_table_coverage_bits_spec, nr_pte_index_bits_spec,
+-        page_table_managed_end_spec, page_table_managed_start_spec, pte_index_bit_offset_spec,
+-        vaddr_range_spec,
+-    },
+-};
++use crate::specs::arch::model::ArchAddressSpaceModel;
+ 
+ use crate::{
+-    arch::mm::{NR_ENTRIES, PagingConsts},
++    arch::mm::PagingConsts,
+     mm::{
+         MAX_PADDR, Paddr, PagingConstsTrait, Vaddr,
+-        kspace::{KernelPtConfig, LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+-        vm_space::UserPtConfig,
++        kspace::{LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+     },
+ };
+ 
+@@ -53,57 +41,4 @@ impl ArchAddressSpaceModel for LoongArch {
+     }
+ }
+ 
+-/// Supplies the layout facts expected by shared page-table proofs.
+-pub(crate) proof fn lemma_arch_specific_consts_properties<C: PagingConstsTrait>()
+-    ensures
+-        C::BASE_PAGE_SIZE().ilog2() == 12u32,
+-        nr_pte_index_bits_spec::<C>() == 9usize,
+-        pow2(9) == NR_ENTRIES,
+-        pte_index_bit_offset_spec::<C>(4) == 39,
+-        0 * pow2(39) == 0,
+-        256 * pow2(39) == pow2(47),
+-        512 * pow2(39) == pow2(48),
+-        pow2(47) - 1 == 0x0000_7FFF_FFFF_FFFF,
+-        0xffff_int * 0x1_0000_0000_0000int + pow2(47) == 0xffff_8000_0000_0000int,
+-        0xffff_int * 0x1_0000_0000_0000int + pow2(48) - 1 == 0xffff_ffff_ffff_ffffint,
+-{
+-    // TODO: Replace the shared hardcoded axiom with architecture-specific layout proofs.
+-    C::axiom_current_paging_consts_hardcoded();
+-    lemma2_to64();
+-    lemma2_to64_rest();
+-    lemma_usize_pow2_ilog2(12);
+-    lemma_usize_pow2_ilog2(9);
+-}
+-
+-/// Checks the user address range for LoongArch four-level paging.
+-pub(crate) proof fn lemma_vaddr_range_spec_user()
+-    ensures
+-        leading_bits_spec::<UserPtConfig>() == 0,
+-        page_table_managed_start_spec::<UserPtConfig>() == 0,
+-        page_table_managed_end_spec::<UserPtConfig>() == 0x0000_8000_0000_0000int,
+-        vaddr_range_spec::<UserPtConfig>().start == 0,
+-        vaddr_range_spec::<UserPtConfig>().end == 0x0000_7FFF_FFFF_FFFF,
+-{
+-    lemma_arch_specific_consts_properties::<PagingConsts>();
+-    lemma2_to64();
+-
+-}
+-
+-/// Checks the paged kernel range; the direct-mapping window is separate.
+-pub(crate) proof fn lemma_vaddr_range_spec_kernel()
+-    ensures
+-        leading_bits_spec::<KernelPtConfig>() == 0xffff,
+-        page_table_managed_start_spec::<KernelPtConfig>() == 0xFFFF_8000_0000_0000,
+-        page_table_managed_end_spec::<KernelPtConfig>() == 0x1_0000_0000_0000_0000int,
+-        vaddr_range_spec::<KernelPtConfig>().start == 0xFFFF_8000_0000_0000,
+-        vaddr_range_spec::<KernelPtConfig>().end == 0xFFFF_FFFF_FFFF_FFFF,
+-{
+-    lemma_arch_specific_consts_properties::<PagingConsts>();
+-    lemma2_to64();
+-
+-    assert(nr_page_table_coverage_bits_spec::<PagingConsts>() == 48);
+-
+-    assert((256 * pow2(39) as int / pow2(47) as int) % 2 == 1);
+-}
+-
+ } // verus!
+diff --git a/ostd/specs/arch/mod.rs b/ostd/specs/arch/mod.rs
+index b59a70cb0d584746bb427bd8d13ae80bb8d44797..d9dc2f69667076faa71a360001473f0d303deb98 100644
+--- a/ostd/specs/arch/mod.rs
++++ b/ostd/specs/arch/mod.rs
+@@ -6,19 +6,19 @@
+ //! The erased [`valid_frame_paddr`] predicate requires base-page alignment and an
+ //! address below that implementation's modeled physical-memory bound. Shared
+ //! constants are re-exported from the executable architecture and memory modules.
+-//! The model's conversion lemmas establish bounds, round trips, and alignment
+-//! within the linear mapping window. Page-table proofs that call
+-//! [`crate::mm::PagingConstsTrait::axiom_current_paging_consts_hardcoded`] still
+-//! trust the current layout; that restriction is not enforced for other configurations.
++//! The model's conversion lemma establishes bounds within the linear mapping window.
+ use vstd::prelude::*;
+ 
++use crate::specs::arch::model::{lemma_paddr_to_vaddr_properties_for, valid_frame_paddr_for};
++
+ use crate::mm::{
+-    Paddr, Vaddr,
++    Paddr,
+     kspace::{LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR, paddr_to_vaddr},
+ };
+ 
+ pub mod model;
+-pub use model::*;
++
++pub use model::ArchAddressSpaceModel;
+ 
+ // Compatibility re-exports for proof modules that still use `specs::arch`.
+ // The authoritative values live in the executable memory/architecture modules.
+@@ -29,80 +29,40 @@ pub use crate::{
+ 
+ #[cfg(target_arch = "x86_64")]
+ mod x86;
++/// The architecture selected by the current verification target.
+ #[cfg(target_arch = "x86_64")]
+-pub use x86::*;
++pub use x86::X86Arch as CurrentArch;
+ 
+ #[cfg(target_arch = "riscv64")]
+ mod riscv;
++/// The architecture selected by the current verification target.
+ #[cfg(target_arch = "riscv64")]
+-pub use riscv::*;
++pub use riscv::RiscvArch as CurrentArch;
+ 
+ #[cfg(target_arch = "loongarch64")]
+ mod loongarch;
+-#[cfg(target_arch = "loongarch64")]
+-pub use loongarch::*;
+-verus! {
+-
+-// Asterinas is designed for 64-bit architectures.
+-global size_of usize == 8;
+-
+-global size_of isize == 8;
+-
+-/// The architecture selected by the current verification target.
+-#[cfg(target_arch = "x86_64")]
+-pub type CurrentArch = x86::X86Arch;
+-
+ /// The architecture selected by the current verification target.
+-#[cfg(target_arch = "riscv64")]
+-pub type CurrentArch = riscv::RiscvArch;
+-
+ #[cfg(target_arch = "loongarch64")]
+-pub type CurrentArch = loongarch::LoongArch;
++pub use loongarch::LoongArch as CurrentArch;
++
++verus! {
+ 
+ /// A physical address that can identify a base-page frame on the selected architecture.
+ pub open spec fn valid_frame_paddr(paddr: Paddr) -> bool {
+     valid_frame_paddr_for::<CurrentArch>(paddr)
+ }
+ 
+-pub proof fn lemma_linear_mapping_base_vaddr_properties()
+-    ensures
+-        LINEAR_MAPPING_BASE_VADDR % PAGE_SIZE == 0,
+-        LINEAR_MAPPING_BASE_VADDR < VMALLOC_BASE_VADDR,
+-{
+-    CurrentArch::lemma_model_requirements();
+-}
+-
+-/// Converts a virtual address in the linear mapping to a physical address.
+-#[verifier::inline]
+-pub open spec fn vaddr_to_paddr(va: Vaddr) -> usize
+-    recommends
+-        LINEAR_MAPPING_BASE_VADDR <= va < VMALLOC_BASE_VADDR,
+-{
+-    model::vaddr_to_paddr_for::<CurrentArch>(va)
+-}
+-
+-/// Relates the current linear mapping to its architecture model and inverse.
+-pub broadcast proof fn lemma_paddr_to_vaddr_properties(pa: Paddr)
++/// Relates the current linear mapping to its architecture model.
++pub proof fn lemma_paddr_to_vaddr_properties(pa: Paddr)
+     requires
+         pa < VMALLOC_BASE_VADDR - LINEAR_MAPPING_BASE_VADDR,
+     ensures
+-        #[trigger] paddr_to_vaddr(pa) == model::paddr_to_vaddr_for::<CurrentArch>(pa),
+-        LINEAR_MAPPING_BASE_VADDR <= #[trigger] paddr_to_vaddr(pa) < VMALLOC_BASE_VADDR,
+-        #[trigger] vaddr_to_paddr(paddr_to_vaddr(pa)) == pa,
++        paddr_to_vaddr(pa) == model::paddr_to_vaddr_for::<CurrentArch>(pa),
++        LINEAR_MAPPING_BASE_VADDR <= paddr_to_vaddr(pa) < VMALLOC_BASE_VADDR,
+ {
+     lemma_paddr_to_vaddr_properties_for::<CurrentArch>(pa);
+ }
+ 
+-pub broadcast proof fn lemma_vaddr_to_paddr_properties(va: Vaddr)
+-    requires
+-        LINEAR_MAPPING_BASE_VADDR <= va < VMALLOC_BASE_VADDR,
+-    ensures
+-        #[trigger] vaddr_to_paddr(va) < VMALLOC_BASE_VADDR - LINEAR_MAPPING_BASE_VADDR,
+-        #[trigger] paddr_to_vaddr(vaddr_to_paddr(va)) == va,
+-{
+-    lemma_vaddr_to_paddr_properties_for::<CurrentArch>(va);
+-}
+-
+ pub proof fn lemma_max_paddr_range()
+     ensures
+         MAX_PADDR < VMALLOC_BASE_VADDR - LINEAR_MAPPING_BASE_VADDR,
+diff --git a/ostd/specs/arch/model.rs b/ostd/specs/arch/model.rs
+index be6a41e70c971ad3b614cf246a8592b3600758fe..3d597b1d8b97ebe70421c882a6b5f7067a9049b7 100644
+--- a/ostd/specs/arch/model.rs
++++ b/ostd/specs/arch/model.rs
+@@ -6,14 +6,9 @@
+ //! modeled physical-address bound is page-aligned and that its linear mapping
+ //! has room for those addresses without overflow. The bound limits tracked
+ //! memory; it does not describe the processor's physical-address width.
+-//! Within each architecture's linear mapping window, the address conversions
+-//! preserve bounds and are mutual inverses. Physical-to-virtual conversion also
+-//! preserves base-page alignment.
+-//! `CurrentArch` selects the instance for this target. Calls to
+-//! `PagingConstsTrait::axiom_current_paging_consts_hardcoded` mark proofs that
+-//! still depend on the constants used by executable page-table layouts.
++//! Within each architecture's linear mapping window, physical-to-virtual conversion
++//! preserves bounds.
+ use vstd::prelude::*;
+-use vstd_extra::arithmetic::lemma_mod_0_add;
+ 
+ use crate::mm::{Paddr, PagingConstsTrait, Vaddr};
+ 
+@@ -58,48 +53,14 @@ pub open spec fn paddr_to_vaddr_for<A: ArchAddressSpaceModel>(pa: Paddr) -> Vadd
+     (pa + A::linear_mapping_base_vaddr_spec()) as usize
+ }
+ 
+-/// Convert a linear-mapped virtual address back to a physical address.
+-pub open spec fn vaddr_to_paddr_for<A: ArchAddressSpaceModel>(va: Vaddr) -> Paddr {
+-    (va - A::linear_mapping_base_vaddr_spec()) as usize
+-}
+-
+-/// Maps a physical offset into the linear mapping window and back without loss.
++/// Maps a physical offset into the linear mapping window without overflow.
+ pub proof fn lemma_paddr_to_vaddr_properties_for<A: ArchAddressSpaceModel>(pa: Paddr)
+     requires
+         pa < A::vmalloc_base_vaddr_spec() - A::linear_mapping_base_vaddr_spec(),
+     ensures
+         A::linear_mapping_base_vaddr_spec() <= paddr_to_vaddr_for::<A>(pa)
+             < A::vmalloc_base_vaddr_spec(),
+-        vaddr_to_paddr_for::<A>(paddr_to_vaddr_for::<A>(pa)) == pa,
+-{
+-}
+-
+-/// Maps a linear-mapped virtual address to a physical offset and back without loss.
+-pub proof fn lemma_vaddr_to_paddr_properties_for<A: ArchAddressSpaceModel>(va: Vaddr)
+-    requires
+-        A::linear_mapping_base_vaddr_spec() <= va < A::vmalloc_base_vaddr_spec(),
+-    ensures
+-        vaddr_to_paddr_for::<A>(va) < A::vmalloc_base_vaddr_spec()
+-            - A::linear_mapping_base_vaddr_spec(),
+-        paddr_to_vaddr_for::<A>(vaddr_to_paddr_for::<A>(va)) == va,
+-{
+-}
+-
+-/// Preserves base-page alignment when mapping a physical offset into the linear window.
+-pub proof fn lemma_paddr_to_vaddr_aligned_for<A: ArchAddressSpaceModel>(pa: Paddr)
+-    requires
+-        pa < A::vmalloc_base_vaddr_spec() - A::linear_mapping_base_vaddr_spec(),
+-        pa % A::C::BASE_PAGE_SIZE() == 0,
+-    ensures
+-        paddr_to_vaddr_for::<A>(pa) % A::C::BASE_PAGE_SIZE() == 0,
+ {
+-    A::C::lemma_paging_consts_requirements();
+-    A::lemma_model_requirements();
+-    lemma_mod_0_add(
+-        pa as int,
+-        A::linear_mapping_base_vaddr_spec() as int,
+-        A::C::BASE_PAGE_SIZE() as int,
+-    );
+ }
+ 
+ } // verus!
+diff --git a/ostd/specs/arch/riscv/mod.rs b/ostd/specs/arch/riscv/mod.rs
+index 371aaa2cdd6565ab7cdd71fb0d880c0047cc0e6f..dd841531f4c629404e3bcdf139c79f9959772f4b 100644
+--- a/ostd/specs/arch/riscv/mod.rs
++++ b/ostd/specs/arch/riscv/mod.rs
+@@ -1,24 +1,12 @@
+-use vstd::{
+-    arithmetic::power2::{lemma2_to64, lemma2_to64_rest, pow2},
+-    prelude::*,
+-};
+-use vstd_extra::external::ilog2::lemma_usize_pow2_ilog2;
++use vstd::prelude::*;
+ 
+-use crate::specs::{
+-    arch::model::ArchAddressSpaceModel,
+-    mm::page_table::{
+-        leading_bits_spec, nr_page_table_coverage_bits_spec, nr_pte_index_bits_spec,
+-        page_table_managed_end_spec, page_table_managed_start_spec, pte_index_bit_offset_spec,
+-        vaddr_range_proofs, vaddr_range_spec,
+-    },
+-};
++use crate::specs::arch::model::ArchAddressSpaceModel;
+ 
+ use crate::{
+-    arch::mm::{NR_ENTRIES, PagingConsts},
++    arch::mm::PagingConsts,
+     mm::{
+         MAX_PADDR, Paddr, PagingConstsTrait, Vaddr,
+-        kspace::{KernelPtConfig, LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+-        vm_space::UserPtConfig,
++        kspace::{LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+     },
+ };
+ 
+@@ -55,58 +43,4 @@ impl ArchAddressSpaceModel for RiscvArch {
+     }
+ }
+ 
+-/// Supplies the layout facts expected by shared page-table proofs.
+-pub(crate) proof fn lemma_arch_specific_consts_properties<C: PagingConstsTrait>()
+-    ensures
+-        C::BASE_PAGE_SIZE().ilog2() == 12u32,
+-        nr_pte_index_bits_spec::<C>() == 9usize,
+-        pow2(9) == NR_ENTRIES,
+-        pte_index_bit_offset_spec::<C>(4) == 39,
+-        0 * pow2(39) == 0,
+-        256 * pow2(39) == pow2(47),
+-        512 * pow2(39) == pow2(48),
+-        pow2(47) - 1 == 0x0000_7FFF_FFFF_FFFF,
+-        0xffff_int * 0x1_0000_0000_0000int + pow2(47) == 0xffff_8000_0000_0000int,
+-        0xffff_int * 0x1_0000_0000_0000int + pow2(48) - 1 == 0xffff_ffff_ffff_ffffint,
+-{
+-    // TODO: Replace the shared hardcoded axiom with architecture-specific layout proofs.
+-    C::axiom_current_paging_consts_hardcoded();
+-    lemma2_to64();
+-    lemma2_to64_rest();
+-    lemma_usize_pow2_ilog2(12);
+-    lemma_usize_pow2_ilog2(9);
+-}
+-
+-/// Checks the user address range for RISC-V Sv48.
+-pub(crate) proof fn lemma_vaddr_range_spec_user()
+-    ensures
+-        leading_bits_spec::<UserPtConfig>() == 0,
+-        page_table_managed_start_spec::<UserPtConfig>() == 0,
+-        page_table_managed_end_spec::<UserPtConfig>() == 0x0000_8000_0000_0000int,
+-        vaddr_range_spec::<UserPtConfig>().start == 0,
+-        vaddr_range_spec::<UserPtConfig>().end == 0x0000_7FFF_FFFF_FFFF,
+-{
+-    lemma_arch_specific_consts_properties::<PagingConsts>();
+-    vstd::arithmetic::power2::lemma2_to64();
+-    vstd::arithmetic::power2::lemma2_to64_rest();
+-}
+-
+-/// Checks the kernel address range for RISC-V Sv48.
+-pub(crate) proof fn lemma_vaddr_range_spec_kernel()
+-    ensures
+-        leading_bits_spec::<KernelPtConfig>() == 0xffff,
+-        page_table_managed_start_spec::<KernelPtConfig>() == 0xFFFF_8000_0000_0000,
+-        page_table_managed_end_spec::<KernelPtConfig>() == 0x1_0000_0000_0000_0000int,
+-        vaddr_range_spec::<KernelPtConfig>().start == 0xFFFF_8000_0000_0000,
+-        vaddr_range_spec::<KernelPtConfig>().end == 0xFFFF_FFFF_FFFF_FFFF,
+-{
+-    lemma_arch_specific_consts_properties::<PagingConsts>();
+-    vstd::arithmetic::power2::lemma2_to64();
+-    vstd::arithmetic::power2::lemma2_to64_rest();
+-    vstd::layout::unsigned_int_max_values();
+-    assert(nr_page_table_coverage_bits_spec::<PagingConsts>() == 48);
+-    vaddr_range_proofs::lemma_leading_bits_properties::<KernelPtConfig>();
+-    assert((256 * pow2(39) as int / pow2(47) as int) % 2 == 1);
+-}
+-
+ } // verus!
+diff --git a/ostd/specs/arch/x86/mod.rs b/ostd/specs/arch/x86/mod.rs
+index 564e7ed6efd0318088ede9f48c13538f4710c131..a2115845dff0d60a93ed3a5ab623749748b26547 100644
+--- a/ostd/specs/arch/x86/mod.rs
++++ b/ostd/specs/arch/x86/mod.rs
+@@ -1,34 +1,12 @@
+-use vstd::{
+-    arithmetic::power2::{lemma_pow2_adds, lemma2_to64, lemma2_to64_rest, pow2},
+-    prelude::*,
+-};
+-use vstd_extra::prelude::*;
++use vstd::prelude::*;
+ 
+-use crate::specs::{
+-    arch::{
+-        CurrentArch, lemma_max_paddr_range, lemma_paddr_to_vaddr_properties,
+-        model::{ArchAddressSpaceModel, lemma_paddr_to_vaddr_aligned_for},
+-    },
+-    mm::{
+-        frame::mapping::lemma_meta_to_frame_soundness,
+-        page_table::{
+-            leading_bits_spec, nr_page_table_coverage_bits_spec, nr_pte_index_bits_spec,
+-            page_table_managed_end_spec, page_table_managed_start_spec, pte_index_bit_offset_spec,
+-            vaddr_range_proofs, vaddr_range_spec,
+-        },
+-    },
+-};
++use crate::specs::arch::model::ArchAddressSpaceModel;
+ 
+ use crate::{
+-    arch::mm::{NR_ENTRIES, PAGE_SIZE, PagingConsts},
++    arch::mm::PagingConsts,
+     mm::{
+-        MAX_NR_PAGES, MAX_PADDR, Paddr, PagingConstsTrait, Vaddr,
+-        frame::meta::{META_SLOT_SIZE, mapping::meta_to_frame},
+-        kspace::{
+-            FRAME_METADATA_RANGE, KernelPtConfig, LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR,
+-            paddr_to_vaddr,
+-        },
+-        vm_space::UserPtConfig,
++        MAX_PADDR, Paddr, PagingConstsTrait, Vaddr,
++        kspace::{LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+     },
+ };
+ 
+@@ -38,7 +16,7 @@ verus! {
+ pub ghost struct X86Arch;
+ 
+ impl ArchAddressSpaceModel for X86Arch {
+-    type C = crate::arch::mm::PagingConsts;
++    type C = PagingConsts;
+ 
+     open spec fn max_paddr_spec() -> Paddr {
+         MAX_PADDR
+@@ -53,89 +31,12 @@ impl ArchAddressSpaceModel for X86Arch {
+     }
+ 
+     proof fn lemma_model_requirements() {
+-        Self::C::lemma_paging_consts_requirements();
+         assert(Self::linear_mapping_base_vaddr_spec() % Self::C::BASE_PAGE_SIZE() == 0)
+             by (compute_only);
+ 
+-        assert(0 < Self::max_paddr_spec()) by (compute_only);
+-        assert(Self::C::BASE_PAGE_SIZE() <= Self::max_paddr_spec()) by (compute_only);
+-        assert(Self::max_paddr_spec() % Self::C::BASE_PAGE_SIZE() == 0) by (compute_only);
+         assert(Self::max_paddr_spec() + Self::linear_mapping_base_vaddr_spec()
+             < Self::vmalloc_base_vaddr_spec()) by (compute_only);
+     }
+ }
+ 
+-pub broadcast proof fn lemma_meta_frame_vaddr_properties(meta: Vaddr)
+-    requires
+-        meta % META_SLOT_SIZE == 0,
+-        FRAME_METADATA_RANGE.start <= meta < FRAME_METADATA_RANGE.start + MAX_NR_PAGES
+-            * META_SLOT_SIZE,
+-    ensures
+-        LINEAR_MAPPING_BASE_VADDR <= #[trigger] paddr_to_vaddr(meta_to_frame(meta))
+-            < VMALLOC_BASE_VADDR,
+-        #[trigger] paddr_to_vaddr(meta_to_frame(meta)) % PAGE_SIZE == 0,
+-{
+-    let pa = meta_to_frame(meta);
+-    lemma_meta_to_frame_soundness(meta);
+-    lemma_max_paddr_range();
+-    lemma_paddr_to_vaddr_properties(pa);
+-    lemma_paddr_to_vaddr_aligned_for::<CurrentArch>(pa);
+-}
+-
+-// Here are some architecture-specific const value properties.
+-// Any use of this lemma in architecture-independent code should be removed.
+-pub(crate) proof fn lemma_arch_specific_consts_properties<C: PagingConstsTrait>()
+-    ensures
+-        C::BASE_PAGE_SIZE().ilog2() == 12u32,
+-        nr_pte_index_bits_spec::<C>() == 9usize,
+-        pow2(9) == NR_ENTRIES,
+-        pte_index_bit_offset_spec::<C>(4) == 39,
+-        0 * pow2(39) == 0,
+-        256 * pow2(39) == pow2(47),
+-        512 * pow2(39) == pow2(48),
+-        pow2(47) - 1 == 0x0000_7FFF_FFFF_FFFF,
+-        0xffff_int * 0x1_0000_0000_0000int + pow2(47) == 0xffff_8000_0000_0000int,
+-        0xffff_int * 0x1_0000_0000_0000int + pow2(48) - 1 == 0xffff_ffff_ffff_ffffint,
+-{
+-    C::lemma_paging_consts_properties();
+-    C::axiom_current_paging_consts_hardcoded();
+-    lemma2_to64();
+-    lemma2_to64_rest();
+-    lemma_usize_pow2_ilog2(12);
+-    lemma_usize_pow2_ilog2(9);
+-    lemma_pow2_adds(8, 39);
+-}
+-
+-/// Checks the user address range for x86-64 four-level paging.
+-pub(crate) proof fn lemma_vaddr_range_spec_user()
+-    ensures
+-        leading_bits_spec::<UserPtConfig>() == 0,
+-        page_table_managed_start_spec::<UserPtConfig>() == 0,
+-        page_table_managed_end_spec::<UserPtConfig>() == 0x0000_8000_0000_0000int,
+-        vaddr_range_spec::<UserPtConfig>().start == 0,
+-        vaddr_range_spec::<UserPtConfig>().end == 0x0000_7FFF_FFFF_FFFF,
+-{
+-    lemma_arch_specific_consts_properties::<PagingConsts>();
+-    vstd::arithmetic::power2::lemma2_to64();
+-    vstd::arithmetic::power2::lemma2_to64_rest();
+-}
+-
+-/// Checks the kernel address range for x86-64 four-level paging.
+-pub(crate) proof fn lemma_vaddr_range_spec_kernel()
+-    ensures
+-        leading_bits_spec::<KernelPtConfig>() == 0xffff,
+-        page_table_managed_start_spec::<KernelPtConfig>() == 0xFFFF_8000_0000_0000,
+-        page_table_managed_end_spec::<KernelPtConfig>() == 0x1_0000_0000_0000_0000int,
+-        vaddr_range_spec::<KernelPtConfig>().start == 0xFFFF_8000_0000_0000,
+-        vaddr_range_spec::<KernelPtConfig>().end == 0xFFFF_FFFF_FFFF_FFFF,
+-{
+-    lemma_arch_specific_consts_properties::<PagingConsts>();
+-    vstd::arithmetic::power2::lemma2_to64();
+-    vstd::arithmetic::power2::lemma2_to64_rest();
+-    vstd::layout::unsigned_int_max_values();
+-    assert(nr_page_table_coverage_bits_spec::<PagingConsts>() == 48);
+-    vaddr_range_proofs::lemma_leading_bits_properties::<KernelPtConfig>();
+-    assert((256 * pow2(39) as int / pow2(47) as int) % 2 == 1);
+-}
+-
+ } // verus!
+diff --git a/ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs b/ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs
+index ce47a8ea1dc2808694702081ebbd7a4b2bc3dd50..4ed90bdf9694053b349886d78dfeaf5c14acd98f 100644
+--- a/ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs
++++ b/ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs
+@@ -325,7 +325,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+     {
+         let L = self.level as int;
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_pte_index_bound::<C>(self.cur_va(), self.level);
+         assert(pte_index_spec::<C>(self.va, self.level as PagingLevel)
+             == self.continuations[self.level - 1].idx);
+diff --git a/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs b/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs
+index 02b4b0c006a7c3d77835b0383a51f61786fe02f6..a8646cd57e73c14f2c83dea1aa3929f19fb9ebf4 100644
+--- a/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs
++++ b/ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs
+@@ -35,7 +35,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+                 < C::TOP_LEVEL_INDEX_RANGE().end,
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         C::lemma_page_table_config_constant_properties();
+         self.lemma_locked_range_span();
+         lemma_same_node_vaddr_leading_part_match::<C>(
+diff --git a/ostd/specs/mm/page_table/cursor/cursor_steps.rs b/ostd/specs/mm/page_table/cursor/cursor_steps.rs
+index 7b749918ea44546ec0974945c944b766b820cc77..05df92f38d868275bc37d2c7d70ac05995b2b04c 100644
+--- a/ostd/specs/mm/page_table/cursor/cursor_steps.rs
++++ b/ostd/specs/mm/page_table/cursor/cursor_steps.rs
+@@ -195,7 +195,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         ensures
+             self.push_level_owner(guard).max_steps() < self.max_steps(),
+     {
+-        C::axiom_current_paging_consts_hardcoded();
++        C::lemma_paging_consts_properties();
+         lemma_pte_index_bound::<C>(self.cur_va(), (self.level - 1) as PagingLevel);
+         let new_self = self.push_level_owner(guard);
+         let l = self.level as usize;
+@@ -231,7 +231,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         ensures
+             self.push_level_owner(guard)@.mappings == self@.mappings,
+     {
+-        C::axiom_current_paging_consts_hardcoded();
++        C::lemma_paging_consts_properties();
+         broadcast use {
+             CursorContinuation::group_lemmas,
+             CursorOwner::group_lemmas,
+@@ -288,7 +288,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         ensures
+             self.push_level_owner(guard).inv(),
+     {
+-        C::axiom_current_paging_consts_hardcoded();
++        C::lemma_paging_consts_properties();
+         lemma_pte_index_bound::<C>(self.cur_va(), (self.level - 1) as PagingLevel);
+         let new_owner = self.push_level_owner(guard);
+ 
+@@ -376,7 +376,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+     {
+         hide(CursorContinuation::view_mappings);
+         hide(CursorOwner::view_mappings);
+-        C::axiom_current_paging_consts_hardcoded();
++        C::lemma_paging_consts_properties();
+         reveal(CursorContinuation::map_children);
+         let new_owner = self.push_level_owner(guard);
+         let old_cont = self.continuations[self.level - 1];
+@@ -502,7 +502,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         ensures
+             *final(self) == old(self).push_level_owner(guard),
+     {
+-        C::axiom_current_paging_consts_hardcoded();
++        C::lemma_paging_consts_properties();
+         lemma_pte_index_bound::<C>(self.cur_va(), (self.level - 1) as PagingLevel);
+ 
+         let ghost self0 = *self;
+@@ -756,7 +756,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         decreases NR_LEVELS - self.level,
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         reveal(PageTableOwner::pt_inv_at_depth);
+         if self.level == self.guard_level && self.index() + 1 == NR_ENTRIES {
+             self.lemma_move_forward_guard_end();
+@@ -904,7 +903,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+     {
+         use vstd::arithmetic::div_mod::*;
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         self.lemma_cur_pte_index();
+         self.lemma_locked_range_span();
+         self.lemma_va_plus_page_size_no_overflow(self.level);
+diff --git a/ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs b/ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs
+index f3243b832438c76a0882af0aca1dbb10e3872905..c49b2ebc951960ca82a257e9f7f5819113d5e825 100644
+--- a/ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs
++++ b/ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs
+@@ -294,7 +294,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             ),
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_vaddr_leading_part_is_align_down::<C>(self.cur_va());
+         let cont = self.continuations[lvl];
+         let child_path = cont.path().push_tail(cont.idx as int);
+diff --git a/ostd/specs/mm/page_table/cursor/owners.rs b/ostd/specs/mm/page_table/cursor/owners.rs
+index b300687cd526ed211324f12501a5ef1fd4c6e2b0..25d006c26a97da25bbd6caef6b0ba5ea465efa7c 100644
+--- a/ostd/specs/mm/page_table/cursor/owners.rs
++++ b/ostd/specs/mm/page_table/cursor/owners.rs
+@@ -888,7 +888,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             *final(self) == old(self).inc_index().zero_below_level(),
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_page_table_managed_index_bounds::<C>(old(self).va);
+         lemma_inc_slot_indices::<C>(old(self).va, old(self).level);
+         old(self).lemma_inc_index_va();
+@@ -1170,7 +1169,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             self.prefix % page_size::<PagingConsts>((self.guard_level + 1) as PagingLevel) == 0,
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_lower_indices_aligned::<C>(self.prefix, (self.guard_level + 1) as PagingLevel);
+     }
+ 
+@@ -1181,7 +1179,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             self.prefix as nat % page_size::<PagingConsts>(self.guard_level) as nat == 0,
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_lower_indices_aligned::<C>(self.prefix, self.guard_level);
+     }
+ 
+@@ -1199,7 +1196,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             (va as nat) - nat_align_down(self_va as nat, node_size as nat) < node_size as nat,
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         self.lemma_locked_range_span();
+         let body_level = (C::NR_LEVELS() + 1) as PagingLevel;
+         lemma_page_size_is_pow2_pte_index_bit_offset::<C>(body_level);
+@@ -1231,7 +1227,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             self.va + page_size::<PagingConsts>(level) < page_table_coverage_end_spec::<C>(),
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_leading_bits_properties::<C>();
+         lemma_page_size_is_pow2_pte_index_bit_offset::<C>((C::NR_LEVELS() + 1) as PagingLevel);
+         lemma_page_size_monotone::<C>(level, self.guard_level);
+@@ -1249,7 +1244,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         self.lemma_locked_range_span();
+         lemma_page_size_base::<PagingConsts>();
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_page_size_divides::<PagingConsts>(1, (self.guard_level + 1) as PagingLevel);
+         lemma_fundamental_div_mod(
+             page_size::<PagingConsts>((self.guard_level + 1) as PagingLevel) as int,
+@@ -1676,9 +1670,8 @@ pub proof fn lemma_view_in_vaddr_range<'rcu, C: PageTableConfig>(owner: &CursorO
+             },
+ {
+     C::lemma_paging_consts_properties();
+-    C::axiom_current_paging_consts_hardcoded();
+     C::lemma_page_table_config_constant_properties();
+-    lemma_arch_specific_consts_properties::<C>();
++    lemma_paging_layout_bits::<C>();
+ 
+     lemma_page_table_managed_bounds::<C>();
+     let end = C::TOP_LEVEL_INDEX_RANGE().end as int;
+diff --git a/ostd/specs/mm/page_table/cursor/va_lemmas.rs b/ostd/specs/mm/page_table/cursor/va_lemmas.rs
+index 4a426508e7538c1e11a8d1913a9176f2f7ae0740..a8e1cf5a14ec58d23ecab77c4787c7254cab3143 100644
+--- a/ostd/specs/mm/page_table/cursor/va_lemmas.rs
++++ b/ostd/specs/mm/page_table/cursor/va_lemmas.rs
+@@ -82,7 +82,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             self.inc_index().va == self.va + page_size::<C>(self.level),
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         self.lemma_cur_pte_index();
+         lemma_inc_slot_indices::<C>(self.va, self.level);
+         reveal(vaddr_replace_pte_index_spec);
+@@ -102,7 +101,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             ),
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         self.lemma_inc_index_va();
+         lemma_page_size_ge_base::<PagingConsts>(self.level);
+         let ps = page_size::<PagingConsts>(self.level) as nat;
+@@ -146,7 +144,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+                 )) == pte_index_spec::<C>(self.prefix, (i + 1) as PagingLevel),
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         self.lemma_locked_range_span();
+         if self.guard_level < C::NR_LEVELS() {
+             lemma_same_node_pte_indices_match::<C>(
+@@ -172,7 +169,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+             pte_index_spec::<C>(self.cur_va(), self.level) < NR_ENTRIES,
+     {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_pte_index_bound::<C>(self.cur_va(), self.level);
+     }
+ 
+@@ -199,7 +195,6 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+     {
+         let ghost old_self = *self;
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_pte_index_bound::<C>(new_va, old_self.level);
+         let tracked mut cont = self.continuations.tracked_remove(self.level - 1);
+         cont.idx = pte_index_spec::<C>(new_va, old_self.level);
+diff --git a/ostd/specs/mm/page_table/mapping_set_lemmas.rs b/ostd/specs/mm/page_table/mapping_set_lemmas.rs
+index 719a7ccae059ff01d45e153a054df7de2597d696..d78f8b9c405c7dbdc0152dc43bf542eaac772f32 100644
+--- a/ostd/specs/mm/page_table/mapping_set_lemmas.rs
++++ b/ostd/specs/mm/page_table/mapping_set_lemmas.rs
+@@ -1,6 +1,9 @@
+ use vstd::{prelude::*, set_lib::*};
+ 
+-use crate::specs::arch::{MAX_PADDR, PAGE_SIZE, lemma_vaddr_range_spec_user};
++use crate::specs::{
++    arch::{MAX_PADDR, PAGE_SIZE},
++    mm::page_table::vaddr_range_proofs::lemma_vaddr_range_spec_user,
++};
+ 
+ use super::page_table_managed_end_spec;
+ use super::view::{Mapping, mappings_disjoint_vaddrs, mappings_well_formed};
+diff --git a/ostd/specs/mm/page_table/owners.rs b/ostd/specs/mm/page_table/owners.rs
+index 9322c9b7dbb47590c2b9d88fa56d02423c30ac92..2f04b7a558d8d41367d1f7fbdbaf05b6bd829558 100644
+--- a/ostd/specs/mm/page_table/owners.rs
++++ b/ostd/specs/mm/page_table/owners.rs
+@@ -27,7 +27,8 @@ use crate::specs::{
+         frame::{mapping::frame_to_index, meta_region_owners::MetaRegionOwners},
+         page_table::{
+             cursor::page_size_lemmas::lemma_page_size_spec_values,
+-            vaddr_range_proofs::lemma_leading_bits_properties, *,
++            vaddr_range_proofs::{lemma_leading_bits_properties, lemma_paging_layout_bits},
++            *,
+         },
+     },
+ };
+@@ -126,9 +127,8 @@ pub proof fn lemma_vaddr_of_eq_int<C: PageTableConfig>(path: TreePath<NR_ENTRIES
+     C::lemma_page_table_config_constant_properties();
+     lemma_leading_bits_properties::<C>();
+     C::lemma_paging_consts_properties();
+-    C::axiom_current_paging_consts_hardcoded();
+     lemma_vaddr_strict_bound(path);
+-    lemma_arch_specific_consts_properties::<C>();
++    lemma_paging_layout_bits::<C>();
+     vstd::arithmetic::power2::lemma2_to64();
+     assert(nr_page_table_coverage_bits_spec::<C>() == 48);
+     assert(leading_bits_spec::<C>() < 65536);
+@@ -155,7 +155,6 @@ pub proof fn lemma_vaddr_path_aligned<C: PageTableConfig>(path: TreePath<NR_ENTR
+     decreases path.len(),
+ {
+     C::lemma_paging_consts_properties();
+-    C::axiom_current_paging_consts_hardcoded();
+     let level = (C::NR_LEVELS() - path.len() + 1) as PagingLevel;
+     lemma_page_size_is_pow2_pte_index_bit_offset::<C>(level);
+     let size = page_size::<C>(level) as int;
+@@ -990,8 +989,7 @@ impl<C: PageTableConfig> PageTableOwner<C> {
+         lemma_vaddr_of_eq_int::<C>(path);
+         lemma_vaddr_top_index_cell(path);
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+-        lemma_arch_specific_consts_properties::<C>();
++        lemma_paging_layout_bits::<C>();
+         lemma_page_size_is_pow2_pte_index_bit_offset::<C>(C::NR_LEVELS());
+         lemma_page_size_spec_values();
+         lemma_mul_inequality(path[0] + 1, t, page_size::<C>(C::NR_LEVELS()) as int);
+@@ -1267,8 +1265,7 @@ impl<C: PageTableConfig> PageTableOwner<C> {
+             lemma_vaddr_of_eq_int::<C>(path);
+             C::lemma_page_table_config_constant_properties();
+             C::lemma_paging_consts_properties();
+-            C::axiom_current_paging_consts_hardcoded();
+-            lemma_arch_specific_consts_properties::<C>();
++            lemma_paging_layout_bits::<C>();
+             lemma_leading_bits_properties::<C>();
+             assert(nr_page_table_coverage_bits_spec::<C>() == 48);
+             lemma_vaddr_strict_bound(path);
+diff --git a/ostd/specs/mm/page_table/vaddr_range_proofs.rs b/ostd/specs/mm/page_table/vaddr_range_proofs.rs
+index 7cdb16151239f62ecbecefb39ae2c6d95c261537..66fbdaa60fd8aca7fa5ee3c1ff3dd45c46cfd6e1 100644
+--- a/ostd/specs/mm/page_table/vaddr_range_proofs.rs
++++ b/ostd/specs/mm/page_table/vaddr_range_proofs.rs
+@@ -8,21 +8,57 @@
+ use vstd::{
+     arithmetic::{
+         div_mod::{lemma_mod_bound, lemma_mod_breakdown, lemma_mod_decreases},
+-        power2::{lemma_pow2_adds, lemma_pow2_pos, lemma_pow2_strictly_increases, pow2},
++        power2::{
++            lemma_pow2_adds, lemma_pow2_pos, lemma_pow2_strictly_increases, lemma2_to64,
++            lemma2_to64_rest, pow2,
++        },
+     },
+     prelude::*,
+ };
+-use vstd_extra::arithmetic::nat_align_down;
++use vstd_extra::{arithmetic::nat_align_down, external::ilog2::lemma_usize_ilog2_to32};
+ 
+ use crate::specs::mm::page_table::*;
+ 
+ use crate::mm::{
+-    PagingConstsTrait, PagingLevel, Vaddr, nr_subpage_per_huge, page_size,
+-    page_table::PageTableConfig,
++    PagingConstsTrait, PagingLevel, Vaddr, kspace::KernelPtConfig, nr_subpage_per_huge, page_size,
++    page_table::PageTableConfig, vm_space::UserPtConfig,
+ };
+ 
+ verus! {
+ 
++/// Checks the user address range of the four-level user configuration.
++pub(crate) proof fn lemma_vaddr_range_spec_user()
++    ensures
++        leading_bits_spec::<UserPtConfig>() == 0,
++        page_table_managed_start_spec::<UserPtConfig>() == 0,
++        page_table_managed_end_spec::<UserPtConfig>() == 0x0000_8000_0000_0000int,
++        vaddr_range_spec::<UserPtConfig>().start == 0,
++        vaddr_range_spec::<UserPtConfig>().end == 0x0000_7FFF_FFFF_FFFF,
++{
++    lemma_paging_layout_bits::<UserPtConfig>();
++    lemma2_to64();
++    lemma2_to64_rest();
++}
++
++/// Checks the paged kernel range of the four-level kernel configuration.
++/// The LoongArch direct-mapping window is separate from this page-table range.
++pub(crate) proof fn lemma_vaddr_range_spec_kernel()
++    ensures
++        leading_bits_spec::<KernelPtConfig>() == 0xffff,
++        page_table_managed_start_spec::<KernelPtConfig>() == 0xFFFF_8000_0000_0000,
++        page_table_managed_end_spec::<KernelPtConfig>() == 0x1_0000_0000_0000_0000int,
++        vaddr_range_spec::<KernelPtConfig>().start == 0xFFFF_8000_0000_0000,
++        vaddr_range_spec::<KernelPtConfig>().end == 0xFFFF_FFFF_FFFF_FFFF,
++{
++    lemma_paging_layout_bits::<KernelPtConfig>();
++    lemma2_to64();
++    lemma2_to64_rest();
++    vstd::layout::unsigned_int_max_values();
++    assert(KernelPtConfig::ADDRESS_WIDTH() == 48);
++    lemma_leading_bits_properties::<KernelPtConfig>();
++    assert((256 * pow2(39) as int / pow2(47) as int) % 2 == 1);
++}
++
+ /// Derives the sign-extension mask and its width from the paging constants.
+ pub proof fn lemma_leading_bits_properties<C: PageTableConfig>()
+     ensures
+@@ -291,4 +327,23 @@ pub proof fn lemma_idx_times_pow2_bound<C: PageTableConfig>(start: Vaddr, end: V
+     ;
+ }
+ 
++/// Derives the coverage width from the required base-page and PTE layout.
++pub(super) proof fn lemma_paging_layout_bits<C: PageTableConfig>()
++    ensures
++        C::BASE_PAGE_SIZE().ilog2() == 12,
++        nr_pte_index_bits_spec::<C>() == 9,
++        nr_page_table_coverage_bits_spec::<C>() == 12 + 9 * C::NR_LEVELS(),
++{
++    C::lemma_paging_consts_properties();
++    lemma_usize_ilog2_to32();
++    assert(C::BASE_PAGE_SIZE().ilog2() == 12);
++    assert(nr_pte_index_bits_spec::<C>() == 9);
++    assert(nr_page_table_coverage_bits_spec::<C>() == 12 + 9 * C::NR_LEVELS()) by (nonlinear_arith)
++        requires
++            C::BASE_PAGE_SIZE().ilog2() == 12,
++            nr_pte_index_bits_spec::<C>() == 9,
++            1 <= C::NR_LEVELS() <= 4,
++    ;
++}
++
+ } // verus!
+diff --git a/ostd/specs/mod.rs b/ostd/specs/mod.rs
+index f316bf9016a296f4653b694d63df1da5afcc105c..56facf1b7759cf1f1f8509e70debd4b67e2d5fab 100644
+--- a/ostd/specs/mod.rs
++++ b/ostd/specs/mod.rs
+@@ -15,3 +15,13 @@ mod sync;
+ #[allow(unused_parens)]
+ #[allow(unused_braces)]
+ pub mod task;
++
++vstd::prelude::verus! {
++
++// Asterinas is designed for 64-bit architectures.
++// Verus checks these sizes against the target layout during compilation.
++global size_of usize == 8;
++
++global size_of isize == 8;
++
++} // verus!
+diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
+index fb347e7e6a7a3218a1aa0597df1d40efd6bf88e1..2f981bccf98d622fd364dfb4c8dd4a7057ddbfee 100644
+--- a/ostd/src/mm/kspace/kvirt_area.rs
++++ b/ostd/src/mm/kspace/kvirt_area.rs
+@@ -20,7 +20,9 @@ use crate::specs::{
+         },
+         page_table::{
+             cursor::{CursorOwner, CursorView},
+-            is_valid_range_spec, *,
++            is_valid_range_spec,
++            vaddr_range_proofs::lemma_vaddr_range_spec_kernel,
++            *,
+         },
+     },
+ };
+diff --git a/ostd/src/mm/mod.rs b/ostd/src/mm/mod.rs
+index 36071cb02e2e168160f7bceb7030d32642f6a2ca..db0384864f9c0fed67d4fa32b42b8c35f9ca41c4 100644
+--- a/ostd/src/mm/mod.rs
++++ b/ostd/src/mm/mod.rs
+@@ -81,6 +81,7 @@ pub const MAX_NR_PAGES: u64 = (MAX_PADDR / PAGE_SIZE) as u64;
+ 
+ /// A minimal set of constants that determines the paging system.
+ /// This provides an abstraction over most paging modes in common architectures.
++/// Verification currently requires the build-selected paging layout.
+ pub trait PagingConstsTrait: Clone + Debug + Send + Sync + 'static {
+     spec fn BASE_PAGE_SIZE_spec() -> usize;
+ 
+@@ -160,6 +161,9 @@ pub trait PagingConstsTrait: Clone + Debug + Send + Sync + 'static {
+     ///
+     proof fn lemma_paging_consts_requirements()
+         ensures
++            Self::BASE_PAGE_SIZE() == PAGE_SIZE,
++            Self::NR_LEVELS() == NR_LEVELS as PagingLevel,
++            Self::BASE_PAGE_SIZE() / Self::PTE_SIZE() == NR_ENTRIES,
+             0 < Self::BASE_PAGE_SIZE(),
+             is_pow2(Self::BASE_PAGE_SIZE() as int),
+             0 < Self::HIGHEST_TRANSLATION_LEVEL() <= Self::NR_LEVELS() < PagingLevel::MAX,
+@@ -184,6 +188,9 @@ pub trait PagingConstsTrait: Clone + Debug + Send + Sync + 'static {
+             is_pow2((Self::BASE_PAGE_SIZE() / Self::PTE_SIZE()) as int),
+             // Copied from the postcondition of `lemma_paging_consts_requirements`
+             // so that we only need to call this lemma in proofs.
++            Self::BASE_PAGE_SIZE() == PAGE_SIZE,
++            Self::NR_LEVELS() == NR_LEVELS as PagingLevel,
++            Self::BASE_PAGE_SIZE() / Self::PTE_SIZE() == NR_ENTRIES,
+             0 < Self::BASE_PAGE_SIZE(),
+             is_pow2(Self::BASE_PAGE_SIZE() as int),
+             0 < Self::HIGHEST_TRANSLATION_LEVEL() <= Self::NR_LEVELS() < PagingLevel::MAX,
+@@ -222,22 +229,6 @@ pub trait PagingConstsTrait: Clone + Debug + Send + Sync + 'static {
+         lemma_pow2_subtracts(pte.ilog2() as nat, page.ilog2() as nat);
+         lemma_pow2_is_pow2((page.ilog2() - pte.ilog2()) as nat);
+     }
+-
+-    /// Assumes the paging constants match the build-selected architecture.
+-    ///
+-    /// TODO: Generalize the proofs at these calls and remove this axiom before
+-    /// verifying configurations with a different page-table layout. This
+-    /// restriction is trusted and is not enforced by Verus.
+-    /// Verus does not support `axiom fn` in traits, so this default proof method
+-    /// uses `external_body` to declare the temporary assumption.
+-    #[verifier::external_body]
+-    proof fn axiom_current_paging_consts_hardcoded()
+-        ensures
+-            Self::BASE_PAGE_SIZE() == PAGE_SIZE,
+-            Self::NR_LEVELS() == NR_LEVELS as PagingLevel,
+-            Self::BASE_PAGE_SIZE() / Self::PTE_SIZE() == NR_ENTRIES,
+-    {
+-    }
+ }
+ 
+ pub open spec fn page_size_spec<C: PagingConstsTrait>(level: PagingLevel) -> usize {
+diff --git a/ostd/src/mm/page_table/cursor/locking.rs b/ostd/src/mm/page_table/cursor/locking.rs
+index c3801686e6130ed1e9a0cd51ce9282c705b03f80..9a986a5891b8be3b4496c2bbd75df4651b38516c 100644
+--- a/ostd/src/mm/page_table/cursor/locking.rs
++++ b/ostd/src/mm/page_table/cursor/locking.rs
+@@ -114,7 +114,6 @@ pub fn lock_range<'rcu, C: PageTableConfig>(
+ ) -> (Cursor<'rcu, C>, Tracked<CursorOwner<'rcu, C>>) {
+     proof {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+         lemma_pte_index_bound::<C>(va.start, C::NR_LEVELS());
+         assert forall|i: int| 0 <= i < NR_ENTRIES implies (
+         #[trigger] pt_own.0.children()[i]) is Some by {
+@@ -819,7 +818,6 @@ fn dfs_get_idx_range<C: PagingConstsTrait>(
+ ) -> Range<usize> {
+     proof {
+         C::lemma_paging_consts_properties();
+-        C::axiom_current_paging_consts_hardcoded();
+     }
+     let ps = page_size::<C>(cur_node_level);
+     let diff = va_range.end - cur_node_va;
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 41c4bbb24e63d8b7351a14988db4dbabc01bd928..fb79c758111c1e356a22c2a825d34d5bdd9bd19e 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -616,7 +616,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+ 
+             proof {
+                 C::lemma_paging_consts_properties();
+-                C::axiom_current_paging_consts_hardcoded();
+             }
+             let size = page_size::<C>(level);
+ 
+@@ -825,7 +824,7 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+         hide(CursorOwner::view_mappings);
+         hide(CursorView::split_while_huge);
+         proof {
+-            C::axiom_current_paging_consts_hardcoded();
++            C::lemma_paging_consts_properties();
+         }
+         assert_eq!(len % C::BASE_PAGE_SIZE(), 0);
+ 
+@@ -961,7 +960,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+                             }
+                             if !C::TOP_LEVEL_CAN_UNMAP_spec() {
+                                 C::lemma_paging_consts_properties();
+-                                C::axiom_current_paging_consts_hardcoded();
+                             }
+                         }
+                         return Some(cur_va);
+@@ -1346,7 +1344,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+         loop {
+             proof {
+                 C::lemma_paging_consts_properties();
+-                C::axiom_current_paging_consts_hardcoded();
+             }
+             let node_size = page_size::<C>(self.level + 1);
+             let node_start = self.va.align_down(node_size);
+@@ -1377,7 +1374,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+                 self.va = va;
+                 proof {
+                     C::lemma_paging_consts_properties();
+-                    C::axiom_current_paging_consts_hardcoded();
+                     // At level == NR_LEVELS the quantifier in set_va_in_node is vacuous.
+                     if self.level < NR_LEVELS as PagingLevel {
+                         lemma_same_node_pte_indices_match::<C>(va, old_va, node_start, self.level);
+@@ -1496,7 +1492,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+ 
+         proof {
+             C::lemma_paging_consts_properties();
+-            C::axiom_current_paging_consts_hardcoded();
+             owner0.lemma_va_plus_page_size_no_overflow(start_level);
+             lemma_page_size_ge_base::<PagingConsts>(start_level);
+             vstd_extra::arithmetic::lemma_nat_align_down_sound(
+@@ -1534,7 +1529,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+         while self.level < self.guard_level && pte_index::<C>(next_va, self.level) == 0 {
+             proof {
+                 C::lemma_paging_consts_properties();
+-                C::axiom_current_paging_consts_hardcoded();
+                 lemma_next_slot_pte_index::<C>(va, next_va, self.level);
+                 lemma_page_size_next::<C>(self.level);
+                 owner.lemma_cur_pte_index();
+@@ -1877,7 +1871,6 @@ impl<'rcu, C: PageTableConfig> Cursor<'rcu, C> {
+     fn cur_va_range(&self) -> Range<Vaddr> {
+         proof {
+             C::lemma_paging_consts_properties();
+-            C::axiom_current_paging_consts_hardcoded();
+         }
+         let page_size = page_size::<C>(self.level);
+         let start = self.va.align_down(page_size);
+@@ -2826,7 +2819,6 @@ impl<'rcu, C: PageTableConfig> CursorMut<'rcu, C> {
+         let (pa, level, prop, Tracked(raw_permission)) = C::item_into_raw(item);
+         proof {
+             C::lemma_paging_consts_properties();
+-            C::axiom_current_paging_consts_hardcoded();
+             C::lemma_item_from_raw_roundtrip(item, pa, level, prop, Tracked(raw_permission));
+             lemma_page_size_spec_values();
+         }
+@@ -3797,7 +3789,6 @@ impl<'rcu, C: PageTableConfig> CursorMut<'rcu, C> {
+ 
+                 proof {
+                     C::lemma_paging_consts_properties();
+-                    C::axiom_current_paging_consts_hardcoded();
+                 }
+                 let ghost regions_before_clone = *regions;
+                 /// Origin Rust: pt: (*pt).clone().into(),
+diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
+index 4c36589d2e728bbf9d5d0e92319bb3cf5711995b..0db8951a282062d25a50ad5167257328697a4449 100644
+--- a/ostd/src/mm/page_table/mod.rs
++++ b/ostd/src/mm/page_table/mod.rs
+@@ -8,7 +8,10 @@ use crate::specs::{
+         frame::{mapping::frame_to_index, meta_region_owners::MetaRegionOwners},
+         page_table::{
+             cursor::*,
+-            vaddr_range_proofs::{lemma_leading_bits_properties, lemma_page_table_managed_bounds},
++            vaddr_range_proofs::{
++                lemma_leading_bits_properties, lemma_page_table_managed_bounds,
++                lemma_vaddr_range_spec_kernel,
++            },
+             *,
+         },
+     },
+diff --git a/ostd/src/mm/page_table/node/entry.rs b/ostd/src/mm/page_table/node/entry.rs
+index d1927687b016160bebcb2cf5ca2d58548778abaf..5838f04dba298e1084ab7d0a0363ada2af475783 100644
+--- a/ostd/src/mm/page_table/node/entry.rs
++++ b/ostd/src/mm/page_table/node/entry.rs
+@@ -862,7 +862,6 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+ 
+         proof {
+             C::lemma_paging_consts_properties();
+-            C::axiom_current_paging_consts_hardcoded();
+             assert forall|j: int| 0 <= j < NR_ENTRIES implies {
+                 &&& (#[trigger] new_owner.children()[j]) is Some
+                 &&& new_owner.child(j).value().inv()
+@@ -967,7 +966,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+         {
+             proof {
+                 C::lemma_page_table_config_constant_properties();
+-                C::axiom_current_paging_consts_hardcoded();
++                C::lemma_paging_consts_properties();
+ 
+                 assert(new_owner.child(i as int).inv());
+                 EntryOwner::huge_frame_split_child_at(owner.value(), *regions, i as usize);
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index 9c14b6fe3d01dc4305c1a381a219bbb0ab314a7a..0904c59724f668b8b21a7455e77c34078dae33bf 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -20,7 +20,9 @@ use crate::specs::{
+             meta_region_owners::MetaRegionOwners,
+         },
+         io::VmIoOwner,
+-        page_table::{cursor::owners::CursorOwner, *},
++        page_table::{
++            cursor::owners::CursorOwner, vaddr_range_proofs::lemma_vaddr_range_spec_user, *,
++        },
+         tlb::TlbModel,
+         virt_mem::{MemView, VirtPtr},
+     },

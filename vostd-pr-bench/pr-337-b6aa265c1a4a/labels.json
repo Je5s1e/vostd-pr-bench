@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-337-b6aa265c1a4a",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-337-b6aa265c1a4a:issue-comment-4020780962",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`PreemptDisabled` is changed from an uninhabited guardian backed by `DisabledPreemptGuard` into a constructible unit struct whose guard constructors return `()`, so taking a lock no longer establishes or retains the advertised preemption-disabled state.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/guard.rs",
+          "start_line": 34,
+          "end_line": 54
+        }
+      ],
+      "rationale": "The reviewed revision makes `PreemptDisabled` a public unit struct and binds both `SpinGuardian::Guard` and `ReadGuard` to `()`. Its constructors return unit instead of calling `disable_preempt`, despite the trait/type documentation promising a guardian that maintains atomic mode by disabling preemption while a lock is held. This changes executable lock behavior and permits construction of the guardian marker without the original zero-variant restriction. Collaborator rikosellic explicitly objects to changing the guard struct/function definitions and asks to preserve them while using Verus external annotations. The direct child commit restores `DisabledPreemptGuard` as both associated types and calls `disable_preempt` from externally verified constructors; the final child restores the zero-variant `PreemptDisabled` enum via `external_type_specification`. The exact repair sequence confirms that the unit-returning historical implementation was not an acceptable abstraction of the runtime guard.",
+      "source_evidence": "after/ostd/src/sync/guard.rs\n34: /// A guardian that disables preemption while holding a lock.\n35: #[verus_verify]\n36: // pub enum PreemptDisabled {}\n37: pub struct PreemptDisabled;\n39-44: impl SpinGuardian for PreemptDisabled { type Guard = (); type ReadGuard = (); }\n46-53: guard() and read_guard() both return `()`; their `disable_preempt()` calls are commented out.\n\nDirect child 3b205d789d75f3d158dd72545ed1b1b78bb079d6 changes both associated types to `DisabledPreemptGuard` and both functions to `disable_preempt()`. Final child 6b22d624ab7698daa2615add8fa27e108c9a4266 restores `pub enum PreemptDisabled {}` and adds an `external_type_specification` wrapper.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/337#issuecomment-4020780962",
+      "related_comment_ids": [
+        "4020780962",
+        "4021666901"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4020780962",
+          "url": "https://github.com/asterinas/vostd/pull/337#issuecomment-4020780962",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4021666901",
+          "url": "https://github.com/asterinas/vostd/pull/337#issuecomment-4021666901",
+          "commit_id": null
+        }
+      ],
+      "verification": "Source and Git-history adjudication; historical Verus not executed. Selected the latest official PR commit before the modification request, verified its true merge-base, inspected the unit-returning guardian implementation, and compared both direct repair commits. The archived final head contains the repair and therefore is not relabeled."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-862-637c0417fccd",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-862-637c0417fccd:issue-comment-6407527948",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`is_partition` places pairwise disjointness and full-union coverage inside a per-part implication, so an empty `parts` set vacuously partitions every set, including a non-empty `s`.",
+      "locations": [
+        {
+          "version": "before",
+          "path": "verified_libs/vstd_extra/src/set_extra.rs",
+          "start_line": 154,
+          "end_line": 163
+        }
+      ],
+      "rationale": "For `parts = Set::<Set<A>>::empty()`, the antecedent `parts.contains(part)` is false for every `part`; therefore the entire `forall` is true without evaluating the nested `pairwise_disjoint(parts)` or `s == parts.flatten()` conjuncts. The old predicate consequently returns true for any `s`, although the union of an empty family is empty. The PR body gives exactly this counterexample, the maintainer explicitly thanks the author for identifying the bug, and the one-commit fix moves the two family-wide conditions outside the quantifier and adds a lemma proving that empty parts partition exactly an empty set.",
+      "source_evidence": "before/verified_libs/vstd_extra/src/set_extra.rs\n154: pub open spec fn is_partition<A>(s: Set<A>, parts: Set<Set<A>>) -> bool {\n156:     forall|part: Set<A>| #[trigger]\n157:         parts.contains(part) ==> !part.is_empty() && part <= s\n158:             &&\n159:         // Parts are pairwise disjoint\n160:         pairwise_disjoint(parts) &&\n161:         // Union of parts is s\n162:         s == parts.flatten()\n163: }\n\nWith `parts` empty, line 157's implication is true for every `part`, so lines 160-162 do not constrain `s`. The after version moves lines 160-162 outside the `forall` and adds `lemma_is_partition_empty_parts`, whose ensures states `is_partition(s, empty) == s.is_empty()`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/862#issuecomment-6407527948",
+      "related_comment_ids": [
+        "6407527948"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "6407527948",
+          "url": "https://github.com/asterinas/vostd/pull/862#issuecomment-6407527948",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus was not re-executed. Read the complete archived and current remote discussion, checked the official base/head Git objects and true merge-base, instantiated the empty-parts counterexample in the fixed before source, and confirmed the after predicate plus its new boundary lemma remove the vacuous case."
+    }
+  ]
+}

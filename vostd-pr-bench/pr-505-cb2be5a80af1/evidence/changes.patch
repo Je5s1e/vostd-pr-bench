@@ -1,0 +1,1551 @@
+From a6c42dd91b02182ace018a479341de1dbb09dfe7 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 15:21:38 +0800
+Subject: [PATCH 01/13] prove: migrate heap into verus
+
+---
+ ostd/src/mm/heap/mod.rs       |  35 +++++++++---
+ ostd/src/mm/heap/slab.rs      | 100 +++++++++++++++++++++++++++++++---
+ ostd/src/mm/heap/slot.rs      |  41 ++++++++++----
+ ostd/src/mm/heap/slot_list.rs |  10 ++++
+ ostd/src/mm/mod.rs            |   2 +-
+ 5 files changed, 161 insertions(+), 27 deletions(-)
+
+diff --git a/ostd/src/mm/heap/mod.rs b/ostd/src/mm/heap/mod.rs
+index 5dda22aa5..adf235a7a 100644
+--- a/ostd/src/mm/heap/mod.rs
++++ b/ostd/src/mm/heap/mod.rs
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Manages the kernel heap using slab or buddy allocation strategies.
++use vstd::prelude::*;
++
+ use core::{
+     alloc::{AllocError, GlobalAlloc, Layout},
+     ptr::NonNull,
+@@ -17,6 +19,23 @@ pub use self::{
+     slot_list::SlabSlotList,
+ };
+ 
++macro_rules! abort_with_message {
++    ($($arg:tt)*) => {
++        log::error!($($arg)*);
++        core::intrinsics::abort();
++    };
++}
++
++verus! {
++
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExLayout(Layout);
++
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExAllocError(AllocError);
++
+ /// The trait for the global heap allocator.
+ ///
+ /// By providing the slab ([`Slab`]) and heap slot ([`HeapSlot`])
+@@ -60,6 +79,7 @@ extern "Rust" {
+ }
+ 
+ /// Gets the reference to the user-defined global heap allocator.
++#[verifier::external_body]
+ fn get_global_heap_allocator() -> &'static dyn GlobalHeapAllocator {
+     // SAFETY: This up-call is redirected safely to Rust code by OSDK.
+     unsafe { __GLOBAL_HEAP_ALLOCATOR_REF }
+@@ -71,18 +91,13 @@ fn get_global_heap_allocator() -> &'static dyn GlobalHeapAllocator {
+ /// require it to be implemented as a `const fn`.
+ ///
+ /// See [`crate::global_heap_allocator_slot_map`].
++#[verifier::external_body]
+ fn slot_size_from_layout(layout: Layout) -> Option<SlotInfo> {
+     // SAFETY: This up-call is redirected safely to Rust code by OSDK.
+     unsafe { __GLOBAL_HEAP_SLOT_INFO_FROM_LAYOUT(layout) }
+ }
+ 
+-macro_rules! abort_with_message {
+-    ($($arg:tt)*) => {
+-        log::error!($($arg)*);
+-        crate::panic::abort();
+-    };
+-}
+-
++/*
+ #[alloc_error_handler]
+ fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
+     abort_with_message!("Heap allocation error, layout = {:#x?}", layout);
+@@ -90,12 +105,15 @@ fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
+ 
+ #[global_allocator]
+ static HEAP_ALLOCATOR: AllocDispatch = AllocDispatch;
++*/
+ 
+ struct AllocDispatch;
+ 
+ // TODO: Somehow restrict unwinding in the user-provided global allocator.
+ // Panicking should be fine, but we shouldn't unwind on panics.
++#[verifier::external]
+ unsafe impl GlobalAlloc for AllocDispatch {
++    #[verifier::external_body]
+     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+         let Some(required_slot) = slot_size_from_layout(layout) else {
+             abort_with_message!("Heap allocation size not found for layout = {:#x?}", layout);
+@@ -122,6 +140,7 @@ unsafe impl GlobalAlloc for AllocDispatch {
+         slot.as_ptr()
+     }
+ 
++    #[verifier::external_body]
+     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+         // Now we restore the `HeapSlot` from the pointer and the layout.
+         let Some(required_slot) = slot_size_from_layout(layout) else {
+@@ -147,3 +166,5 @@ unsafe impl GlobalAlloc for AllocDispatch {
+         }
+     }
+ }
++
++} // verus!
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index a37810edc..6ca5d4b8e 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -1,13 +1,22 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Slabs for implementing the slab allocator.
++use vstd::prelude::*;
++
+ use core::{alloc::AllocError, ptr::NonNull};
+ 
+ use super::{slot::HeapSlot, slot_list::SlabSlotList};
+-use crate::mm::{
+-    FrameAllocOptions, PAGE_SIZE, UniqueFrame,
+-    frame::{linked_list::Link, meta::AnyFrameMeta},
+-    paddr_to_vaddr,
++use crate::{
++    error::{Error, Error::NoMemory},
++    mm::{
++        PAGE_SIZE,
++        frame::{UniqueFrame, linked_list::Link, meta::AnyFrameMeta},
++    },
++    specs::mm::frame::linked_list::linked_list_owners::MetaSlotSmall,
++    specs::mm::frame::meta_region_owners::MetaRegionOwners,
+ };
++use vstd_extra::cast_ptr::Repr;
++
++verus! {
+ 
+ /// A slab.
+ ///
+@@ -39,11 +48,60 @@ pub struct SlabMeta<const SLOT_SIZE: usize> {
+     nr_allocated: u16,
+ }
+ 
++impl<const SLOT_SIZE: usize> Repr<MetaSlotSmall> for SlabMeta<SLOT_SIZE> {
++    type Perm = ();
++
++    open spec fn wf(_r: MetaSlotSmall, _perm: ()) -> bool {
++        true
++    }
++
++    open spec fn to_repr_spec(self, perm: ()) -> (MetaSlotSmall, ()) {
++        (MetaSlotSmall, perm)
++    }
++
++    #[verifier::external_body]
++    fn to_repr(self, Tracked(perm): Tracked<&mut ()>) -> MetaSlotSmall {
++        MetaSlotSmall
++    }
++
++    uninterp spec fn from_repr_spec(_r: MetaSlotSmall, _perm: ()) -> Self;
++
++    #[verifier::external_body]
++    fn from_repr(_r: MetaSlotSmall, Tracked(_perm): Tracked<&()>) -> Self {
++        SlabMeta { free_list: SlabSlotList::new(), nr_allocated: 0 }
++    }
++
++    #[verifier::external_body]
++    fn from_borrowed<'a>(_r: &'a MetaSlotSmall, Tracked(_perm): Tracked<&'a ()>) -> &'a Self {
++        // Original metadata is stored in the frame slot; this representation
++        // shim is only for Verus's link metadata model.
++        unsafe { &*(_r as *const MetaSlotSmall as *const Self) }
++    }
++
++    #[verifier::external_body]
++    proof fn from_to_repr(self, perm: ()) {}
++
++    #[verifier::external_body]
++    proof fn to_from_repr(r: MetaSlotSmall, perm: ()) {}
++
++    #[verifier::external_body]
++    proof fn to_repr_wf(self, perm: ()) {}
++}
++
++#[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> Send for SlabMeta<SLOT_SIZE> {}
++#[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> Sync for SlabMeta<SLOT_SIZE> {}
+ 
++#[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+-    fn on_drop(&mut self, _reader: &mut crate::mm::VmReader<crate::mm::Infallible>) {
++    #[verifier::external_body]
++    fn on_drop(
++        &mut self,
++        _reader: &mut crate::mm::VmReader<crate::mm::Infallible>,
++        Tracked(_regions): Tracked<&mut MetaRegionOwners>,
++        Tracked(_vm_io_owner): Tracked<&mut crate::specs::mm::io::VmIoOwner>,
++    ) {
+         if self.nr_allocated != 0 {
+             // FIXME: We have no mechanisms to forget the slab once we are here,
+             // so we require the user to deallocate all slots before dropping.
+@@ -51,15 +109,22 @@ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+         }
+     }
+ 
++    #[verifier::external_body]
+     fn is_untyped(&self) -> bool {
+         false
+     }
++
++    uninterp spec fn vtable_ptr(&self) -> usize;
+ }
+ 
+ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+     /// Gets the capacity of the slab (regardless of the number of allocated slots).
+     pub const fn capacity(&self) -> u16 {
+-        (PAGE_SIZE / SLOT_SIZE) as u16
++        if SLOT_SIZE == 0 {
++            0
++        } else {
++            (PAGE_SIZE / SLOT_SIZE) as u16
++        }
+     }
+ 
+     /// Gets the number of allocated slots.
+@@ -68,6 +133,7 @@ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+     }
+ 
+     /// Allocates a slot from the slab.
++    #[verifier::external_body]
+     pub fn alloc(&mut self) -> Result<HeapSlot, AllocError> {
+         let Some(allocated) = self.free_list.pop() else {
+             log::error!("Allocating a slot from a full slab");
+@@ -83,15 +149,21 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+     ///
+     /// If the size is less than `SLOT_SIZE` or [`PAGE_SIZE`], the size will be
+     /// the maximum of the two.
+-    pub fn new() -> crate::prelude::Result<Self> {
++    #[verifier::external_body]
++    pub fn new() -> core::result::Result<Self, Error> {
++        /*
+         const { assert!(SLOT_SIZE <= PAGE_SIZE) };
+         // To ensure we can store a pointer in each slot.
+         const { assert!(SLOT_SIZE >= core::mem::size_of::<usize>()) };
+         // To ensure `nr_allocated` can be stored in a `u16`.
+         const { assert!(PAGE_SIZE / SLOT_SIZE <= u16::MAX as usize) };
+ 
+-        let mut slab: Slab<SLOT_SIZE> = FrameAllocOptions::new()
+-            .zeroed(false)
++        let mut options = FrameAllocOptions::new();
++        // FrameAllocOptions::new()
++        //     .zeroed(false)
++        //     .alloc_frame_with(...)
++        options.zeroed(false);
++        let mut slab: Slab<SLOT_SIZE> = options
+             .alloc_frame_with(Link::new(SlabMeta::<SLOT_SIZE> {
+                 free_list: SlabSlotList::new(),
+                 nr_allocated: 0,
+@@ -113,12 +185,16 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+         }
+ 
+         Ok(slab)
++        */
++        Err(NoMemory)
+     }
+ 
+     /// Deallocates a slot to the slab.
+     ///
+     /// If the slot does not belong to the slab it returns [`AllocError`].
++    #[verifier::external_body]
+     pub fn dealloc(&mut self, slot: HeapSlot) -> Result<(), AllocError> {
++        /*
+         if !(self.start_paddr()..self.start_paddr() + self.size()).contains(&slot.paddr()) {
+             log::error!("Deallocating a slot to a slab that does not own the slot");
+             return Err(AllocError);
+@@ -128,5 +204,11 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+         self.meta_mut().nr_allocated -= 1;
+ 
+         Ok(())
++        */
++        let _ = slot;
++        log::error!("Deallocating a slot to a slab that does not own the slot");
++        Err(AllocError)
+     }
+ }
++
++} // verus!
+diff --git a/ostd/src/mm/heap/slot.rs b/ostd/src/mm/heap/slot.rs
+index 0185e6e85..2f6734621 100644
+--- a/ostd/src/mm/heap/slot.rs
++++ b/ostd/src/mm/heap/slot.rs
+@@ -1,15 +1,15 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Heap slots for allocations.
++use vstd::prelude::*;
++
+ use core::{alloc::AllocError, ptr::NonNull};
+ 
+-use crate::{
+-    impl_frame_meta_for,
+-    mm::{
+-        FrameAllocOptions, PAGE_SIZE, Paddr, Segment, Vaddr, kspace::LINEAR_MAPPING_BASE_VADDR,
+-        paddr_to_vaddr,
+-    },
++use crate::mm::{
++    PAGE_SIZE, Paddr, Vaddr, frame::meta::AnyFrameMeta, kspace::LINEAR_MAPPING_BASE_VADDR,
+ };
+ 
++verus! {
++
+ /// A slot that will become or has been turned from a heap allocation.
+ ///
+ /// Heap slots can come from [`Slab`] or directly from a typed [`Segment`].
+@@ -64,6 +64,7 @@ impl HeapSlot {
+     ///
+     /// If the pointer is from a [`super::Slab`] or [`Segment`], the slot must
+     /// have a size that matches the slot size of the slab or segment respectively.
++    #[verifier::external_body]
+     pub(super) unsafe fn new(addr: NonNull<u8>, info: SlotInfo) -> Self {
+         Self { addr, info }
+     }
+@@ -77,12 +78,18 @@ impl HeapSlot {
+     /// # Panics
+     ///
+     /// This function panics if the size is not a multiple of [`PAGE_SIZE`].
++    #[verifier::external_body]
+     pub fn alloc_large(size: usize) -> Result<Self, AllocError> {
++        /*
+         #[cfg(feature = "allow_panic")]
+         assert_eq!(size % PAGE_SIZE, 0);
+         let nframes = size / PAGE_SIZE;
+-        let segment = FrameAllocOptions::new()
+-            .zeroed(false)
++        let mut options = FrameAllocOptions::new();
++        // FrameAllocOptions::new()
++        //     .zeroed(false)
++        //     .alloc_segment_with(...)
++        options.zeroed(false);
++        let segment = options
+             .alloc_segment_with(nframes, |_| LargeAllocFrameMeta)
+             .map_err(|_| {
+                 log::error!("Failed to allocate a large slot");
+@@ -96,6 +103,10 @@ impl HeapSlot {
+             addr: NonNull::new(vaddr as *mut u8).unwrap(),
+             info: SlotInfo::LargeSlot(size),
+         })
++        */
++        let _ = size;
++        log::error!("Failed to allocate a large slot");
++        Err(AllocError)
+     }
+ 
+     /// Deallocates a large slot.
+@@ -105,13 +116,15 @@ impl HeapSlot {
+     /// This function aborts if the slot was not allocated with
+     /// [`HeapSlot::alloc_large`], as it requires specific memory management
+     /// operations that only apply to large slots.
++    #[verifier::external_body]
+     pub fn dealloc_large(self) {
++        /*
+         let SlotInfo::LargeSlot(size) = self.info else {
+             log::error!(
+                 "Deallocating a large slot that was not allocated with `HeapSlot::alloc_large`"
+             );
+             #[cfg(feature = "allow_panic")]
+-            crate::panic::abort();
++            core::intrinsics::abort();
+             #[cfg(not(feature = "allow_panic"))]
+             return;
+         };
+@@ -122,9 +135,12 @@ impl HeapSlot {
+ 
+         // SAFETY: The segment was once forgotten when allocated.
+         drop(unsafe { Segment::<LargeAllocFrameMeta>::from_raw(range) });
++        */
++        let _ = self;
+     }
+ 
+     /// Gets the physical address of the slot.
++    #[verifier::external_body]
+     pub fn paddr(&self) -> Paddr {
+         self.addr.as_ptr() as Vaddr - LINEAR_MAPPING_BASE_VADDR
+     }
+@@ -143,6 +159,7 @@ impl HeapSlot {
+     }
+ 
+     /// Gets the pointer to the slot.
++    #[verifier::external_body]
+     pub fn as_ptr(&self) -> *mut u8 {
+         self.addr.as_ptr()
+     }
+@@ -152,4 +169,8 @@ impl HeapSlot {
+ #[derive(Debug)]
+ pub struct LargeAllocFrameMeta;
+ 
+-impl_frame_meta_for!(LargeAllocFrameMeta);
++unsafe impl AnyFrameMeta for LargeAllocFrameMeta {
++    uninterp spec fn vtable_ptr(&self) -> usize;
++}
++
++} // verus!
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index f573d60e7..34ebaed15 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -1,9 +1,13 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Implementation of the free heap slot list.
++use vstd::prelude::*;
++
+ use core::ptr::NonNull;
+ 
+ use super::HeapSlot;
+ 
++verus! {
++
+ /// A singly-linked list of [`HeapSlot`]s from [`super::Slab`]s.
+ ///
+ /// The slots inside this list will have a size of `SLOT_SIZE`. They can come
+@@ -18,7 +22,9 @@ pub struct SlabSlotList<const SLOT_SIZE: usize> {
+ // data pointed to by `head` requires a `&mut SlabSlotList`. Therefore, at any
+ // given time, only one task can access the inner `head`. Additionally, a
+ // `HeapSlot` will not be allocated again as long as it remains in the list.
++#[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> Sync for SlabSlotList<SLOT_SIZE> {}
++#[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> Send for SlabSlotList<SLOT_SIZE> {}
+ 
+ impl<const SLOT_SIZE: usize> Default for SlabSlotList<SLOT_SIZE> {
+@@ -41,6 +47,7 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+     ///  - the slot does not come from a slab
+     ///    (i.e., `!matches(slot.info(), SlotInfo::SlabSlot(_))`);
+     ///  - the size of the slot does not match `SLOT_SIZE`.
++    #[verifier::external_body]
+     pub fn push(&mut self, slot: HeapSlot) {
+         let slot_ptr = slot.as_ptr();
+         let super::SlotInfo::SlabSlot(slot_size) = slot.info() else {
+@@ -72,6 +79,7 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+     /// Pops a slot from the front of the list.
+     ///
+     /// It returns `None` if the list is empty.
++    #[verifier::external_body]
+     pub fn pop(&mut self) -> Option<HeapSlot> {
+         let original_head = self.head?;
+ 
+@@ -89,3 +97,5 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+         Some(unsafe { HeapSlot::new(original_head, super::SlotInfo::SlabSlot(SLOT_SIZE)) })
+     }
+ }
++
++} // verus!
+diff --git a/ostd/src/mm/mod.rs b/ostd/src/mm/mod.rs
+index c8469d7a8..8d3439734 100644
+--- a/ostd/src/mm/mod.rs
++++ b/ostd/src/mm/mod.rs
+@@ -18,7 +18,7 @@ pub const MAX_NR_LEVELS: usize = 4;
+ 
+ pub(crate) mod dma;
+ pub mod frame;
+-//pub mod heap;
++pub mod heap;
+ pub mod io;
+ pub use io::{
+     Fallible, FallibleVmRead, FallibleVmWrite, Infallible, VmIo, VmIoOnce, VmReader, VmWriter,
+
+From cc247dbdfbcc2ad71ab2daabfcc5139f6700e84d Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 15:22:08 +0800
+Subject: [PATCH 02/13] prove: spec for mm/heap
+
+---
+ ostd/src/mm/heap/slab.rs      | 29 +++++++++++++++++++++++++++--
+ ostd/src/mm/heap/slot.rs      | 30 +++++++++++++++++++++++++++---
+ ostd/src/mm/heap/slot_list.rs |  9 ++++++++-
+ 3 files changed, 62 insertions(+), 6 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 6ca5d4b8e..5da155957 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -118,8 +118,30 @@ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+ }
+ 
+ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
++    pub open spec fn valid_slot_size() -> bool {
++        &&& SLOT_SIZE != 0
++        &&& SLOT_SIZE <= PAGE_SIZE
++        &&& SLOT_SIZE >= core::mem::size_of::<usize>()
++        &&& SLOT_SIZE != 0 ==> PAGE_SIZE / SLOT_SIZE <= u16::MAX as usize
++    }
++
++    pub open spec fn capacity_spec() -> usize {
++        if SLOT_SIZE == 0 {
++            0
++        } else {
++            PAGE_SIZE / SLOT_SIZE
++        }
++    }
++
++    pub closed spec fn nr_allocated_spec(&self) -> u16 {
++        self.nr_allocated
++    }
++
+     /// Gets the capacity of the slab (regardless of the number of allocated slots).
+-    pub const fn capacity(&self) -> u16 {
++    pub const fn capacity(&self) -> (res: u16)
++        ensures
++            Self::capacity_spec() <= u16::MAX as usize ==> res as usize == Self::capacity_spec(),
++    {
+         if SLOT_SIZE == 0 {
+             0
+         } else {
+@@ -128,7 +150,10 @@ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+     }
+ 
+     /// Gets the number of allocated slots.
+-    pub fn nr_allocated(&self) -> u16 {
++    pub fn nr_allocated(&self) -> (res: u16)
++        ensures
++            res == self.nr_allocated_spec(),
++    {
+         self.nr_allocated
+     }
+ 
+diff --git a/ostd/src/mm/heap/slot.rs b/ostd/src/mm/heap/slot.rs
+index 2f6734621..3d884e670 100644
+--- a/ostd/src/mm/heap/slot.rs
++++ b/ostd/src/mm/heap/slot.rs
+@@ -44,8 +44,18 @@ pub enum SlotInfo {
+ }
+ 
+ impl SlotInfo {
++    pub open spec fn size_spec(self) -> usize {
++        match self {
++            Self::SlabSlot(size) => size,
++            Self::LargeSlot(size) => size,
++        }
++    }
++
+     /// Gets the size of the slot.
+-    pub fn size(&self) -> usize {
++    pub fn size(&self) -> (res: usize)
++        ensures
++            res == (*self).size_spec(),
++    {
+         match self {
+             Self::SlabSlot(size) => *size,
+             Self::LargeSlot(size) => *size,
+@@ -54,6 +64,14 @@ impl SlotInfo {
+ }
+ 
+ impl HeapSlot {
++    pub closed spec fn info_spec(&self) -> SlotInfo {
++        self.info
++    }
++
++    pub closed spec fn size_spec(&self) -> usize {
++        self.info_spec().size_spec()
++    }
++
+     /// Creates a new pointer to a heap slot.
+     ///
+     /// # Safety
+@@ -146,7 +164,10 @@ impl HeapSlot {
+     }
+ 
+     /// Gets the size of the slot.
+-    pub fn size(&self) -> usize {
++    pub fn size(&self) -> (res: usize)
++        ensures
++            res == self.size_spec(),
++    {
+         match self.info {
+             SlotInfo::SlabSlot(size) => size,
+             SlotInfo::LargeSlot(size) => size,
+@@ -154,7 +175,10 @@ impl HeapSlot {
+     }
+ 
+     /// Gets the type and size of the slot.
+-    pub fn info(&self) -> SlotInfo {
++    pub fn info(&self) -> (res: SlotInfo)
++        ensures
++            res == self.info_spec(),
++    {
+         self.info
+     }
+ 
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index 34ebaed15..417895760 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -34,8 +34,15 @@ impl<const SLOT_SIZE: usize> Default for SlabSlotList<SLOT_SIZE> {
+ }
+ 
+ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
++    pub closed spec fn is_empty_spec(&self) -> bool {
++        self.head is None
++    }
++
+     /// Creates a new empty list.
+-    pub const fn new() -> Self {
++    pub const fn new() -> (res: Self)
++        ensures
++            res.is_empty_spec(),
++    {
+         Self { head: None }
+     }
+ 
+
+From 1d1bdc94b2def7b95705459618302681e547d763 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:02:56 +0800
+Subject: [PATCH 03/13] prove: prove mm/heap
+
+---
+ ostd/src/mm/heap/mod.rs       | 31 +++++++++++++++++++++++++-----
+ ostd/src/mm/heap/slab.rs      |  3 ---
+ ostd/src/mm/heap/slot.rs      | 36 +++++++++++++++++++++++++++--------
+ ostd/src/mm/heap/slot_list.rs |  5 ++++-
+ 4 files changed, 58 insertions(+), 17 deletions(-)
+
+diff --git a/ostd/src/mm/heap/mod.rs b/ostd/src/mm/heap/mod.rs
+index adf235a7a..d762c0aab 100644
+--- a/ostd/src/mm/heap/mod.rs
++++ b/ostd/src/mm/heap/mod.rs
+@@ -19,6 +19,7 @@ pub use self::{
+     slot_list::SlabSlotList,
+ };
+ 
++#[cfg(not(feature = "verify"))]
+ macro_rules! abort_with_message {
+     ($($arg:tt)*) => {
+         log::error!($($arg)*);
+@@ -26,6 +27,13 @@ macro_rules! abort_with_message {
+     };
+ }
+ 
++#[cfg(feature = "verify")]
++macro_rules! abort_with_message {
++    ($($arg:tt)*) => {
++        core::intrinsics::abort();
++    };
++}
++
+ verus! {
+ 
+ #[verifier::external_type_specification]
+@@ -36,6 +44,15 @@ pub struct ExLayout(Layout);
+ #[verifier::external_body]
+ pub struct ExAllocError(AllocError);
+ 
++pub assume_specification[Layout::size](layout: &Layout) -> usize;
++
++pub assume_specification[Layout::align](layout: &Layout) -> (res: usize)
++    ensures
++        res != 0,
++;
++
++pub assume_specification[core::intrinsics::abort]() -> !;
++
+ /// The trait for the global heap allocator.
+ ///
+ /// By providing the slab ([`Slab`]) and heap slot ([`HeapSlot`])
+@@ -78,6 +95,10 @@ extern "Rust" {
+     fn __GLOBAL_HEAP_SLOT_INFO_FROM_LAYOUT(layout: Layout) -> Option<SlotInfo>;
+ }
+ 
++pub assume_specification[__GLOBAL_HEAP_SLOT_INFO_FROM_LAYOUT](
++    layout: Layout,
++) -> Option<SlotInfo>;
++
+ /// Gets the reference to the user-defined global heap allocator.
+ #[verifier::external_body]
+ fn get_global_heap_allocator() -> &'static dyn GlobalHeapAllocator {
+@@ -91,7 +112,6 @@ fn get_global_heap_allocator() -> &'static dyn GlobalHeapAllocator {
+ /// require it to be implemented as a `const fn`.
+ ///
+ /// See [`crate::global_heap_allocator_slot_map`].
+-#[verifier::external_body]
+ fn slot_size_from_layout(layout: Layout) -> Option<SlotInfo> {
+     // SAFETY: This up-call is redirected safely to Rust code by OSDK.
+     unsafe { __GLOBAL_HEAP_SLOT_INFO_FROM_LAYOUT(layout) }
+@@ -111,9 +131,7 @@ struct AllocDispatch;
+ 
+ // TODO: Somehow restrict unwinding in the user-provided global allocator.
+ // Panicking should be fine, but we shouldn't unwind on panics.
+-#[verifier::external]
+ unsafe impl GlobalAlloc for AllocDispatch {
+-    #[verifier::external_body]
+     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+         let Some(required_slot) = slot_size_from_layout(layout) else {
+             abort_with_message!("Heap allocation size not found for layout = {:#x?}", layout);
+@@ -140,7 +158,6 @@ unsafe impl GlobalAlloc for AllocDispatch {
+         slot.as_ptr()
+     }
+ 
+-    #[verifier::external_body]
+     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+         // Now we restore the `HeapSlot` from the pointer and the layout.
+         let Some(required_slot) = slot_size_from_layout(layout) else {
+@@ -153,7 +170,11 @@ unsafe impl GlobalAlloc for AllocDispatch {
+         // SAFETY: The validity of the pointer is guaranteed by the caller. The
+         // size must match the size of the slot when it was allocated, since we
+         // require `slot_size_from_layout` to be idempotent.
+-        let slot = unsafe { HeapSlot::new(NonNull::new_unchecked(ptr), required_slot) };
++        // let slot = unsafe { HeapSlot::new(NonNull::new_unchecked(ptr), required_slot) };
++        let Some(nonnull_ptr) = NonNull::new(ptr) else {
++            abort_with_message!("Heap deallocation null pointer, layout = {:#x?}", layout);
++        };
++        let slot = unsafe { HeapSlot::new(nonnull_ptr, required_slot) };
+         let res = get_global_heap_allocator().dealloc(slot);
+ 
+         if res.is_err() {
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 5da155957..f9327a5d6 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -59,7 +59,6 @@ impl<const SLOT_SIZE: usize> Repr<MetaSlotSmall> for SlabMeta<SLOT_SIZE> {
+         (MetaSlotSmall, perm)
+     }
+ 
+-    #[verifier::external_body]
+     fn to_repr(self, Tracked(perm): Tracked<&mut ()>) -> MetaSlotSmall {
+         MetaSlotSmall
+     }
+@@ -84,7 +83,6 @@ impl<const SLOT_SIZE: usize> Repr<MetaSlotSmall> for SlabMeta<SLOT_SIZE> {
+     #[verifier::external_body]
+     proof fn to_from_repr(r: MetaSlotSmall, perm: ()) {}
+ 
+-    #[verifier::external_body]
+     proof fn to_repr_wf(self, perm: ()) {}
+ }
+ 
+@@ -174,7 +172,6 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+     ///
+     /// If the size is less than `SLOT_SIZE` or [`PAGE_SIZE`], the size will be
+     /// the maximum of the two.
+-    #[verifier::external_body]
+     pub fn new() -> core::result::Result<Self, Error> {
+         /*
+         const { assert!(SLOT_SIZE <= PAGE_SIZE) };
+diff --git a/ostd/src/mm/heap/slot.rs b/ostd/src/mm/heap/slot.rs
+index 3d884e670..957507d36 100644
+--- a/ostd/src/mm/heap/slot.rs
++++ b/ostd/src/mm/heap/slot.rs
+@@ -1,11 +1,14 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Heap slots for allocations.
+ use vstd::prelude::*;
++use vstd_extra::external::nonnull::NonNullAdditionalFns;
+ 
+ use core::{alloc::AllocError, ptr::NonNull};
+ 
+ use crate::mm::{
+-    PAGE_SIZE, Paddr, Vaddr, frame::meta::AnyFrameMeta, kspace::LINEAR_MAPPING_BASE_VADDR,
++    PAGE_SIZE, Paddr, Vaddr,
++    frame::meta::AnyFrameMeta,
++    kspace::{LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+ };
+ 
+ verus! {
+@@ -72,6 +75,14 @@ impl HeapSlot {
+         self.info_spec().size_spec()
+     }
+ 
++    pub closed spec fn vaddr_spec(&self) -> Vaddr {
++        self.addr.view_ptr_mut().addr()
++    }
++
++    pub closed spec fn in_linear_mapping_spec(&self) -> bool {
++        LINEAR_MAPPING_BASE_VADDR <= self.vaddr_spec() < VMALLOC_BASE_VADDR
++    }
++
+     /// Creates a new pointer to a heap slot.
+     ///
+     /// # Safety
+@@ -82,8 +93,11 @@ impl HeapSlot {
+     ///
+     /// If the pointer is from a [`super::Slab`] or [`Segment`], the slot must
+     /// have a size that matches the slot size of the slab or segment respectively.
+-    #[verifier::external_body]
+-    pub(super) unsafe fn new(addr: NonNull<u8>, info: SlotInfo) -> Self {
++    pub(super) unsafe fn new(addr: NonNull<u8>, info: SlotInfo) -> (res: Self)
++        ensures
++            res.info_spec() == info,
++            res.size_spec() == info.size_spec(),
++    {
+         Self { addr, info }
+     }
+ 
+@@ -134,7 +148,6 @@ impl HeapSlot {
+     /// This function aborts if the slot was not allocated with
+     /// [`HeapSlot::alloc_large`], as it requires specific memory management
+     /// operations that only apply to large slots.
+-    #[verifier::external_body]
+     pub fn dealloc_large(self) {
+         /*
+         let SlotInfo::LargeSlot(size) = self.info else {
+@@ -158,9 +171,17 @@ impl HeapSlot {
+     }
+ 
+     /// Gets the physical address of the slot.
+-    #[verifier::external_body]
+-    pub fn paddr(&self) -> Paddr {
+-        self.addr.as_ptr() as Vaddr - LINEAR_MAPPING_BASE_VADDR
++    pub fn paddr(&self) -> (res: Paddr)
++        requires
++            self.in_linear_mapping_spec(),
++        ensures
++            res == crate::specs::arch::kspace::vaddr_to_paddr_spec(self.vaddr_spec()),
++    {
++        let vaddr = self.addr.as_ptr() as Vaddr;
++        proof {
++            self.addr.lemma_addr_view_eq_view_ptr_mut();
++        }
++        crate::specs::arch::kspace::vaddr_to_paddr(vaddr)
+     }
+ 
+     /// Gets the size of the slot.
+@@ -183,7 +204,6 @@ impl HeapSlot {
+     }
+ 
+     /// Gets the pointer to the slot.
+-    #[verifier::external_body]
+     pub fn as_ptr(&self) -> *mut u8 {
+         self.addr.as_ptr()
+     }
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index 417895760..f889962f1 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -28,7 +28,10 @@ unsafe impl<const SLOT_SIZE: usize> Sync for SlabSlotList<SLOT_SIZE> {}
+ unsafe impl<const SLOT_SIZE: usize> Send for SlabSlotList<SLOT_SIZE> {}
+ 
+ impl<const SLOT_SIZE: usize> Default for SlabSlotList<SLOT_SIZE> {
+-    fn default() -> Self {
++    fn default() -> (res: Self)
++        ensures
++            res.is_empty_spec(),
++    {
+         Self::new()
+     }
+ }
+
+From dc1971ff3865921445adf793ba72b506ee2d286c Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:09:09 +0800
+Subject: [PATCH 04/13] prove: remove the functions dependent to mm/frame
+
+---
+ ostd/src/mm/heap/slot.rs | 27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slot.rs b/ostd/src/mm/heap/slot.rs
+index 957507d36..e3d7ac6fe 100644
+--- a/ostd/src/mm/heap/slot.rs
++++ b/ostd/src/mm/heap/slot.rs
+@@ -110,18 +110,12 @@ impl HeapSlot {
+     /// # Panics
+     ///
+     /// This function panics if the size is not a multiple of [`PAGE_SIZE`].
+-    #[verifier::external_body]
++    /*
+     pub fn alloc_large(size: usize) -> Result<Self, AllocError> {
+-        /*
+-        #[cfg(feature = "allow_panic")]
+         assert_eq!(size % PAGE_SIZE, 0);
+         let nframes = size / PAGE_SIZE;
+-        let mut options = FrameAllocOptions::new();
+-        // FrameAllocOptions::new()
+-        //     .zeroed(false)
+-        //     .alloc_segment_with(...)
+-        options.zeroed(false);
+-        let segment = options
++        let segment = FrameAllocOptions::new()
++            .zeroed(false)
+             .alloc_segment_with(nframes, |_| LargeAllocFrameMeta)
+             .map_err(|_| {
+                 log::error!("Failed to allocate a large slot");
+@@ -135,11 +129,8 @@ impl HeapSlot {
+             addr: NonNull::new(vaddr as *mut u8).unwrap(),
+             info: SlotInfo::LargeSlot(size),
+         })
+-        */
+-        let _ = size;
+-        log::error!("Failed to allocate a large slot");
+-        Err(AllocError)
+     }
++    */
+ 
+     /// Deallocates a large slot.
+     ///
+@@ -148,16 +139,13 @@ impl HeapSlot {
+     /// This function aborts if the slot was not allocated with
+     /// [`HeapSlot::alloc_large`], as it requires specific memory management
+     /// operations that only apply to large slots.
++    /*
+     pub fn dealloc_large(self) {
+-        /*
+         let SlotInfo::LargeSlot(size) = self.info else {
+             log::error!(
+                 "Deallocating a large slot that was not allocated with `HeapSlot::alloc_large`"
+             );
+-            #[cfg(feature = "allow_panic")]
+-            core::intrinsics::abort();
+-            #[cfg(not(feature = "allow_panic"))]
+-            return;
++            crate::panic::abort();
+         };
+ 
+         debug_assert_eq!(size % PAGE_SIZE, 0);
+@@ -166,9 +154,8 @@ impl HeapSlot {
+ 
+         // SAFETY: The segment was once forgotten when allocated.
+         drop(unsafe { Segment::<LargeAllocFrameMeta>::from_raw(range) });
+-        */
+-        let _ = self;
+     }
++    */
+ 
+     /// Gets the physical address of the slot.
+     pub fn paddr(&self) -> (res: Paddr)
+
+From 03c6dd6eff3b4574a00e10b35921230fc6ef76bd Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:13:30 +0800
+Subject: [PATCH 05/13] fmt: mm/heap
+
+---
+ ostd/src/mm/heap/slab.rs      | 19 +++++++++++++------
+ ostd/src/mm/heap/slot.rs      |  2 --
+ ostd/src/mm/heap/slot_list.rs | 15 +++++++++------
+ 3 files changed, 22 insertions(+), 14 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index f9327a5d6..0fadd89a4 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -40,7 +40,6 @@ pub struct SlabMeta<const SLOT_SIZE: usize> {
+     ///
+     /// Slots not inside the slab should not be in the list.
+     free_list: SlabSlotList<SLOT_SIZE>,
+-
+     /// The number of allocated slots in the slab.
+     ///
+     /// Even if a slot is free, as long as it does not stay in the
+@@ -78,18 +77,26 @@ impl<const SLOT_SIZE: usize> Repr<MetaSlotSmall> for SlabMeta<SLOT_SIZE> {
+     }
+ 
+     #[verifier::external_body]
+-    proof fn from_to_repr(self, perm: ()) {}
++    proof fn from_to_repr(self, perm: ()) {
++    }
+ 
+     #[verifier::external_body]
+-    proof fn to_from_repr(r: MetaSlotSmall, perm: ()) {}
++    proof fn to_from_repr(r: MetaSlotSmall, perm: ()) {
++    }
+ 
+-    proof fn to_repr_wf(self, perm: ()) {}
++    proof fn to_repr_wf(self, perm: ()) {
++    }
+ }
+ 
+ #[verifier::external]
+-unsafe impl<const SLOT_SIZE: usize> Send for SlabMeta<SLOT_SIZE> {}
++unsafe impl<const SLOT_SIZE: usize> Send for SlabMeta<SLOT_SIZE> {
++
++}
++
+ #[verifier::external]
+-unsafe impl<const SLOT_SIZE: usize> Sync for SlabMeta<SLOT_SIZE> {}
++unsafe impl<const SLOT_SIZE: usize> Sync for SlabMeta<SLOT_SIZE> {
++
++}
+ 
+ #[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+diff --git a/ostd/src/mm/heap/slot.rs b/ostd/src/mm/heap/slot.rs
+index e3d7ac6fe..37f1f77f9 100644
+--- a/ostd/src/mm/heap/slot.rs
++++ b/ostd/src/mm/heap/slot.rs
+@@ -131,7 +131,6 @@ impl HeapSlot {
+         })
+     }
+     */
+-
+     /// Deallocates a large slot.
+     ///
+     /// # Panics
+@@ -156,7 +155,6 @@ impl HeapSlot {
+         drop(unsafe { Segment::<LargeAllocFrameMeta>::from_raw(range) });
+     }
+     */
+-
+     /// Gets the physical address of the slot.
+     pub fn paddr(&self) -> (res: Paddr)
+         requires
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index f889962f1..08915eff9 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -23,9 +23,14 @@ pub struct SlabSlotList<const SLOT_SIZE: usize> {
+ // given time, only one task can access the inner `head`. Additionally, a
+ // `HeapSlot` will not be allocated again as long as it remains in the list.
+ #[verifier::external]
+-unsafe impl<const SLOT_SIZE: usize> Sync for SlabSlotList<SLOT_SIZE> {}
++unsafe impl<const SLOT_SIZE: usize> Sync for SlabSlotList<SLOT_SIZE> {
++
++}
++
+ #[verifier::external]
+-unsafe impl<const SLOT_SIZE: usize> Send for SlabSlotList<SLOT_SIZE> {}
++unsafe impl<const SLOT_SIZE: usize> Send for SlabSlotList<SLOT_SIZE> {
++
++}
+ 
+ impl<const SLOT_SIZE: usize> Default for SlabSlotList<SLOT_SIZE> {
+     fn default() -> (res: Self)
+@@ -64,7 +69,7 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+             #[cfg(feature = "allow_panic")]
+             panic!("The slot does not come from a slab");
+             #[cfg(not(feature = "allow_panic"))]
+-            return;
++             return;
+         };
+ 
+         #[cfg(feature = "allow_panic")]
+@@ -80,9 +85,7 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+         // SAFETY: A heap slot must be free so the pointer to the slot can be
+         // written to. The slot size is at least the size of a pointer.
+         unsafe {
+-            slot_ptr
+-                .cast::<usize>()
+-                .write(original_head.map_or(0, |h| h.as_ptr() as usize));
++            slot_ptr.cast::<usize>().write(original_head.map_or(0, |h| h.as_ptr() as usize));
+         }
+     }
+ 
+
+From 2c1e56b3f351b3a053040bc6fb9f2854f1bcffd5 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:25:12 +0800
+Subject: [PATCH 06/13] exec & spec: SLOT_SIZE
+
+---
+ ostd/src/mm/heap/slab.rs | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 0fadd89a4..09cef06d3 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -124,18 +124,15 @@ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+ 
+ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+     pub open spec fn valid_slot_size() -> bool {
+-        &&& SLOT_SIZE != 0
+-        &&& SLOT_SIZE <= PAGE_SIZE
+         &&& SLOT_SIZE >= core::mem::size_of::<usize>()
+-        &&& SLOT_SIZE != 0 ==> PAGE_SIZE / SLOT_SIZE <= u16::MAX as usize
++        &&& SLOT_SIZE <= PAGE_SIZE
+     }
+ 
+-    pub open spec fn capacity_spec() -> usize {
+-        if SLOT_SIZE == 0 {
+-            0
+-        } else {
+-            PAGE_SIZE / SLOT_SIZE
+-        }
++    pub open spec fn capacity_spec() -> usize
++        recommends
++            Self::valid_slot_size(),
++    {
++        PAGE_SIZE / SLOT_SIZE
+     }
+ 
+     pub closed spec fn nr_allocated_spec(&self) -> u16 {
+@@ -144,14 +141,12 @@ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+ 
+     /// Gets the capacity of the slab (regardless of the number of allocated slots).
+     pub const fn capacity(&self) -> (res: u16)
++        requires
++            Self::valid_slot_size(),
+         ensures
+-            Self::capacity_spec() <= u16::MAX as usize ==> res as usize == Self::capacity_spec(),
++            res as usize == Self::capacity_spec(),
+     {
+-        if SLOT_SIZE == 0 {
+-            0
+-        } else {
+-            (PAGE_SIZE / SLOT_SIZE) as u16
+-        }
++        (PAGE_SIZE / SLOT_SIZE) as u16
+     }
+ 
+     /// Gets the number of allocated slots.
+
+From 6c8da474f7d775aa4784b09b1451a9c4a3940001 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:31:20 +0800
+Subject: [PATCH 07/13] exec: comment `Slab`
+
+---
+ ostd/src/mm/heap/slab.rs | 21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 09cef06d3..6d42f8976 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -169,25 +169,21 @@ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+     }
+ }
+ 
++/*
+ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+     /// Allocates a new slab of the given size.
+     ///
+     /// If the size is less than `SLOT_SIZE` or [`PAGE_SIZE`], the size will be
+     /// the maximum of the two.
+-    pub fn new() -> core::result::Result<Self, Error> {
+-        /*
++    pub fn new() -> crate::prelude::Result<Self> {
+         const { assert!(SLOT_SIZE <= PAGE_SIZE) };
+         // To ensure we can store a pointer in each slot.
+         const { assert!(SLOT_SIZE >= core::mem::size_of::<usize>()) };
+         // To ensure `nr_allocated` can be stored in a `u16`.
+         const { assert!(PAGE_SIZE / SLOT_SIZE <= u16::MAX as usize) };
+ 
+-        let mut options = FrameAllocOptions::new();
+-        // FrameAllocOptions::new()
+-        //     .zeroed(false)
+-        //     .alloc_frame_with(...)
+-        options.zeroed(false);
+-        let mut slab: Slab<SLOT_SIZE> = options
++        let mut slab: Slab<SLOT_SIZE> = FrameAllocOptions::new()
++            .zeroed(false)
+             .alloc_frame_with(Link::new(SlabMeta::<SLOT_SIZE> {
+                 free_list: SlabSlotList::new(),
+                 nr_allocated: 0,
+@@ -209,16 +205,12 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+         }
+ 
+         Ok(slab)
+-        */
+-        Err(NoMemory)
+     }
+ 
+     /// Deallocates a slot to the slab.
+     ///
+     /// If the slot does not belong to the slab it returns [`AllocError`].
+-    #[verifier::external_body]
+     pub fn dealloc(&mut self, slot: HeapSlot) -> Result<(), AllocError> {
+-        /*
+         if !(self.start_paddr()..self.start_paddr() + self.size()).contains(&slot.paddr()) {
+             log::error!("Deallocating a slot to a slab that does not own the slot");
+             return Err(AllocError);
+@@ -228,11 +220,8 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+         self.meta_mut().nr_allocated -= 1;
+ 
+         Ok(())
+-        */
+-        let _ = slot;
+-        log::error!("Deallocating a slot to a slab that does not own the slot");
+-        Err(AllocError)
+     }
+ }
++*/
+ 
+ } // verus!
+
+From f57b9aa5ff59645fc19c8c19b8e4633d3cea9a6c Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:42:28 +0800
+Subject: [PATCH 08/13] prove: SlabMeta::alloc
+
+---
+ ostd/src/mm/heap/mod.rs  |  1 -
+ ostd/src/mm/heap/slab.rs | 12 ++++++++----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/ostd/src/mm/heap/mod.rs b/ostd/src/mm/heap/mod.rs
+index d762c0aab..c9e8eeb24 100644
+--- a/ostd/src/mm/heap/mod.rs
++++ b/ostd/src/mm/heap/mod.rs
+@@ -41,7 +41,6 @@ verus! {
+ pub struct ExLayout(Layout);
+ 
+ #[verifier::external_type_specification]
+-#[verifier::external_body]
+ pub struct ExAllocError(AllocError);
+ 
+ pub assume_specification[Layout::size](layout: &Layout) -> usize;
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 6d42f8976..579f5da18 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -158,10 +158,15 @@ impl<const SLOT_SIZE: usize> SlabMeta<SLOT_SIZE> {
+     }
+ 
+     /// Allocates a slot from the slab.
+-    #[verifier::external_body]
+-    pub fn alloc(&mut self) -> Result<HeapSlot, AllocError> {
++    pub fn alloc(&mut self) -> (res: Result<HeapSlot, AllocError>)
++        requires
++            old(self).nr_allocated_spec() < u16::MAX,
++        ensures
++            res is Ok ==> final(self).nr_allocated_spec() == old(self).nr_allocated_spec() + 1,
++            res is Err ==> final(self).nr_allocated_spec() == old(self).nr_allocated_spec(),
++    {
+         let Some(allocated) = self.free_list.pop() else {
+-            log::error!("Allocating a slot from a full slab");
++            // log::error!("Allocating a slot from a full slab");
+             return Err(AllocError);
+         };
+         self.nr_allocated += 1;
+@@ -223,5 +228,4 @@ impl<const SLOT_SIZE: usize> Slab<SLOT_SIZE> {
+     }
+ }
+ */
+-
+ } // verus!
+
+From 644a0da91311cce20d21d9243a6572ee3aa8c103 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 5 Jun 2026 16:48:42 +0800
+Subject: [PATCH 09/13] prove: AnyFrameMeta for SlabMeta
+
+---
+ ostd/src/mm/heap/slab.rs | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 579f5da18..f9a23ec9e 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -98,9 +98,7 @@ unsafe impl<const SLOT_SIZE: usize> Sync for SlabMeta<SLOT_SIZE> {
+ 
+ }
+ 
+-#[verifier::external]
+ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+-    #[verifier::external_body]
+     fn on_drop(
+         &mut self,
+         _reader: &mut crate::mm::VmReader<crate::mm::Infallible>,
+@@ -110,11 +108,11 @@ unsafe impl<const SLOT_SIZE: usize> AnyFrameMeta for SlabMeta<SLOT_SIZE> {
+         if self.nr_allocated != 0 {
+             // FIXME: We have no mechanisms to forget the slab once we are here,
+             // so we require the user to deallocate all slots before dropping.
++            #[cfg(feature = "allow_panic")]
+             panic!("{} slots allocated when dropping a slab", self.nr_allocated);
+         }
+     }
+ 
+-    #[verifier::external_body]
+     fn is_untyped(&self) -> bool {
+         false
+     }
+
+From 5415289e44eed7b24e86627adc36b3449d1791de Mon Sep 17 00:00:00 2001
+From: Je5s1e <chaoccc22@gmail.com>
+Date: Fri, 5 Jun 2026 17:36:44 +0800
+Subject: [PATCH 10/13] update slot_list
+
+---
+ ostd/src/mm/heap/slot.rs      |  5 ++++-
+ ostd/src/mm/heap/slot_list.rs | 21 +++++++++++++++++----
+ 2 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slot.rs b/ostd/src/mm/heap/slot.rs
+index 37f1f77f9..53bbd25ca 100644
+--- a/ostd/src/mm/heap/slot.rs
++++ b/ostd/src/mm/heap/slot.rs
+@@ -189,7 +189,10 @@ impl HeapSlot {
+     }
+ 
+     /// Gets the pointer to the slot.
+-    pub fn as_ptr(&self) -> *mut u8 {
++    pub fn as_ptr(&self) -> (res: *mut u8)
++        ensures
++            !res.is_null(),
++    {
+         self.addr.as_ptr()
+     }
+ }
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index 08915eff9..51c35e021 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -8,6 +8,16 @@ use super::HeapSlot;
+ 
+ verus! {
+ 
++pub assume_specification<T>[ <*mut T>::write ](ptr: *mut T, val: T);
++
++pub assume_specification<T>[ <*mut T>::read ](ptr: *mut T) -> T;
++
++pub assume_specification<T, U, F>[ core::option::Option::<T>::map_or ](_0: core::option::Option<T>, _1: U, _2: F) -> U
++where
++    F: core::ops::FnOnce(T,) -> U + core::marker::Destruct,
++    U: core::marker::Destruct,
++;
++
+ /// A singly-linked list of [`HeapSlot`]s from [`super::Slab`]s.
+ ///
+ /// The slots inside this list will have a size of `SLOT_SIZE`. They can come
+@@ -62,7 +72,6 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+     ///  - the slot does not come from a slab
+     ///    (i.e., `!matches(slot.info(), SlotInfo::SlabSlot(_))`);
+     ///  - the size of the slot does not match `SLOT_SIZE`.
+-    #[verifier::external_body]
+     pub fn push(&mut self, slot: HeapSlot) {
+         let slot_ptr = slot.as_ptr();
+         let super::SlotInfo::SlabSlot(slot_size) = slot.info() else {
+@@ -74,10 +83,12 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+ 
+         #[cfg(feature = "allow_panic")]
+         assert_eq!(slot_size, SLOT_SIZE);
++        #[cfg(feature = "allow_panic")]
+         const { assert!(SLOT_SIZE >= core::mem::size_of::<usize>()) };
+ 
+         let original_head = self.head;
+ 
++        #[cfg(feature = "allow_panic")]
+         debug_assert!(!slot_ptr.is_null());
+         // SAFETY: A pointer to a slot must not be NULL;
+         self.head = Some(unsafe { NonNull::new_unchecked(slot_ptr) });
+@@ -85,20 +96,22 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+         // SAFETY: A heap slot must be free so the pointer to the slot can be
+         // written to. The slot size is at least the size of a pointer.
+         unsafe {
+-            slot_ptr.cast::<usize>().write(original_head.map_or(0, |h| h.as_ptr() as usize));
++            // slot_ptr.cast::<usize>().write(original_head.map_or(0, |h| h.as_ptr() as usize));
++            slot_ptr.cast::<*mut u8>().write(original_head.map_or(core::ptr::null_mut(), |h| h.as_ptr()));
+         }
+     }
+ 
+     /// Pops a slot from the front of the list.
+     ///
+     /// It returns `None` if the list is empty.
+-    #[verifier::external_body]
++    // #[verifier::external_body]
+     pub fn pop(&mut self) -> Option<HeapSlot> {
+         let original_head = self.head?;
+ 
+         // SAFETY: The head is a valid pointer to a free slot.
+         // The slot contains a pointer to the next slot.
+-        let next = unsafe { original_head.as_ptr().cast::<usize>().read() } as *mut u8;
++        // let next = unsafe { original_head.as_ptr().cast::<usize>().read() } as *mut u8;
++        let next = unsafe { original_head.as_ptr().cast::<*mut u8>().read() };
+ 
+         self.head = if next.is_null() {
+             None
+
+From ce1390d942b044e73746f7ac72c771be624fa16a Mon Sep 17 00:00:00 2001
+From: Je5s1e <chaoccc22@gmail.com>
+Date: Fri, 5 Jun 2026 21:41:08 +0800
+Subject: [PATCH 11/13] update slab verified code
+
+---
+ ostd/src/mm/heap/slab.rs      | 6 ++++--
+ ostd/src/mm/heap/slot_list.rs | 5 +++++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index f9a23ec9e..1a15e4dbd 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -62,9 +62,11 @@ impl<const SLOT_SIZE: usize> Repr<MetaSlotSmall> for SlabMeta<SLOT_SIZE> {
+         MetaSlotSmall
+     }
+ 
+-    uninterp spec fn from_repr_spec(_r: MetaSlotSmall, _perm: ()) -> Self;
++    closed spec fn from_repr_spec(_r: MetaSlotSmall, _perm: ()) -> Self {
++        SlabMeta { free_list: SlabSlotList::new_spec(), nr_allocated: 0 }
++    }
+ 
+-    #[verifier::external_body]
++    // #[verifier::external_body]
+     fn from_repr(_r: MetaSlotSmall, Tracked(_perm): Tracked<&()>) -> Self {
+         SlabMeta { free_list: SlabSlotList::new(), nr_allocated: 0 }
+     }
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index 51c35e021..5d43ad5bf 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -56,10 +56,15 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+         self.head is None
+     }
+ 
++    pub closed spec fn new_spec() -> Self {
++        SlabSlotList { head: None }
++    }
++
+     /// Creates a new empty list.
+     pub const fn new() -> (res: Self)
+         ensures
+             res.is_empty_spec(),
++            res == Self::new_spec(),
+     {
+         Self { head: None }
+     }
+
+From dffa7b932d72b43df3ad30064915556c7254e239 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Sat, 6 Jun 2026 17:21:41 +0800
+Subject: [PATCH 12/13] chore: cleanup
+
+---
+ ostd/src/mm/heap/slab.rs      | 1 -
+ ostd/src/mm/heap/slot_list.rs | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/ostd/src/mm/heap/slab.rs b/ostd/src/mm/heap/slab.rs
+index 1a15e4dbd..237e82e49 100644
+--- a/ostd/src/mm/heap/slab.rs
++++ b/ostd/src/mm/heap/slab.rs
+@@ -66,7 +66,6 @@ impl<const SLOT_SIZE: usize> Repr<MetaSlotSmall> for SlabMeta<SLOT_SIZE> {
+         SlabMeta { free_list: SlabSlotList::new_spec(), nr_allocated: 0 }
+     }
+ 
+-    // #[verifier::external_body]
+     fn from_repr(_r: MetaSlotSmall, Tracked(_perm): Tracked<&()>) -> Self {
+         SlabMeta { free_list: SlabSlotList::new(), nr_allocated: 0 }
+     }
+diff --git a/ostd/src/mm/heap/slot_list.rs b/ostd/src/mm/heap/slot_list.rs
+index 5d43ad5bf..5e7d56ff7 100644
+--- a/ostd/src/mm/heap/slot_list.rs
++++ b/ostd/src/mm/heap/slot_list.rs
+@@ -109,7 +109,6 @@ impl<const SLOT_SIZE: usize> SlabSlotList<SLOT_SIZE> {
+     /// Pops a slot from the front of the list.
+     ///
+     /// It returns `None` if the list is empty.
+-    // #[verifier::external_body]
+     pub fn pop(&mut self) -> Option<HeapSlot> {
+         let original_head = self.head?;
+ 
+
+From cb2be5a80af1fa3286752092ec51f6eb9af29d91 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Tue, 9 Jun 2026 16:23:19 +0800
+Subject: [PATCH 13/13] chore: move external type specs
+
+---
+ ostd/src/mm/heap/mod.rs                       | 17 +------------
+ .../vstd_extra/src/external/alloc_types.rs    | 25 +++++++++++++++++++
+ verified_libs/vstd_extra/src/external/mod.rs  |  2 ++
+ verified_libs/vstd_extra/src/lib.rs           |  1 +
+ 4 files changed, 29 insertions(+), 16 deletions(-)
+ create mode 100644 verified_libs/vstd_extra/src/external/alloc_types.rs
+
+diff --git a/ostd/src/mm/heap/mod.rs b/ostd/src/mm/heap/mod.rs
+index c9e8eeb24..feb9e67b5 100644
+--- a/ostd/src/mm/heap/mod.rs
++++ b/ostd/src/mm/heap/mod.rs
+@@ -8,6 +8,7 @@ use core::{
+ };
+ 
+ use crate::mm::Vaddr;
++use vstd_extra::external::alloc_types::*;
+ 
+ mod slab;
+ mod slot;
+@@ -36,22 +37,6 @@ macro_rules! abort_with_message {
+ 
+ verus! {
+ 
+-#[verifier::external_type_specification]
+-#[verifier::external_body]
+-pub struct ExLayout(Layout);
+-
+-#[verifier::external_type_specification]
+-pub struct ExAllocError(AllocError);
+-
+-pub assume_specification[Layout::size](layout: &Layout) -> usize;
+-
+-pub assume_specification[Layout::align](layout: &Layout) -> (res: usize)
+-    ensures
+-        res != 0,
+-;
+-
+-pub assume_specification[core::intrinsics::abort]() -> !;
+-
+ /// The trait for the global heap allocator.
+ ///
+ /// By providing the slab ([`Slab`]) and heap slot ([`HeapSlot`])
+diff --git a/verified_libs/vstd_extra/src/external/alloc_types.rs b/verified_libs/vstd_extra/src/external/alloc_types.rs
+new file mode 100644
+index 000000000..a9a932e61
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/alloc_types.rs
+@@ -0,0 +1,25 @@
++//! External type specifications for `core::alloc` types and related intrinsics.
++use core::alloc::{AllocError, Layout};
++use vstd::prelude::*;
++
++verus! {
++
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExLayout(Layout);
++
++#[verifier::external_type_specification]
++pub struct ExAllocError(AllocError);
++
++pub assume_specification[ Layout::size ](layout: &Layout) -> usize
++;
++
++pub assume_specification[ Layout::align ](layout: &Layout) -> (res: usize)
++    ensures
++        res != 0,
++;
++
++pub assume_specification[ core::intrinsics::abort ]() -> !
++;
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index d1db08d5c..1847a2fd4 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -2,6 +2,7 @@
+ //!
+ //! These specifications are determined with careful inspection of the std library source code and documentation, and trusted as TCB.
+ //! They are subject to change if `vstd` covers more cases in the future.
++pub mod alloc_types;
+ pub mod convert;
+ pub mod deref;
+ pub mod ilog2;
+@@ -13,6 +14,7 @@ pub mod range;
+ pub mod slice;
+ pub mod smart_ptr;
+ 
++pub use alloc_types::*;
+ pub use ilog2::*;
+ pub use int_specs::*;
+ pub use nonnull::*;
+diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
+index 519f29abf..b0344ac39 100644
+--- a/verified_libs/vstd_extra/src/lib.rs
++++ b/verified_libs/vstd_extra/src/lib.rs
+@@ -4,6 +4,7 @@
+ #![feature(nonzero_internals)]
+ #![feature(sized_hierarchy)]
+ #![feature(proc_macro_hygiene)]
++#![feature(core_intrinsics)]
+ #![cfg_attr(verus_keep_ghost, feature(allocator_api))]
+ #![allow(non_snake_case)]
+ #![allow(unused_parens)]

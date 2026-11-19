@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-927-cd548f6f2503",
+  "pr_number": 927,
+  "title": "prove: verify Pod and fallible VM I/O ktests",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/927",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "90087275ebd4b974596947d11d3da27d722e05d3",
+  "head_sha": "cd548f6f2503284dccfb84886741b38f772db2e1",
+  "base_method": "git merge-base of archived GitHub base 90087275ebd4b974596947d11d3da27d722e05d3 and selected review head cd548f6f2503284dccfb84886741b38f772db2e1; computed from official Git objects",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "dv",
+    "ostd/libs/ostd-pod/Cargo.toml",
+    "ostd/libs/ostd-pod/derive/Cargo.toml",
+    "ostd/libs/ostd-pod/derive/src/lib.rs",
+    "ostd/libs/ostd-pod/tests/derive_test.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/test.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/external/vec.rs"
+  ],
+  "diff_sha256": "fb2a7678201b3fafdd8a6e4e41565fdd56988d4bd7f4408b45a34d91e67dda69",
+  "versions": {
+    "before": {
+      "commit": "90087275ebd4b974596947d11d3da27d722e05d3",
+      "file_count": 356,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "cd548f6f2503284dccfb84886741b38f772db2e1",
+      "file_count": 360,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "efda41d3e506737df8656811251d8229be4cf3de",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-17T04:41:44.864754+00:00",
+    "reviewed_at": "2026-11-13T16:39:33Z",
+    "upstream_updated_at": "2026-11-16T10:40:42Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/927",
+      "https://github.com/asterinas/vostd/pull/927#discussion_r4566010092",
+      "https://github.com/asterinas/vostd/pull/927#discussion_r4566010099",
+      "https://github.com/asterinas/vostd/pull/927#discussion_r4566010111",
+      "https://github.com/asterinas/vostd/pull/927#discussion_r4566010147"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00927"
+  }
+}

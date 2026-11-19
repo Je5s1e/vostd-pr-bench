@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-392-f30278a5973e",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-392-f30278a5973e:review-comment-3022538220",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The mapping proof manufactures a second initialized metadata-slot permission with an axiom and inserts it into the region map instead of transferring the existing linear permission.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 470,
+          "end_line": 480
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+          "start_line": 101,
+          "end_line": 114
+        }
+      ],
+      "rationale": "entry_owner already represents the tracked mapping and carries its frame's slot permission, but this proof calls placeholder_slot_perm to axiomatically create another initialized PointsTo for the same metadata address, then inserts it into regions.slots solely to satisfy item_slot_in_regions. Because the axiom consumes no permission token, the proof bypasses the intended linear ownership discipline and can establish mutually independent authority over one slot. The initial report was AI-assisted, but collaborator SNoAnd independently confirmed that proofs using placeholder_slot_perm were questionable, described it as a temporary gap that should be deprecated, and the PR author later declared this old revision no longer valid before replacing the branch.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n470:             let ghost regions_before_map = *regions;\n473:             proof {\n475:                 let tracked slot_perm = EntryOwner::<KernelPtConfig>::placeholder_slot_perm(\n479:                 regions.slots.tracked_insert(cur_idx, slot_perm);\n\nafter/ostd/specs/mm/page_table/node/entry_owners.rs\n101:     /// Produces a slot permission for a frame address without requiring it from `regions.slots`.\n104:     pub axiom fn placeholder_slot_perm(...) -> (tracked res: PointsTo<MetaSlot>)\n109:         ensures\n110:             res.addr() == meta_addr(frame_to_index(paddr)),\n111:             res.is_init(),",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/392#discussion_r3022538220",
+      "related_comment_ids": ["3022538220", "4174407590"],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3022538220",
+          "url": "https://github.com/asterinas/vostd/pull/392#discussion_r3022538220",
+          "commit_id": "f30278a5973ea8b93d76797f7b451db78e60895d"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4174407590",
+          "url": "https://github.com/asterinas/vostd/pull/392#issuecomment-4174407590",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the fixed f30278a5973e tree, complete archived discussion, current remote PR metadata/reviews/comments, collaborator confirmation, and the later force-pushed warning-fix branch."
+    }
+  ]
+}

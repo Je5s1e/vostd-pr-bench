@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 2,
+  "inline_review_comment_count": 5,
+  "review_count": 3,
+  "core_lesson": "用减法检查避免加法先溢出，但执行改写必须与上游缺陷处理同步",
+  "category": "可信边界",
+  "all_content_unadjudicated": true
+}

@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 4,
+  "inline_review_comment_count": 18,
+  "review_count": 20,
+  "core_lesson": "模型更新应由真实 tracked 操作实现，而不是由未解释函数承诺结果",
+  "category": "所有权与生命周期",
+  "all_content_unadjudicated": true
+}

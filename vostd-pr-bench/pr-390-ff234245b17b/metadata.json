@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-390-ff234245b17b",
+  "pr_number": 390,
+  "title": "Experiment: verification for `dma` module",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/390",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d072854b3eceec6afa418069f824f4aa9423eb36",
+  "head_sha": "ff234245b17b3e231fe6fdf5eaf1a9a52388de93",
+  "base_method": "git merge-base(archived base_sha 56ee427d78ce96afff527090c6947b67dd01bc55, selected historical review head ff234245b17b3e231fe6fdf5eaf1a9a52388de93); selected as parent of behavior-preserving wrapper fix 4b848d3fadde8644646e0c54c6a59c0214532fa9 and last revision exposing guard-only public APIs",
+  "archive_base_sha": "56ee427d78ce96afff527090c6947b67dd01bc55",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    ".zed/settings.json",
+    "dv",
+    "ostd/specs/mm/frame/frame_lifecycle.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/mod.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/src/arch/x86/irq.rs",
+    "ostd/src/mm/dma/dma_stream.rs",
+    "ostd/src/mm/dma/mod.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/untyped.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/kspace/test.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_prop.rs",
+    "ostd/src/mm/page_table/boot_pt.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "ostd/src/sync/atomic_data.rs",
+    "ostd/src/sync/mod.rs",
+    "ostd/src/sync/once.rs",
+    "ostd/src/sync/rwarc.rs",
+    "ostd/src/sync/rwlock.rs",
+    "ostd/src/sync/spin.rs",
+    "ostd/src/task/scheduler/mod.rs",
+    "ostd/src/trap/irq.rs"
+  ],
+  "diff_sha256": "ce2801d094a79f8d768d4a4b644280014c1c144227f41f5f99c91a02651b08cc",
+  "versions": {
+    "before": {
+      "commit": "d072854b3eceec6afa418069f824f4aa9423eb36",
+      "file_count": 347,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "ff234245b17b3e231fe6fdf5eaf1a9a52388de93",
+      "file_count": 349,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "19962d961f410f4875a1a64ce33e31336bbd6b95",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T17:07:14.185000+00:00",
+    "reviewed_at": "2026-11-18T17:07:28Z",
+    "upstream_updated_at": "2026-04-24T00:01:59Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/390",
+      "https://github.com/asterinas/vostd/pull/390#issuecomment-4182082798",
+      "https://github.com/asterinas/vostd/commit/ff234245b17b3e231fe6fdf5eaf1a9a52388de93",
+      "https://github.com/asterinas/vostd/commit/4b848d3fadde8644646e0c54c6a59c0214532fa9"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00390"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected historical head ff234245b17b3e231fe6fdf5eaf1a9a52388de93, the parent of behavior-preserving wrapper commit 4b848d3fadde8644646e0c54c6a59c0214532fa9 and the last revision exposing guard-only public DmaStream APIs.",
+    "zero_issues_meaning": "Not applicable; this adjudicated historical snapshot contains one known issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

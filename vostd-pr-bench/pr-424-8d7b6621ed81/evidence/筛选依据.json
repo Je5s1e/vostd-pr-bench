@@ -1,0 +1,93 @@
+{
+  "number": 424,
+  "title": "Interrelated arithmetic, &mut porting, and panic handling fixes",
+  "selected": true,
+  "category": "正文或讨论涉及验证",
+  "evidence": [
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/424",
+      "excerpt": "our ability to check code equivalence. I turned some arithmetic axioms into verified proofs, which had knock-on effects at their call sites as some of them had to be split into different cases. I used the panic handling",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4325744364",
+      "excerpt": "encountered some build errors earlier today. Maybe you can try `#[verifier::spinoff_prover]`.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/424#discussion_r3151428789",
+      "excerpt": "#[verifier::spinoff_prover] will eliminate these codes.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342537876",
+      "excerpt": "ok to make sure nothing is missing. This push also contains more admit/assume closures, and work on the segment and io transcription issues, though the latter are not fully done.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/x86_64/kspace.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/frame_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/meta_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+      "category": "规约或验证工具文件"
+    }
+  ],
+  "evidence_count": 35
+}

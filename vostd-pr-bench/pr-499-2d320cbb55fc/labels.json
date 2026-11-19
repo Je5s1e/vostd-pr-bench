@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-499-2d320cbb55fc",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-499-2d320cbb55fc:issue-comment-4658920663",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The verification tree replaces the production x86 `PageTableEntry` implementation with a divergent specification-side copy built on unverified bit-mapping helpers, so its proofs do not constrain the executable implementation.",
+      "locations": [
+        {
+          "version": "before",
+          "path": "ostd/src/arch/x86/mm/mod.rs",
+          "start_line": 25,
+          "end_line": 26
+        },
+        {
+          "version": "before",
+          "path": "ostd/src/arch/x86/mm/mod.rs",
+          "start_line": 104,
+          "end_line": 168
+        },
+        {
+          "version": "before",
+          "path": "ostd/specs/arch/x86_64/page_table_entry.rs",
+          "start_line": 55,
+          "end_line": 66
+        },
+        {
+          "version": "before",
+          "path": "ostd/specs/arch/x86_64/page_table_entry.rs",
+          "start_line": 225,
+          "end_line": 262
+        },
+        {
+          "version": "before",
+          "path": "verified_libs/vstd_extra/src/bit_mapping.rs",
+          "start_line": 52,
+          "end_line": 61
+        }
+      ],
+      "rationale": "The base comments out the actual x86 implementation and exports a second `PageTableEntry` from `ostd/specs`. The two implementations are observably different: the production source treats either `PRESENT` or `HUGE` as present and always starts `new_page` with `HUGE`, while the substitute's `is_present` checks only `PRESENT` and its page constructor derives the huge bit from the level. The substitute additionally trusts external-body bit-mapping functions and contains admitted trait-property proofs. Therefore verification can succeed for a model that does not describe the executable PTE encoding. The collaborator explicitly identifies the mismatch and unverified helper, and the PR fixes the root cause by deleting the substitute and `bit_mapping`, moving the real source into the verified region, refining trait requirements, and proving the real flag transformations.",
+      "source_evidence": "before/ostd/src/arch/x86/mm/mod.rs\n25: /*\n104: #[derive(Clone, Copy, Pod, Default)]\n106: pub struct PageTableEntry(usize);\n155: impl PageTableEntryTrait for PageTableEntry {\n160:     self.0 & PageTableFlags::PRESENT.bits() != 0 || self.0 & PageTableFlags::HUGE.bits() != 0\n163: fn new_page(...) -> Self {\n164:     let flags = PageTableFlags::HUGE.bits();\n\nbefore/ostd/specs/arch/x86_64/page_table_entry.rs\n57: pub struct PageTableEntry(pub usize);\n227: self.0 & PageTableFlags::PRESENT() != 0\n249: open spec fn new_page_spec(...) -> Self {\n251:     let hp = Self::format_huge_page(level) as usize;\n256: #[verifier::external_body]\n\nbefore/verified_libs/vstd_extra/src/bit_mapping.rs\n52: #[verifier::external_body]\n53: fn map_forward(...) -> Dst",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/499#issuecomment-4658920663",
+      "related_comment_ids": [
+        "4658920663"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4658920663",
+          "url": "https://github.com/asterinas/vostd/pull/499#issuecomment-4658920663",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus and executable tests were not run. Independently checked the fixed base/head Git objects, the full archived and current remote discussion, the concrete behavioral differences between the production and substitute implementations, the external-body/admit trust boundary, and the final removal and direct proof of the production implementation."
+    }
+  ]
+}

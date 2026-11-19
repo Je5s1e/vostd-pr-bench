@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-505-dffa7b932d72",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-505-dffa7b932d72:review-comment-3378453674",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Generic external specifications for core allocation types are placed inside the heap implementation module instead of the shared vstd_extra external-spec layer.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/heap/mod.rs",
+          "start_line": 37,
+          "end_line": 53
+        }
+      ],
+      "rationale": "ExLayout, ExAllocError, Layout::size/align, and the abort specification model generic core/Rust boundaries rather than heap-specific state. Keeping them in ostd/src/mm/heap makes the shared contracts local to one consumer and mixes external-library modeling with implementation code. Human review 3378453674 requested moving these declarations to vstd_extra/external under a CHANGES_REQUESTED review; the accepted next commit cb2be5a80af1 creates verified_libs/vstd_extra/src/external/alloc_types.rs and imports the shared models. The current centralize-trusted-boundaries rule places these external contracts in the shared external-spec layer.",
+      "source_evidence": "after/ostd/src/mm/heap/mod.rs\n37: verus! {\n39: #[verifier::external_type_specification]\n41: pub struct ExLayout(Layout);\n43: #[verifier::external_type_specification]\n44: pub struct ExAllocError(AllocError);\n46: pub assume_specification[Layout::size](layout: &Layout) -> usize;\n48: pub assume_specification[Layout::align](layout: &Layout) -> (res: usize)\n53: pub assume_specification[core::intrinsics::abort]() -> !;",
+      "rule_ids": [
+        "centralize-trusted-boundaries"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/505#discussion_r3378453674",
+      "related_comment_ids": [
+        "3378453674",
+        "4455929643"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3378453674",
+          "url": "https://github.com/asterinas/vostd/pull/505#discussion_r3378453674",
+          "commit_id": "dffa7b932d72b43df3ad30064915556c7254e239"
+        },
+        {
+          "kind": "review",
+          "id": "4455929643",
+          "url": "https://github.com/asterinas/vostd/pull/505#pullrequestreview-4455929643",
+          "commit_id": "dffa7b932d72b43df3ad30064915556c7254e239"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the fixed dffa7b932d72 tree, complete human review, accepted cb2be5a80af1 relocation, and current remote PR."
+    }
+  ]
+}

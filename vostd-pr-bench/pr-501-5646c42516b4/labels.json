@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-501-5646c42516b4",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-501-5646c42516b4:review-comment-3353050406",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The newly exposed `VmSpace::activate` API always panics instead of activating the page table.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/vm_space.rs",
+          "start_line": 316,
+          "end_line": 338
+        }
+      ],
+      "rationale": "The public API's rustdoc promises to activate the page table on the current CPU, but every line of the intended CPU-set and page-table activation logic is commented out and the only executable statement is `unimplemented!()`. Consequently every invocation deterministically panics before performing any activation. The later issue discussion explicitly treats `VmSpace::activate` as unsupported because hardware modelling is absent, but the selected head exposes it as an executable public function rather than disabled reference code. This failure is directly established from the fixed source and remains in the final merged head.",
+      "source_evidence": "after/ostd/src/mm/vm_space.rs\n316: /// Activates the page table on the current CPU.\n317: #[verifier::external_body]\n318: pub fn activate(this: &RoArc<Self>) {\n319:     // No support for CPU set semantics; skip now\n320-337: [all intended CPU-set and `self.pt.activate()` operations are commented out]\n338:     unimplemented!()",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/501#discussion_r3353050406",
+      "related_comment_ids": [
+        "3353050406",
+        "4618694322",
+        "4619397051"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3353050406",
+          "url": "https://github.com/asterinas/vostd/pull/501#discussion_r3353050406",
+          "commit_id": "5646c42516b430a6a05e47efb8aae201b6c738a6"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4618694322",
+          "url": "https://github.com/asterinas/vostd/pull/501#issuecomment-4618694322",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4619397051",
+          "url": "https://github.com/asterinas/vostd/pull/501#issuecomment-4619397051",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus and runtime tests were not executed. The AI-assisted review was used only as a lead. Independently inspected the fixed final Git object and confirmed that the function has no executable branch other than Rust's unconditional `unimplemented!()` panic; the human issue discussion independently identifies the API as unsupported."
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+diff --git a/ostd/specs/mm/embedding/segment.rs b/ostd/specs/mm/embedding/segment.rs
+index 716a23e75fd0d2b63b07ef7c43dd97e9b8f3931d..d3137a9d51823a010418f94d67c2ac46267d1540 100644
+--- a/ostd/specs/mm/embedding/segment.rs
++++ b/ostd/specs/mm/embedding/segment.rs
+@@ -43,7 +43,7 @@ use crate::specs::mm::frame::meta_owners::PageUsage;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::specs::mm::page_table::cursor::owners::CursorOwner;
+ 
+-use super::{tracked_segment_entry_new, SegmentEntry};
++use super::{frame::frame_drop_embedded, tracked_segment_entry_new, SegmentEntry};
+ 
+ verus! {
+ 
+@@ -142,9 +142,10 @@ pub axiom fn segment_from_unused_embedded(
+ /// In the embedding, the per-segment `raw_count == 1` form is
+ /// generalized to `raw_count == segment_cover_count`, so after drop
+ /// each covered slot's `raw_count` is `pre_cover_count - 1`. This
+-/// axiom asserts the slot-level decrement; the embedding's
++/// proof derives the range-wide transition by recursively applying the
++/// single-frame [`frame_drop_embedded`] boundary; the embedding's
+ /// [`super::structural_inv`] re-chains via segment removal.
+-pub axiom fn segment_drop_embedded(
++pub proof fn segment_drop_embedded(
+     tracked regions: &mut MetaRegionOwners,
+     range: Range<Paddr>,
+ )
+@@ -212,7 +213,19 @@ pub axiom fn segment_drop_embedded(
+             ).slot_owners[i],
+         forall|c: CursorOwner<'_, UserPtConfig>| #![auto]
+             c.metaregion_sound(*old(regions)) ==> c.metaregion_sound(*final(regions)),
+-;
++    decreases range.end - range.start,
++{
++    assert(regions.slot_owners.contains_key(frame_to_index(range.start)));
++    frame_drop_embedded(regions, range.start);
++
++    if range.start + PAGE_SIZE < range.end {
++        let ghost tail: Range<Paddr> = Range {
++            start: (range.start + PAGE_SIZE) as Paddr,
++            end: range.end,
++        };
++        segment_drop_embedded(regions, tail);
++    }
++}
+ 
+ /// Mirror of [`crate::mm::frame::Segment::next`]'s "pop one frame"
+ /// effect. At the popped paddr (= `range.start` pre):
+diff --git a/ostd/specs/mm/page_table/cursor/owners.rs b/ostd/specs/mm/page_table/cursor/owners.rs
+index 5487042df624b048e427f0fe088b8a865b26398d..c88266506c2020a95cd3e88688a13bdd5bc64d2f 100644
+--- a/ostd/specs/mm/page_table/cursor/owners.rs
++++ b/ostd/specs/mm/page_table/cursor/owners.rs
+@@ -46,10 +46,10 @@ broadcast use group_ghost_tree_lemmas;
+ pub tracked struct CursorContinuation<'rcu, C: PageTableConfig> {
+     pub entry_own: EntryOwner<C>,
+     pub ghost idx: usize,
+-    pub tree_level: nat,
++    pub ghost tree_level: nat,
+     pub children: Seq<Option<OwnerSubtree<C>>>,
+-    pub path: TreePath<NR_ENTRIES>,
+-    pub guard: PageTableGuard<'rcu, C>,
++    pub ghost path: TreePath<NR_ENTRIES>,
++    pub ghost guard: PageTableGuard<'rcu, C>,
+ }
+ 
+ impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+@@ -173,14 +173,18 @@ impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+         }
+     }
+ 
+-    pub axiom fn tracked_new(
++    pub proof fn tracked_new(
+         tracked owner_subtree: OwnerSubtree<C>,
+         idx: usize,
+         guard: PageTableGuard<'rcu, C>,
+     ) -> (tracked res: Self)
+         ensures
+             res == Self::new(owner_subtree, idx, guard),
+-    ;
++    {
++        let ghost tree_level = owner_subtree.level();
++        let tracked (Tracked(entry_own), Tracked(children)) = owner_subtree.tracked_into_parts();
++        Self { entry_own, idx, tree_level, children, path: TreePath::new(Seq::empty()), guard }
++    }
+ 
+     pub open spec fn map_children(
+         self,
+@@ -2616,14 +2620,27 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         }
+     }
+ 
+-    pub axiom fn tracked_new(
++    pub proof fn tracked_new(
+         tracked owner_subtree: OwnerSubtree<C>,
+         idx: usize,
+         guard: PageTableGuard<'rcu, C>,
+     ) -> (tracked res: Self)
+         ensures
+             res == Self::new(owner_subtree, idx, guard),
+-    ;
++    {
++        let ghost va = Self::new(owner_subtree, idx, guard).va;
++        let tracked cont = CursorContinuation::tracked_new(owner_subtree, idx, guard);
++        let tracked mut continuations = Map::tracked_empty();
++        continuations.tracked_insert(NR_LEVELS - 1, cont);
++        Self {
++            level: NR_LEVELS as PagingLevel,
++            continuations,
++            va,
++            guard_level: NR_LEVELS as PagingLevel,
++            prefix: va,
++            popped_too_high: false,
++        }
++    }
+ 
+     pub broadcast group group_lemmas {
+         CursorOwner::lemma_view_mappings_contains,
+diff --git a/ostd/specs/mm/page_table/node/entry_owners.rs b/ostd/specs/mm/page_table/node/entry_owners.rs
+index 9cc3272e94d8a9b868daf8d76e584f2dd2c17520..14883baefe54388eeba2c6219493c97f05ea804e 100644
+--- a/ostd/specs/mm/page_table/node/entry_owners.rs
++++ b/ostd/specs/mm/page_table/node/entry_owners.rs
+@@ -273,7 +273,9 @@ impl<C: PageTableConfig> EntryOwner<C> {
+             paddr % PAGE_SIZE == 0,
+             paddr < MAX_PADDR,
+             1 <= parent_level,
+-            parent_level <= NR_LEVELS,
++            parent_level < NR_LEVELS,
++            paddr % page_size(parent_level) == 0,
++            paddr + page_size(parent_level) <= MAX_PADDR,
+         ensures
+             res.is_frame(),
+             res.frame().mapped_pa == paddr,
+diff --git a/ostd/src/mm/page_table/cursor/locking.rs b/ostd/src/mm/page_table/cursor/locking.rs
+index bf0d7673d2b4378411c19446e23b3ccfab545a20..ec6a15233ef1282378c4c505d3de4e100b791f35 100644
+--- a/ostd/src/mm/page_table/cursor/locking.rs
++++ b/ostd/src/mm/page_table/cursor/locking.rs
+@@ -195,7 +195,7 @@ pub fn lock_range<'rcu, C: PageTableConfig, A: InAtomicMode>(
+     }
+     let cur_node_va = va.start.align_down(page_size(guard_level + 1));
+ 
+-    #[verus_spec(with Tracked(cont.entry_own), Tracked(&cont.guard), Tracked(guards), Tracked(regions))]
++    #[verus_spec(with Tracked(cont.entry_own), Tracked(guards), Tracked(regions))]
+     dfs_acquire_lock(guard, &mut subtree_root, cur_node_va, va.clone());
+ 
+     let mut path = [None, None, None, None];
+@@ -517,7 +517,6 @@ fn try_traverse_and_lock_subtree_root<'rcu, C: PageTableConfig, A: InAtomicMode>
+ /// The function will forget all the [`PageTableGuard`] objects in the sub-tree.
+ #[verus_spec(
+     with Tracked(entry_own): Tracked<EntryOwner<C>>,
+-        Tracked(guard_ref): Tracked<&PageTableGuard<'rcu, C>>,
+         Tracked(guards): Tracked<&mut Guards<'rcu>>,
+         Tracked(regions): Tracked<&mut MetaRegionOwners>
+     requires
+diff --git a/verified_libs/vstd_extra/src/ghost_tree.rs b/verified_libs/vstd_extra/src/ghost_tree.rs
+index 18291a403b6931621e97846a62762ec07d971d64..03af9bd2694a3196784ab102a093348a2fcec331 100644
+--- a/verified_libs/vstd_extra/src/ghost_tree.rs
++++ b/verified_libs/vstd_extra/src/ghost_tree.rs
+@@ -432,6 +432,18 @@ impl<T: TreeNodeValue<L>, const N: usize, const L: usize> TreeNode<T, N, L> {
+         &mut self.value
+     }
+ 
++    /// Consumes this node and returns its tracked value and children.
++    pub proof fn tracked_into_parts(tracked self) -> (tracked res: (
++        Tracked<T>,
++        Tracked<Seq<Option<Self>>>,
++    ))
++        ensures
++            res.0@ == self.value(),
++            res.1@ == self.children(),
++    {
++        (Tracked(self.value), self.children)
++    }
++
+     /// Requires `f` to hold for this node and every present descendant.
+     ///
+     /// `path` identifies the current node. When descending through child index `i`, the

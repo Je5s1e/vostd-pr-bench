@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-658-4f0076d7cb29",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-658-4f0076d7cb29:review-comment-3619118783",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The custom `ManuallyDrop<T>` stores its payload as an ordinary `T`, so Rust's automatic field drop glue still destroys `T` when the wrapper is dropped instead of preserving manual-drop semantics.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/drop_tracking.rs",
+          "start_line": 75,
+          "end_line": 78
+        }
+      ],
+      "rationale": "At the selected human-review commit, the wrapper is named `ManuallyDrop` and carries a ghost obligation, but its executable field is still `value: T`. Rust therefore generates ordinary field-destruction behavior for the payload when the wrapper goes out of scope; the ghost obligation has no effect on executable drop glue. Human reviewer hiroki-chen identifies this concrete mismatch, the author explicitly agrees it is a source-code flaw, and the subsequent fix commit replaces the field with `core::mem::ManuallyDrop<T>`, wraps construction with `ManuallyDrop::new`, and extracts with `ManuallyDrop::into_inner`.",
+      "source_evidence": "after/verified_libs/vstd_extra/src/drop_tracking.rs\n75: pub struct ManuallyDrop<T: TrackDrop> {\n76:     value: T,\n77:     #[cfg(verus_keep_ghost_body)]\n78:     tracked_obligation: Tracked<T::Obligation>,\n\nThe same historical revision constructs the wrapper with `Self { value: t }` at line 92. Fix commit 757d75d9ef1b8528b697b830277d441ea614d374 changes line 76 to `value: core::mem::ManuallyDrop<T>`, construction to `core::mem::ManuallyDrop::new(t)`, and extraction to `std::mem::ManuallyDrop::<T>::into_inner(slot.value)`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/658#discussion_r3619118783",
+      "related_comment_ids": [
+        "5029674957",
+        "3619118783",
+        "3619199960",
+        "5030350841",
+        "5030794102"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "5029674957",
+          "url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5029674957",
+          "commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3619118783",
+          "url": "https://github.com/asterinas/vostd/pull/658#discussion_r3619118783",
+          "commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3619199960",
+          "url": "https://github.com/asterinas/vostd/pull/658#discussion_r3619199960",
+          "commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "5030350841",
+          "url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5030350841",
+          "commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "5030794102",
+          "url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5030794102",
+          "commit_id": "4f0076d7cb29d45d992d01b72b062288ba1ae9c4"
+        }
+      ],
+      "verification": "source-only; historical Verus commands were not executed. Read the complete archived discussion and current remote PR metadata, commits, review thread/reply, reviews, and issue comments; selected the review's exact commit; inspected the fixed source and the immediate accepted fix diff; and confirmed the final PR head retains the `core::mem::ManuallyDrop<T>` correction."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 2,
+  "inline_review_comment_count": 0,
+  "review_count": 0,
+  "core_lesson": "空值构造应属于可空类型，而不是破坏非空类型的含义",
+  "category": "规约与模型",
+  "all_content_unadjudicated": true
+}

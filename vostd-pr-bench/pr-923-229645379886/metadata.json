@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-923-229645379886",
+  "pr_number": 923,
+  "title": "Verify heap slots and free-slot list",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/923",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "6e20764d1cf4006b193ace48e4afcff59517badb",
+  "head_sha": "2296453798860c0445430f7204a6bae5eb6aa726",
+  "base_method": "git merge-base of archived GitHub base 6e20764d1cf4006b193ace48e4afcff59517badb and selected first-review head 2296453798860c0445430f7204a6bae5eb6aa726; computed from official Git objects",
+  "archive_base_sha": "6e20764d1cf4006b193ace48e4afcff59517badb",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/heap/mod.rs",
+    "ostd/src/mm/heap/slot.rs",
+    "ostd/src/mm/heap/slot_list.rs",
+    "ostd/src/mm/mod.rs"
+  ],
+  "diff_sha256": "8aed0c1a6e448884350bc5741da8849b5fe9a73b4fe86e4d4134c0fd814998d8",
+  "versions": {
+    "before": {
+      "commit": "6e20764d1cf4006b193ace48e4afcff59517badb",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "2296453798860c0445430f7204a6bae5eb6aa726",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "OPEN",
+  "collection": {
+    "collected_at": "2026-11-18T13:38:24.771282+00:00",
+    "reviewed_at": "2026-11-13T09:59:49Z",
+    "upstream_updated_at": "2026-11-16T08:00:40Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/923",
+      "https://github.com/asterinas/vostd/pull/923#discussion_r4561956786"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "2296453798860c0445430f7204a6bae5eb6aa726",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/2296453798860c0445430f7204a6bae5eb6aa726/AGENTS.md#L30-L33"
+      },
+      {
+        "commit": "2296453798860c0445430f7204a6bae5eb6aa726",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/2296453798860c0445430f7204a6bae5eb6aa726/docs/coding-guidelines/maintainability.md#L348-L360"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00923"
+  }
+}

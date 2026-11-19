@@ -1,0 +1,2738 @@
+diff --git a/ostd/specs/arch/x86_64/mod.rs b/ostd/specs/arch/x86_64/mod.rs
+index a683f7c1823cb95a7f45a52385753b924da99b90..7964c855704fb1fff6b0ab2ed180f8c947d314e5 100644
+--- a/ostd/specs/arch/x86_64/mod.rs
++++ b/ostd/specs/arch/x86_64/mod.rs
+@@ -3,8 +3,6 @@
+ pub mod cpu;
+ pub mod kspace;
+ pub mod mm;
+-pub mod page_table_entry;
+-pub mod page_table_flags;
+ pub mod paging_consts;
+ 
+ use vstd::prelude::*;
+@@ -14,8 +12,6 @@ use super::*;
+ pub use cpu::*;
+ pub use kspace::*;
+ pub use mm::*;
+-pub use page_table_entry::*;
+-pub use page_table_flags::*;
+ pub use paging_consts::*;
+ 
+ verus! {
+diff --git a/ostd/specs/arch/x86_64/page_table_entry.rs b/ostd/specs/arch/x86_64/page_table_entry.rs
+deleted file mode 100644
+index 41398fb9b42089a94f61b94f360e46cc03d68224..0000000000000000000000000000000000000000
+--- a/ostd/specs/arch/x86_64/page_table_entry.rs
++++ /dev/null
+@@ -1,338 +0,0 @@
+-use vstd::prelude::*;
+-use vstd::raw_ptr::*;
+-
+-use core::fmt::Debug;
+-
+-use vstd_extra::prelude::*;
+-
+-use super::*;
+-use crate::mm::{
+-    page_prop::{CachePolicy, PageFlags, PageProperty, PrivilegedPageFlags},
+-    page_table::*,
+-    Paddr, PagingLevel,
+-};
+-
+-decl_bms_const!(
+-    PAGE_FLAG_MAPPING,
+-    PAGE_FLAG_MAPPING_SPEC,
+-    u8,
+-    usize,
+-    4,
+-    [
+-        (PageFlags::R().bits(), PageTableFlags::PRESENT()),
+-        (PageFlags::W().bits(), PageTableFlags::WRITABLE()),
+-        (PageFlags::ACCESSED().bits(), PageTableFlags::ACCESSED()),
+-        (PageFlags::DIRTY().bits(), PageTableFlags::DIRTY())
+-    ]
+-);
+-
+-decl_bms_const!(
+-    PAGE_PRIV_MAPPING,
+-    PAGE_PRIV_MAPPING_SPEC,
+-    u8,
+-    usize,
+-    2,
+-    [
+-        (PrivilegedPageFlags::USER().bits(), PageTableFlags::USER()),
+-        (
+-            PrivilegedPageFlags::GLOBAL().bits(),
+-            PageTableFlags::GLOBAL()
+-        )
+-    ]
+-);
+-
+-decl_bms_const!(
+-    PAGE_INVERTED_FLAG_MAPPING,
+-    PAGE_INVERTED_FLAG_MAPPING_SPEC,
+-    u8,
+-    usize,
+-    1,
+-    [(PageFlags::X().bits(), PageTableFlags::NO_EXECUTE())]
+-);
+-
+-verus! {
+-
+-#[repr(transparent)]
+-#[derive(Copy, Debug, PartialEq)]
+-pub struct PageTableEntry(pub usize);
+-
+-global layout PageTableEntry is size == 8, align == 8;
+-
+-unsafe impl crate::Pod for PageTableEntry {}
+-
+-impl crate::mm::io::PodOnce for PageTableEntry {}
+-
+-/// Masks of the physical address.
+-pub const PHYS_ADDR_MASK: usize = 0xffff_ffff_ffff_f000;
+-
+-impl Clone for PageTableEntry {
+-    fn clone(&self) -> Self {
+-        Self { 0: self.0 }
+-    }
+-}
+-
+-impl PageTableEntry {
+-
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn PROP_MASK() -> (res: usize)
+-    {
+-        !PHYS_ADDR_MASK & !(PageTableFlags::HUGE())
+-    }
+-
+-    #[verifier::inline]
+-    pub open spec fn prop_assign_spec(self, flags: usize) -> Self {
+-        Self((self.0 & !Self::PROP_MASK()) | flags as usize)
+-    }
+-
+-    #[inline(always)]
+-    pub fn prop_assign(&mut self, flags: usize)
+-        ensures final(self).0 == old(self).prop_assign_spec(flags).0
+-    {
+-        self.0 = (self.0 & !Self::PROP_MASK()) | flags as usize;
+-    }
+-
+-    #[vstd::contrib::auto_spec]
+-    pub fn encode_cache(cache: CachePolicy) -> (res: usize)
+-    {
+-        match cache {
+-            CachePolicy::Uncacheable => PageTableFlags::NO_CACHE(),
+-            CachePolicy::Writethrough => PageTableFlags::WRITE_THROUGH(),
+-            _ => 0,
+-        }
+-    }
+-
+-    pub open spec fn format_flags_spec(prop: PageProperty) -> usize {
+-        let flags: u8 = prop.flags.bits();
+-        let priv_flags: u8 = prop.priv_flags.bits();
+-        PageTableFlags::PRESENT()
+-            | flags.map_forward(&PAGE_FLAG_MAPPING)
+-            | flags.map_invert_forward(&PAGE_INVERTED_FLAG_MAPPING)
+-            | priv_flags.map_forward(&PAGE_PRIV_MAPPING)
+-            | Self::encode_cache(prop.cache)
+-    }
+-
+-    #[verifier::external_body]
+-    #[verifier::when_used_as_spec(format_flags_spec)]
+-    pub fn format_flags(prop: PageProperty) -> usize
+-        returns Self::format_flags_spec(prop)
+-    {
+-        let flags: u8 = prop.flags.bits();
+-        let priv_flags: u8 = prop.priv_flags.bits();
+-        PageTableFlags::PRESENT()
+-            | flags.map_forward(&PAGE_FLAG_MAPPING)
+-            | flags.map_invert_forward(&PAGE_INVERTED_FLAG_MAPPING)
+-            | priv_flags.map_forward(&PAGE_PRIV_MAPPING)
+-            | Self::encode_cache(prop.cache)
+-    }
+-
+-    #[vstd::contrib::auto_spec]
+-    pub fn format_cache(flags: usize) -> (res: CachePolicy)
+-    {
+-        if flags & PageTableFlags::NO_CACHE() != 0 {
+-            CachePolicy::Uncacheable
+-        } else if flags & PageTableFlags::WRITE_THROUGH() != 0 {
+-            CachePolicy::Writethrough
+-        } else {
+-            CachePolicy::Writeback
+-        }
+-    }
+-
+-    pub open spec fn format_property_spec(entry: usize) -> PageProperty {
+-        let flags: u8 = entry.map_backward(&PAGE_FLAG_MAPPING)
+-                      | entry.map_invert_backward(&PAGE_INVERTED_FLAG_MAPPING);
+-        let priv_flags: u8 = entry.map_backward(&PAGE_PRIV_MAPPING);
+-        let cache = Self::format_cache(entry);
+-        PageProperty {
+-            flags: PageFlags::from_bits(flags).unwrap(),
+-            cache,
+-            priv_flags: PrivilegedPageFlags::from_bits(priv_flags).unwrap(),
+-        }
+-    }
+-
+-    #[verifier::external_body]
+-    #[verifier::when_used_as_spec(format_property_spec)]
+-    pub fn format_property(entry: usize) -> PageProperty
+-        returns Self::format_property_spec(entry)
+-    {
+-        let flags = entry.map_backward(&PAGE_FLAG_MAPPING)
+-                  | entry.map_invert_backward(&PAGE_INVERTED_FLAG_MAPPING);
+-        let priv_flags: u8 = entry.map_backward(&PAGE_PRIV_MAPPING);
+-        let cache = Self::format_cache(entry);
+-        PageProperty {
+-            flags: PageFlags::from_bits(flags).unwrap(),
+-            cache,
+-            priv_flags: PrivilegedPageFlags::from_bits(priv_flags).unwrap(),
+-        }
+-    }
+-
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub fn format_huge_page(level: PagingLevel) -> (res: u64)
+-    {
+-        if level == 1 {
+-            0
+-        } else {
+-            PageTableFlags::HUGE() as u64
+-        }
+-    }
+-
+-}
+-
+-}
+-
+-verus! {
+-
+-impl PageTableEntryTrait for PageTableEntry {
+-
+-    #[verifier::inline]
+-    open spec fn default_spec() -> Self
+-    {
+-        Self { 0: 0 }
+-    }
+-
+-    #[inline(always)]
+-    fn default() -> Self
+-        returns Self::default_spec()
+-    {
+-        Self { 0: 0 }
+-    }
+-
+-    #[verifier::inline]
+-    open spec fn new_absent_spec() -> Self {
+-        Self::default_spec()
+-    }
+-
+-    #[inline(always)]
+-    #[verifier::external_body]
+-    fn new_absent() -> (res: Self)
+-    {
+-        Self::default()
+-    }
+-
+-    #[verifier::inline]
+-    open spec fn as_usize_spec(self) -> usize {
+-        self.0 as usize
+-    }
+-
+-    #[inline(always)]
+-    fn as_usize(self) -> usize
+-        returns self.as_usize_spec()
+-    {
+-        self.0 as usize
+-    }
+-
+-    #[verifier::inline]
+-    open spec fn is_present_spec(&self) -> bool {
+-        self.0 & PageTableFlags::PRESENT() != 0
+-    }
+-
+-    #[inline(always)]
+-    fn is_present(&self) -> bool
+-        returns self.is_present_spec()
+-    {
+-        self.0 & PageTableFlags::PRESENT() != 0
+-    }
+-
+-    open spec fn set_prop_spec(&self, prop: PageProperty) -> Self {
+-        let flags = Self::format_flags(prop);
+-        self.prop_assign_spec(flags)
+-    }
+-
+-    fn set_prop(&mut self, prop: PageProperty)
+-        ensures *final(self) == old(self).set_prop_spec(prop)
+-    {
+-        let flags = Self::format_flags(prop);
+-        self.prop_assign(flags)
+-    }
+-
+-    open spec fn new_page_spec(paddr: Paddr, level: PagingLevel, prop: PageProperty) -> Self {
+-        let addr = paddr & PHYS_ADDR_MASK;
+-        let hp = Self::format_huge_page(level) as usize;
+-        let flags = Self::format_flags(prop) as usize;
+-        Self(addr | hp | flags)
+-    }
+-
+-    #[verifier::external_body]
+-    fn new_page(paddr: Paddr, level: PagingLevel, prop: PageProperty) -> (res: Self)
+-    {
+-        let addr = paddr & PHYS_ADDR_MASK;
+-        let hp = Self::format_huge_page(level) as usize;
+-        let flags = Self::format_flags(prop) as usize;
+-        Self(addr | hp | flags)
+-    }
+-
+-    open spec fn new_pt_spec(paddr: Paddr) -> Self {
+-        let addr = paddr & PHYS_ADDR_MASK;
+-        Self(addr | PageTableFlags::PRESENT() | PageTableFlags::WRITABLE() | PageTableFlags::USER())
+-    }
+-
+-    #[verifier::external_body]
+-    fn new_pt(paddr: Paddr) -> (res: Self)
+-    {
+-        let addr = paddr & PHYS_ADDR_MASK;
+-        Self(addr | PageTableFlags::PRESENT() | PageTableFlags::WRITABLE() | PageTableFlags::USER())
+-    }
+-
+-    #[verifier::inline]
+-    open spec fn paddr_spec(&self) -> Paddr {
+-        self.0 & PHYS_ADDR_MASK
+-    }
+-
+-    #[inline(always)]
+-    fn paddr(&self) -> Paddr
+-        returns self.paddr_spec()
+-    {
+-        self.0 & PHYS_ADDR_MASK
+-    }
+-
+-    #[verifier::inline]
+-    open spec fn prop_spec(&self) -> PageProperty {
+-        Self::format_property(self.0)
+-    }
+-
+-    #[inline(always)]
+-    fn prop(&self) -> PageProperty
+-        returns self.prop_spec()
+-    {
+-        Self::format_property(self.0)
+-    }
+-
+-    #[verifier::inline]
+-    open spec fn is_last_spec(&self, level: PagingLevel) -> bool {
+-        level == 1 || (self.0 & PageTableFlags::HUGE() != 0)
+-    }
+-
+-    #[inline(always)]
+-    fn is_last(&self, level: PagingLevel) -> bool
+-        returns self.is_last_spec(level)
+-    {
+-        level == 1 || (self.0 & PageTableFlags::HUGE() != 0)
+-    }
+-
+-    proof fn set_prop_properties(self, prop: PageProperty)
+-    {
+-        admit();
+-    }
+-
+-    proof fn new_properties()
+-    {
+-        admit();
+-    }
+-
+-    proof fn axiom_present_paddr_aligned(&self)
+-    {
+-        admit();
+-    }
+-
+-}
+-
+-impl PageTableEntry {
+-    /// Absent (zero) PTE has well-formed paddr for match_pte.
+-    pub axiom fn absent_pte_paddr_ok()
+-        ensures
+-            Self::new_absent_spec().paddr_spec() % crate::specs::arch::mm::PAGE_SIZE == 0,
+-            Self::new_absent_spec().paddr_spec() < crate::specs::arch::mm::MAX_PADDR;
+-}
+-
+-}
+diff --git a/ostd/specs/arch/x86_64/page_table_flags.rs b/ostd/specs/arch/x86_64/page_table_flags.rs
+deleted file mode 100644
+index c380c1568170e5bea64d2c34efb9d465050ad5b6..0000000000000000000000000000000000000000
+--- a/ostd/specs/arch/x86_64/page_table_flags.rs
++++ /dev/null
+@@ -1,79 +0,0 @@
+-use vstd::prelude::*;
+-
+-verus! {
+-
+-pub struct PageTableFlags {}
+-
+-impl PageTableFlags {
+-    /// Specifies whether the mapped frame or page table is loaded in memory.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn PRESENT() -> (res: usize) {
+-        0b00000001usize
+-    }
+-
+-    /// Controls whether writes to the mapped frames are allowed.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn WRITABLE() -> (res: usize) {
+-        0b00000010usize
+-    }
+-
+-    /// Controls whether accesses from userspace (i.e. ring 3) are permitted.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn USER() -> (res: usize) {
+-        0b00000100usize
+-    }
+-
+-    /// If this bit is set, a “write-through” policy is used for the cache, else a “write-back” policy is used.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn WRITE_THROUGH() -> (res: usize) {
+-        0b00001000usize
+-    }
+-
+-    /// Disables caching for the pointed entry if cacheable.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn NO_CACHE() -> (res: usize) {
+-        0b00010000usize
+-    }
+-
+-    /// Whether this entry has been used for linear-address translation.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn ACCESSED() -> (res: usize) {
+-        0b00100000usize
+-    }
+-
+-    /// Whether the memory area represented by this entry is modified.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn DIRTY() -> (res: usize) {
+-        0b01000000usize
+-    }
+-
+-    /// Only in the non-starting and non-ending levels, indication of huge page.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn HUGE() -> (res: usize) {
+-        0b10000000usize
+-    }
+-
+-    /// Indicates that the mapping is present in all address spaces, so it isn't flushed from the TLB on an address space switch.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn GLOBAL() -> (res: usize) {
+-        0b00000001_00000000usize
+-    }
+-
+-    /// Forbid constute codes on the page. The NXE bits in EFER msr must be set.
+-    #[inline(always)]
+-    #[vstd::contrib::auto_spec]
+-    pub const fn NO_EXECUTE() -> (res: usize) {
+-        1usize << 63
+-    }
+-}
+-
+-} // verus!
+diff --git a/ostd/specs/mm/page_table/node/entry_owners.rs b/ostd/specs/mm/page_table/node/entry_owners.rs
+index 09c01a78d1ae213f56bb98c52608365d4cc42464..b40e476e9fbb70821d330897d617e460ac59f479 100644
+--- a/ostd/specs/mm/page_table/node/entry_owners.rs
++++ b/ostd/specs/mm/page_table/node/entry_owners.rs
+@@ -304,7 +304,7 @@ impl<C: PageTableConfig> EntryOwner<C> {
+         ensures
+             owner.match_pte(pte, parent_level),
+     {
+-        C::E::new_properties();
++        C::E::lemma_page_table_entry_properties();
+         assert(!pte.is_present());
+         if parent_level > 1 {
+             assert(!pte.is_last(parent_level));
+diff --git a/ostd/specs/mm/virt_mem.rs b/ostd/specs/mm/virt_mem.rs
+index 3714ae38a899678bd2cce2b20db63bc5f72240ec..fe6082237b6c07aa077d9d911645f789dd8199c2 100644
+--- a/ostd/specs/mm/virt_mem.rs
++++ b/ostd/specs/mm/virt_mem.rs
+@@ -23,7 +23,7 @@ use core::marker::PhantomData;
+ use core::ops::Range;
+ 
+ use crate::Pod;
+-use crate::mm::{Paddr, Vaddr, io::PodOnce};
++use crate::mm::{Paddr, PodOnce, Vaddr};
+ use crate::prelude::Inv;
+ use crate::specs::arch::mm::MAX_PADDR;
+ use crate::specs::mm::page_table::Mapping;
+diff --git a/ostd/src/arch/x86/mm/mod.rs b/ostd/src/arch/x86/mm/mod.rs
+index 2b2eb1d55c3463ac22dffcba9fbf1b1aac71cf12..09259dd3eb283c82084d4b25df31cbe1639f5f59 100644
+--- a/ostd/src/arch/x86/mm/mod.rs
++++ b/ostd/src/arch/x86/mm/mod.rs
+@@ -1,6 +1,12 @@
+ // SPDX-License-Identifier: MPL-2.0
+ #![expect(dead_code)]
+ 
++use crate::specs::arch::MAX_PADDR;
++use vstd::prelude::*;
++use vstd_extra::panic::may_panic;
++use vstd_extra::panic::panic_diverge;
++use vstd_extra::prelude::*;
++
+ use alloc::fmt;
+ use core::ops::Range;
+ 
+@@ -8,63 +14,61 @@ use core::ops::Range;
+ pub(crate) use util::{__memcpy_fallible, __memset_fallible};
+ //use x86_64::{instructions::tlb, structures::paging::PhysFrame, VirtAddr};
+ 
++use crate::specs::arch::PAGE_SIZE;
+ use crate::{
+     mm::{
+-        //        page_table::PageTableEntryTrait,
+-        Paddr,
+-        PagingConstsTrait,
+-        PagingLevel,
+-        /*PodOnce,*/ Vaddr,
+         page_prop::{CachePolicy, PageFlags, PageProperty, PrivilegedPageFlags as PrivFlags},
++        page_table::{PageTableEntryTrait, PageTableFrag},
++        Paddr, PagingConstsTrait, PagingLevel, PodOnce, Vaddr,
+     },
+-    //    Pod,
++    Pod,
+ };
+ 
+ mod util;
+ 
+-/*
+-bitflags::bitflags! {
+-    #[derive(Pod)]
+-    #[repr(C)]
++verified_bitflags::bitflags! {
++    //#[derive(Pod)]
++    //#[repr(C)]
+     /// Possible flags for a page table entry.
+     pub struct PageTableFlags: usize {
+         /// Specifies whether the mapped frame or page table is loaded in memory.
+-        const PRESENT =         1 << 0;
++        const PRESENT =         1usize << 0;
+         /// Controls whether writes to the mapped frames are allowed.
+-        const WRITABLE =        1 << 1;
++        const WRITABLE =        1usize << 1;
+         /// Controls whether accesses from userspace (i.e. ring 3) are permitted.
+-        const USER =            1 << 2;
++        const USER =            1usize << 2;
+         /// If this bit is set, a “write-through” policy is used for the cache, else a “write-back”
+         /// policy is used.
+-        const WRITE_THROUGH =   1 << 3;
++        const WRITE_THROUGH =   1usize << 3;
+         /// Disables caching for the pointed entry is cacheable.
+-        const NO_CACHE =        1 << 4;
++        const NO_CACHE =        1usize << 4;
+         /// Whether this entry has been used for linear-address translation.
+-        const ACCESSED =        1 << 5;
++        const ACCESSED =        1usize << 5;
+         /// Whether the memory area represented by this entry is modified.
+-        const DIRTY =           1 << 6;
++        const DIRTY =           1usize << 6;
+         /// In level 2 or 3 it indicates that it map to a huge page.
+         /// In level 1, it is the PAT (page attribute table) bit.
+         /// We use this bit in level 1, 2 and 3 to indicate that this entry is
+         /// "valid". For levels above 3, `PRESENT` is used for "valid".
+-        const HUGE =            1 << 7;
++        const HUGE =            1usize << 7;
+         /// Indicates that the mapping is present in all address spaces, so it isn't flushed from
+         /// the TLB on an address space switch.
+-        const GLOBAL =          1 << 8;
++        const GLOBAL =          1usize << 8;
+         /// TDX shared bit.
+         #[cfg(feature = "cvm_guest")]
+-        const SHARED =          1 << 51;
++        const SHARED =          1usize << 51;
+ 
+         /// Ignored by the hardware. Free to use.
+-        const HIGH_IGN1 =       1 << 52;
++        const HIGH_IGN1 =       1usize << 52;
+         /// Ignored by the hardware. Free to use.
+-        const HIGH_IGN2 =       1 << 53;
++        const HIGH_IGN2 =       1usize << 53;
+ 
+         /// Forbid execute codes on the page. The NXE bits in EFER msr must be set.
+-        const NO_EXECUTE =      1 << 63;
++        const NO_EXECUTE =      1usize << 63;
+     }
+ }
+ 
++/*
+ /// Flush any TLB entry that contains the map of the given virtual address.
+ ///
+ /// This flush performs regardless of the global-page bit. So it can flush both global
+@@ -100,47 +104,83 @@ pub(crate) fn tlb_flush_all_including_global() {
+         });
+     }
+ }
++*/
++verus! {
+ 
+-#[derive(Clone, Copy, Pod, Default)]
++#[verifier::ext_equal]
++#[derive(Clone, Copy/*, Pod, Default*/)]
++#[derive(Debug)]
+ #[repr(C)]
+ pub struct PageTableEntry(usize);
+ 
+-/// Activates the given level 4 page table.
+-/// The cache policy of the root page table node is controlled by `root_pt_cache`.
+-///
+-/// # Safety
+-///
+-/// Changing the level 4 page table is unsafe, because it's possible to violate memory safety by
+-/// changing the page mapping.
+-pub unsafe fn activate_page_table(root_paddr: Paddr, root_pt_cache: CachePolicy) {
+-    let addr = PhysFrame::from_start_address(x86_64::PhysAddr::new(root_paddr as u64)).unwrap();
+-    let flags = match root_pt_cache {
+-        CachePolicy::Writeback => x86_64::registers::control::Cr3Flags::empty(),
+-        CachePolicy::Writethrough => x86_64::registers::control::Cr3Flags::PAGE_LEVEL_WRITETHROUGH,
+-        CachePolicy::Uncacheable => x86_64::registers::control::Cr3Flags::PAGE_LEVEL_CACHE_DISABLE,
+-        _ => panic!("unsupported cache policy for the root page table"),
+-    };
++#[verus_verify]
++unsafe impl Pod for PageTableEntry {
+ 
+-    // SAFETY: The safety is upheld by the caller.
+-    unsafe { x86_64::registers::control::Cr3::write(addr, flags) };
+ }
+ 
+-pub fn current_page_table_paddr() -> Paddr {
+-    x86_64::registers::control::Cr3::read_raw()
+-        .0
+-        .start_address()
+-        .as_u64() as Paddr
++impl PageTableEntry {
++    pub closed spec fn default_spec() -> Self {
++        Self(0)
++    }
+ }
+ 
+-impl PageTableEntry {
+-    cfg_if! {
+-        if #[cfg(feature = "cvm_guest")] {
+-            const PHYS_ADDR_MASK: usize = 0x7_FFFF_FFFF_F000;
+-        } else {
+-            const PHYS_ADDR_MASK: usize = 0xF_FFFF_FFFF_F000;
++impl Default for PageTableEntry {
++    fn default() -> (ret: Self)
++        ensures
++            ret.paddr() == 0,
++        returns
++            Self::default_spec(),
++    {
++        proof {
++            lemma_page_property_flag_constants();
++            assert(Self::default_spec().paddr_spec() == 0) by (compute);
+         }
++        Self(usize::default())
+     }
+-    const PROP_MASK: usize = !Self::PHYS_ADDR_MASK & !PageTableFlags::HUGE.bits();
++}
++
++} // verus!
++  /*
++  /// Activates the given level 4 page table.
++  /// The cache policy of the root page table node is controlled by `root_pt_cache`.
++  ///
++  /// # Safety
++  ///
++  /// Changing the level 4 page table is unsafe, because it's possible to violate memory safety by
++  /// changing the page mapping.
++  pub unsafe fn activate_page_table(root_paddr: Paddr, root_pt_cache: CachePolicy) {
++      let addr = PhysFrame::from_start_address(x86_64::PhysAddr::new(root_paddr as u64)).unwrap();
++      let flags = match root_pt_cache {
++          CachePolicy::Writeback => x86_64::registers::control::Cr3Flags::empty(),
++          CachePolicy::Writethrough => x86_64::registers::control::Cr3Flags::PAGE_LEVEL_WRITETHROUGH,
++          CachePolicy::Uncacheable => x86_64::registers::control::Cr3Flags::PAGE_LEVEL_CACHE_DISABLE,
++          _ => panic!("unsupported cache policy for the root page table"),
++      };
++
++      // SAFETY: The safety is upheld by the caller.
++      unsafe { x86_64::registers::control::Cr3::write(addr, flags) };
++  }
++
++  pub fn current_page_table_paddr() -> Paddr {
++      x86_64::registers::control::Cr3::read_raw()
++          .0
++          .start_address()
++          .as_u64() as Paddr
++  }
++  */
++verus! {
++
++impl PageTableEntry {
++    //cfg_if! {
++    //if #[cfg(feature = "cvm_guest")] {
++    //    const PHYS_ADDR_MASK: usize = 0x7_FFFF_FFFF_F000;
++    //} else {
++    const PHYS_ADDR_MASK: usize = 0xF_FFFF_FFFF_F000;
++
++    //}
++    //}
++    // const PROP_MASK: usize = !Self::PHYS_ADDR_MASK & !PageTableFlags::HUGE.bits();
++    const PROP_MASK: usize = !Self::PHYS_ADDR_MASK & !0x80usize;
+ }
+ 
+ /// Parse a bit-flag bits `val` in the representation of `from` to `to` in bits.
+@@ -150,58 +190,127 @@ macro_rules! parse_flags {
+     };
+ }
+ 
+-impl PodOnce for PageTableEntry {}
++impl PodOnce for PageTableEntry {
++
++}
+ 
+ impl PageTableEntryTrait for PageTableEntry {
++    fn new_absent() -> Self {
++        proof {
++            lemma_auxiliary_bit_properties(0);
++            Self::lemma_page_table_entry_properties();
++            assert(Self::default_spec() == Self::new_absent_spec());
++        }
++        Self::default()
++    }
++
+     fn is_present(&self) -> bool {
+         // For PT child, `PRESENT` should be set; for huge page, `HUGE` should
+         // be set; for the leaf child page, `PAT`, which is the same bit as
+         // the `HUGE` bit in upper levels, should be set.
+-        self.0 & PageTableFlags::PRESENT.bits() != 0 || self.0 & PageTableFlags::HUGE.bits() != 0
++        self.0 & PageTableFlags::PRESENT().bits() != 0 || self.0 & PageTableFlags::HUGE().bits()
++            != 0
++    }
++
++    open spec fn new_page_req(paddr: Paddr, _level: PagingLevel, prop: PageProperty) -> bool {
++        &&& prop.inv()
++        &&& prop.flags.bits() & PageFlags::R().bits() == PageFlags::R().bits()
++        &&& (!(prop.cache is Writeback || prop.cache is Writethrough || prop.cache is Uncacheable)
++            ==> may_panic())
+     }
+ 
+     fn new_page(paddr: Paddr, _level: PagingLevel, prop: PageProperty) -> Self {
+-        let flags = PageTableFlags::HUGE.bits();
++        let flags = PageTableFlags::HUGE().bits();
+         let mut pte = Self(paddr & Self::PHYS_ADDR_MASK | flags);
++        proof {
++            lemma_auxiliary_bit_properties(paddr);
++            assert(pte.set_prop_req(prop));
++            assert((paddr & Self::PHYS_ADDR_MASK | flags) & Self::PHYS_ADDR_MASK
++                == paddr & Self::PHYS_ADDR_MASK) by (bit_vector)
++                requires
++                    flags == PageTableFlags::HUGE().bits();
++            assert(paddr < MAX_PADDR ==> (paddr & Self::PHYS_ADDR_MASK | flags)
++                & Self::PHYS_ADDR_MASK == paddr & !((PAGE_SIZE - 1) as usize))
++                by (bit_vector)
++                requires
++                    flags == PageTableFlags::HUGE().bits();
++            assert(((paddr & Self::PHYS_ADDR_MASK | flags) & PageTableFlags::HUGE().bits()) != 0)
++                by (bit_vector)
++                requires
++                    flags == PageTableFlags::HUGE().bits();
++            assert(pte.is_last(_level));
++        }
+         pte.set_prop(prop);
+         pte
+     }
+ 
+-    fn new_pt(paddr: Paddr) -> Self {
++    fn new_pt(paddr: Paddr) -> (res: Self) {
+         // In x86 if it's an intermediate PTE, it's better to have the same permissions
+         // as the most permissive child (to reduce hardware page walk accesses). But we
+         // don't have a mechanism to keep it generic across architectures, thus just
+         // setting it to be the most permissive.
+-        let flags = PageTableFlags::PRESENT.bits()
+-            | PageTableFlags::WRITABLE.bits()
+-            | PageTableFlags::USER.bits();
++        let flags = PageTableFlags::PRESENT().bits()
++            | PageTableFlags::WRITABLE().bits()
++            | PageTableFlags::USER().bits();
++        proof {
++            Self::lemma_page_table_entry_properties();
++            lemma_auxiliary_bit_properties(paddr);
++            assert(paddr < MAX_PADDR ==> paddr & Self::PHYS_ADDR_MASK == paddr & !((PAGE_SIZE
++                - 1) as usize)) by (bit_vector);
++            assert((Self(paddr & Self::PHYS_ADDR_MASK | flags)) == Self::new_pt(paddr));
++        }
+         Self(paddr & Self::PHYS_ADDR_MASK | flags)
+     }
+ 
+     fn paddr(&self) -> Paddr {
++        proof {
++            self.lemma_paddr_is_page_aligned();
++        }
+         self.0 & Self::PHYS_ADDR_MASK
+     }
+ 
+     fn prop(&self) -> PageProperty {
+-        let flags = (parse_flags!(self.0, PageTableFlags::PRESENT, PageFlags::R))
+-            | (parse_flags!(self.0, PageTableFlags::WRITABLE, PageFlags::W))
+-            | (parse_flags!(!self.0, PageTableFlags::NO_EXECUTE, PageFlags::X))
+-            | (parse_flags!(self.0, PageTableFlags::ACCESSED, PageFlags::ACCESSED))
+-            | (parse_flags!(self.0, PageTableFlags::DIRTY, PageFlags::DIRTY))
+-            | (parse_flags!(self.0, PageTableFlags::HIGH_IGN1, PageFlags::AVAIL1))
+-            | (parse_flags!(self.0, PageTableFlags::HIGH_IGN2, PageFlags::AVAIL2));
+-        let priv_flags = (parse_flags!(self.0, PageTableFlags::USER, PrivFlags::USER))
+-            | (parse_flags!(self.0, PageTableFlags::GLOBAL, PrivFlags::GLOBAL));
++        proof {
++            lemma_auxiliary_bit_properties(self.0);
++            lemma_page_property_flag_constants();
++        }
++        let flags = (parse_flags!(self.0, PageTableFlags::PRESENT(), PageFlags::R()))
++            | (parse_flags!(self.0, PageTableFlags::WRITABLE(), PageFlags::W()))
++            | (parse_flags!(!self.0, PageTableFlags::NO_EXECUTE(), PageFlags::X()))
++            | (parse_flags!(self.0, PageTableFlags::ACCESSED(), PageFlags::ACCESSED()))
++            | (parse_flags!(self.0, PageTableFlags::DIRTY(), PageFlags::DIRTY()))
++            | (parse_flags!(self.0, PageTableFlags::HIGH_IGN1(), PageFlags::AVAIL1()))
++            | (parse_flags!(self.0, PageTableFlags::HIGH_IGN2(), PageFlags::AVAIL2()));
++        let priv_flags = (parse_flags!(self.0, PageTableFlags::USER(), PrivFlags::USER()))
++            | (parse_flags!(self.0, PageTableFlags::GLOBAL(), PrivFlags::GLOBAL()));
+         #[cfg(feature = "cvm_guest")]
+         let priv_flags =
+-            priv_flags | (parse_flags!(self.0, PageTableFlags::SHARED, PrivFlags::SHARED));
+-        let cache = if self.0 & PageTableFlags::NO_CACHE.bits() != 0 {
++            priv_flags | (parse_flags!(self.0, PageTableFlags::SHARED(), PrivFlags::SHARED()));
++        let cache = if self.0 & PageTableFlags::NO_CACHE().bits() != 0 {
+             CachePolicy::Uncacheable
+-        } else if self.0 & PageTableFlags::WRITE_THROUGH.bits() != 0 {
++        } else if self.0 & PageTableFlags::WRITE_THROUGH().bits() != 0 {
+             CachePolicy::Writethrough
+         } else {
+             CachePolicy::Writeback
+         };
++        proof {
++            lemma_parse_flags_collorary(self.0);
++            lemma_x86_page_flags_wf(self.0, flags);
++            assert(flags & PageFlags::all_bits() as usize == flags) by (compute);
++            #[cfg(not(feature = "cvm_guest"))]
++            {
++                lemma_x86_priv_flags_wf(self.0, priv_flags);
++            }
++            #[cfg(feature = "cvm_guest")]
++            {
++                lemma_parse_shared_to_priv_shared_equiv_if(self.0);
++                lemma_x86_priv_flags_cvm_wf(self.0, priv_flags);
++            }
++            let spec_prop = self.prop();
++            assert(cache == spec_prop.cache);
++            assert(PageFlags::from_bits(flags as u8)->0 == spec_prop.flags);
++            assert(PrivFlags::from_bits(priv_flags as u8)->0 == spec_prop.priv_flags);
++        }
+         PageProperty {
+             flags: PageFlags::from_bits(flags as u8).unwrap(),
+             cache,
+@@ -209,78 +318,858 @@ impl PageTableEntryTrait for PageTableEntry {
+         }
+     }
+ 
+-    fn set_prop(&mut self, prop: PageProperty) {
++    open spec fn set_prop_req(self, prop: PageProperty) -> bool {
++        &&& prop.inv()
++        &&& prop.flags.bits() & PageFlags::R().bits() == PageFlags::R().bits()
++        &&& (!(prop.cache is Writeback || prop.cache is Writethrough || prop.cache is Uncacheable)
++            ==> may_panic())
++    }
++
++    fn set_prop(&mut self, prop: PageProperty)
++        ensures
++            old(self).is_present() ==> final(self).as_usize() == Self::raw_set_prop_spec(
++                old(self).as_usize(),
++                prop,
++            ),
++    {
++        proof {
++            lemma_auxiliary_bit_properties(0);
++            lemma_page_property_flag_constants();
++        }
+         if !self.is_present() {
+             return;
+         }
+         let mut flags = PageTableFlags::empty().bits();
+-        flags |= (parse_flags!(prop.flags.bits(), PageFlags::R, PageTableFlags::PRESENT))
+-            | (parse_flags!(prop.flags.bits(), PageFlags::W, PageTableFlags::WRITABLE))
+-            | (parse_flags!(!prop.flags.bits(), PageFlags::X, PageTableFlags::NO_EXECUTE))
++        flags = flags |
++            (parse_flags!(prop.flags.bits(), PageFlags::R(), PageTableFlags::PRESENT()))
++            | (parse_flags!(prop.flags.bits(), PageFlags::W(), PageTableFlags::WRITABLE()))
++            | (parse_flags!(!prop.flags.bits(), PageFlags::X(), PageTableFlags::NO_EXECUTE()))
+             | (parse_flags!(
+                 prop.flags.bits(),
+-                PageFlags::ACCESSED,
+-                PageTableFlags::ACCESSED
++                PageFlags::ACCESSED(),
++                PageTableFlags::ACCESSED()
+             ))
+-            | (parse_flags!(prop.flags.bits(), PageFlags::DIRTY, PageTableFlags::DIRTY))
++            | (parse_flags!(prop.flags.bits(), PageFlags::DIRTY(), PageTableFlags::DIRTY()))
+             | (parse_flags!(
+                 prop.flags.bits(),
+-                PageFlags::AVAIL1,
+-                PageTableFlags::HIGH_IGN1
++                PageFlags::AVAIL1(),
++                PageTableFlags::HIGH_IGN1()
+             ))
+             | (parse_flags!(
+                 prop.flags.bits(),
+-                PageFlags::AVAIL2,
+-                PageTableFlags::HIGH_IGN2
++                PageFlags::AVAIL2(),
++                PageTableFlags::HIGH_IGN2()
+             ))
+             | (parse_flags!(
+                 prop.priv_flags.bits(),
+-                PrivFlags::USER,
+-                PageTableFlags::USER
++                PrivFlags::USER(),
++                PageTableFlags::USER()
+             ))
+             | (parse_flags!(
+                 prop.priv_flags.bits(),
+-                PrivFlags::GLOBAL,
+-                PageTableFlags::GLOBAL
++                PrivFlags::GLOBAL(),
++                PageTableFlags::GLOBAL()
+             ));
+         #[cfg(feature = "cvm_guest")]
+         {
+-            flags |= parse_flags!(
++            flags = flags |
++            parse_flags!(
+                 prop.priv_flags.bits(),
+-                PrivFlags::SHARED,
+-                PageTableFlags::SHARED
++                PrivFlags::SHARED(),
++                PageTableFlags::SHARED()
+             );
+         }
++        proof {
++            let ghost cache_flags = if prop.cache is Writethrough {
++                PageTableFlags::WRITE_THROUGH().bits()
++            } else if prop.cache is Uncacheable {
++                PageTableFlags::NO_CACHE().bits()
++            } else {
++                0usize
++            };
++            match prop.cache {
++                CachePolicy::Writeback => {
++                    assert(flags == flags | cache_flags) by (bit_vector)
++                        requires
++                            cache_flags == 0usize;
++                },
++                _ => {},
++            }
++        }
+         match prop.cache {
+-            CachePolicy::Writeback => {}
++            CachePolicy::Writeback => {},
+             CachePolicy::Writethrough => {
+-                flags |= PageTableFlags::WRITE_THROUGH.bits();
+-            }
++                flags |= PageTableFlags::WRITE_THROUGH().bits();
++            },
+             CachePolicy::Uncacheable => {
+-                flags |= PageTableFlags::NO_CACHE.bits();
+-            }
+-            _ => panic!("unsupported cache policy"),
++                flags |= PageTableFlags::NO_CACHE().bits();
++            },
++            _ => {
++                //panic!("unsupported cache policy");
++                panic_diverge();
++            },
++        }
++        proof {
++            assert(flags == PageProperty::encode_prop_flags_spec(prop));
+         }
+         self.0 = self.0 & !Self::PROP_MASK | flags;
++        proof {
++            lemma_x86_set_prop_roundtrip(old(self).0, flags, prop);
++        }
+     }
+ 
+     fn is_last(&self, _level: PagingLevel) -> bool {
+-        self.0 & PageTableFlags::HUGE.bits() != 0
++        self.0 & PageTableFlags::HUGE().bits() != 0
++    }
++
++    fn as_usize(self) -> usize {
++        self.0
++    }
++
++    open spec fn new_absent_spec() -> Self {
++        Self::default_spec()
++    }
++
++    open spec fn is_present_spec(&self) -> bool {
++        self.as_usize() & PageTableFlags::PRESENT().bits() != 0 || self.as_usize()
++            & PageTableFlags::HUGE().bits() != 0
++    }
++
++    closed spec fn paddr_spec(&self) -> Paddr {
++        self.as_usize() & Self::PHYS_ADDR_MASK
++    }
++
++    closed spec fn prop_spec(&self) -> PageProperty {
++        PageProperty {
++            flags: PageFlags::from_bits(PageProperty::decode_page_flags_spec(self.0))->0,
++            cache: PageProperty::decode_cache_spec(self.0),
++            priv_flags: PrivFlags::from_bits(PageProperty::decode_priv_flags_spec(self.0))->0,
++        }
++    }
++
++    closed spec fn new_pt_spec(paddr: Paddr) -> Self {
++        let flags = PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits()
++            | PageTableFlags::USER().bits();
++        Self(paddr & Self::PHYS_ADDR_MASK | flags)
++    }
++
++    closed spec fn new_page_spec(paddr: Paddr, level: PagingLevel, prop: PageProperty) -> Self {
++        let flags = PageTableFlags::HUGE().bits();
++        let pte = paddr & Self::PHYS_ADDR_MASK | flags;
++        match prop.cache {
++            CachePolicy::Writeback |
++            CachePolicy::Writethrough |
++            CachePolicy::Uncacheable => Self(Self::raw_set_prop_spec(pte, prop)),
++            _ => arbitrary(),
++        }
++    }
++
++    open spec fn is_last_spec(&self, _level: PagingLevel) -> bool {
++        self.as_usize() & PageTableFlags::HUGE().bits() != 0
++    }
++
++    closed spec fn as_usize_spec(self) -> usize {
++        self.0
++    }
++
++    proof fn lemma_page_table_entry_properties() {
++        lemma_page_property_flag_constants();
++        lemma_auxiliary_bit_properties(0);
++
++        assert forall|level: PagingLevel|
++            1 < level implies !(#[trigger]Self::new_absent().is_last(level))
++        by {
++            assert(Self::new_absent().as_usize() == 0);
++        }
++
++        assert forall|paddr: Paddr, level: PagingLevel, prop: PageProperty|
++            #![trigger Self::new_page(paddr, level, prop)]
++            Self::new_page_req(paddr, level, prop) && (prop.cache is Writeback
++                || prop.cache is Writethrough || prop.cache is Uncacheable) implies {
++                &&& Self::new_page(paddr, level, prop).is_present()
++                &&& (paddr < MAX_PADDR ==> Self::new_page(paddr, level, prop).paddr() == paddr
++                    & !((PAGE_SIZE - 1) as usize))
++                &&& (paddr < MAX_PADDR && paddr % PAGE_SIZE == 0 ==> Self::new_page(
++                    paddr,
++                    level,
++                    prop,
++                ).paddr() == paddr)
++                &&& Self::new_page(paddr, level, prop).prop() == prop
++                &&& Self::new_page(paddr, level, prop).is_last(level)
++            }
++        by {
++            let raw = paddr & Self::PHYS_ADDR_MASK | PageTableFlags::HUGE().bits();
++            let flags = PageProperty::encode_prop_flags_spec(prop);
++            lemma_auxiliary_bit_properties(paddr);
++            lemma_auxiliary_bit_properties(raw);
++            lemma_x86_set_prop_roundtrip(raw, flags, prop);
++            assert(raw & Self::PHYS_ADDR_MASK == paddr & Self::PHYS_ADDR_MASK) by (bit_vector)
++                requires
++                    raw == (paddr & 0xF_FFFF_FFFF_F000usize | 0x80usize),
++                    Self::PHYS_ADDR_MASK == 0xF_FFFF_FFFF_F000usize;
++            assert(paddr < MAX_PADDR ==> raw & Self::PHYS_ADDR_MASK == paddr & !((PAGE_SIZE
++                - 1) as usize)) by (bit_vector)
++                requires
++                    raw == (paddr & 0xF_FFFF_FFFF_F000usize | 0x80usize),
++                    Self::PHYS_ADDR_MASK == 0xF_FFFF_FFFF_F000usize,
++                    PAGE_SIZE == 4096usize,
++                    MAX_PADDR == 0x8000_0000usize;
++            assert(raw & PageTableFlags::HUGE().bits() != 0) by (bit_vector)
++                requires
++                    raw == (paddr & 0xF_FFFF_FFFF_F000usize | 0x80usize),
++                    PageTableFlags::HUGE().bits() == 0x80usize;
++            assert(PageTableEntry(raw).is_last(level));
++            assert(Self::new_page(paddr, level, prop).is_last(level));
++        }
++
++        assert forall|paddr: Paddr| #![trigger Self::new_pt(paddr)] {
++                &&& Self::new_pt(paddr).is_present()
++                &&& (paddr < MAX_PADDR ==> Self::new_pt(paddr).paddr() == paddr & !((PAGE_SIZE
++                    - 1) as usize))
++                &&& (paddr < MAX_PADDR && paddr % PAGE_SIZE == 0 ==> Self::new_pt(paddr).paddr()
++                    == paddr)
++                &&& forall|level: PagingLevel| !Self::new_pt(paddr).is_last(level)
++            }
++        by {
++            let flags = PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits()
++                | PageTableFlags::USER().bits();
++            lemma_auxiliary_bit_properties(paddr);
++            assert(flags == 0x7usize) by (bit_vector)
++                requires
++                    flags == 0x1usize | 0x2usize | 0x4usize;
++            assert(paddr < MAX_PADDR ==> (paddr & Self::PHYS_ADDR_MASK | flags)
++                & Self::PHYS_ADDR_MASK == paddr & !((PAGE_SIZE - 1) as usize)) by (bit_vector)
++                requires
++                    Self::PHYS_ADDR_MASK == 0xF_FFFF_FFFF_F000usize,
++                    flags == 0x7usize,
++                    PAGE_SIZE == 4096usize,
++                    MAX_PADDR == 0x8000_0000usize;
++            assert((paddr & Self::PHYS_ADDR_MASK | flags) & PageTableFlags::PRESENT().bits() != 0)
++                by (bit_vector)
++                requires
++                    Self::PHYS_ADDR_MASK == 0xF_FFFF_FFFF_F000usize,
++                    flags == 0x7usize,
++                    PageTableFlags::PRESENT().bits() == 0x1usize;
++            assert forall|level: PagingLevel| !Self::new_pt(paddr).is_last(level) by {
++                assert((paddr & Self::PHYS_ADDR_MASK | flags) & PageTableFlags::HUGE().bits()
++                    == 0) by (bit_vector)
++                    requires
++                        Self::PHYS_ADDR_MASK == 0xF_FFFF_FFFF_F000usize,
++                        flags == 0x7usize,
++                        PageTableFlags::HUGE().bits() == 0x80usize;
++            }
++        }
++    }
++
++    proof fn lemma_paddr_is_page_aligned(self) {
++        lemma_auxiliary_bit_properties(self.0);
+     }
+ }
+ 
+-impl fmt::Debug for PageTableEntry {
+-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+-        let mut f = f.debug_struct("PageTableEntry");
+-        f.field("raw", &format_args!("{:#x}", self.0))
+-            .field("paddr", &format_args!("{:#x}", self.paddr()))
+-            .field("present", &self.is_present())
+-            .field(
+-                "flags",
+-                &PageTableFlags::from_bits_truncate(self.0 & !Self::PHYS_ADDR_MASK),
+-            )
+-            .field("prop", &self.prop())
+-            .finish()
++
++impl PageTableEntry {
++    pub closed spec fn raw_set_prop_spec(old_raw: usize, prop: PageProperty) -> usize {
++        old_raw & !Self::PROP_MASK | PageProperty::encode_prop_flags_spec(prop)
+     }
+ }
+-*/
++
++// Auxiliary definitions and lemmas about bit properties of page table entries and flags.
++impl PageProperty {
++    closed spec fn encode_prop_flags_spec(prop: Self) -> usize {
++        let flags = PageTableFlags::empty().bits()
++            | parse_flags!(prop.flags.bits(), PageFlags::R(), PageTableFlags::PRESENT())
++            | parse_flags!(prop.flags.bits(), PageFlags::W(), PageTableFlags::WRITABLE())
++            | parse_flags!(!prop.flags.bits(), PageFlags::X(), PageTableFlags::NO_EXECUTE())
++            | parse_flags!(prop.flags.bits(), PageFlags::ACCESSED(), PageTableFlags::ACCESSED())
++            | parse_flags!(prop.flags.bits(), PageFlags::DIRTY(), PageTableFlags::DIRTY())
++            | parse_flags!(prop.flags.bits(), PageFlags::AVAIL1(), PageTableFlags::HIGH_IGN1())
++            | parse_flags!(prop.flags.bits(), PageFlags::AVAIL2(), PageTableFlags::HIGH_IGN2())
++            | parse_flags!(prop.priv_flags.bits(), PrivFlags::USER(), PageTableFlags::USER())
++            | parse_flags!(prop.priv_flags.bits(), PrivFlags::GLOBAL(), PageTableFlags::GLOBAL());
++        #[cfg(feature = "cvm_guest")]
++        let flags = flags
++            | parse_flags!(prop.priv_flags.bits(), PrivFlags::SHARED(), PageTableFlags::SHARED());
++        flags | if prop.cache is Writeback {
++            0
++        } else if prop.cache is Writethrough {
++            PageTableFlags::WRITE_THROUGH().bits()
++        } else {
++            PageTableFlags::NO_CACHE().bits()
++        }
++    }
++
++    closed spec fn decode_page_flags_spec(raw: usize) -> u8 {
++        let flags = if raw & PageTableFlags::PRESENT().bits() != 0 {
++            PageFlags::R().bits()
++        } else {
++            0
++        } | if raw & PageTableFlags::WRITABLE().bits() != 0 {
++            PageFlags::W().bits()
++        } else {
++            0
++        } | if !raw & PageTableFlags::NO_EXECUTE().bits() != 0 {
++            PageFlags::X().bits()
++        } else {
++            0
++        } | if raw & PageTableFlags::ACCESSED().bits() != 0 {
++            PageFlags::ACCESSED().bits()
++        } else {
++            0
++        } | if raw & PageTableFlags::DIRTY().bits() != 0 {
++            PageFlags::DIRTY().bits()
++        } else {
++            0
++        } | if raw & PageTableFlags::HIGH_IGN1().bits() != 0 {
++            PageFlags::AVAIL1().bits()
++        } else {
++            0
++        } | if raw & PageTableFlags::HIGH_IGN2().bits() != 0 {
++            PageFlags::AVAIL2().bits()
++        } else {
++            0
++        };
++        flags
++    }
++
++    closed spec fn decode_priv_flags_spec(raw: usize) -> u8 {
++        let priv_flags = if raw & PageTableFlags::USER().bits() != 0 {
++            PrivFlags::USER().bits()
++        } else {
++            0
++        } | if raw & PageTableFlags::GLOBAL().bits() != 0 {
++            PrivFlags::GLOBAL().bits()
++        } else {
++            0
++        };
++        #[cfg(feature = "cvm_guest")]
++        let priv_flags = priv_flags | if raw & PageTableFlags::SHARED().bits() != 0 {
++            PrivFlags::SHARED().bits()
++        } else {
++            0
++        };
++        priv_flags
++    }
++
++    closed spec fn decode_cache_spec(raw: usize) -> CachePolicy {
++        if raw & PageTableFlags::NO_CACHE().bits() != 0 {
++            CachePolicy::Uncacheable
++        } else if raw & PageTableFlags::WRITE_THROUGH().bits() != 0 {
++            CachePolicy::Writethrough
++        } else {
++            CachePolicy::Writeback
++        }
++    }
++}
++
++#[verifier::bit_vector]
++proof fn lemma_auxiliary_bit_properties(addr: usize)
++    ensures
++        addr % PAGE_SIZE == 0 ==> addr == (addr & !((PAGE_SIZE - 1) as usize)),
++        (addr & PageTableEntry::PHYS_ADDR_MASK) % PAGE_SIZE == 0,
++        addr < MAX_PADDR ==> (addr & PageTableEntry::PHYS_ADDR_MASK) < MAX_PADDR,
++{
++}
++
++proof fn lemma_page_property_flag_constants()
++    ensures
++        0 & PageTableEntry::PHYS_ADDR_MASK == 0,
++        0usize % PAGE_SIZE == 0,
++        0 < MAX_PADDR,
++        0 & PageTableFlags::PRESENT().bits() == 0,
++        0 & PageTableFlags::HUGE().bits() == 0,
++        PageTableFlags::PRESENT().bits() == 0x1,
++        PageTableFlags::WRITABLE().bits() == 0x2,
++        PageTableFlags::USER().bits() == 0x4,
++        PageTableFlags::WRITE_THROUGH().bits() == 0x8,
++        PageTableFlags::NO_CACHE().bits() == 0x10,
++        PageTableFlags::ACCESSED().bits() == 0x20,
++        PageTableFlags::DIRTY().bits() == 0x40,
++        PageTableFlags::HUGE().bits() == 0x80,
++        PageTableFlags::GLOBAL().bits() == 0x100,
++        #[cfg(feature = "cvm_guest")]
++        (PageTableFlags::SHARED().bits() == 0x0200_0000_0000_0000),
++        PageTableFlags::HIGH_IGN1().bits() == 0x0010_0000_0000_0000,
++        PageTableFlags::HIGH_IGN2().bits() == 0x0020_0000_0000_0000,
++        PageTableFlags::NO_EXECUTE().bits() == 0x8000000000000000,
++        PageTableFlags::PRESENT().bits().ilog2() == 0,
++        PageTableFlags::WRITABLE().bits().ilog2() == 1,
++        PageTableFlags::USER().bits().ilog2() == 2,
++        PageTableFlags::WRITE_THROUGH().bits().ilog2() == 3,
++        PageTableFlags::NO_CACHE().bits().ilog2() == 4,
++        PageTableFlags::ACCESSED().bits().ilog2() == 5,
++        PageTableFlags::DIRTY().bits().ilog2() == 6,
++        PageTableFlags::HUGE().bits().ilog2() == 7,
++        PageTableFlags::GLOBAL().bits().ilog2() == 8,
++        #[cfg(feature = "cvm_guest")]
++        (PageTableFlags::SHARED().bits().ilog2() == 51),
++        PageTableFlags::HIGH_IGN1().bits().ilog2() == 52,
++        PageTableFlags::HIGH_IGN2().bits().ilog2() == 53,
++        PageTableFlags::NO_EXECUTE().bits().ilog2() == 63,
++        PageFlags::R().bits() == 0x1,
++        PageFlags::W().bits() == 0x2,
++        PageFlags::X().bits() == 0x4,
++        PageFlags::ACCESSED().bits() == 0x8,
++        PageFlags::DIRTY().bits() == 0x10,
++        PageFlags::AVAIL1().bits() == 0x40,
++        PageFlags::AVAIL2().bits() == 0x80,
++        PageFlags::all_bits() == 0xDFu8,
++        PageFlags::R().bits().ilog2() == 0,
++        PageFlags::W().bits().ilog2() == 1,
++        PageFlags::X().bits().ilog2() == 2,
++        PageFlags::ACCESSED().bits().ilog2() == 3,
++        PageFlags::DIRTY().bits().ilog2() == 4,
++        PageFlags::AVAIL1().bits().ilog2() == 6,
++        PageFlags::AVAIL2().bits().ilog2() == 7,
++        PrivFlags::USER().bits() == 0x1,
++        PrivFlags::GLOBAL().bits() == 0x2,
++        #[cfg(not(all(target_arch = "x86_64", feature = "cvm_guest")))]
++        PrivFlags::all_bits() == 0x3u8,
++        PrivFlags::USER().bits().ilog2() == 0,
++        PrivFlags::GLOBAL().bits().ilog2() == 1,
++        #[cfg(all(target_arch = "x86_64", feature = "cvm_guest"))]
++        (PrivFlags::SHARED().bits() == 0x80),
++        #[cfg(all(target_arch = "x86_64", feature = "cvm_guest"))]
++        (PrivFlags::all_bits() == 0x83u8),
++        #[cfg(all(target_arch = "x86_64", feature = "cvm_guest"))]
++        (PrivFlags::SHARED().bits().ilog2() == 7),
++{
++    lemma_usize_ilog2_to32();
++    lemma_u8_ilog2_to8();
++    lemma_u64_ilog2_to64();
++    assert(0 & PageTableEntry::PHYS_ADDR_MASK == 0) by (compute_only);
++    assert(0usize % PAGE_SIZE == 0) by (compute_only);
++    assert(0 < MAX_PADDR) by (compute_only);
++    assert(PageTableFlags::PRESENT().bits() == 0x1) by (compute);
++    assert(PageTableFlags::WRITABLE().bits() == 0x2) by (compute);
++    assert(PageTableFlags::USER().bits() == 0x4) by (compute);
++    assert(PageTableFlags::WRITE_THROUGH().bits() == 0x8) by (compute);
++    assert(PageTableFlags::NO_CACHE().bits() == 0x10) by (compute);
++    assert(PageTableFlags::ACCESSED().bits() == 0x20) by (compute);
++    assert(PageTableFlags::DIRTY().bits() == 0x40) by (compute);
++    assert(PageTableFlags::HUGE().bits() == 0x80) by (compute);
++    assert(PageTableFlags::GLOBAL().bits() == 0x100) by (compute);
++    assert(0 & PageTableFlags::PRESENT().bits() == 0) by (bit_vector);
++    assert(0 & PageTableFlags::HUGE().bits() == 0) by (bit_vector);
++    #[cfg(feature = "cvm_guest")]
++    {
++        assert(PageTableFlags::SHARED().bits() == 0x0200_0000_0000_0000) by (compute);
++    }
++    assert(PageTableFlags::HIGH_IGN1().bits() == 0x0010_0000_0000_0000) by (compute);
++    assert(PageTableFlags::HIGH_IGN2().bits() == 0x0020_0000_0000_0000) by (compute);
++    assert(PageTableFlags::NO_EXECUTE().bits() == 0x8000000000000000) by (compute);
++    broadcast use PageFlags::lemma_consts;
++    broadcast use PrivFlags::lemma_consts;
++
++    assert(PageFlags::all_bits() == 0xDFu8) by (compute);
++    #[cfg(not(all(target_arch = "x86_64", feature = "cvm_guest")))]
++    assert(PrivFlags::all_bits() == 0x3u8) by (compute);
++}
++
++#[cfg(all(target_arch = "x86_64", feature = "cvm_guest"))]
++proof fn lemma_parse_shared_to_priv_shared_equiv_if(v: usize)
++    ensures
++        parse_flags!(v, PageTableFlags::SHARED(), PrivFlags::SHARED()) == if v
++            & PageTableFlags::SHARED().bits() != 0 {
++            PrivFlags::SHARED().bits() as usize
++        } else {
++            0usize
++        },
++{
++    lemma_page_property_flag_constants();
++    assert(parse_flags!(v, PageTableFlags::SHARED(), PrivFlags::SHARED()) == ((v
++        & 0x0200_0000_0000_0000usize) >> 51 << 7)) by (compute);
++    assert(((v & 0x0200_0000_0000_0000usize) >> 51 << 7) == (if (v & 0x0200_0000_0000_0000usize)
++        != 0 {
++        0x80usize
++    } else {
++        0usize
++    })) by (bit_vector);
++}
++
++proof fn lemma_parse_flags_equiv_if(v: usize)
++    ensures
++        parse_flags!(v, PageTableFlags::PRESENT(), PageFlags::R()) == if v
++            & PageTableFlags::PRESENT().bits() != 0 {
++            PageFlags::R().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::WRITABLE(), PageFlags::W()) == if v
++            & PageTableFlags::WRITABLE().bits() != 0 {
++            PageFlags::W().bits()
++        } else {
++            0
++        },
++        parse_flags!(!v, PageTableFlags::NO_EXECUTE(), PageFlags::X()) == if !v
++            & PageTableFlags::NO_EXECUTE().bits() != 0 {
++            PageFlags::X().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::ACCESSED(), PageFlags::ACCESSED()) == if v
++            & PageTableFlags::ACCESSED().bits() != 0 {
++            PageFlags::ACCESSED().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::DIRTY(), PageFlags::DIRTY()) == if v
++            & PageTableFlags::DIRTY().bits() != 0 {
++            PageFlags::DIRTY().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::HIGH_IGN1(), PageFlags::AVAIL1()) == if v
++            & PageTableFlags::HIGH_IGN1().bits() != 0 {
++            PageFlags::AVAIL1().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::HIGH_IGN2(), PageFlags::AVAIL2()) == if v
++            & PageTableFlags::HIGH_IGN2().bits() != 0 {
++            PageFlags::AVAIL2().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::USER(), PrivFlags::USER()) == if v
++            & PageTableFlags::USER().bits() != 0 {
++            PrivFlags::USER().bits()
++        } else {
++            0
++        },
++        parse_flags!(v, PageTableFlags::GLOBAL(), PrivFlags::GLOBAL()) == if v
++            & PageTableFlags::GLOBAL().bits() != 0 {
++            PrivFlags::GLOBAL().bits()
++        } else {
++            0
++        },
++{
++    lemma_page_property_flag_constants();
++    assert(((v & 0x1usize) >> 0 << 0) == (if (v & 0x1usize) != 0 {
++        0x1usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x2usize) >> 1 << 1) == (if (v & 0x2usize) != 0 {
++        0x2usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert((((!v & 0x8000_0000_0000_0000usize) >> 63) << 2) == (if (!v & 0x8000_0000_0000_0000usize)
++        != 0 {
++        0x4usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x20usize) >> 5 << 3) == (if (v & 0x20usize) != 0 {
++        0x8usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x40usize) >> 6 << 4) == (if (v & 0x40usize) != 0 {
++        0x10usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x0010_0000_0000_0000usize) >> 52 << 6) == (if (v & 0x0010_0000_0000_0000usize)
++        != 0 {
++        0x40usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x0020_0000_0000_0000usize) >> 53 << 7) == (if (v & 0x0020_0000_0000_0000usize)
++        != 0 {
++        0x80usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x4usize) >> 2 << 0) == (if (v & 0x4usize) != 0 {
++        0x1usize
++    } else {
++        0usize
++    })) by (bit_vector);
++    assert(((v & 0x100usize) >> 8 << 1) == (if (v & 0x100usize) != 0 {
++        0x2usize
++    } else {
++        0usize
++    })) by (bit_vector);
++}
++
++proof fn lemma_parse_flags_collorary(v: usize)
++    ensures
++        (parse_flags!(v, PageTableFlags::PRESENT(), PageFlags::R())) | (
++        parse_flags!(v, PageTableFlags::WRITABLE(), PageFlags::W())) | (
++        parse_flags!(!v, PageTableFlags::NO_EXECUTE(), PageFlags::X())) | (
++        parse_flags!(v, PageTableFlags::ACCESSED(), PageFlags::ACCESSED())) | (
++        parse_flags!(v, PageTableFlags::DIRTY(), PageFlags::DIRTY())) | (
++        parse_flags!(v, PageTableFlags::HIGH_IGN1(), PageFlags::AVAIL1())) | (
++        parse_flags!(v, PageTableFlags::HIGH_IGN2(), PageFlags::AVAIL2())) ==
++        PageProperty::decode_page_flags_spec(v),
++        (parse_flags!(v, PageTableFlags::USER(), PrivFlags::USER())) | (
++        parse_flags!(v, PageTableFlags::GLOBAL(), PrivFlags::GLOBAL())) ==
++        PageProperty::decode_priv_flags_spec(v),
++{
++    lemma_parse_flags_equiv_if(v);
++}
++
++#[verifier::bit_vector]
++proof fn lemma_x86_page_flags_wf(v: usize, flags: usize)
++    requires
++        flags == (if v & 0x1usize != 0 {
++            0x1usize
++        } else {
++            0
++        } | if v & 0x2usize != 0 {
++            0x2usize
++        } else {
++            0
++        } | if !v & 0x8000_0000_0000_0000usize != 0 {
++            0x4usize
++        } else {
++            0
++        } | if v & 0x20usize != 0 {
++            0x8usize
++        } else {
++            0
++        } | if v & 0x40usize != 0 {
++            0x10usize
++        } else {
++            0
++        } | if v & 0x0010_0000_0000_0000usize != 0 {
++            0x40usize
++        } else {
++            0
++        } | if v & 0x0020_0000_0000_0000usize != 0 {
++            0x80usize
++        } else {
++            0
++        }),
++    ensures
++        flags <= 255usize,
++        flags & 0xDFusize == flags,
++{
++}
++
++#[verifier::bit_vector]
++proof fn lemma_x86_priv_flags_wf(v: usize, priv_flags: usize)
++    requires
++        priv_flags == (if v & 0x4usize != 0 {
++            0x1usize
++        } else {
++            0
++        } | if v & 0x100usize != 0 {
++            0x2usize
++        } else {
++            0
++        }),
++    ensures
++        priv_flags <= 255usize,
++        priv_flags & 0x3usize == priv_flags,
++{
++}
++
++#[cfg(feature = "cvm_guest")]
++#[verifier::bit_vector]
++proof fn lemma_x86_priv_flags_cvm_wf(v: usize, priv_flags: usize)
++    requires
++        priv_flags == (if v & 0x4usize != 0 {
++            0x1usize
++        } else {
++            0
++        } | if v & 0x100usize != 0 {
++            0x2usize
++        } else {
++            0
++        } | if v & 0x0200_0000_0000_0000usize != 0 {
++            0x80usize
++        } else {
++            0
++        }),
++    ensures
++        priv_flags <= 255usize,
++        priv_flags & 0x83usize == priv_flags,
++{
++}
++
++/// It is the same as `PageProperty::encode_prop_flags_spec`, but all constants are expanded to support bit_vector.
++closed spec fn encode_prop_flags_bv_spec(
++    pbits: usize,
++    priv_bits: usize,
++    cache_flags: usize,
++) -> usize {
++    (if pbits & 0x1usize != 0 { 0x1usize } else { 0 })
++        | (if pbits & 0x2usize != 0 { 0x2usize } else { 0 })
++        | (if !pbits & 0x4usize != 0 { 0x8000_0000_0000_0000usize } else { 0 })
++        | (if pbits & 0x8usize != 0 { 0x20usize } else { 0 })
++        | (if pbits & 0x10usize != 0 { 0x40usize } else { 0 })
++        | (if pbits & 0x40usize != 0 { 0x0010_0000_0000_0000usize } else { 0 })
++        | (if pbits & 0x80usize != 0 { 0x0020_0000_0000_0000usize } else { 0 })
++        | (if priv_bits & 0x1usize != 0 { 0x4usize } else { 0 })
++        | (if priv_bits & 0x2usize != 0 { 0x100usize } else { 0 })
++        | cache_flags
++}
++
++proof fn lemma_encode_prop_flags_matches(
++    pbits: u8,
++    priv_bits: u8,
++    cache_flags: usize,
++)
++    requires
++        cache_flags == 0usize || cache_flags == 0x8usize || cache_flags == 0x10usize,
++    ensures
++        (PageTableFlags::empty().bits()
++            | parse_flags!(pbits, PageFlags::R(), PageTableFlags::PRESENT())
++            | parse_flags!(pbits, PageFlags::W(), PageTableFlags::WRITABLE())
++            | parse_flags!(!pbits, PageFlags::X(), PageTableFlags::NO_EXECUTE())
++            | parse_flags!(pbits, PageFlags::ACCESSED(), PageTableFlags::ACCESSED())
++            | parse_flags!(pbits, PageFlags::DIRTY(), PageTableFlags::DIRTY())
++            | parse_flags!(pbits, PageFlags::AVAIL1(), PageTableFlags::HIGH_IGN1())
++            | parse_flags!(pbits, PageFlags::AVAIL2(), PageTableFlags::HIGH_IGN2())
++            | parse_flags!(priv_bits, PrivFlags::USER(), PageTableFlags::USER())
++            | parse_flags!(priv_bits, PrivFlags::GLOBAL(), PageTableFlags::GLOBAL())
++            | cache_flags)
++            == encode_prop_flags_bv_spec(pbits as usize, priv_bits as usize, cache_flags),
++{
++    lemma_page_property_flag_constants();
++    assert((0usize
++        | ((pbits as usize & 0x1usize) >> 0 << 0)
++        | ((pbits as usize & 0x2usize) >> 1 << 1)
++        | (((!pbits) as usize & 0x4usize) >> 2 << 63)
++        | ((pbits as usize & 0x8usize) >> 3 << 5)
++        | ((pbits as usize & 0x10usize) >> 4 << 6)
++        | ((pbits as usize & 0x40usize) >> 6 << 52)
++        | ((pbits as usize & 0x80usize) >> 7 << 53)
++        | ((priv_bits as usize & 0x1usize) >> 0 << 2)
++        | ((priv_bits as usize & 0x2usize) >> 1 << 8)
++        | cache_flags)
++        == encode_prop_flags_bv_spec(pbits as usize, priv_bits as usize, cache_flags)) by (bit_vector);
++}
++
++#[verifier::bit_vector]
++proof fn lemma_x86_set_prop_decode_bits(
++    old_raw: usize,
++    flags: usize,
++    pbits: usize,
++    priv_bits: usize,
++    cache_flags: usize,
++)
++    requires
++        pbits & 0xDFusize == pbits,
++        priv_bits & 0x3usize == priv_bits,
++        cache_flags == 0usize || cache_flags == 0x8usize || cache_flags == 0x10usize,
++        flags == encode_prop_flags_bv_spec(pbits, priv_bits, cache_flags),
++    ensures
++        flags & PageTableEntry::PHYS_ADDR_MASK == 0,
++        pbits & 0x1usize == 0x1usize ==> flags & 0x1usize == 0x1usize,
++        {
++            let new_raw = old_raw
++                & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits())
++                | flags;
++            let decoded_flags = (if new_raw & 0x1usize != 0 { 0x1usize } else { 0 })
++                | (if new_raw & 0x2usize != 0 { 0x2usize } else { 0 })
++                | (if !new_raw & 0x8000_0000_0000_0000usize != 0 { 0x4usize } else { 0 })
++                | (if new_raw & 0x20usize != 0 { 0x8usize } else { 0 })
++                | (if new_raw & 0x40usize != 0 { 0x10usize } else { 0 })
++                | (if new_raw & 0x0010_0000_0000_0000usize != 0 { 0x40usize } else { 0 })
++                | (if new_raw & 0x0020_0000_0000_0000usize != 0 { 0x80usize } else { 0 });
++            decoded_flags == pbits
++        },
++        {
++            let new_raw = old_raw
++                & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits())
++                | flags;
++            let decoded_priv_flags = (if new_raw & 0x4usize != 0 { 0x1usize } else { 0 })
++                | (if new_raw & 0x100usize != 0 { 0x2usize } else { 0 });
++            decoded_priv_flags == priv_bits
++        },
++        {
++            let new_raw = old_raw
++                & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits())
++                | flags;
++            new_raw & 0x10usize != 0 <==> cache_flags == 0x10usize
++        },
++        {
++            let new_raw = old_raw
++                & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits())
++                | flags;
++            new_raw & 0x8usize != 0 <==> cache_flags == 0x8usize
++        },
++{
++}
++
++proof fn lemma_x86_set_prop_roundtrip(old_raw: usize, flags: usize, prop: PageProperty)
++    requires
++        prop.inv(),
++        prop.flags.bits() & PageFlags::R().bits() == PageFlags::R().bits(),
++        prop.cache is Writeback || prop.cache is Writethrough || prop.cache is Uncacheable,
++        flags == PageProperty::encode_prop_flags_spec(prop),
++    ensures
++        PageTableEntry(
++            old_raw & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits()) | flags,
++        ).prop() == prop,
++        PageTableEntry(
++            old_raw & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits()) | flags,
++        ).paddr() == PageTableEntry(old_raw).paddr(),
++        PageTableEntry(
++            old_raw & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits()) | flags,
++        ).is_present(),
++        forall|level: PagingLevel|
++            #[trigger] PageTableEntry(old_raw).is_last(level) ==> PageTableEntry(
++                old_raw & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits())
++                    | flags,
++            ).is_last(level),
++{
++    lemma_page_property_flag_constants();
++    let pbits_u8 = prop.flags.bits();
++    let priv_bits_u8 = prop.priv_flags.bits();
++    let pbits = pbits_u8 as usize;
++    let priv_bits = priv_bits_u8 as usize;
++    let cache_flags = if prop.cache is Writethrough {
++        PageTableFlags::WRITE_THROUGH().bits()
++    } else if prop.cache is Uncacheable {
++        PageTableFlags::NO_CACHE().bits()
++    } else {
++        0usize
++    };
++    lemma_encode_prop_flags_matches(pbits_u8, priv_bits_u8, cache_flags);
++    let new_raw = old_raw & !(!PageTableEntry::PHYS_ADDR_MASK & !PageTableFlags::HUGE().bits())
++        | flags;
++    lemma_x86_set_prop_decode_bits(old_raw, flags, pbits, priv_bits, cache_flags);
++    lemma_x86_set_prop_preserves_entry_bits(old_raw, new_raw, flags);
++    let decoded_flags = PageProperty::decode_page_flags_spec(new_raw);
++    let decoded_priv_flags = PageProperty::decode_priv_flags_spec(new_raw);
++    PageFlags::lemma_from_bits_bits(decoded_flags as u8);
++    PrivFlags::lemma_from_bits_bits(decoded_priv_flags as u8);
++    PageFlags::lemma_eq_from_bits(PageTableEntry(new_raw).prop().flags, prop.flags);
++    PrivFlags::lemma_eq_from_bits(PageTableEntry(new_raw).prop().priv_flags, prop.priv_flags);
++}
++
++#[verifier::bit_vector]
++proof fn lemma_x86_set_prop_preserves_entry_bits(old_raw: usize, new_raw: usize, flags: usize)
++    requires
++        new_raw == old_raw & !(!PageTableEntry::PHYS_ADDR_MASK & !0x80usize) | flags,
++        flags & PageTableEntry::PHYS_ADDR_MASK == 0,
++        flags & 0x1usize == 0x1usize,
++    ensures
++        (new_raw & PageTableEntry::PHYS_ADDR_MASK) == (old_raw & PageTableEntry::PHYS_ADDR_MASK),
++        new_raw & 0x1usize != 0 || new_raw & 0x80usize != 0,
++        old_raw & 0x80usize != 0 ==> new_raw & 0x80usize != 0,
++{
++}
++
++} // verus!
++  /*
++  impl fmt::Debug for PageTableEntry {
++      fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
++          let mut f = f.debug_struct("PageTableEntry");
++          f.field("raw", &format_args!("{:#x}", self.0))
++              .field("paddr", &format_args!("{:#x}", self.paddr()))
++              .field("present", &self.is_present())
++              .field(
++                  "flags",
++                  &PageTableFlags::from_bits_truncate(self.0 & !Self::PHYS_ADDR_MASK),
++              )
++              .field("prop", &self.prop())
++              .finish()
++      }
++  }
++  */
+diff --git a/ostd/src/mm/kspace/mod.rs b/ostd/src/mm/kspace/mod.rs
+index 890aba3432bd814ae9d0e30f660e6fa34c171adc..8a1e3cc60b667a0e854f077023fd886983f3fbb4 100644
+--- a/ostd/src/mm/kspace/mod.rs
++++ b/ostd/src/mm/kspace/mod.rs
+@@ -59,9 +59,10 @@ use crate::specs::mm::frame::meta_owners::MetaPerm;
+ use crate::specs::mm::frame::meta_owners::MetaSlotStorage;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use crate::{
++    arch::mm::PageTableEntry,
+     boot::memory_region::MemoryRegionType,
+     mm::{PagingLevel, largest_pages},
+-    specs::arch::{PageTableEntry, PagingConsts},
++    specs::arch::PagingConsts,
+     //task::disable_preempt,
+ };
+ 
+diff --git a/ostd/src/mm/mod.rs b/ostd/src/mm/mod.rs
+index c8469d7a8f88b9b211e828a3d45df9cc9eda5460..50e82fc9bfec91aa587ed919ad98d5241e766600 100644
+--- a/ostd/src/mm/mod.rs
++++ b/ostd/src/mm/mod.rs
+@@ -21,7 +21,8 @@ pub mod frame;
+ //pub mod heap;
+ pub mod io;
+ pub use io::{
+-    Fallible, FallibleVmRead, FallibleVmWrite, Infallible, VmIo, VmIoOnce, VmReader, VmWriter,
++    Fallible, FallibleVmRead, FallibleVmWrite, Infallible, PodOnce, VmIo, VmIoOnce, VmReader,
++    VmWriter,
+ };
+ pub mod kspace;
+ pub(crate) mod page_prop;
+diff --git a/ostd/src/mm/page_prop.rs b/ostd/src/mm/page_prop.rs
+index bfdd80ef109d5eafb90ccc1095b16ce2febfd15b..0989a31236c07d2b4c3d98fbf451fa8d7a05f881 100644
+--- a/ostd/src/mm/page_prop.rs
++++ b/ostd/src/mm/page_prop.rs
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Definitions of page mapping properties.
+ use vstd::prelude::*;
++use vstd_extra::prelude::*;
+ 
+ use core::fmt::Debug;
+ 
+@@ -23,6 +24,14 @@ pub struct PageProperty {
+ 
+ global layout PageProperty is size == 3, align == 1;
+ 
++#[verus_verify]
++impl Inv for PageProperty {
++    open spec fn inv(self) -> bool {
++        &&& self.flags.bits() & PageFlags::all_bits() == self.flags.bits()
++        &&& self.priv_flags.bits() & PrivilegedPageFlags::all_bits() == self.priv_flags.bits()
++    }
++}
++
+ #[verus_verify]
+ impl PageProperty {
+     /// Creates a new `PageProperty` with the given flags and cache policy for the user.
+@@ -149,3 +158,43 @@ bitflags! {
+         const SHARED    = 0b10000000;
+     }
+ }
++
++verus! {
++
++impl PageFlags {
++    pub proof fn lemma_from_bits_bits(bits: u8)
++        requires
++            bits & Self::all_bits() == bits,
++        ensures
++            Self::from_bits(bits)->0.bits() == bits,
++    {
++    }
++
++    pub proof fn lemma_eq_from_bits(left: Self, right: Self)
++        requires
++            left.bits() == right.bits(),
++        ensures
++            left =~= right,
++    {
++    }
++}
++
++impl PrivilegedPageFlags {
++    pub proof fn lemma_from_bits_bits(bits: u8)
++        requires
++            bits & Self::all_bits() == bits,
++        ensures
++            Self::from_bits(bits)->0.bits() == bits,
++    {
++    }
++
++    pub proof fn lemma_eq_from_bits(left: Self, right: Self)
++        requires
++            left.bits() == right.bits(),
++        ensures
++            left =~= right,
++    {
++    }
++}
++
++} // verus!
+diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
+index e623dfce42af127417abbda67d7ab31f1cbac3f8..d257335c29070b64cc3ab63890cb14292d532839 100644
+--- a/ostd/src/mm/page_table/mod.rs
++++ b/ostd/src/mm/page_table/mod.rs
+@@ -17,8 +17,10 @@ use core::{
+ use crate::mm::frame::meta::MetaSlot;
+ 
+ use super::{
+-    Paddr, PagingConstsTrait, PagingLevel, Vaddr, io::PodOnce, kspace::KernelPtConfig,
+-    lemma_nr_subpage_per_huge_bounded, nr_subpage_per_huge, page_prop::PageProperty,
++    Paddr, PagingConstsTrait, PagingLevel, PodOnce, Vaddr,
++    kspace::KernelPtConfig,
++    lemma_nr_subpage_per_huge_bounded, nr_subpage_per_huge,
++    page_prop::{CachePolicy, PageProperty},
+     vm_space::UserPtConfig,
+ };
+ 
+@@ -30,9 +32,9 @@ use crate::specs::arch::paging_consts::PagingConsts;
+ use crate::specs::mm::page_table::cursor::*;
+ use crate::specs::task::InAtomicMode;
+ 
++use crate::arch::mm::PageTableEntry;
+ use crate::mm::frame::meta::mapping::frame_to_index;
+ use crate::mm::kspace::kvirt_area::disable_preempt;
+-use crate::specs::arch::PageTableEntry;
+ use crate::specs::mm::frame::meta_owners::MetaPerm;
+ use crate::specs::mm::frame::meta_region_owners::MetaRegionOwners;
+ use vstd_extra::ownership::Inv;
+@@ -491,178 +493,195 @@ impl<C: PageTableConfig> PagingConstsTrait for C {
+ ///
+ /// Note that a default PTE should be a PTE that points to nothing.
+ pub trait PageTableEntryTrait:
+-    Clone + Copy + Debug + Sized + Send + Sync + Pod + PodOnce + 'static {
+-    spec fn default_spec() -> Self;
+-
+-    /// For implement `Default` trait.
+-    #[verifier::when_used_as_spec(default_spec)]
+-    fn default() -> (res: Self)
+-        ensures
+-            res == Self::default_spec(),
+-    ;
++    Clone + Copy + Debug + Default + Sized + Pod + PodOnce + Send + Sync + 'static {
++    spec fn new_absent_spec() -> Self;
+ 
+     /// Create a set of new invalid page table flags that indicates an absent page.
+     ///
+     /// Note that currently the implementation requires an all zero PTE to be an absent PTE.
+-    spec fn new_absent_spec() -> Self;
+-
+     #[verifier(when_used_as_spec(new_absent_spec))]
+     fn new_absent() -> (res: Self)
+         ensures
+-            res == Self::new_absent_spec(),
+             res.paddr() % PAGE_SIZE == 0,
+             res.paddr() < MAX_PADDR,
++            !res.is_present(),
++        returns
++            Self::new_absent(),
+     ;
+ 
+-    /// If the flags are present with valid mappings.
+     spec fn is_present_spec(&self) -> bool;
+ 
++    /// Returns if the PTE points to something.
++    ///
++    /// For PTEs created by [`Self::new_absent`], this method should return
++    /// false. For PTEs created by [`Self::new_page`] or [`Self::new_pt`]
++    /// and modified with [`Self::set_prop`], this method should return true.
+     #[verifier::when_used_as_spec(is_present_spec)]
+-    fn is_present(&self) -> (res: bool)
+-        ensures
+-            res == self.is_present_spec(),
++    fn is_present(&self) -> bool
++        returns
++            self.is_present_spec(),
+     ;
+ 
+-    /// Create a new PTE with the given physical address and flags that map to a page.
+     spec fn new_page_spec(paddr: Paddr, level: PagingLevel, prop: PageProperty) -> Self;
+ 
++    /// The preconditions for creating a new page-mapping PTE.
++    spec fn new_page_req(paddr: Paddr, level: PagingLevel, prop: PageProperty) -> bool;
++
++    /// Creates a new PTE that maps to a page.
+     #[verifier::when_used_as_spec(new_page_spec)]
+     fn new_page(paddr: Paddr, level: PagingLevel, prop: PageProperty) -> (res: Self)
+         requires
+-            paddr % PAGE_SIZE == 0,
+             paddr < MAX_PADDR,
++            Self::new_page_req(paddr, level, prop),
+         ensures
+-            res == Self::new_page_spec(paddr, level, prop),
+-            res.paddr() == paddr,
++            res.paddr() == paddr & !((PAGE_SIZE - 1) as usize),
++            paddr % PAGE_SIZE == 0 ==> res.paddr() == paddr,
+             res.paddr() % PAGE_SIZE == 0,
+             res.paddr() < MAX_PADDR,
++            res.is_present(),
++            res.is_last(level),
++            res.prop() == prop,
++        returns
++            Self::new_page(paddr, level, prop),
+     ;
+ 
+-    /// Create a new PTE that map to a child page table.
+     spec fn new_pt_spec(paddr: Paddr) -> Self;
+ 
++    /// Create a new PTE that map to a child page table.
+     #[verifier::when_used_as_spec(new_pt_spec)]
+     fn new_pt(paddr: Paddr) -> (res: Self)
+         requires
+-            paddr % PAGE_SIZE == 0,
+             paddr < MAX_PADDR,
+         ensures
+-            res == Self::new_pt_spec(paddr),
+-            res.paddr() == paddr,
++            res.paddr() == paddr & !((PAGE_SIZE - 1) as usize),
++            paddr % PAGE_SIZE == 0 ==> res.paddr() == paddr,
+             res.paddr() % PAGE_SIZE == 0,
+             res.paddr() < MAX_PADDR,
++            res.is_present(),
++            forall|level: PagingLevel| !res.is_last(level),
++        returns
++            Self::new_pt(paddr),
+     ;
+ 
+-    proof fn new_properties()
+-        ensures
+-            !Self::new_absent_spec().is_present(),
+-            forall|level: PagingLevel|
+-                #![trigger Self::new_absent_spec().is_last(level)]
+-                1 < level ==> !Self::new_absent_spec().is_last(level),
+-            forall|paddr: Paddr, level: PagingLevel, prop: PageProperty|
+-                #![trigger Self::new_page_spec(paddr, level, prop)]
+-                {
+-                    &&& Self::new_page_spec(paddr, level, prop).is_present()
+-                    &&& Self::new_page_spec(paddr, level, prop).paddr() == paddr
+-                    &&& Self::new_page_spec(paddr, level, prop).prop() == prop
+-                    &&& Self::new_page_spec(paddr, level, prop).is_last(level)
+-                },
+-            forall|paddr: Paddr|
+-                #![trigger Self::new_pt_spec(paddr)]
+-                {
+-                    &&& Self::new_pt_spec(paddr).is_present()
+-                    &&& Self::new_pt_spec(paddr).paddr() == paddr
+-                    &&& forall|level: PagingLevel| !Self::new_pt_spec(paddr).is_last(level)
+-                },
+-    ;
+-
+-    /// Get the physical address from the PTE.
++    /// Returns the physical address from the PTE.
++    ///
+     /// The physical address recorded in the PTE is either:
+-    /// - the physical address of the next level page table;
+-    /// - or the physical address of the page it maps to.
++    /// - the physical address of the next-level page table, or
++    /// - the physical address of the page that the PTE maps to.
+     spec fn paddr_spec(&self) -> Paddr;
+ 
+     #[verifier::when_used_as_spec(paddr_spec)]
+     fn paddr(&self) -> (res: Paddr)
+         ensures
+-            res == self.paddr_spec(),
+-    ;
+-
+-    /// AXIOM: a present PTE's `paddr()` is page-aligned. PT entries record
+-    /// the base address of either a child PT page or a mapped frame; both
+-    /// are page-aligned by construction. Used by `PageTablePageMeta::on_drop`
+-    /// to combine `lemma_frame_to_index_injective` with walk uniqueness.
+-    proof fn axiom_present_paddr_aligned(&self)
+-        requires
+-            self.is_present(),
+-        ensures
+-            self.paddr() % crate::specs::arch::mm::PAGE_SIZE == 0,
++            res % crate::specs::arch::mm::PAGE_SIZE == 0,
++        returns
++            self.paddr(),
+     ;
+ 
+     spec fn prop_spec(&self) -> PageProperty;
+ 
+     #[verifier::when_used_as_spec(prop_spec)]
+-    fn prop(&self) -> (res: PageProperty)
+-        ensures
+-            res == self.prop_spec(),
++    fn prop(&self) -> PageProperty
++        returns
++            self.prop(),
+     ;
+ 
+-    /// Set the page property of the PTE.
+-    ///
+-    /// This will be only done if the PTE is present. If not, this method will
+-    /// do nothing.
+-    spec fn set_prop_spec(&self, prop: PageProperty) -> Self;
++    /// The preconditions for setting the page property of a PTE.
++    spec fn set_prop_req(self, prop: PageProperty) -> bool;
+ 
+     fn set_prop(&mut self, prop: PageProperty)
++        requires
++            old(self).set_prop_req(prop),
+         ensures
+-            old(self).set_prop_spec(prop) == *final(self),
+-    ;
+-
+-    proof fn set_prop_properties(self, prop: PageProperty)
+-        ensures
+-            self.set_prop_spec(prop).prop() == prop,
+-            self.set_prop_spec(prop).paddr() == self.paddr(),
+-            self.is_present() ==> self.set_prop_spec(prop).is_present(),
+-            forall|level: PagingLevel|
+-                #![trigger self.is_last(level)]
+-                self.is_last(level) ==> self.set_prop_spec(prop).is_last(level),
++            !old(self).is_present() ==> *old(self) == *final(self),
++            old(self).is_present() ==> {
++                &&& final(self).prop() == prop
++                &&& final(self).paddr() == old(self).paddr()
++                &&& final(self).is_present()
++                &&& forall|level: PagingLevel|
++                    #![trigger old(self).is_last(level)]
++                    old(self).is_last(level) ==> final(self).is_last(level)
++            },
+     ;
+ 
+-    /// If the PTE maps a page rather than a child page table.
+-    ///
+-    /// The level of the page table the entry resides is given since architectures
+-    /// like amd64 only uses a huge bit in intermediate levels.
+     spec fn is_last_spec(&self, level: PagingLevel) -> bool;
+ 
++    /// Returns if the PTE maps a page rather than a child page table.
++    ///
++    /// The method needs to know the level of the page table where the PTE resides,
++    /// since architectures like x86-64 have a huge bit only in intermediate levels.
+     #[verifier::when_used_as_spec(is_last_spec)]
+-    fn is_last(&self, level: PagingLevel) -> (b: bool)
+-        ensures
+-            b == self.is_last_spec(level),
++    fn is_last(&self, level: PagingLevel) -> bool
++        returns
++            self.is_last_spec(level),
+     ;
+ 
+-    /// Converts the PTE into its corresponding `usize` value.
+     spec fn as_usize_spec(self) -> usize;
+ 
++    /// Converts the PTE into a raw `usize` value.
+     #[verifier::external_body]
+     #[verifier::when_used_as_spec(as_usize_spec)]
+-    fn as_usize(self) -> (res: usize)
+-        ensures
+-            res == self.as_usize_spec(),
++    fn as_usize(self) -> usize
++        returns
++            self.as_usize(),
+     {
+         unimplemented!()
++        // const { assert!(size_of::<Self>() == size_of::<usize>()) };
+         // SAFETY: `Self` is `Pod` and has the same memory representation as `usize`.
+-        //        unsafe { transmute_unchecked(self) }
++        // unsafe { transmute_unchecked(self) }
+ 
+     }
+ 
+-    /// Converts a usize `pte_raw` into a PTE.
++    /// Converts the raw `usize` value into a PTE.
+     #[verifier::external_body]
+     fn from_usize(pte_raw: usize) -> Self {
+         unimplemented!()
++        // const { assert!(size_of::<Self>() == size_of::<usize>()) };
+         // SAFETY: `Self` is `Pod` and has the same memory representation as `usize`.
+-        //        unsafe { transmute_unchecked(pte_raw) }
++        // unsafe { transmute_unchecked(pte_raw) }
+ 
+     }
++
++    /// Absent (zero) PTE has well-formed paddr for match_pte.
++    proof fn lemma_page_table_entry_properties()
++        ensures
++            Self::new_absent().paddr() % crate::specs::arch::mm::PAGE_SIZE == 0,
++            Self::new_absent().paddr() < crate::specs::arch::mm::MAX_PADDR,
++            !Self::new_absent().is_present(),
++            forall|level: PagingLevel|
++                #![trigger Self::new_absent().is_last(level)]
++                1 < level ==> !Self::new_absent().is_last(level),
++            forall|paddr: Paddr, level: PagingLevel, prop: PageProperty|
++                #![trigger Self::new_page(paddr, level, prop)]
++                Self::new_page_req(paddr, level, prop) && (prop.cache is Writeback
++                    || prop.cache is Writethrough || prop.cache is Uncacheable) ==> {
++                    &&& Self::new_page(paddr, level, prop).is_present()
++                    &&& (paddr < MAX_PADDR ==> Self::new_page(paddr, level, prop).paddr() == paddr
++                        & !((PAGE_SIZE - 1) as usize))
++                    &&& (paddr < MAX_PADDR && paddr % PAGE_SIZE == 0 ==> Self::new_page(
++                        paddr,
++                        level,
++                        prop,
++                    ).paddr() == paddr)
++                    &&& Self::new_page(paddr, level, prop).prop() == prop
++                    &&& Self::new_page(paddr, level, prop).is_last(level)
++                },
++            forall|paddr: Paddr|
++                #![trigger Self::new_pt(paddr)]
++                {
++                    &&& Self::new_pt(paddr).is_present()
++                    &&& (paddr < MAX_PADDR ==> Self::new_pt(paddr).paddr() == paddr & !((PAGE_SIZE
++                        - 1) as usize))
++                    &&& (paddr < MAX_PADDR && paddr % PAGE_SIZE == 0 ==> Self::new_pt(paddr).paddr()
++                        == paddr)
++                    &&& forall|level: PagingLevel| !Self::new_pt(paddr).is_last(level)
++                },
++    ;
++
++    proof fn lemma_paddr_is_page_aligned(self)
++        ensures
++            self.paddr() % crate::specs::arch::mm::PAGE_SIZE == 0,
++    ;
+ }
+ 
+ /// A handle to a page table.
+diff --git a/ostd/src/mm/page_table/node/child.rs b/ostd/src/mm/page_table/node/child.rs
+index 3d3157d266014bdae47dedcfbe7c0d7c44ef57e5..ae7ec9567c5a3f731aecd3fa9d01e65a72fb3764 100644
+--- a/ostd/src/mm/page_table/node/child.rs
++++ b/ostd/src/mm/page_table/node/child.rs
+@@ -78,7 +78,7 @@ impl<C: PageTableConfig> Child<C> {
+             ),
+     {
+         proof {
+-            C::E::new_properties();
++            C::E::lemma_page_table_entry_properties();
+         }
+ 
+         match self {
+@@ -109,6 +109,7 @@ impl<C: PageTableConfig> Child<C> {
+                 proof {
+                     owner.in_scope = false;
+                 }
++                assume(C::E::new_page_req(paddr, level, prop));
+                 C::E::new_page(paddr, level, prop)
+             },
+             Child::None => {
+diff --git a/ostd/src/mm/page_table/node/entry.rs b/ostd/src/mm/page_table/node/entry.rs
+index 3bfd64c2f5be3e15612ecb9e62b06ba3de1301de..4bdb2f0a4ee131e1048733dd956ab89a24bb6c23 100644
+--- a/ostd/src/mm/page_table/node/entry.rs
++++ b/ostd/src/mm/page_table/node/entry.rs
+@@ -260,9 +260,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+             return;
+         }*/
+ 
+-        proof {
+-            self.pte.set_prop_properties(new_prop);
+-        }
++        assume(self.pte.set_prop_req(new_prop));
+         self.pte.set_prop(new_prop);
+ 
+         // SAFETY:
+@@ -670,7 +668,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+                     meta_to_frame(new_node_owner.value.node.unwrap().meta_addr_self()),
+                 );
+                 old(parent_owner).set_children_perm_axiom(self.idx, pte);
+-                C::E::new_properties();
++                C::E::lemma_page_table_entry_properties();
+                 assert(!pte.is_last_spec(level as PagingLevel));
+             }
+ 
+@@ -1093,7 +1091,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+                 assert(entry.node_matching(new_owner_child.value, new_owner_node, *entry.node)) by {
+                     let pte = new_owner_node.children_perm.value()[i as int];
+                     assert(pte == C::E::new_absent_spec());
+-                    crate::specs::arch::PageTableEntry::absent_pte_paddr_ok();
++                    crate::arch::mm::PageTableEntry::lemma_page_table_entry_properties();
+                     EntryOwner::absent_match_pte(
+                         new_owner_child.value,
+                         pte,
+diff --git a/ostd/src/mm/page_table/node/mod.rs b/ostd/src/mm/page_table/node/mod.rs
+index 61d7867a31fb790b838473fca7c96613e4c73aae..01b7a9ca3a9789f463044fa9074487db1e21a19f 100644
+--- a/ostd/src/mm/page_table/node/mod.rs
++++ b/ostd/src/mm/page_table/node/mod.rs
+@@ -408,8 +408,8 @@ unsafe impl<C: PageTableConfig> AnyFrameMeta for PageTablePageMeta<C> {
+                                 cursor_pre_read,
+                                 cj,
+                             );
+-                            pte.axiom_present_paddr_aligned();
+-                            pte_j.axiom_present_paddr_aligned();
++                            pte.lemma_paddr_is_page_aligned();
++                            pte_j.lemma_paddr_is_page_aligned();
+                         };
+                         // Pinning these in SMT context lets `tracked_remove`'s
+                         // dom-containment precondition and `from_raw`'s
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index f4f84d6d20f4edf4212d9b303ca8e1132b75806c..2a8ea84cd1f488b2dd3ef4b7188ba1d2d8ff412b 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -13,6 +13,7 @@ use vstd::prelude::*;
+ use vstd::simple_pptr::PointsTo;
+ use vstd::vpanic;
+ 
++use crate::arch::mm::PageTableEntry;
+ use crate::error::Error;
+ use crate::mm::frame::MetaSlot;
+ use crate::mm::frame::meta::mapping::meta_to_frame;
+diff --git a/verified_libs/verified_bitflags/src/lib.rs b/verified_libs/verified_bitflags/src/lib.rs
+index e2e66db827ff2948ba63d127444980e6b5a84c9a..a478a28a9c450d70c5137a5641d3dbf5c5f5977a 100644
+--- a/verified_libs/verified_bitflags/src/lib.rs
++++ b/verified_libs/verified_bitflags/src/lib.rs
+@@ -49,6 +49,44 @@ macro_rules! __bitflags_cfg_expr {
+     };
+ }
+ 
++#[doc(hidden)]
++#[macro_export]
++macro_rules! __bitflags_cfg_guarded_expr {
++    (() $e:expr) => {
++        $e
++    };
++    ((#[cfg($($cfg:tt)*)] $($rest:tt)*) $e:expr) => {{
++        #[cfg($($cfg)*)]
++        {
++            $crate::__bitflags_cfg_guarded_expr!(($($rest)*) $e)
++        }
++        #[cfg(not($($cfg)*))]
++        {
++            true
++        }
++    }};
++    ((#[$_other:meta] $($rest:tt)*) $e:expr) => {
++        $crate::__bitflags_cfg_guarded_expr!(($($rest)*) $e)
++    };
++}
++
++#[doc(hidden)]
++#[macro_export]
++macro_rules! __bitflags_cfg_guarded_stmt {
++    (() $stmt:stmt) => {
++        $stmt
++    };
++    ((#[cfg($($cfg:tt)*)] $($rest:tt)*) $stmt:stmt) => {
++        #[cfg($($cfg)*)]
++        {
++            $crate::__bitflags_cfg_guarded_stmt!(($($rest)*) $stmt)
++        }
++    };
++    ((#[$_other:meta] $($rest:tt)*) $stmt:stmt) => {
++        $crate::__bitflags_cfg_guarded_stmt!(($($rest)*) $stmt)
++    };
++}
++
+ /// A macro wrapper for quickly defining bitflags with verified
+ /// properties in Verus. It only supports literal values for the bits.
+ ///
+@@ -75,7 +113,7 @@ macro_rules! bitflags {
+         $vis:vis struct $name:ident: $T:ty {
+             $(
+                 $(#[$inner:ident $($args:tt)*])*
+-                const $Flag:ident = $value:literal;
++                const $Flag:ident = $value:expr;
+             )*
+         }
+ 
+@@ -83,7 +121,6 @@ macro_rules! bitflags {
+     ) => {
+         paste::paste! {
+         verus! {
+-
+             $(#[$outer])*
+             #[repr(transparent)]
+             $vis struct $name {
+@@ -94,8 +131,7 @@ macro_rules! bitflags {
+             impl ::core::clone::Clone for $name {
+                 #[inline]
+                 fn clone(&self) -> (r: Self)
+-                    ensures
+-                        r.bits() == self.bits(),
++                    returns self
+                 {
+                     Self {
+                         bits: self.bits,
+@@ -168,7 +204,7 @@ macro_rules! bitflags {
+ 
+                 $(
+                     $vis closed spec fn [< $Flag _spec >]() -> Self {
+-                        Self::from_bits_unchecked_spec(($value) as $T)
++                        Self::from_bits_unchecked_spec($value as $T)
+                     }
+ 
+                     $(#[$inner $($args)*])*
+@@ -177,8 +213,9 @@ macro_rules! bitflags {
+                         ensures
+                             r.bits() == ($value),
+                             r.flags_spec() == Self::flags_from_bits(($value) as $T),
++                        returns Self::[< $Flag _spec >](),
+                     {
+-                        Self::from_bits_unchecked(($value) as $T)
++                        Self::from_bits_unchecked($value)
+                     }
+                 )*
+ 
+@@ -206,6 +243,38 @@ macro_rules! bitflags {
+                     ))*
+                 }
+ 
++                $(
++                    $(#[$inner $($args)*])*
++                    proof fn [< lemma_ $Flag _constant >]()
++                        ensures
++                            Self::$Flag().bits() == (($value) as $T),
++                    {
++                        let flag = Self::$Flag();
++                        assert(flag.bits() == (($value) as $T));
++                    }
++                )*
++
++                $vis broadcast proof fn lemma_consts()
++                    ensures
++                        $(
++                            #![trigger $crate::__bitflags_cfg_guarded_expr!(
++                                ($(#[$inner $($args)*])*)
++                                Self::$Flag().bits()
++                            )]
++                            $crate::__bitflags_cfg_guarded_expr!(
++                                ($(#[$inner $($args)*])*)
++                                Self::$Flag().bits() == (($value) as $T)
++                            ),
++                        )*
++                {
++                    $(
++                        $crate::__bitflags_cfg_guarded_stmt!(
++                            ($(#[$inner $($args)*])*)
++                            Self::[< lemma_ $Flag _constant >]()
++                        );
++                    )*
++                }
++
+                 /// The raw bits stored inside this flags value.
+                 $vis closed spec fn bits_spec(&self) -> $T { self.bits }
+ 
+diff --git a/verified_libs/vstd_extra/src/bit_mapping.rs b/verified_libs/vstd_extra/src/bit_mapping.rs
+deleted file mode 100644
+index 318b28a1f80abb94c63bcfbb66328984f88858aa..0000000000000000000000000000000000000000
+--- a/verified_libs/vstd_extra/src/bit_mapping.rs
++++ /dev/null
+@@ -1,334 +0,0 @@
+-use vstd::prelude::*;
+-
+-verus! {
+-
+-#[verifier::ext_equal]
+-pub struct BitMapping<T, U> {
+-    pub src: T,
+-    pub dst: U,
+-}
+-
+-} // verus!
+-verus! {
+-
+-pub trait MapForwardTrait<Dst>: Sized {
+-    spec fn map_forward_spec(self, bm: &[BitMapping<Self, Dst>]) -> Dst;
+-
+-    #[verifier::when_used_as_spec(map_forward_spec)]
+-    fn map_forward(self, bm: &[BitMapping<Self, Dst>]) -> Dst
+-        returns
+-            self.map_forward_spec(bm),
+-    ;
+-
+-    broadcast proof fn lemma_equal_map_froward(
+-        x: Self,
+-        y: Self,
+-        bm1: &[BitMapping<Self, Dst>],
+-        bm2: &[BitMapping<Self, Dst>],
+-    )
+-        requires
+-            x == y,
+-            bm1 == bm2,
+-        ensures
+-            #[trigger] x.map_forward_spec(bm1) == #[trigger] y.map_forward_spec(bm2),
+-    ;
+-}
+-
+-} // verus!
+-macro_rules! impl_map_forward {
+-    ($src:ty, $dst:ty) => {
+-        verus! {
+-        impl MapForwardTrait<$dst> for $src {
+-            open spec fn map_forward_spec(self, bm: &[BitMapping<Self, $dst>]) -> $dst {
+-                bm@.fold_left(0 as $dst, |acc: $dst, m: BitMapping<Self, $dst>| {
+-                    if self & m.src == m.src {
+-                        acc | m.dst
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            #[verifier::external_body]
+-            fn map_forward(self, bm: &[BitMapping<Self, $dst>]) -> $dst
+-            {
+-                bm.iter().fold(0 as $dst, |acc, m| {
+-                    if self & m.src == m.src {
+-                        acc | m.dst
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            proof fn lemma_equal_map_froward(x: Self, y: Self,
+-                bm1: &[BitMapping<Self, $dst>], bm2: &[BitMapping<Self, $dst>])
+-            { }
+-        }
+-        }
+-    };
+-}
+-
+-verus! {
+-
+-pub trait MapInvertForwardTrait<Dst>: Sized {
+-    spec fn map_invert_forward_spec(self, bm: &[BitMapping<Self, Dst>]) -> Dst;
+-
+-    #[verifier::when_used_as_spec(map_invert_forward_spec)]
+-    fn map_invert_forward(self, bm: &[BitMapping<Self, Dst>]) -> Dst
+-        returns
+-            self.map_invert_forward_spec(bm),
+-    ;
+-
+-    broadcast proof fn lemma_equal_map_invert_froward(
+-        x: Self,
+-        y: Self,
+-        bm1: &[BitMapping<Self, Dst>],
+-        bm2: &[BitMapping<Self, Dst>],
+-    )
+-        requires
+-            x == y,
+-            bm1 == bm2,
+-        ensures
+-            #[trigger] x.map_invert_forward(bm1) == #[trigger] y.map_invert_forward(bm2),
+-    ;
+-}
+-
+-} // verus!
+-macro_rules! impl_map_invert_forward {
+-    ($src:ty, $dst:ty) => {
+-        verus! {
+-        impl MapInvertForwardTrait<$dst> for $src {
+-            open spec fn map_invert_forward_spec(self, bm: &[BitMapping<Self, $dst>]) -> $dst {
+-                let inv_src = !self;
+-                bm@.fold_left(0 as $dst, |acc: $dst, m: BitMapping<Self, $dst>| {
+-                    if inv_src & m.src == 0 {
+-                        acc | m.dst
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            #[verifier::external_body]
+-            fn map_invert_forward(self, bm: &[BitMapping<Self, $dst>]) -> $dst
+-            {
+-                let inv_src = !self;
+-                bm.iter().fold(0 as $dst, |acc, m| {
+-                    if inv_src & m.src == 0 {
+-                        acc | m.dst
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            proof fn lemma_equal_map_invert_froward(x: Self, y: Self,
+-                bm1: &[BitMapping<Self, $dst>], bm2: &[BitMapping<Self, $dst>])
+-            { }
+-        }
+-        }
+-    };
+-}
+-
+-verus! {
+-
+-pub trait MapBackward<Src>: Sized {
+-    spec fn map_backward_spec(self, bm: &[BitMapping<Src, Self>]) -> Src;
+-
+-    #[verifier::when_used_as_spec(map_backward_spec)]
+-    fn map_backward(self, bm: &[BitMapping<Src, Self>]) -> Src
+-        returns
+-            self.map_backward_spec(bm),
+-    ;
+-
+-    broadcast proof fn lemma_equal_map_backward(
+-        x: Self,
+-        y: Self,
+-        bm1: &[BitMapping<Src, Self>],
+-        bm2: &[BitMapping<Src, Self>],
+-    )
+-        requires
+-            x == y,
+-            bm1 == bm2,
+-        ensures
+-            #[trigger] x.map_backward(bm1) == #[trigger] y.map_backward(bm2),
+-    ;
+-}
+-
+-} // verus!
+-macro_rules! impl_map_backward {
+-    ($src:ty, $dst:ty) => {
+-        verus! {
+-        impl MapBackward<$src> for $dst {
+-
+-            open spec fn map_backward_spec(self, bm: &[BitMapping<$src, Self>]) -> $src {
+-                bm@.fold_left(0 as $src, |acc: $src, m: BitMapping<$src, Self>| {
+-                    if self & m.dst == m.dst {
+-                        acc | m.src
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            #[verifier::external_body]
+-            fn map_backward(self, bm: &[BitMapping<$src, Self>]) -> $src
+-            {
+-                bm.iter().fold(0 as $src, |acc, m| {
+-                    if self & m.dst == m.dst {
+-                        acc | m.src
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            proof fn lemma_equal_map_backward(x: Self, y: Self,
+-                bm1: &[BitMapping<$src, Self>], bm2: &[BitMapping<$src, Self>])
+-            { }
+-        }
+-        }
+-    };
+-}
+-
+-verus! {
+-
+-pub trait MapInvertBackward<Src>: Sized {
+-    spec fn map_invert_backward_spec(self, bm: &[BitMapping<Src, Self>]) -> Src;
+-
+-    #[verifier::when_used_as_spec(map_invert_backward_spec)]
+-    fn map_invert_backward(self, bm: &[BitMapping<Src, Self>]) -> Src
+-        returns
+-            self.map_invert_backward_spec(bm),
+-    ;
+-
+-    broadcast proof fn lemma_equal_map_invert_backward(
+-        x: Self,
+-        y: Self,
+-        bm1: &[BitMapping<Src, Self>],
+-        bm2: &[BitMapping<Src, Self>],
+-    )
+-        requires
+-            x == y,
+-            bm1 == bm2,
+-        ensures
+-            #[trigger] x.map_invert_backward(bm1) == #[trigger] y.map_invert_backward(bm2),
+-    ;
+-}
+-
+-} // verus!
+-macro_rules! impl_map_invert_backward {
+-    ($src:ty, $dst:ty) => {
+-        verus! {
+-        impl MapInvertBackward<$src> for $dst {
+-
+-            open spec fn map_invert_backward_spec(self, bm: &[BitMapping<$src, Self>]) -> $src {
+-                let inv_src = !self;
+-                bm@.fold_left(0 as $src, |acc: $src, m: BitMapping<$src, Self>| {
+-                    if inv_src & m.dst == 0 {
+-                        acc | m.src
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            #[verifier::external_body]
+-            fn map_invert_backward(self, bm: &[BitMapping<$src, Self>]) ->  $src
+-            {
+-                let inv_src = !self;
+-                bm.iter().fold(0 as $src, |acc, m| {
+-                    if inv_src & m.dst == 0 {
+-                        acc | m.src
+-                    } else {
+-                        acc
+-                    }
+-                })
+-            }
+-
+-            proof fn lemma_equal_map_invert_backward(x: Self, y: Self,
+-                bm1: &[BitMapping<$src, Self>], bm2: &[BitMapping<$src, Self>])
+-            { }
+-        }
+-        }
+-    };
+-}
+-
+-macro_rules! impl_map_operations {
+-    ($src:ty, $dst:ty) => {
+-        impl_map_forward!($src, $dst);
+-        impl_map_invert_forward!($src, $dst);
+-        impl_map_backward!($src, $dst);
+-        impl_map_invert_backward!($src, $dst);
+-    };
+-}
+-
+-impl_map_operations!(u8, u8);
+-impl_map_operations!(u8, u16);
+-impl_map_operations!(u8, u32);
+-impl_map_operations!(u8, u64);
+-impl_map_operations!(u8, usize);
+-
+-impl_map_operations!(u32, u32);
+-impl_map_operations!(u32, u64);
+-impl_map_operations!(u32, usize);
+-
+-impl_map_operations!(u64, u64);
+-impl_map_operations!(u64, usize);
+-
+-verus! {
+-
+-
+-} // verus!
+-#[macro_export]
+-macro_rules! bm {
+-    ($src: expr, $dst: expr) => {
+-        BitMapping {
+-            src: $src,
+-            dst: $dst,
+-        }
+-    };
+-}
+-
+-pub use bm;
+-
+-#[macro_export]
+-macro_rules! bms {
+-    ($(($src:expr, $dst:expr)), * $(,)?) => {
+-    [
+-        $(BitMapping { src: $src, dst: $dst }, )*
+-    ]
+-    };
+-}
+-
+-pub use bms;
+-
+-#[macro_export]
+-macro_rules! bms_as {
+-    ($src_ty:ty, $dst_ty:ty, [ $( ($src:expr, $dst:expr) ),* $(,)? ]) => {
+-    [
+-        $(BitMapping { src: $src as $src_ty, dst: $dst as $dst_ty }, )*
+-    ]
+-    };
+-}
+-
+-pub use bms_as;
+-
+-#[macro_export]
+-macro_rules! decl_bms_const {
+-    ($name:ident, $spec_name:ident, $type1:ty, $type2:ty, $len:expr, [$($flags:expr),* $(,)?]) => {
+-        verus! {
+-        pub spec const $spec_name: [BitMapping<$type1, $type2>; $len] = bms![
+-            $($flags),*
+-        ];
+-
+-        #[verifier::when_used_as_spec($spec_name)]
+-        pub exec const $name: [BitMapping<$type1, $type2>; $len] = bms![
+-            $($flags),*
+-        ];
+-    }
+-    };
+-}
+-
+-pub use decl_bms_const;
+diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
+index 519f29abf4d8f3eafda26ded5528e54e52ff16de..fa427fe3b81742d358afb6c8819d75b2c0696ad7 100644
+--- a/verified_libs/vstd_extra/src/lib.rs
++++ b/verified_libs/vstd_extra/src/lib.rs
+@@ -17,7 +17,6 @@ extern crate alloc;
+ pub mod arithmetic;
+ pub mod array_ptr;
+ pub mod auxiliary;
+-pub mod bit_mapping;
+ pub mod cast_ptr;
+ pub mod drop_tracking;
+ pub mod external;
+diff --git a/verified_libs/vstd_extra/src/prelude.rs b/verified_libs/vstd_extra/src/prelude.rs
+index 121bedd034abd4dfc23e9bed9f33024711415c88..139fa68ec13dda38da8ea275e11fa2134be08f45 100644
+--- a/verified_libs/vstd_extra/src/prelude.rs
++++ b/verified_libs/vstd_extra/src/prelude.rs
+@@ -4,8 +4,6 @@ pub use super::arithmetic::*;
+ 
+ pub use super::auxiliary::*;
+ 
+-pub use super::bit_mapping::*;
+-
+ pub use super::external::*;
+ 
+ pub use super::function_properties::*;

@@ -10,7 +10,6 @@
   "base_sha": "395015e012954a2fc579d1bff917abc7d4b4e67d",
   "head_sha": "2d0e9d0e7c27a1133f3985388ae2be52b1201460",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/boot/mod.rs",

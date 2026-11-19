@@ -1,0 +1,610 @@
+From a7fb18b70d482fb00ec1773130b2be5a3345f341 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 20:19:07 +0800
+Subject: [PATCH 1/8] fix: trigger warnings
+
+---
+ ostd/specs/mm/frame/frame_lifecycle.rs                     | 2 +-
+ ostd/specs/mm/page_table/cursor/owners.rs                  | 2 +-
+ ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs | 4 ++--
+ ostd/src/mm/page_table/cursor/mod.rs                       | 2 +-
+ ostd/src/mm/page_table/node/entry.rs                       | 2 +-
+ ostd/src/mm/vm_space.rs                                    | 6 +++---
+ 6 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/ostd/specs/mm/frame/frame_lifecycle.rs b/ostd/specs/mm/frame/frame_lifecycle.rs
+index af0764814..c18f70294 100644
+--- a/ostd/specs/mm/frame/frame_lifecycle.rs
++++ b/ostd/specs/mm/frame/frame_lifecycle.rs
+@@ -62,7 +62,7 @@ impl<'a, M: AnyFrameMeta> Frame<M> {
+         assert(frame.paddr() == raw);
+         assert(regions0.slot_owners.dom() =~= regions1.slot_owners.dom());
+ 
+-        assert forall |regions2: MetaRegionOwners|
++        assert forall |regions2: MetaRegionOwners| #![trigger regions2.inv()]
+             <Self as TrackDrop>::constructor_ensures(frame, regions1, regions2)
+         implies
+             regions2.slot_owners[idx].raw_count == 1
+diff --git a/ostd/specs/mm/page_table/cursor/owners.rs b/ostd/specs/mm/page_table/cursor/owners.rs
+index ed4ac5908..8e17b8614 100644
+--- a/ostd/specs/mm/page_table/cursor/owners.rs
++++ b/ostd/specs/mm/page_table/cursor/owners.rs
+@@ -1606,7 +1606,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         self.prefix.align_down_leading_bits(gl as int);
+         let aligned = self.prefix.align_down(gl as int);
+ 
+-        assert forall|i: int| 0 <= i < NR_LEVELS implies
++        assert forall|i: int| #![trigger aligned.index[i]] 0 <= i < NR_LEVELS implies
+             aligned.index[i] == self.prefix.index[i] by {
+             assert(self.prefix.index.contains_key(i));
+             assert(aligned.index.contains_key(i));
+diff --git a/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs b/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs
+index 932eb02f8..911b0a3f0 100644
+--- a/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs
++++ b/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs
+@@ -967,7 +967,7 @@ impl<C: PageTableConfig> CursorView<C> {
+     {
+         if !self.present() {
+             // split_while_huge is a no-op; disjointness is by va-disjoint hypothesis.
+-            assert forall |x: Mapping| other.contains(x)
++            assert forall |x: Mapping| #![trigger other.contains(x)] other.contains(x)
+                 implies !self.split_while_huge(size).mappings.contains(x) by {
+                 if self.mappings.contains(x) {
+                     assert(Mapping::disjoint_vaddrs(x, x));
+@@ -978,7 +978,7 @@ impl<C: PageTableConfig> CursorView<C> {
+         }
+         let m = self.query_mapping();
+         if m.page_size <= size {
+-            assert forall |x: Mapping| other.contains(x)
++            assert forall |x: Mapping| #![trigger other.contains(x)] other.contains(x)
+                 implies !self.split_while_huge(size).mappings.contains(x) by {
+                 if self.mappings.contains(x) {
+                     assert(Mapping::disjoint_vaddrs(x, x));
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 991b8750c..705b08f43 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -3189,7 +3189,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+             // may descend to any frame in the range. For UserPtConfig
+             // (`tracked == true` always) this is trivial; for KernelPtConfig it
+             // reduces to "op preserves AVAIL1".
+-            forall |pa: Paddr, level: PagingLevel, p_in: PageProperty, p_out: PageProperty|
++            forall |pa: Paddr, level: PagingLevel, p_in: PageProperty, p_out: PageProperty| #![auto]
+                 op.ensures((p_in,), p_out) ==>
+                     C::tracked(C::item_from_raw_spec(pa, level, p_out))
+                     == C::tracked(C::item_from_raw_spec(pa, level, p_in)),
+diff --git a/ostd/src/mm/page_table/node/entry.rs b/ostd/src/mm/page_table/node/entry.rs
+index fc357f197..3691f9838 100644
+--- a/ostd/src/mm/page_table/node/entry.rs
++++ b/ostd/src/mm/page_table/node/entry.rs
+@@ -203,7 +203,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+             // accounting." A clean fix is to track tracked-ness separately from `prop`,
+             // or to reformulate `axiom_frame_is_tracked_matches_item` so it doesn't
+             // depend on `prop`.
+-            forall |pa: Paddr, level: PagingLevel, p_in: PageProperty, p_out: PageProperty|
++            forall |pa: Paddr, level: PagingLevel, p_in: PageProperty, p_out: PageProperty| #![auto]
+                 op.ensures((p_in,), p_out) ==>
+                     C::tracked(C::item_from_raw_spec(pa, level, p_out))
+                     == C::tracked(C::item_from_raw_spec(pa, level, p_in)),
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index 5c4b527cb..c82f76c1a 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -908,7 +908,7 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+                 // Per-config VA bound: every removed mapping fits within the
+                 // user VA space. Sourced from `axiom_view_in_vaddr_range` on
+                 // the cursor view prior to removal.
+-                forall |m: Mapping| removed.contains(m) ==>
++                forall |m: Mapping| #[trigger] removed.contains(m) ==>
+                     m.va_range.end <= 0x0000_8000_0000_0000_usize as int,
+                 // Nothing in [start_va, end_va) with start < cursor_va remains,
+                 // unless it is a sub-mapping of a boundary-straddling entry.
+@@ -1120,7 +1120,7 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+                     sv.lemma_split_while_huge_preserves_inv(mm.page_size);
+                 }
+ 
+-                assert forall |m: Mapping| removed.contains(m)
++                assert forall |m: Mapping| #[trigger] removed.contains(m)
+                     implies m.va_range.end <= 0x0000_8000_0000_0000_usize as int by {
+                     if !old_removed.contains(m) {
+                         if is_mapped {
+@@ -1423,7 +1423,7 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+             forall |p: PageProperty| op.requires((p,)),
+             // POTENTIALLY UNSOUND PATCH: trackedness preservation. For UserPtConfig
+             // this is trivially true (tracked is constant). See `Entry::protect`.
+-            forall |pa: Paddr, level: PagingLevel, p_in: PageProperty, p_out: PageProperty|
++            forall |pa: Paddr, level: PagingLevel, p_in: PageProperty, p_out: PageProperty| #![auto]
+                 op.ensures((p_in,), p_out) ==>
+                     UserPtConfig::tracked(UserPtConfig::item_from_raw_spec(pa, level, p_out))
+                     == UserPtConfig::tracked(UserPtConfig::item_from_raw_spec(pa, level, p_in)),
+
+From cf343acc38b852fa6b2055d73e7baa9d594d833c Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 20:31:47 +0800
+Subject: [PATCH 2/8] fix: doc missing for Either
+
+---
+ ostd/src/util/either.rs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ostd/src/util/either.rs b/ostd/src/util/either.rs
+index 3cb20a48c..61ddad3d5 100644
+--- a/ostd/src/util/either.rs
++++ b/ostd/src/util/either.rs
+@@ -1,10 +1,10 @@
+ // SPDX-License-Identifier: MPL-2.0
++use vstd::prelude::*;
++
+ /// A type containing either a [`Left`] value `L` or a [`Right`] value `R`.
+ ///
+ /// [`Left`]: Self::Left
+ /// [`Right`]: Self::Right
+-use vstd::prelude::*;
+-
+ #[verus_verify]
+ #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+ pub enum Either<L, R> {
+
+From 0ebcf1a2cb078f3531f40d2c9f91aa6e3dce29ec Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 20:55:04 +0800
+Subject: [PATCH 3/8] fix: lifetime warning
+
+---
+ ostd/src/sync/mutex.rs  |  2 +-
+ ostd/src/sync/rwarc.rs  |  6 +++---
+ ostd/src/sync/rwlock.rs | 12 ++++++------
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/ostd/src/sync/mutex.rs b/ostd/src/sync/mutex.rs
+index 1f23d817d..0e9334c91 100644
+--- a/ostd/src/sync/mutex.rs
++++ b/ostd/src/sync/mutex.rs
+@@ -73,7 +73,7 @@ impl<T  /* : ?Sized */ > Mutex<T> {
+ 
+     /// Tries to acquire the mutex immediately.
+     #[verus_spec]
+-    pub fn try_lock(&self) -> Option<MutexGuard<T>> {
++    pub fn try_lock(&self) -> Option<MutexGuard<'_, T>> {
+         // Cannot be reduced to `then_some`, or the possible dropping of the temporary
+         // guard will cause an unexpected unlock.
+         // SAFETY: The lock is successfully acquired when creating the guard.
+diff --git a/ostd/src/sync/rwarc.rs b/ostd/src/sync/rwarc.rs
+index 9d7b78928..872c84864 100644
+--- a/ostd/src/sync/rwarc.rs
++++ b/ostd/src/sync/rwarc.rs
+@@ -65,12 +65,12 @@ impl<T> RwArc<T> {
+     }
+ 
+     /// Acquires the read lock for immutable access.
+-    pub fn read(&self) -> RwLockReadGuard<T, PreemptDisabled> {
++    pub fn read(&self) -> RwLockReadGuard<'_, T, PreemptDisabled> {
+         self.0.data.read()
+     }
+ 
+     /// Acquires the write lock for mutable access.
+-    pub fn write(&self) -> RwLockWriteGuard<T, PreemptDisabled> {
++    pub fn write(&self) -> RwLockWriteGuard<'_, T, PreemptDisabled> {
+         self.0.data.write()
+     }
+ 
+@@ -153,7 +153,7 @@ impl<T: Clone> RwArc<T> {
+ 
+ impl<T> RoArc<T> {
+     /// Acquires the read lock for immutable access.
+-    pub fn read(&self) -> RwLockReadGuard<T, PreemptDisabled> {
++    pub fn read(&self) -> RwLockReadGuard<'_, T, PreemptDisabled> {
+         self.0.data.read()
+     }
+ }
+diff --git a/ostd/src/sync/rwlock.rs b/ostd/src/sync/rwlock.rs
+index b797e6a30..5c12b5c9f 100644
+--- a/ostd/src/sync/rwlock.rs
++++ b/ostd/src/sync/rwlock.rs
+@@ -416,7 +416,7 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     /// in which other readers or writers waiting simultaneously will
+     /// obtain the lock.
+     #[verifier::exec_allows_no_decreases_clause]
+-    pub fn read(&self) -> RwLockReadGuard<T, G> {
++    pub fn read(&self) -> RwLockReadGuard<'_, T, G> {
+         loop {
+             if let Some(readguard) = self.try_read() {
+                 return readguard;
+@@ -433,7 +433,7 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     /// in which other readers or writers waiting simultaneously will
+     /// obtain the lock.
+     #[verifier::exec_allows_no_decreases_clause]
+-    pub fn write(&self) -> RwLockWriteGuard<T, G> {
++    pub fn write(&self) -> RwLockWriteGuard<'_, T, G> {
+         loop {
+             if let Some(writeguard) = self.try_write() {
+                 return writeguard;
+@@ -454,7 +454,7 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     /// only one upreader can exist at any time to avoid deadlock in the
+     /// upgrade method.
+     #[verifier::exec_allows_no_decreases_clause]
+-    pub fn upread(&self) -> RwLockUpgradeableGuard<T, G> {
++    pub fn upread(&self) -> RwLockUpgradeableGuard<'_, T, G> {
+         loop {
+             if let Some(guard) = self.try_upread() {
+                 return guard;
+@@ -468,7 +468,7 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     ///
+     /// This function will never spin-wait and will return immediately.
+     #[verus_spec]
+-    pub fn try_read(&self) -> Option<RwLockReadGuard<T, G>> {
++    pub fn try_read(&self) -> Option<RwLockReadGuard<'_, T, G>> {
+         proof_decl!{
+             let tracked mut read_token: Option<Frac<ReadPerm<T>,MAX_READER_U64>> = None;
+             let tracked mut retract_read_token: Option<Token<V_MAX_READ_RETRACT_FRACS>> = None;
+@@ -528,7 +528,7 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     ///
+     /// This function will never spin-wait and will return immediately.
+     #[verus_spec]
+-    pub fn try_write(&self) -> Option<RwLockWriteGuard<T, G>> {
++    pub fn try_write(&self) -> Option<RwLockWriteGuard<'_, T, G>> {
+         proof_decl!{
+             let tracked mut guard_perm: Option<PointsTo<T>> = None;
+             let tracked mut guard_token: Option<OneRightKnowledge<HalfPerm<T>, NoPerm<T>, 3>> = None;
+@@ -586,7 +586,7 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     /// Attempts to acquire an upread lock.
+     ///
+     /// This function will never spin-wait and will return immediately.
+-    pub fn try_upread(&self) -> Option<RwLockUpgradeableGuard<T, G>> {
++    pub fn try_upread(&self) -> Option<RwLockUpgradeableGuard<'_, T, G>> {
+         proof_decl!{
+             let tracked mut upgrade_guard_token: Option<OneLeftOwner<HalfPerm<T>, NoPerm<T>, 3>> = None;
+             let tracked mut retract_upgrade_token: Option<UniqueToken> = None;
+
+From db4572d98d3d4534e6dd545368249542fecfaf2b Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 21:21:47 +0800
+Subject: [PATCH 4/8] fix: disable missing_docs warnings
+
+Co-authored-by: Copilot <copilot@github.com>
+---
+ ostd/src/lib.rs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index b128d3772..681b7958e 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -21,7 +21,9 @@
+ #![feature(unbounded_shifts)]
+ #![expect(internal_features)]
+ #![no_std]
+-#![warn(missing_docs)]
++// Disable `missing_docs`: verification-only `inv`/`type_inv` items are
++// explained by proof context rather than API docs.
++// #![warn(missing_docs)]
+ #![feature(proc_macro_hygiene)]
+ #![allow(unused_parens)]
+ #![allow(unused_braces)]
+@@ -46,7 +48,6 @@ pub mod cpu;*/
+ pub mod error;
+ /*pub mod io;
+ pub mod logger;*/
+-#[allow(missing_docs)]
+ pub mod mm;
+ /*pub mod panic;
+ pub mod prelude;
+@@ -57,7 +58,6 @@ pub mod task;
+ pub mod trap;
+ // pub mod user;
+ #[path = "../specs/lib.rs"]
+-#[allow(missing_docs)]
+ pub mod specs;
+ pub mod util;
+ 
+
+From 24cf36fa4464a70f6ecdbbd2256fee15262945cc Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 21:27:14 +0800
+Subject: [PATCH 5/8] fix: allow `non_snake_case` to remove warnings
+
+---
+ ostd/src/lib.rs | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 681b7958e..ed615215f 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -30,6 +30,9 @@
+ #![allow(rustdoc::invalid_rust_codeblocks)]
+ #![allow(rustdoc::invalid_html_tags)]
+ #![allow(rustdoc::broken_intra_doc_links)]
++// Allow Verus-style specification names that mirror constants or proof-level
++// concepts rather than Rust's conventional function naming.
++#![allow(non_snake_case)]
+ 
+ extern crate alloc;
+ 
+
+From b994944985c096fa5dfadcd4db5fa66fdfa684bc Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 21:34:43 +0800
+Subject: [PATCH 6/8] fix: remove outdated feature flags from lib.rs
+
+---
+ ostd/src/lib.rs | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index ed615215f..9bc81ffae 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -3,22 +3,17 @@
+ #![feature(alloc_error_handler)]
+ #![feature(allocator_api)]
+ #![feature(btree_cursors)]
+-#![feature(const_ptr_sub_ptr)]
+ #![feature(const_trait_impl)]
+ #![feature(core_intrinsics)]
+ #![feature(coroutines)]
+ #![feature(fn_traits)]
+ #![feature(iter_advance_by)]
+ #![feature(iter_from_coroutine)]
+-#![feature(let_chains)]
+ #![feature(linkage)]
+ #![feature(min_specialization)]
+ //#![feature(negative_impls)]
+ #![feature(ptr_metadata)]
+-#![feature(ptr_sub_ptr)]
+ #![feature(sync_unsafe_cell)]
+-#![feature(trait_upcasting)]
+-#![feature(unbounded_shifts)]
+ #![expect(internal_features)]
+ #![no_std]
+ // Disable `missing_docs`: verification-only `inv`/`type_inv` items are
+
+From a392f9552140741177b3d49d62fced14d681eb17 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 22:18:09 +0800
+Subject: [PATCH 7/8] fix: add `unsafe` back
+
+---
+ ostd/src/mm/frame/frame_ref.rs           |  8 +++++---
+ ostd/src/mm/frame/mod.rs                 |  2 +-
+ ostd/src/mm/page_table/cursor/locking.rs |  4 ++--
+ ostd/src/mm/page_table/cursor/mod.rs     |  4 ++--
+ ostd/src/mm/page_table/node/child.rs     | 15 +++++++++++----
+ ostd/src/mm/page_table/node/entry.rs     | 12 ++++++++----
+ 6 files changed, 29 insertions(+), 16 deletions(-)
+
+diff --git a/ostd/src/mm/frame/frame_ref.rs b/ostd/src/mm/frame/frame_ref.rs
+index a335b882e..3514480ce 100644
+--- a/ostd/src/mm/frame/frame_ref.rs
++++ b/ostd/src/mm/frame/frame_ref.rs
+@@ -85,7 +85,7 @@ impl<M: AnyFrameMeta> FrameRef<'_, M> {
+             // Slots: from_raw inserts perm, ManuallyDrop::new preserves
+             final(regions).slots == old(regions).slots.insert(frame_to_index(raw), perm.points_to),
+     )]
+-    pub(in crate::mm) fn borrow_paddr(raw: Paddr) -> Self {
++    pub(in crate::mm) unsafe fn borrow_paddr(raw: Paddr) -> Self {
+         proof {
+             broadcast use crate::mm::frame::meta::mapping::group_page_meta;
+ 
+@@ -96,8 +96,10 @@ impl<M: AnyFrameMeta> FrameRef<'_, M> {
+             let tracked debt: BorrowDebt;
+         }
+ 
+-        #[verus_spec(with Tracked(regions), Tracked(perm) => Tracked(debt))]
+-        let frame = Frame::from_raw(raw);
++        let frame = unsafe {
++            proof_with!(Tracked(regions), Tracked(perm) => Tracked(debt));
++            Frame::from_raw(raw)
++        };
+ 
+         proof {
+             Frame::lemma_from_raw_manuallydrop_general(raw, frame, *old(regions), *regions, debt);
+diff --git a/ostd/src/mm/frame/mod.rs b/ostd/src/mm/frame/mod.rs
+index a96891877..e69d402f7 100644
+--- a/ostd/src/mm/frame/mod.rs
++++ b/ostd/src/mm/frame/mod.rs
+@@ -598,7 +598,7 @@ impl<'a, M: AnyFrameMeta> Frame<M> {
+             debt@.frame_index == frame_to_index(paddr),
+             debt@.raw_count_at_issue == old(regions).slot_owners[frame_to_index(paddr)].raw_count,
+     )]
+-    pub(in crate::mm) fn from_raw(paddr: Paddr) -> Self {
++    pub(in crate::mm) unsafe fn from_raw(paddr: Paddr) -> Self {
+         let vaddr = frame_to_meta(paddr);
+         let ptr = PPtr::from_addr(vaddr);
+ 
+diff --git a/ostd/src/mm/page_table/cursor/locking.rs b/ostd/src/mm/page_table/cursor/locking.rs
+index 591ae1ff1..687937011 100644
+--- a/ostd/src/mm/page_table/cursor/locking.rs
++++ b/ostd/src/mm/page_table/cursor/locking.rs
+@@ -308,7 +308,7 @@ fn try_traverse_and_lock_subtree_root<'rcu, C: PageTableConfig, A: InAtomicMode>
+         } else {
+             // SAFETY: The node must be alive for at least `'rcu` since the
+             // address is read from the page table node.
+-            let node_ref = PageTableNodeRef::<'rcu, C>::borrow_paddr(cur_pt_addr);
++            let node_ref = unsafe { PageTableNodeRef::<'rcu, C>::borrow_paddr(cur_pt_addr) };
+             node_ref.lock(guard)
+         };
+ 
+@@ -372,7 +372,7 @@ fn try_traverse_and_lock_subtree_root<'rcu, C: PageTableConfig, A: InAtomicMode>
+     } else {
+         // SAFETY: The node must be alive for at least `'rcu` since the
+         // address is read from the page table node.
+-        let node_ref = PageTableNodeRef::<'rcu, C>::borrow_paddr(cur_pt_addr);
++        let node_ref = unsafe { PageTableNodeRef::<'rcu, C>::borrow_paddr(cur_pt_addr) };
+         node_ref.lock(guard)
+     };
+ 
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 705b08f43..b07fe4095 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -2933,7 +2933,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+             },
+     )]
+     #[verifier::rlimit(1000)]
+-    pub fn take_next(&mut self, len: usize) -> (r: Option<PageTableFrag<C>>) {
++    pub unsafe fn take_next(&mut self, len: usize) -> (r: Option<PageTableFrag<C>>) {
+         proof {
+             owner.va.reflect_prop(self.0.va);
+         }
+@@ -3198,7 +3198,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+             final(self).0.invariants(*final(owner), *final(regions), *final(guards)),
+             final(self).0.barrier_va == old(self).0.barrier_va,
+     )]
+-    pub fn protect_next(
++    pub unsafe fn protect_next(
+         &mut self,
+         len: usize,
+         op: impl FnOnce(PageProperty) -> PageProperty,
+diff --git a/ostd/src/mm/page_table/node/child.rs b/ostd/src/mm/page_table/node/child.rs
+index 60d6ed776..29c6db1d2 100644
+--- a/ostd/src/mm/page_table/node/child.rs
++++ b/ostd/src/mm/page_table/node/child.rs
+@@ -159,8 +159,13 @@ impl<C: PageTableConfig> Child<C> {
+                 let tracked from_raw_debt: crate::specs::mm::frame::frame_specs::BorrowDebt;
+             }
+ 
+-            #[verus_spec(with Tracked(regions), Tracked(&entry_own.node.tracked_borrow().meta_perm) => Tracked(from_raw_debt))]
+-            let node = PageTableNode::from_raw(paddr);
++            let node = unsafe {
++                proof_with!(
++                    Tracked(regions),
++                    Tracked(&entry_own.node.tracked_borrow().meta_perm) => Tracked(from_raw_debt)
++                );
++                PageTableNode::from_raw(paddr)
++            };
+ 
+             proof {
+                 // raw_count was 1 (node was in a PTE via into_raw), so discharge trivially.
+@@ -241,8 +246,10 @@ impl<C: PageTableConfig> ChildRef<'_, C> {
+                 assert(entry_owner.meta_slot_paddr().unwrap() == paddr);
+             }
+ 
+-            #[verus_spec(with Tracked(regions), Tracked(&entry_owner.node.tracked_borrow().meta_perm))]
+-            let node = PageTableNodeRef::borrow_paddr(paddr);
++            let node = unsafe {
++                #[verus_spec(with Tracked(regions), Tracked(&entry_owner.node.tracked_borrow().meta_perm))]
++                PageTableNodeRef::borrow_paddr(paddr)
++            };
+ 
+             proof {
+                 // borrow_paddr postcondition gives raw_count == 1 and field-by-field preservation.
+diff --git a/ostd/src/mm/page_table/node/entry.rs b/ostd/src/mm/page_table/node/entry.rs
+index 3691f9838..41243d42a 100644
+--- a/ostd/src/mm/page_table/node/entry.rs
++++ b/ostd/src/mm/page_table/node/entry.rs
+@@ -573,8 +573,10 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+                 assert(new_node_owner.value.meta_slot_paddr().unwrap() == paddr);
+             }
+ 
+-            #[verus_spec(with Tracked(regions), Tracked(&new_node_owner.value.node.tracked_borrow().meta_perm))]
+-            let pt_ref = PageTableNodeRef::borrow_paddr(paddr);
++            let pt_ref = unsafe {
++                #[verus_spec(with Tracked(regions), Tracked(&new_node_owner.value.node.tracked_borrow().meta_perm))]
++                PageTableNodeRef::borrow_paddr(paddr)
++            };
+ 
+             // Lock before writing the PTE, so no one else can operate on it.
+             #[verus_spec(with Tracked(&new_node_owner.value.node.tracked_borrow()), Tracked(guards))]
+@@ -771,8 +773,10 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+             assert(new_owner.value.meta_slot_paddr().unwrap() == paddr);
+         }
+ 
+-        #[verus_spec(with Tracked(regions), Tracked(&new_owner.value.node.tracked_borrow().meta_perm))]
+-        let pt_ref = PageTableNodeRef::borrow_paddr(paddr);
++        let pt_ref = unsafe {
++            #[verus_spec(with Tracked(regions), Tracked(&new_owner.value.node.tracked_borrow().meta_perm))]
++            PageTableNodeRef::borrow_paddr(paddr)
++        };
+ 
+         // Lock before writing the PTE, so no one else can operate on it.
+         #[verus_spec(with Tracked(&new_owner.value.node.tracked_borrow()), Tracked(guards))]
+
+From 4ff940c6752021dfb1f2264586032381e5017e69 Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Fri, 1 May 2026 22:30:57 +0800
+Subject: [PATCH 8/8] fix: visibility warning with
+ `#[allow(private_interfaces)]`
+
+---
+ ostd/src/mm/kspace/kvirt_area.rs | 6 ++++++
+ ostd/src/mm/kspace/mod.rs        | 1 +
+ ostd/src/mm/vm_space.rs          | 1 +
+ 3 files changed, 8 insertions(+)
+
+diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
+index 48554a3ca..f23c73257 100644
+--- a/ostd/src/mm/kspace/kvirt_area.rs
++++ b/ostd/src/mm/kspace/kvirt_area.rs
+@@ -59,6 +59,7 @@ fn frame_into_dynframe<T: AnyUFrameMeta>(frame: Frame<T>) -> (res: DynFrame)
+ }
+ 
+ /// Spec function: the entry owner correctly matches the frame and property for mapping.
++#[allow(private_interfaces)]
+ pub open spec fn frame_entry_wf<T: AnyFrameMeta>(
+     frame: Frame<T>,
+     prop: PageProperty,
+@@ -260,6 +261,7 @@ pub struct KVirtArea {
+     pub range: Range<Vaddr>,
+ }
+ 
++#[allow(private_interfaces)]
+ pub tracked struct KVirtAreaOwner {
+     pub pt_owner: PageTableOwner<KernelPtConfig>,
+ }
+@@ -267,6 +269,7 @@ pub tracked struct KVirtAreaOwner {
+ impl KVirtAreaOwner {
+     /// The [`CursorView`] at the page containing the given address, representing the kernel page
+     /// table's abstract state for query purposes.
++    #[allow(private_interfaces)]
+     pub closed spec fn cursor_view_at(self, addr: Vaddr) -> CursorView<KernelPtConfig> {
+         CursorView {
+             cur_va: nat_align_down(addr as nat, SPEC_PAGE_SIZE as nat) as Vaddr,
+@@ -371,6 +374,7 @@ impl KVirtArea {
+             // non-panic conditions
+             self.range.start <= addr < self.range.end
+     )]
++    #[allow(private_interfaces)]
+     pub fn query<A: InAtomicMode + 'static>(&self, addr: Vaddr) -> Option<super::MappedItem>
+     {
+         use align_ext::AlignExt;
+@@ -462,6 +466,7 @@ impl KVirtArea {
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards<'a, KernelPtConfig>>
+     )]
++    #[allow(private_interfaces)]
+     pub fn map_frames<'a, A: InAtomicMode + 'a>(
+         area_size: usize,
+         map_offset: usize,
+@@ -726,6 +731,7 @@ impl KVirtArea {
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards<'a, KernelPtConfig>>
+     )]
++    #[allow(private_interfaces)]
+     pub unsafe fn map_untracked_frames<A: InAtomicMode + 'a, 'a>(
+         area_size: usize,
+         map_offset: usize,
+diff --git a/ostd/src/mm/kspace/mod.rs b/ostd/src/mm/kspace/mod.rs
+index 2bf974210..e601c1097 100644
+--- a/ostd/src/mm/kspace/mod.rs
++++ b/ostd/src/mm/kspace/mod.rs
+@@ -147,6 +147,7 @@ pub fn paddr_to_vaddr(pa: Paddr) -> usize
+ ///
+ /// It manages the kernel mapping of all address spaces by sharing the kernel part. And it
+ /// is unlikely to be activated.
++#[allow(private_interfaces)]
+ pub exec static KERNEL_PAGE_TABLE: OnceImpl<PageTable<KernelPtConfig>, TrivialPred> =
+     OnceImpl::new(Ghost(TrivialPred));
+ 
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index c82f76c1a..692afb52f 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -164,6 +164,7 @@ impl<'a> VmSpace<'a> {
+         requires
+             old(regions).inv(),
+     )]
++    #[allow(private_interfaces)]
+     pub fn new() -> Self {
+         proof_decl! {
+             let tracked mut kernel_owner_opt: Option<&PageTableOwner<KernelPtConfig>> = None;

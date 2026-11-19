@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-895-910070850974",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-895-910070850974:review-comment-4597064433",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The `set_bit` helper redundantly stacks bare `#[verus_verify]` on top of `#[verus_verify(dual_spec)]`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/bus/pci/capability/msix.rs",
+          "start_line": 194,
+          "end_line": 195
+        }
+      ],
+      "rationale": "`#[verus_verify(dual_spec)]` already selects verification and provides the dual executable/spec definition for the spec-compatible helper body, so a separate bare `#[verus_verify]` directly above it adds no mode or contract information. Same-commit guideline `pair-exec-helpers-with-spec-models` says to use the lightest mechanism and specifically chooses `#[verus_verify(dual_spec)]` when one body serves both modes. Reviewer rikosellic identifies the redundancy, the author agrees, and final commit 5ed7a2c167d0faaf215beb1b5844fefe125e2a65 removes only the bare attribute while retaining `dual_spec` and the contract.",
+      "source_evidence": "after/ostd/src/bus/pci/capability/msix.rs\n194: #[verus_verify]\n195: #[verus_verify(dual_spec)]\n196: #[verus_spec(\n197:     requires\n198:         offset < 16,\n199:     returns\n200:         set_bit(origin_value, offset, set),\n201: )]\n202: fn set_bit(origin_value: u16, offset: usize, set: bool) -> u16 {\n\nSame-commit docs/coding-guidelines/maintainability.md lines 759-768 require the lightest mechanism and designate `#[verus_verify(dual_spec)]` for a spec-compatible body. Final commit 5ed7a2c167d0faaf215beb1b5844fefe125e2a65 deletes line 194 only.",
+      "rule_ids": [
+        "pair-exec-helpers-with-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/895#discussion_r4597064433",
+      "related_comment_ids": [
+        "4597064433",
+        "4597387688",
+        "5935180738",
+        "5937031996"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4597064433",
+          "url": "https://github.com/asterinas/vostd/pull/895#discussion_r4597064433",
+          "commit_id": "910070850974fb29c0b9e28b92db37d2997e08b3"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4597387688",
+          "url": "https://github.com/asterinas/vostd/pull/895#discussion_r4597387688",
+          "commit_id": "910070850974fb29c0b9e28b92db37d2997e08b3"
+        },
+        {
+          "kind": "review",
+          "id": "5935180738",
+          "url": "https://github.com/asterinas/vostd/pull/895#pullrequestreview-5935180738",
+          "commit_id": "910070850974fb29c0b9e28b92db37d2997e08b3"
+        },
+        {
+          "kind": "review",
+          "id": "5937031996",
+          "url": "https://github.com/asterinas/vostd/pull/895#pullrequestreview-5937031996",
+          "commit_id": "5ed7a2c167d0faaf215beb1b5844fefe125e2a65"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Read the complete remote review history, fixed the exact review head, checked the same-version guideline and attribute stack, inspected the author's acceptance, and confirmed the merged head removes only the redundant attribute."
+    }
+  ]
+}

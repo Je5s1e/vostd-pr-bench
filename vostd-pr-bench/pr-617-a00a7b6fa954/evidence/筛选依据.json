@@ -1,0 +1,14 @@
+{
+  "number": 617,
+  "title": "Align dma_stream helper structure with mainline",
+  "selected": true,
+  "category": "验证代码或工具改动",
+  "evidence": [
+    {
+      "location": "代码 diff",
+      "excerpt": "); /// } /// } /// /// #[inline(always)] /// #[verus_spec(r => /// requires /// this@.inv(), /// ensures /// r == this@.data.some_field, /// )] /// fn some_fun",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 1
+}

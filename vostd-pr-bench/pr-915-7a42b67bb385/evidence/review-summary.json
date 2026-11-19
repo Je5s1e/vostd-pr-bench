@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 3,
+  "inline_review_comment_count": 7,
+  "review_count": 7,
+  "core_lesson": "构建产物地址转换的证明要限定输入布局，不能视为任意 ELF 的安全解析",
+  "category": "可信边界",
+  "all_content_unadjudicated": true
+}

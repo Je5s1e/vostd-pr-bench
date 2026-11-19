@@ -1,0 +1,24 @@
+{
+  "number": 857,
+  "title": "fix: guard unmap bounds and reduce proof assumptions",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "fix: guard unmap bounds and reduce proof assumptions",
+      "category": "证明与规约"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "#[verifier::external_body] unimplemented!() // [KNOWN] BUG FOUND BY FV: `self.va + len` could overflow. For now assume that it doesn't. https://",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-392-f30278a5973e",
+  "pr_number": 392,
+  "title": "Fix warnings",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/392",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d8e3519b4a6597e721af08c9a2fcd0779157737d",
+  "head_sha": "f30278a5973ea8b93d76797f7b451db78e60895d",
+  "base_method": "git merge-base(archived base_sha a3e34d2957a2275638aa96b4f5753b7fa31bdfc3, selected historical review commit f30278a5973ea8b93d76797f7b451db78e60895d) = d8e3519b4a6597e721af08c9a2fcd0779157737d",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/src/arch/loongarch/mm/mod.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs"
+  ],
+  "diff_sha256": "ae58ecc9dabf4bed5617f9a2f29dc742bdf55756c4c97c3c6c73b9a2e2128afa",
+  "versions": {
+    "before": {
+      "commit": "d8e3519b4a6597e721af08c9a2fcd0779157737d",
+      "file_count": 314,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "f30278a5973ea8b93d76797f7b451db78e60895d",
+      "file_count": 314,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T11:47:11.391426+00:00",
+    "reviewed_at": "2026-04-01T14:37:38Z",
+    "upstream_updated_at": "2026-05-08T12:30:39Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/392",
+      "https://github.com/asterinas/vostd/pull/392#discussion_r3022538220",
+      "https://github.com/asterinas/vostd/pull/392#issuecomment-4174407590"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00392"
+  }
+}

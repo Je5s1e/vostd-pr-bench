@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-532-9200dd2fb210",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-532-9200dd2fb210:review-comment-3449524410",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`PagingConstsTrait` hard-codes the x86 page size, level count, and entry count as requirements for every implementation, so supposedly generic paging proofs cannot represent other valid architectures.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/mod.rs",
+          "start_line": 139,
+          "end_line": 163
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/x86/mod.rs",
+          "start_line": 132,
+          "end_line": 150
+        }
+      ],
+      "rationale": "The trait contract requires every `C` to satisfy the architecture-global `PAGE_SIZE`, `NR_LEVELS`, and `NR_ENTRIES`, including `Self::NR_LEVELS() == 4` on x86. The x86 module then declares a lemma generic over any `C: PagingConstsTrait` and derives fixed 4-level/512-entry address constants from those requirements. A valid configuration with a different base page size, three levels, or a different PTE ratio is therefore excluded by the abstraction rather than handled by generic proofs. Both unresolved review threads identify this same root cause: the generic lemma's assumption is suspicious precisely because the trait contract smuggles hard-coded architecture constants into all implementations. The PR was closed without fixing it and explicitly superseded by #710.",
+      "source_evidence": "after/ostd/src/mm/mod.rs\n139: proof fn lemma_paging_consts_requirements()\n140:     ensures\n143:         3 <= Self::NR_LEVELS() <= 4,\n147:         Self::BASE_PAGE_SIZE() == PAGE_SIZE,\n148:         Self::NR_LEVELS() == NR_LEVELS,\n149:         Self::BASE_PAGE_SIZE() / Self::PTE_SIZE() == NR_ENTRIES,\n\nafter/ostd/specs/arch/x86/mod.rs\n132: /// Proves the concrete values of `vaddr_make` for the x86_64 paging configuration.\n134: /// For any `C: PagingConstsTrait`, since all configs share\n135: /// `BASE_PAGE_SIZE == 4096`, `nr_subpage_per_huge == 512`, and `NR_LEVELS == 4`:\n140: pub proof fn lemma_vaddr_make_values<C: PagingConstsTrait>(idx: int, i: usize)\n150:     C::lemma_paging_consts_properties();",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/532#discussion_r3449524410",
+      "related_comment_ids": [
+        "3449524410",
+        "3449528343",
+        "3449530105",
+        "5676128376"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3449524410",
+          "url": "https://github.com/asterinas/vostd/pull/532#discussion_r3449524410",
+          "commit_id": "9200dd2fb210d89a6e08ae08d2a216419e6caaff"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3449528343",
+          "url": "https://github.com/asterinas/vostd/pull/532#discussion_r3449528343",
+          "commit_id": "9200dd2fb210d89a6e08ae08d2a216419e6caaff"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3449530105",
+          "url": "https://github.com/asterinas/vostd/pull/532#discussion_r3449530105",
+          "commit_id": "9200dd2fb210d89a6e08ae08d2a216419e6caaff"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "5676128376",
+          "url": "https://github.com/asterinas/vostd/pull/532#issuecomment-5676128376",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the reviewed head, complete archived discussion, complete live remote discussion, actual merge-base, and the unchanged closed/superseded PR state."
+    }
+  ]
+}

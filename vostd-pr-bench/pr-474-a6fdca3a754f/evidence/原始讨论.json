@@ -1,0 +1,543 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/474",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 474,
+    "title": "Try to use `dyn InAtomicMode`",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/474",
+    "state": "CLOSED",
+    "createdAt": "2026-05-24T13:40:16Z",
+    "updatedAt": "2026-11-11T05:59:09Z",
+    "closedAt": "2026-11-11T05:59:08Z",
+    "mergedAt": null,
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "953aaa28c2e769d569d3c9f1e1fda22b96de5cd9",
+    "headRefName": "as_atomic",
+    "headRefOid": "a6fdca3a754f8b7500f4facaf5ae472c621d3c3f",
+    "changedFiles": 16,
+    "additions": 151,
+    "deletions": 159,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 7
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 16,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MTY"
+      },
+      "nodes": [
+        {
+          "path": "ostd/specs/lib.rs",
+          "additions": 0,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+          "additions": 3,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+          "additions": 4,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/vm_space.rs",
+          "additions": 4,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/task/mod.rs",
+          "additions": 0,
+          "deletions": 14,
+          "changeType": "DELETED"
+        },
+        {
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "additions": 27,
+          "deletions": 44,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "additions": 23,
+          "deletions": 21,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/cursor/mod.rs",
+          "additions": 18,
+          "deletions": 17,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "additions": 27,
+          "deletions": 18,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/node/entry.rs",
+          "additions": 3,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/node/mod.rs",
+          "additions": 4,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/vm_space.rs",
+          "additions": 23,
+          "deletions": 13,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/sync/rcu/mod.rs",
+          "additions": 1,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/atomic_mode.rs",
+          "additions": 8,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/mod.rs",
+          "additions": 2,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/preempt/guard.rs",
+          "additions": 4,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4531285586",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531285586",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 4531285586,
+      "node_id": "IC_kwDONtWm_c8AAAABDhXuUg",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T03:39:38Z",
+      "updated_at": "2026-05-25T03:39:38Z",
+      "body_html": "<p dir=\"auto\">This is curious, since some of the APIs declared now become:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"    /// Queries the mapping at the given virtual address.\n    ///\n    /// Returns the mapped item at the page containing `addr`, or `None` if there is no mapping.\n    ///\n    /// ## Preconditions\n    /// - The kernel virtual area invariant holds ([`inv`](Inv::inv)).\n    /// - The address is within the virtual area's range.\n    /// ## Postconditions\n    /// - If there is a mapped item at the page containing the address ([`query_some_condition`]),\n    /// it is returned ([`query_some_ensures`]).\n    /// - If there is no mapping at that page, `None` is returned ([`query_none_ensures`]).\n    #[verus_spec(r =&gt;\n        with Tracked(owner): Tracked&lt;KVirtAreaOwner&gt;,\n            Tracked(regions): Tracked&lt;&amp;mut MetaRegionOwners&gt;,\n            Tracked(guards): Tracked&lt;&amp;mut Guards&lt;'static, KernelPtConfig&gt;&gt;,\n            Ghost(root_guard): Ghost&lt;PageTableGuard&lt;'static, KernelPtConfig&gt;&gt;\n            Tracked(guards): Tracked&lt;&amp;mut Guards&lt;'_, KernelPtConfig&gt;&gt;,\n            Ghost(root_guard): Ghost&lt;PageTableGuard&lt;'_, KernelPtConfig&gt;&gt;\n        /* omit *./\n    )]\n    #[allow(private_interfaces)]\n    pub fn query(&amp;self, addr: Vaddr) -&gt; Option&lt;super::MappedItem&gt; { ... }\"><pre class=\"notranslate\">    <span class=\"pl-c\">/// Queries the mapping at the given virtual address.</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">///</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// Returns the mapped item at the page containing `addr`, or `None` if there is no mapping.</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">///</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// ## Preconditions</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// - The kernel virtual area invariant holds ([`inv`](Inv::inv)).</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// - The address is within the virtual area's range.</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// ## Postconditions</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// - If there is a mapped item at the page containing the address ([`query_some_condition`]),</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// it is returned ([`query_some_ensures`]).</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// - If there is no mapping at that page, `None` is returned ([`query_none_ensures`]).</span>\n<span class=\"pl-c\"></span>    #<span class=\"pl-kos\">[</span>verus_spec<span class=\"pl-kos\">(</span>r =&gt;\n        with <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>owner<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-v\">KVirtAreaOwner</span>&gt;<span class=\"pl-kos\">,</span>\n            <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>regions<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-v\">MetaRegionOwners</span>&gt;<span class=\"pl-kos\">,</span>\n            <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>guards<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-v\">Guards</span>&lt;<span class=\"pl-c1\">'</span><span class=\"pl-k\">static</span><span class=\"pl-kos\">,</span> <span class=\"pl-v\">KernelPtConfig</span>&gt;&gt;<span class=\"pl-kos\">,</span>\n            <span class=\"pl-v\">Ghost</span><span class=\"pl-kos\">(</span>root_guard<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Ghost</span>&lt;<span class=\"pl-v\">PageTableGuard</span>&lt;<span class=\"pl-c1\">'</span><span class=\"pl-k\">static</span><span class=\"pl-kos\">,</span> <span class=\"pl-v\">KernelPtConfig</span>&gt;&gt;\n            <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>guards<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-v\">Guards</span>&lt;<span class=\"pl-c1\">'</span>_<span class=\"pl-kos\">,</span> <span class=\"pl-v\">KernelPtConfig</span>&gt;&gt;<span class=\"pl-kos\">,</span>\n            <span class=\"pl-v\">Ghost</span><span class=\"pl-kos\">(</span>root_guard<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Ghost</span>&lt;<span class=\"pl-v\">PageTableGuard</span>&lt;<span class=\"pl-c1\">'</span>_<span class=\"pl-kos\">,</span> <span class=\"pl-v\">KernelPtConfig</span>&gt;&gt;\n        <span class=\"pl-c\">/* omit *./</span>\n<span class=\"pl-c\">    )]</span>\n<span class=\"pl-c\">    #[allow(private_interfaces)]</span>\n<span class=\"pl-c\">    pub fn query(&amp;self, addr: Vaddr) -&gt; Option&lt;super::MappedItem&gt; { ... }</span></pre></div>\n<p dir=\"auto\">So this means when you have a tracked guard you must ensure that it is statically available and should not be bound to any specific lifetime like <code class=\"notranslate\">'rcu</code>. However, since disabling preemption must be effective for only a specific timeframe (otherwise this would break the kernel's scheduling), this causes a serious lifetime issue. Apparently <code class=\"notranslate\">query</code> should be not take a <code class=\"notranslate\">'static</code> guards as they should be only valid for a perioud of time.</p>",
+      "body_text": "This is curious, since some of the APIs declared now become:\n    /// Queries the mapping at the given virtual address.\n    ///\n    /// Returns the mapped item at the page containing `addr`, or `None` if there is no mapping.\n    ///\n    /// ## Preconditions\n    /// - The kernel virtual area invariant holds ([`inv`](Inv::inv)).\n    /// - The address is within the virtual area's range.\n    /// ## Postconditions\n    /// - If there is a mapped item at the page containing the address ([`query_some_condition`]),\n    /// it is returned ([`query_some_ensures`]).\n    /// - If there is no mapping at that page, `None` is returned ([`query_none_ensures`]).\n    #[verus_spec(r =>\n        with Tracked(owner): Tracked<KVirtAreaOwner>,\n            Tracked(regions): Tracked<&mut MetaRegionOwners>,\n            Tracked(guards): Tracked<&mut Guards<'static, KernelPtConfig>>,\n            Ghost(root_guard): Ghost<PageTableGuard<'static, KernelPtConfig>>\n            Tracked(guards): Tracked<&mut Guards<'_, KernelPtConfig>>,\n            Ghost(root_guard): Ghost<PageTableGuard<'_, KernelPtConfig>>\n        /* omit *./\n    )]\n    #[allow(private_interfaces)]\n    pub fn query(&self, addr: Vaddr) -> Option<super::MappedItem> { ... }\nSo this means when you have a tracked guard you must ensure that it is statically available and should not be bound to any specific lifetime like 'rcu. However, since disabling preemption must be effective for only a specific timeframe (otherwise this would break the kernel's scheduling), this causes a serious lifetime issue. Apparently query should be not take a 'static guards as they should be only valid for a perioud of time.",
+      "body": "This is curious, since some of the APIs declared now become:\r\n\r\n```rs\r\n    /// Queries the mapping at the given virtual address.\r\n    ///\r\n    /// Returns the mapped item at the page containing `addr`, or `None` if there is no mapping.\r\n    ///\r\n    /// ## Preconditions\r\n    /// - The kernel virtual area invariant holds ([`inv`](Inv::inv)).\r\n    /// - The address is within the virtual area's range.\r\n    /// ## Postconditions\r\n    /// - If there is a mapped item at the page containing the address ([`query_some_condition`]),\r\n    /// it is returned ([`query_some_ensures`]).\r\n    /// - If there is no mapping at that page, `None` is returned ([`query_none_ensures`]).\r\n    #[verus_spec(r =>\r\n        with Tracked(owner): Tracked<KVirtAreaOwner>,\r\n            Tracked(regions): Tracked<&mut MetaRegionOwners>,\r\n            Tracked(guards): Tracked<&mut Guards<'static, KernelPtConfig>>,\r\n            Ghost(root_guard): Ghost<PageTableGuard<'static, KernelPtConfig>>\r\n            Tracked(guards): Tracked<&mut Guards<'_, KernelPtConfig>>,\r\n            Ghost(root_guard): Ghost<PageTableGuard<'_, KernelPtConfig>>\r\n        /* omit *./\r\n    )]\r\n    #[allow(private_interfaces)]\r\n    pub fn query(&self, addr: Vaddr) -> Option<super::MappedItem> { ... }\r\n```\r\n\r\nSo this means when you have a tracked guard you must ensure that it is statically available and should not be bound to any specific lifetime like `'rcu`. However, since disabling preemption must be effective for only a specific timeframe (otherwise this would break the kernel's scheduling), this causes a serious lifetime issue. Apparently `query` should be not take a `'static` guards as they should be only valid for a perioud of time.\r\n",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4531285586/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4531408222",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531408222",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 4531408222,
+      "node_id": "IC_kwDONtWm_c8AAAABDhfNXg",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T04:10:47Z",
+      "updated_at": "2026-05-25T04:12:22Z",
+      "body_html": "<p dir=\"auto\">Well then, specs for APIs associated guards are unsound... We'll need a fix first. I'd suggest doing:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"#[verus_spec(r =&gt;\n        with Tracked(owner): Tracked&lt;KVirtAreaOwner&gt;,\n            Tracked(regions): Tracked&lt;&amp;mut MetaRegionOwners&gt;,\n//            Tracked(guards): Tracked&lt;&amp;mut Guards&lt;'static, KernelPtConfig&gt;&gt;,\n//            Ghost(root_guard): Ghost&lt;PageTableGuard&lt;'static, KernelPtConfig&gt;&gt;\n            Tracked(guards): Tracked&lt;&amp;mut Guards&lt;'_, KernelPtConfig&gt;&gt;, // just let Rust infer or bind to &amp;'_ self\n            Ghost(root_guard): Ghost&lt;PageTableGuard&lt;'_, KernelPtConfig&gt;&gt;\n)]\npub fn query(&amp;self, addr: Vaddr) -&gt; Option&lt;super::MappedItem&gt; { ... }\n\"><pre class=\"notranslate\"><span class=\"pl-c1\">#<span class=\"pl-kos\">[</span>verus_spec<span class=\"pl-kos\">(</span>r =&gt;</span>\n<span class=\"pl-c1\">        with <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>owner<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-v\">KVirtAreaOwner</span>&gt;<span class=\"pl-kos\">,</span></span>\n<span class=\"pl-c1\">            <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>regions<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-v\">MetaRegionOwners</span>&gt;<span class=\"pl-kos\">,</span></span>\n<span class=\"pl-c1\"><span class=\"pl-c\">//            Tracked(guards): Tracked&lt;&amp;mut Guards&lt;'static, KernelPtConfig&gt;&gt;,</span></span>\n<span class=\"pl-c1\"><span class=\"pl-c\">//            Ghost(root_guard): Ghost&lt;PageTableGuard&lt;'static, KernelPtConfig&gt;&gt;</span></span>\n<span class=\"pl-c1\">            <span class=\"pl-v\">Tracked</span><span class=\"pl-kos\">(</span>guards<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Tracked</span>&lt;<span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-v\">Guards</span>&lt;<span class=\"pl-c1\">'</span>_<span class=\"pl-kos\">,</span> <span class=\"pl-v\">KernelPtConfig</span>&gt;&gt;<span class=\"pl-kos\">,</span> <span class=\"pl-c\">// just let Rust infer or bind to &amp;'_ self</span></span>\n<span class=\"pl-c1\">            <span class=\"pl-v\">Ghost</span><span class=\"pl-kos\">(</span>root_guard<span class=\"pl-kos\">)</span><span class=\"pl-kos\">:</span> <span class=\"pl-v\">Ghost</span>&lt;<span class=\"pl-v\">PageTableGuard</span>&lt;<span class=\"pl-c1\">'</span>_<span class=\"pl-kos\">,</span> <span class=\"pl-v\">KernelPtConfig</span>&gt;&gt;</span>\n<span class=\"pl-c1\"><span class=\"pl-kos\">)</span><span class=\"pl-kos\">]</span></span>\n<span class=\"pl-k\">pub</span> <span class=\"pl-k\">fn</span> <span class=\"pl-en\">query</span><span class=\"pl-kos\">(</span><span class=\"pl-c1\">&amp;</span><span class=\"pl-smi\">self</span><span class=\"pl-kos\">,</span> <span class=\"pl-s1\">addr</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">Vaddr</span><span class=\"pl-kos\">)</span> -&gt; <span class=\"pl-smi\">Option</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-k\">super</span><span class=\"pl-kos\">::</span><span class=\"pl-smi\">MappedItem</span><span class=\"pl-kos\">&gt;</span> <span class=\"pl-kos\">{</span> ..<span class=\"pl-kos\">.</span><span class=\"pl-c1\"></span> <span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\">For cursors, perhaps we'll need two lifetime markers?</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"pub struct Cursor&lt;'rcu, 'guard, C: PageTableConfig&gt; {\n    /// The current path of the cursor.\n    ///\n    /// The level 1 page table lock guard is at index 0, and the level N page\n    /// table lock guard is at index N - 1.\n    pub path: [Option&lt;PageTableGuard&lt;'rcu, C&gt;&gt;; NR_LEVELS],\n    /// The cursor should be used in a RCU read side critical section.\n    pub rcu_guard: &amp;'guard dyn InAtomicMode,\n//....\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">pub</span> <span class=\"pl-k\">struct</span> <span class=\"pl-smi\">Cursor</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">rcu</span><span class=\"pl-kos\">,</span> <span class=\"pl-c1\">'</span><span class=\"pl-ent\">guard</span><span class=\"pl-kos\">,</span> <span class=\"pl-smi\">C</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">PageTableConfig</span><span class=\"pl-kos\">&gt;</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-c\">/// The current path of the cursor.</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">///</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// The level 1 page table lock guard is at index 0, and the level N page</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-c\">/// table lock guard is at index N - 1.</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-k\">pub</span> <span class=\"pl-c1\">path</span><span class=\"pl-kos\">:</span> <span class=\"pl-kos\">[</span><span class=\"pl-smi\">Option</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-smi\">PageTableGuard</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">rcu</span><span class=\"pl-kos\">,</span> <span class=\"pl-smi\">C</span><span class=\"pl-kos\">&gt;</span><span class=\"pl-kos\">&gt;</span><span class=\"pl-kos\">;</span> <span class=\"pl-v\">NR_LEVELS</span><span class=\"pl-kos\">]</span><span class=\"pl-kos\">,</span>\n    <span class=\"pl-c\">/// The cursor should be used in a RCU read side critical section.</span>\n<span class=\"pl-c\"></span>    <span class=\"pl-k\">pub</span> <span class=\"pl-c1\">rcu_guard</span><span class=\"pl-kos\">:</span> <span class=\"pl-c1\">&amp;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">guard</span> <span class=\"pl-k\">dyn</span> <span class=\"pl-smi\">InAtomicMode</span><span class=\"pl-kos\">,</span>\n<span class=\"pl-c\">//....</span>\n<span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\"><code class=\"notranslate\">Cursor</code> is associated to its parent struct whose lifetime should be <code class=\"notranslate\">rcu</code> and the atomic operation should occur as long as the preemption is disabled (i.e., <code class=\"notranslate\">rcu</code>).</p>\n<p dir=\"auto\">P.S.: <code class=\"notranslate\">--no-lifetime</code> can be used as a trick to bypass this issue.</p>",
+      "body_text": "Well then, specs for APIs associated guards are unsound... We'll need a fix first. I'd suggest doing:\n#[verus_spec(r =>\n        with Tracked(owner): Tracked<KVirtAreaOwner>,\n            Tracked(regions): Tracked<&mut MetaRegionOwners>,\n//            Tracked(guards): Tracked<&mut Guards<'static, KernelPtConfig>>,\n//            Ghost(root_guard): Ghost<PageTableGuard<'static, KernelPtConfig>>\n            Tracked(guards): Tracked<&mut Guards<'_, KernelPtConfig>>, // just let Rust infer or bind to &'_ self\n            Ghost(root_guard): Ghost<PageTableGuard<'_, KernelPtConfig>>\n)]\npub fn query(&self, addr: Vaddr) -> Option<super::MappedItem> { ... }\nFor cursors, perhaps we'll need two lifetime markers?\npub struct Cursor<'rcu, 'guard, C: PageTableConfig> {\n    /// The current path of the cursor.\n    ///\n    /// The level 1 page table lock guard is at index 0, and the level N page\n    /// table lock guard is at index N - 1.\n    pub path: [Option<PageTableGuard<'rcu, C>>; NR_LEVELS],\n    /// The cursor should be used in a RCU read side critical section.\n    pub rcu_guard: &'guard dyn InAtomicMode,\n//....\n}\nCursor is associated to its parent struct whose lifetime should be rcu and the atomic operation should occur as long as the preemption is disabled (i.e., rcu).\nP.S.: --no-lifetime can be used as a trick to bypass this issue.",
+      "body": "Well then, specs for APIs associated guards are unsound... We'll need a fix first. I'd suggest doing:\r\n\r\n```rs\r\n#[verus_spec(r =>\r\n        with Tracked(owner): Tracked<KVirtAreaOwner>,\r\n            Tracked(regions): Tracked<&mut MetaRegionOwners>,\r\n//            Tracked(guards): Tracked<&mut Guards<'static, KernelPtConfig>>,\r\n//            Ghost(root_guard): Ghost<PageTableGuard<'static, KernelPtConfig>>\r\n            Tracked(guards): Tracked<&mut Guards<'_, KernelPtConfig>>, // just let Rust infer or bind to &'_ self\r\n            Ghost(root_guard): Ghost<PageTableGuard<'_, KernelPtConfig>>\r\n)]\r\npub fn query(&self, addr: Vaddr) -> Option<super::MappedItem> { ... }\r\n\r\n```\r\n\r\nFor cursors, perhaps we'll need two lifetime markers?\r\n```rs\r\npub struct Cursor<'rcu, 'guard, C: PageTableConfig> {\r\n    /// The current path of the cursor.\r\n    ///\r\n    /// The level 1 page table lock guard is at index 0, and the level N page\r\n    /// table lock guard is at index N - 1.\r\n    pub path: [Option<PageTableGuard<'rcu, C>>; NR_LEVELS],\r\n    /// The cursor should be used in a RCU read side critical section.\r\n    pub rcu_guard: &'guard dyn InAtomicMode,\r\n//....\r\n}\r\n```\r\n\r\n`Cursor` is associated to its parent struct whose lifetime should be `rcu` and the atomic operation should occur as long as the preemption is disabled (i.e., `rcu`).\r\n\r\nP.S.: `--no-lifetime` can be used as a trick to bypass this issue.\r\n\r\n",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4531408222/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4531703863",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531703863",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 4531703863,
+      "node_id": "IC_kwDONtWm_c8AAAABDhxQNw",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T05:14:46Z",
+      "updated_at": "2026-05-25T05:14:46Z",
+      "body_html": "<p dir=\"auto\">This is exactly what I'm worrying yesterday. I've done some experiments like 'rcu:'guard but failed. Anyway, I think we must find a sound way to do this, hacking with no-lifetime is not an acceptable solution for me.</p>",
+      "body_text": "This is exactly what I'm worrying yesterday. I've done some experiments like 'rcu:'guard but failed. Anyway, I think we must find a sound way to do this, hacking with no-lifetime is not an acceptable solution for me.",
+      "body": "This is exactly what I'm worrying yesterday. I've done some experiments like 'rcu:'guard but failed. Anyway, I think we must find a sound way to do this, hacking with no-lifetime is not an acceptable solution for me.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4531703863/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4532401786",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4532401786",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 4532401786,
+      "node_id": "IC_kwDONtWm_c8AAAABDib2eg",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T07:28:36Z",
+      "updated_at": "2026-05-25T07:28:36Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\">This is exactly what I'm worrying yesterday. I've done some experiments like 'rcu:'guard but failed. Anyway, I think we must find a sound way to do this, hacking with no-lifetime is not an acceptable solution for me.</p>\n</blockquote>\n<p dir=\"auto\">We can at least first replace <code class=\"notranslate\">'_</code> or explicit local lifetime for some of the tracked guards with <code class=\"notranslate\">'static</code> lifetimes. These may be easy to fix</p>",
+      "body_text": "This is exactly what I'm worrying yesterday. I've done some experiments like 'rcu:'guard but failed. Anyway, I think we must find a sound way to do this, hacking with no-lifetime is not an acceptable solution for me.\n\nWe can at least first replace '_ or explicit local lifetime for some of the tracked guards with 'static lifetimes. These may be easy to fix",
+      "body": "> This is exactly what I'm worrying yesterday. I've done some experiments like 'rcu:'guard but failed. Anyway, I think we must find a sound way to do this, hacking with no-lifetime is not an acceptable solution for me.\r\n\r\nWe can at least first replace `'_` or explicit local lifetime for some of the tracked guards with `'static` lifetimes. These may be easy to fix",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4532401786/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 1
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4532937293",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4532937293",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 4532937293,
+      "node_id": "IC_kwDONtWm_c8AAAABDi8iTQ",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T08:50:20Z",
+      "updated_at": "2026-05-25T08:53:21Z",
+      "body_html": "<p dir=\"auto\">I do not think we can pass <code class=\"notranslate\">&amp;mut Guard</code> as an argument. <code class=\"notranslate\">disable_preempt</code> returns a local variable, whose lifetime is not relevant to the lifetime of <code class=\"notranslate\">Guard</code>. Replacing <code class=\"notranslate\">static</code> with <code class=\"notranslate\">_</code> does not help. The current approach works because <code class=\"notranslate\">disable_preempt</code> returns a guard with a user-provided lifetime, but it is not the truth.</p>",
+      "body_text": "I do not think we can pass &mut Guard as an argument. disable_preempt returns a local variable, whose lifetime is not relevant to the lifetime of Guard. Replacing static with _ does not help. The current approach works because disable_preempt returns a guard with a user-provided lifetime, but it is not the truth.",
+      "body": "I do not think we can pass `&mut Guard` as an argument. `disable_preempt` returns a local variable, whose lifetime is not relevant to the lifetime of `Guard`. Replacing `static` with `_` does not help. The current approach works because `disable_preempt` returns a guard with a user-provided lifetime, but it is not the truth.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4532937293/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4533046504",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4533046504",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 4533046504,
+      "node_id": "IC_kwDONtWm_c8AAAABDjDM6A",
+      "user": {
+        "login": "hiroki-chen",
+        "id": 16970045,
+        "node_id": "MDQ6VXNlcjE2OTcwMDQ1",
+        "avatar_url": "https://avatars.githubusercontent.com/u/16970045?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hiroki-chen",
+        "html_url": "https://github.com/hiroki-chen",
+        "followers_url": "https://api.github.com/users/hiroki-chen/followers",
+        "following_url": "https://api.github.com/users/hiroki-chen/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hiroki-chen/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hiroki-chen/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hiroki-chen/subscriptions",
+        "organizations_url": "https://api.github.com/users/hiroki-chen/orgs",
+        "repos_url": "https://api.github.com/users/hiroki-chen/repos",
+        "events_url": "https://api.github.com/users/hiroki-chen/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hiroki-chen/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T09:09:13Z",
+      "updated_at": "2026-05-25T09:09:13Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\">I do not think we can pass <code class=\"notranslate\">&amp;mut Guard</code> as an argument. <code class=\"notranslate\">disable_preempt</code> returns a local variable, whose lifetime is not relevant to the lifetime of <code class=\"notranslate\">Guard</code>. Replacing <code class=\"notranslate\">static</code> with <code class=\"notranslate\">_</code> does not help. The current approach works because <code class=\"notranslate\">disable_preempt</code> returns a guard with a user-provided lifetime, but it is not the truth.</p>\n</blockquote>\n<p dir=\"auto\">Replacing static with _ allows Rust to deduce that it outlives &amp;cursor but it does not have anything to do with the <code class=\"notranslate\">DisablePreemptGuard</code>.</p>",
+      "body_text": "I do not think we can pass &mut Guard as an argument. disable_preempt returns a local variable, whose lifetime is not relevant to the lifetime of Guard. Replacing static with _ does not help. The current approach works because disable_preempt returns a guard with a user-provided lifetime, but it is not the truth.\n\nReplacing static with _ allows Rust to deduce that it outlives &cursor but it does not have anything to do with the DisablePreemptGuard.",
+      "body": "> I do not think we can pass `&mut Guard` as an argument. `disable_preempt` returns a local variable, whose lifetime is not relevant to the lifetime of `Guard`. Replacing `static` with `_` does not help. The current approach works because `disable_preempt` returns a guard with a user-provided lifetime, but it is not the truth.\r\n\r\nReplacing static with _ allows Rust to deduce that it outlives &cursor but it does not have anything to do with the `DisablePreemptGuard`.\r\n",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4533046504/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6788361863",
+      "html_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-6788361863",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/474",
+      "id": 6788361863,
+      "node_id": "IC_kwDONtWm_c8AAAABlJ4uhw",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-11-11T05:59:08Z",
+      "updated_at": "2026-11-11T05:59:08Z",
+      "body_html": "<p dir=\"auto\">Superceded by <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"6310896654\" data-permission-text=\"Title is private\" data-url=\"https://github.com/asterinas/vostd/issues/908\" data-hovercard-type=\"pull_request\" data-hovercard-url=\"/asterinas/vostd/pull/908/hovercard\" href=\"https://github.com/asterinas/vostd/pull/908\">#908</a></p>",
+      "body_text": "Superceded by #908",
+      "body": "Superceded by #908 ",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6788361863/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

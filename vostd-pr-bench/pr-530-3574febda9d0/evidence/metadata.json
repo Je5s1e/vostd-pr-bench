@@ -1,0 +1,81 @@
+{
+  "number": 530,
+  "source_pr": "https://github.com/asterinas/vostd/pull/530",
+  "base_sha": "7fad81151f5bfe8c768b6a2ea164f66756fec44f",
+  "head_sha": "3574febda9d04adbcd5fa291e72ac57552f71eb3",
+  "files": {
+    "totalCount": 8,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "OA"
+    },
+    "nodes": [
+      {
+        "path": "ostd/src/arch/x86/mm/mod.rs",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "additions": 100,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "additions": 9,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/mod.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/mod.rs",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "additions": 184,
+        "deletions": 37,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/vm_space.rs",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/530",
+    "accept": "application/vnd.github.diff",
+    "bytes": 31252,
+    "sha256": "1fd9a296864a76c1814355840cc48567d18876c8d0c82826ce0a2f95e59f375b",
+    "fetched_at": "2026-11-13T21:15:35.490825+00:00",
+    "diff_file_sections": 8,
+    "expected_changed_files": 8
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/530",
+    "accept": "application/vnd.github.patch",
+    "bytes": 31927,
+    "sha256": "9d283c10b84d809f62611c4b3baba86ff0b25085370b5a21ab026b1f826dca1a",
+    "fetched_at": "2026-11-13T21:23:42.381657+00:00"
+  }
+}

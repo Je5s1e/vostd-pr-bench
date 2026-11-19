@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-782-0195dc456673",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-782-0195dc456673:review-comment-4042941132",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "`MemoryRegionArray` keeps an `Inv` implementation for the same `count <= LEN` predicate already enforced by its new type invariant.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 233,
+          "end_line": 237
+        }
+      ],
+      "rationale": "The reviewed revision defines `Inv::inv` and `type_inv` with the identical predicate. The collaborator explicitly requests deletion, and the next commit removes `impl Inv` plus the dependent `InvView` while retaining the type invariant. Under `implement-inv-for-models`, one predicate must use one invariant mechanism; keeping both duplicates proof paths and can let their definitions drift.",
+      "source_evidence": "after/ostd/src/boot/memory_region.rs\n233: impl<const LEN: usize> Inv for MemoryRegionArray<LEN> {\n234:     closed spec fn inv(self) -> bool {\n235:         self.count <= LEN\n236:     }\n237: }\n239: impl<const LEN: usize> MemoryRegionArray<LEN> {\n240:     #[verifier::type_invariant]\n241:     closed spec fn type_inv(self) -> bool {\n242:         self.count <= LEN",
+      "rule_ids": [
+        "implement-inv-for-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/782#discussion_r4042941132",
+      "related_comment_ids": [
+        "4042941132"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4042941132",
+          "url": "https://github.com/asterinas/vostd/pull/782#discussion_r4042941132",
+          "commit_id": "0195dc45667389678f040d6529680f809bc2afba"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the original review commit, subsequent fix, final merged head, complete archived discussion, and complete live remote discussion."
+    }
+  ]
+}

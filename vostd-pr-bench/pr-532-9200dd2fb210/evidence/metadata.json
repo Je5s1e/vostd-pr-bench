@@ -1,0 +1,225 @@
+{
+  "number": 532,
+  "source_pr": "https://github.com/asterinas/vostd/pull/532",
+  "base_sha": "856819ef6631169061dbc1fed1e2a3e0238c6e76",
+  "head_sha": "9200dd2fb210d89a6e08ae08d2a216419e6caaff",
+  "files": {
+    "totalCount": 32,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MzI"
+    },
+    "nodes": [
+      {
+        "path": "Makefile",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/arch/x86/mod.rs",
+        "additions": 256,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/embedding/mod.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/mod.rs",
+        "additions": 26,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+        "additions": 195,
+        "deletions": 21,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+        "additions": 7,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+        "additions": 383,
+        "deletions": 140,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+        "additions": 16,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+        "additions": 125,
+        "deletions": 50,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+        "additions": 497,
+        "deletions": 387,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+        "additions": 154,
+        "deletions": 146,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+        "additions": 106,
+        "deletions": 19,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+        "additions": 61,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+        "additions": 42,
+        "deletions": 17,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/mod.rs",
+        "additions": 548,
+        "deletions": 572,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "additions": 73,
+        "deletions": 56,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/entry_view.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/owners.rs",
+        "additions": 268,
+        "deletions": 218,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/vm_space.rs",
+        "additions": 5,
+        "deletions": 4,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/arch/loongarch/mm/mod.rs",
+        "additions": 2,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/arch/x86/mm/mod.rs",
+        "additions": 9,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "additions": 59,
+        "deletions": 29,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "additions": 74,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/mod.rs",
+        "additions": 32,
+        "deletions": 20,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "additions": 50,
+        "deletions": 32,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/mod.rs",
+        "additions": 356,
+        "deletions": 120,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "additions": 118,
+        "deletions": 46,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/entry.rs",
+        "additions": 39,
+        "deletions": 22,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/mod.rs",
+        "additions": 7,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/vm_space.rs",
+        "additions": 66,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/src/external/smart_ptr.rs",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/532",
+    "accept": "application/vnd.github.diff",
+    "bytes": 587041,
+    "sha256": "4e664188df74c3f4e7820566812681751c9a617f3c883b4046f974659443a51f",
+    "fetched_at": "2026-11-13T21:15:36.467114+00:00",
+    "diff_file_sections": 32,
+    "expected_changed_files": 32
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/532",
+    "accept": "application/vnd.github.patch",
+    "bytes": 946307,
+    "sha256": "57a32c2a6be20daf05f67a57a3021223e6616cda3006899ea707aacff8b64e15",
+    "fetched_at": "2026-11-13T21:23:44.178832+00:00"
+  }
+}

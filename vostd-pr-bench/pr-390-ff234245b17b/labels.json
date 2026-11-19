@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-390-ff234245b17b",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-390-ff234245b17b:issue-comment-4182082798",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The DMA-stream accessor and I/O methods replace the original public `&self` interface with methods that require callers to supply an internal `RwLockReadGuard`, changing the public API/behavior instead of keeping synchronization behind the object boundary.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "start_line": 194,
+          "end_line": 240
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "start_line": 243,
+          "end_line": 299
+        }
+      ],
+      "rationale": "The reviewed revision makes `daddr`, `direction`, `paddr`, `reader`, and `writer` public associated functions over `RwLockReadGuard` rather than methods over `&DmaStream`. Callers must now acquire/pass the implementation's internal guard, and the original object-level API is no longer preserved. Collaborator rikosellic explicitly warns that this modification changes behavior and explains that a bare `&RwArc` cannot support stable inner-value postconditions across concurrency. The author clarifies the intended two-layer solution: a public `f(&RwArc)`/`&self` wrapper acquires the lock and delegates to a verified guard method; the reviewer says that splitting approach is acceptable. The next relevant commit, `4b848d3f...`, implements exactly that resolution by renaming the guard methods to private `*_inner` functions and adding public `&self` glue wrappers that acquire `read_inner()`.",
+      "source_evidence": "after/ostd/src/mm/dma/dma_stream.rs\n208: pub fn daddr(this: &RwLockReadGuard<...>) -> Daddr\n219-221: pub fn direction(this: &RwLockReadGuard<...>) -> DmaDirection\n239: pub fn paddr(this: &RwLockReadGuard<...>) -> Paddr\n263-265: pub fn reader(this: &'a RwLockReadGuard<...>) -> VmReader<'a>\n297-299: pub fn writer(this: &'a RwLockReadGuard<...>) -> VmWriter<'a>\n\nFix evidence in commit 4b848d3f: these functions become private `*_inner`; public `daddr(&self)`, `direction(&self)`, `paddr(&self)`, `reader(&self)`, and `writer(&self)` acquire `self.read_inner()` and delegate.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/390#issuecomment-4182082798",
+      "related_comment_ids": [
+        "4160421721",
+        "4181875880",
+        "4182082798",
+        "4184336958",
+        "4186426299"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4160421721",
+          "url": "https://github.com/asterinas/vostd/pull/390#issuecomment-4160421721",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4182082798",
+          "url": "https://github.com/asterinas/vostd/pull/390#issuecomment-4182082798",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4184336958",
+          "url": "https://github.com/asterinas/vostd/pull/390#issuecomment-4184336958",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4186426299",
+          "url": "https://github.com/asterinas/vostd/pull/390#issuecomment-4186426299",
+          "commit_id": null
+        }
+      ],
+      "verification": "Source and Git-history adjudication; historical Verus not executed locally. Verified the selected historical head and true merge-base, confirmed all five guard-only public APIs in ff234245, inspected the direct child 4b848d3f, and confirmed that it both privatizes/renames the guard-level functions and restores public `&self` wrappers. The final head retains that two-layer design and has successful build and format-and-verify checks."
+    }
+  ]
+}

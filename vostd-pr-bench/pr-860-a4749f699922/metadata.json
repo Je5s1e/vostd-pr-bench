@@ -10,7 +10,6 @@
   "base_sha": "18aea7a127610ad471325235b85395afe82710da",
   "head_sha": "a4749f699922e248fea0664211257966404c01f2",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     ".github/workflows/ci-irc11.yml",

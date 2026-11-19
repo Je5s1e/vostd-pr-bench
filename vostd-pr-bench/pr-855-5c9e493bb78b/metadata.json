@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-855-5c9e493bb78b",
+  "pr_number": 855,
+  "title": "prove: remove paging layout axiom and refactor architecture specs",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/855",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "30581d3014f3ddf537d406f997ddc3abe416b514",
+  "head_sha": "5c9e493bb78b1f38b434418aac8a36720c2d8a1a",
+  "base_method": "The selected historical review head has direct parent 30581d3014f3ddf537d406f997ddc3abe416b514; git merge-base(5c9e493bb78b1f38b434418aac8a36720c2d8a1a, archived PR base 90087275ebd4b974596947d11d3da27d722e05d3) independently returned the same commit.",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/loongarch/mod.rs",
+    "ostd/specs/arch/mod.rs",
+    "ostd/specs/arch/model.rs",
+    "ostd/specs/arch/riscv/mod.rs",
+    "ostd/specs/arch/x86/mod.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+    "ostd/specs/mod.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "fc473429763c4e5adddc9f53c39ddeba621c30b12139d33bc66cea509a8c7e46",
+  "versions": {
+    "before": {
+      "commit": "30581d3014f3ddf537d406f997ddc3abe416b514",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": ["COPYRIGHT", "LICENSE-MPL"],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "5c9e493bb78b1f38b434418aac8a36720c2d8a1a",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": ["COPYRIGHT", "LICENSE-MPL"],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T09:48:51Z",
+    "reviewed_at": "2026-11-10T07:39:22Z",
+    "upstream_updated_at": "2026-11-14T05:15:43Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/855",
+      "https://github.com/asterinas/vostd/commit/5c9e493bb78b1f38b434418aac8a36720c2d8a1a",
+      "https://github.com/asterinas/vostd/pull/855#issuecomment-6731757954",
+      "https://github.com/asterinas/vostd/pull/855#issuecomment-6737834717",
+      "https://github.com/asterinas/vostd/pull/855#issuecomment-6757682321",
+      "https://github.com/asterinas/vostd/pull/855#issuecomment-6761817965"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00855"
+  }
+}

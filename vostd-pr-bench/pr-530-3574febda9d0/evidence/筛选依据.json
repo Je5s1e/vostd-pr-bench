@@ -1,0 +1,20 @@
+{
+  "number": 530,
+  "title": "fix unverified code",
+  "selected": true,
+  "category": "正文或讨论涉及验证",
+  "evidence": [
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/530",
+      "excerpt": "This PR fixes some of the unverified functions in `page_table`.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "_SIZE_spec() / Self::PTE_SIZE_spec() == NR_ENTRIES); let ghost pre_cursor_regions: MetaRegionOwners = *regions; proof { assert(pre_cursor_regions == *old(regions)); assert forall|i: int| 0 <= i < fra",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 2
+}

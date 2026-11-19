@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 2,
+  "inline_review_comment_count": 0,
+  "review_count": 1,
+  "core_lesson": "用更强的资源状态不变量推导非重叠，而非直接假定非重叠",
+  "category": "并发与锁",
+  "all_content_unadjudicated": true
+}

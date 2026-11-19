@@ -10,7 +10,6 @@
   "base_sha": "ed66ac71690ef3ba7f6a29a7316bbf91a8e1cf33",
   "head_sha": "1c768aa6f17362f76307a5822ba5fb4349759058",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/arch/x86/mod.rs",

@@ -10,7 +10,6 @@
   "base_sha": "97465ca6c44c08d3fef64e13d568344fb967306b",
   "head_sha": "5053290d119e38a3368fed6d197eda9b2bdb5171",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/mm/page_table/owners.rs"

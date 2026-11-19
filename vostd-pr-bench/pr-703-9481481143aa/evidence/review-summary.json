@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 1,
+  "inline_review_comment_count": 5,
+  "review_count": 6,
+  "core_lesson": "先写外部契约可以分步推进，但必须区分规约与已验证实现",
+  "category": "可信边界",
+  "all_content_unadjudicated": true
+}

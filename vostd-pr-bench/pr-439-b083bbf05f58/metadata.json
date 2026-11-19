@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-439-b083bbf05f58",
+  "pr_number": 439,
+  "title": "Bring segment.rs back into alignment with original",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/439",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "ee10447887411c2753db8bf20d7c74489891f8ad",
+  "head_sha": "b083bbf05f58a859a9f468d7d1347feca46162f3",
+  "base_method": "git merge-base of the archived GitHub base ee10447887411c2753db8bf20d7c74489891f8ad and selected final review head b083bbf05f58a859a9f468d7d1347feca46162f3; the confirmed issues remain in this head",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "ostd/specs/arch/x86_64/kspace.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/mod.rs",
+    "ostd/specs/mm/frame/segment.rs",
+    "ostd/specs/mm/io.rs",
+    "ostd/specs/mm/mod.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/pod.rs",
+    "ostd/specs/mm/virt_mem_newer.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/specs/mm/vm_space_embedding.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/frame/untyped.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "vstd_extra/src/drop_tracking.rs",
+    "vstd_extra/src/external/slice.rs"
+  ],
+  "diff_sha256": "58bdb061bdda6b562761cab9b526ea87ffd6a40dddf4a9e225f2b7e5586555b5",
+  "versions": {
+    "before": {
+      "commit": "ee10447887411c2753db8bf20d7c74489891f8ad",
+      "file_count": 324,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "b083bbf05f58a859a9f468d7d1347feca46162f3",
+      "file_count": 326,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-17T04:40:05.254765+00:00",
+    "reviewed_at": "2026-05-11T07:35:35Z",
+    "upstream_updated_at": "2026-10-21T06:44:00Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/439",
+      "https://github.com/asterinas/vostd/pull/439#issuecomment-4418381335",
+      "https://github.com/asterinas/vostd/pull/439#issuecomment-4418478187",
+      "https://github.com/asterinas/vostd/pull/439#discussion_r3225175039",
+      "https://github.com/asterinas/vostd/pull/439#discussion_r3225175099",
+      "https://github.com/asterinas/vostd/pull/439#discussion_r3225175120",
+      "https://github.com/asterinas/vostd/pull/439#discussion_r3225175141",
+      "https://github.com/asterinas/vostd/pull/439#discussion_r3225175166",
+      "https://github.com/asterinas/vostd/pull/439#discussion_r3225175186",
+      "https://github.com/asterinas/vostd/pull/439#issuecomment-4436502213",
+      "https://github.com/asterinas/vostd/pull/439#issuecomment-4436612297",
+      "https://github.com/asterinas/vostd/pull/439#issuecomment-4437186057"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00439"
+  }
+}

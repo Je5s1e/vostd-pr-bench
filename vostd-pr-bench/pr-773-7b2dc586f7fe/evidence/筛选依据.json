@@ -1,0 +1,14 @@
+{
+  "number": 773,
+  "title": "docs(coding-guidelines): add avoid-redundant-as-int-casts guideline",
+  "selected": true,
+  "category": "验证代码或工具改动",
+  "evidence": [
+    {
+      "location": "代码 diff",
+      "excerpt": "inability.md#avoid-redundant-as-int-casts) — drop `as int` where Verus auto-coerces comparisons and arithmetic, but keep it at spec `int` parameters and standalone `/` divisors. state properties. Omit unused named return",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 1
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-171-6cc1b7bbb99b",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-171-6cc1b7bbb99b:review-comment-2249103975",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`inv_stray_in_node` incorrectly requires every stray entry to retain a live node, excluding the true-stray state created when a node is removed and waits for recycling.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "start_line": 173,
+          "end_line": 179
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "start_line": 335,
+          "end_line": 351
+        }
+      ],
+      "rationale": "The model uses a false stray for a node still present in the page table and a true stray for a removed node awaiting reclamation. `protocol_deallocate` removes `nid` from `nodes`, replaces its false stray with a true stray, and therefore immediately produces a state that violates `inv_stray_in_node`'s implication from every stray key to `nodes.contains_key(nid)`. The human reviewer identified this incorrect invariant, the author agreed, and the final head removes it in favor of tracking genuinely free physical addresses separately.",
+      "source_evidence": "after/lock-protocol/src/spec/rcu/tree.rs\n173: #[invariant]\n174: pub fn inv_stray_in_node(&self) -> bool {\n177:     self.strays.contains_key((nid, paddr)) ==>\n178:     self.nodes.contains_key(nid)\n\n335: transition!{\n336:     protocol_deallocate(nid: NodeId) {\n342:         remove nodes -= [ nid => NodeState::Locked ];\n349:         remove strays -= [ (nid, paddr) => false ];\n350:         add strays += [ (nid, paddr) => true ];\n\n1307: fn protocol_deallocate_inductive(...) { admit(); }",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/171#discussion_r2249103975",
+      "related_comment_ids": [
+        "2249103975",
+        "2249315474"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "2249103975",
+          "url": "https://github.com/asterinas/vostd/pull/171#discussion_r2249103975",
+          "commit_id": "6cc1b7bbb99b6716cc09c4ccd9e4e09ef1187851"
+        },
+        {
+          "kind": "review-comment",
+          "id": "2249315474",
+          "url": "https://github.com/asterinas/vostd/pull/171#discussion_r2249315474",
+          "commit_id": "6cc1b7bbb99b6716cc09c4ccd9e4e09ef1187851"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently checked the selected review commit and confirmed that a valid deallocation transition contradicts this invariant; its inductive proof remains admitted. The invariant is removed and the address-resource model is changed in the final head."
+    },
+    {
+      "id": "pr-171-6cc1b7bbb99b:review-3080893835",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`wf_cursors` validates only cursor keys that happen to exist and does not require every valid CPU to own a cursor token.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "start_line": 42,
+          "end_line": 48
+        }
+      ],
+      "rationale": "The invariant's `dom().all(...)` implication is one-way: existing cursor keys must be valid and well formed, but a valid CPU may be absent from the map. Every per-CPU protocol transition removes that CPU's cursor token, so a model state satisfying `wf_cursors` can nevertheless leave a valid CPU unable to take any cursor transition. The human CHANGES_REQUESTED review called out the missing reverse coverage, and the final head fixes it by adding `forall valid_cpu(...) ==> cursors.contains_key(cpu)` together with finite-domain tracking.",
+      "source_evidence": "after/lock-protocol/src/spec/rcu/tree.rs\n42: #[invariant]\n43: pub fn wf_cursors(&self) -> bool {\n44:     self.cursors.dom().all(|cpu: CpuId| {\n45:         &&& valid_cpu(self.cpu_num, cpu)\n46:         &&& self.cursors[cpu].wf()\n47:     })\n48: }\n\nThe selected source has no converse condition requiring each valid CPU to occur in `cursors.dom()`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/171#pullrequestreview-3080893835",
+      "related_comment_ids": [
+        "3080893835"
+      ],
+      "sources": [
+        {
+          "kind": "review",
+          "id": "3080893835",
+          "url": "https://github.com/asterinas/vostd/pull/171#pullrequestreview-3080893835",
+          "commit_id": "6cc1b7bbb99b6716cc09c4ccd9e4e09ef1187851"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently checked the selected invariant and the cursor-consuming transitions. The final head adds the exact missing valid-CPU-to-domain implication identified by the reviewer."
+    }
+  ]
+}

@@ -1,0 +1,1352 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/915",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 915,
+    "title": "Verify bzImage address mappings",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/915",
+    "state": "MERGED",
+    "createdAt": "2026-11-11T11:41:24Z",
+    "updatedAt": "2026-11-12T02:50:00Z",
+    "closedAt": "2026-11-12T02:50:00Z",
+    "mergedAt": "2026-11-12T02:49:59Z",
+    "author": {
+      "login": "DID-Lab-SZU"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "b0d0d3d4deedb419caf7b6b338aa9a100cba8e41",
+    "headRefName": "prove-linux-bzimage-mapping",
+    "headRefOid": "b90a2ed913853673161a985cb02c87bbb12ad88c",
+    "changedFiles": 8,
+    "additions": 312,
+    "deletions": 4,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        },
+        {
+          "name": "exec code"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 7,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0xMS0xMlQwMjo0OTozNlq0MjAyNi0xMS0xMlQwMjo0OTozNlrPAAAAAV3FunE="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXTADSw",
+          "databaseId": 5858394955,
+          "body": "",
+          "bodyHTML": "",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-11-11T12:05:03Z",
+          "createdAt": "2026-11-11T12:02:36Z",
+          "updatedAt": "2026-11-11T12:05:03Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5858394955",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXTDKNQ",
+          "databaseId": 5858445877,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-11T12:07:02Z",
+          "createdAt": "2026-11-11T12:07:02Z",
+          "updatedAt": "2026-11-11T12:07:02Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5858445877",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXTOuug",
+          "databaseId": 5858635450,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-11T12:22:55Z",
+          "createdAt": "2026-11-11T12:22:55Z",
+          "updatedAt": "2026-11-11T12:22:55Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5858635450",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXTdyeQ",
+          "databaseId": 5858882169,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-11T12:43:23Z",
+          "createdAt": "2026-11-11T12:43:22Z",
+          "updatedAt": "2026-11-11T12:43:23Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5858882169",
+          "author": {
+            "login": "lifetruthuu"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXWmoHw",
+          "databaseId": 5862172703,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-11T16:41:22Z",
+          "createdAt": "2026-11-11T16:41:22Z",
+          "updatedAt": "2026-11-11T16:41:22Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5862172703",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXcRYAw",
+          "databaseId": 5868115971,
+          "body": "",
+          "bodyHTML": "",
+          "state": "APPROVED",
+          "submittedAt": "2026-11-12T02:36:34Z",
+          "createdAt": "2026-11-12T02:36:35Z",
+          "updatedAt": "2026-11-12T02:36:35Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5868115971",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXcW6cQ",
+          "databaseId": 5868206705,
+          "body": "Now a new module is verifiable",
+          "bodyHTML": "<p dir=\"auto\">Now a new module is verifiable</p>",
+          "state": "APPROVED",
+          "submittedAt": "2026-11-12T02:49:36Z",
+          "createdAt": "2026-11-12T02:49:36Z",
+          "updatedAt": "2026-11-12T02:49:36Z",
+          "url": "https://github.com/asterinas/vostd/pull/915#pullrequestreview-5868206705",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 1
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 3,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0xMS0xMVQxMjowNDo1OFrOtii-ew=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c62KIz8",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 7,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "DID-Lab-SZU"
+          },
+          "comments": {
+            "totalCount": 2,
+            "nodes": [
+              {
+                "databaseId": 4537619287
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c62KLhm",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 127,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "DID-Lab-SZU"
+          },
+          "comments": {
+            "totalCount": 4,
+            "nodes": [
+              {
+                "databaseId": 4537637739
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c62KL57",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 146,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "DID-Lab-SZU"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4537640441
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 8,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "OA"
+      },
+      "nodes": [
+        {
+          "path": "Cargo.lock",
+          "additions": 179,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "Cargo.toml",
+          "additions": 1,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "Makefile",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "README.md",
+          "additions": 7,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "dv",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/libs/linux-bzimage/builder/Cargo.toml",
+          "additions": 4,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+          "additions": 118,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "tools/verus_stats.py",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6795600665",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#issuecomment-6795600665",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/915",
+      "id": 6795600665,
+      "node_id": "IC_kwDONtWm_c8AAAABlQyjGQ",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-11-11T12:18:44Z",
+      "updated_at": "2026-11-11T12:18:44Z",
+      "body_html": "<p dir=\"auto\">Need to move linux-bzimage out of UNPLANNED_LIBS in verus_stats.py</p>",
+      "body_text": "Need to move linux-bzimage out of UNPLANNED_LIBS in verus_stats.py",
+      "body": "Need to move linux-bzimage out of UNPLANNED_LIBS in verus_stats.py",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6795600665/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6796198364",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#issuecomment-6796198364",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/915",
+      "id": 6796198364,
+      "node_id": "IC_kwDONtWm_c8AAAABlRXB3A",
+      "user": {
+        "login": "lifetruthuu",
+        "id": 194752959,
+        "node_id": "U_kgDOC5uxvw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/194752959?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lifetruthuu",
+        "html_url": "https://github.com/lifetruthuu",
+        "followers_url": "https://api.github.com/users/lifetruthuu/followers",
+        "following_url": "https://api.github.com/users/lifetruthuu/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lifetruthuu/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lifetruthuu/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lifetruthuu/subscriptions",
+        "organizations_url": "https://api.github.com/users/lifetruthuu/orgs",
+        "repos_url": "https://api.github.com/users/lifetruthuu/repos",
+        "events_url": "https://api.github.com/users/lifetruthuu/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lifetruthuu/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-11-11T12:46:28Z",
+      "updated_at": "2026-11-11T12:46:28Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\">Need to move linux-bzimage out of UNPLANNED_LIBS in verus_stats.py</p>\n</blockquote>\n<p dir=\"auto\">Done.</p>",
+      "body_text": "Need to move linux-bzimage out of UNPLANNED_LIBS in verus_stats.py\n\nDone.",
+      "body": "> Need to move linux-bzimage out of UNPLANNED_LIBS in verus_stats.py\r\n\r\nDone.",
+      "author_association": "CONTRIBUTOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6796198364/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6812717527",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#issuecomment-6812717527",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/915",
+      "id": 6812717527,
+      "node_id": "IC_kwDONtWm_c8AAAABlhHR1w",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-11-12T02:36:30Z",
+      "updated_at": "2026-11-12T02:36:30Z",
+      "body_html": "<p dir=\"auto\">LGTM.</p>",
+      "body_text": "LGTM.",
+      "body": "LGTM.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/6812717527/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537619287",
+      "pull_request_review_id": 5858394955,
+      "id": 4537619287,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDnaTVw",
+      "diff_hunk": "@@ -3,6 +3,19 @@\n //! And the addresses are specified in the ELF file.\n //!\n //! This module centralizes the conversion between VA and FileOffset.\n+//!\n+//! # Verified Properties",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "I don't think this section is very necessary. What do you think @Marsman1996 ?",
+      "created_at": "2026-11-11T12:02:36Z",
+      "updated_at": "2026-11-11T12:05:03Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537619287",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537619287"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4537619287"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<p dir=\"auto\">I don't think this section is very necessary. What do you think <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a> ?</p>",
+      "body_text": "I don't think this section is very necessary. What do you think @Marsman1996 ?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537619287/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 7,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 5,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537637739",
+      "pull_request_review_id": 5858394955,
+      "id": 4537637739,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDnbbaw",
+      "diff_hunk": "@@ -11,93 +24,211 @@ use std::{\n \n // We chose the legacy setup sections to be 7 so that the setup header\n // is page-aligned and the legacy setup section size would be 0x1000.\n+#[verus_verify]\n pub const LEGACY_SETUP_SECS: usize = 7;\n+#[verus_verify]\n pub const LEGACY_SETUP_SEC_SIZE: usize = 0x200 * (LEGACY_SETUP_SECS + 1);\n \n+#[verus_verify]\n pub const SETUP32_LMA: usize = 0x100000;\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupVA {\n     addr: usize,\n }\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupFileOffset {\n     offset: usize,\n }\n \n+#[verus_verify]\n impl From<usize> for SetupVA {\n+    #[verus_spec(ret => ensures ret@ == addr)]\n     fn from(addr: usize) -> Self {\n         Self { addr }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for usize {\n+    #[verus_spec(returns va@)]\n     fn from(va: SetupVA) -> Self {\n         va.addr\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupVA {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.addr - rhs.addr\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupVA {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             addr: self.addr + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<usize> for SetupFileOffset {\n+    #[verus_spec(ret => ensures ret@ == offset)]\n     fn from(offset: usize) -> Self {\n         Self { offset }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupFileOffset> for usize {\n+    #[verus_spec(returns offset@)]\n     fn from(offset: SetupFileOffset) -> Self {\n         offset.offset\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupFileOffset {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.offset - rhs.offset\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupFileOffset {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             offset: self.offset + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for SetupFileOffset {\n+    #[verus_spec(ret =>\n+        ensures\n+            (SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va@ <= usize::MAX - LEGACY_SETUP_SEC_SIZE)",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Do we need this since we assume it in the body?",
+      "created_at": "2026-11-11T12:04:41Z",
+      "updated_at": "2026-11-11T12:05:03Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537637739",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537637739"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4537637739"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Do we need this since we assume it in the body?</p>",
+      "body_text": "Do we need this since we assume it in the body?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537637739/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 127,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 124,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537640441",
+      "pull_request_review_id": 5858394955,
+      "id": 4537640441,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDnbl-Q",
+      "diff_hunk": "@@ -11,93 +24,211 @@ use std::{\n \n // We chose the legacy setup sections to be 7 so that the setup header\n // is page-aligned and the legacy setup section size would be 0x1000.\n+#[verus_verify]\n pub const LEGACY_SETUP_SECS: usize = 7;\n+#[verus_verify]\n pub const LEGACY_SETUP_SEC_SIZE: usize = 0x200 * (LEGACY_SETUP_SECS + 1);\n \n+#[verus_verify]\n pub const SETUP32_LMA: usize = 0x100000;\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupVA {\n     addr: usize,\n }\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupFileOffset {\n     offset: usize,\n }\n \n+#[verus_verify]\n impl From<usize> for SetupVA {\n+    #[verus_spec(ret => ensures ret@ == addr)]\n     fn from(addr: usize) -> Self {\n         Self { addr }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for usize {\n+    #[verus_spec(returns va@)]\n     fn from(va: SetupVA) -> Self {\n         va.addr\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupVA {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.addr - rhs.addr\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupVA {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             addr: self.addr + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<usize> for SetupFileOffset {\n+    #[verus_spec(ret => ensures ret@ == offset)]\n     fn from(offset: usize) -> Self {\n         Self { offset }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupFileOffset> for usize {\n+    #[verus_spec(returns offset@)]\n     fn from(offset: SetupFileOffset) -> Self {\n         offset.offset\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupFileOffset {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.offset - rhs.offset\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupFileOffset {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             offset: self.offset + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for SetupFileOffset {\n+    #[verus_spec(ret =>\n+        ensures\n+            (SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va@ <= usize::MAX - LEGACY_SETUP_SEC_SIZE)\n+                ==> ret@ == va@ + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA,\n+    )]\n     fn from(va: SetupVA) -> Self {\n+        proof! {\n+            // TRUSTED: setup's linker.ld and header.S bound generated ELF VAs\n+            // on 64-bit hosts; ELF provenance and linking are unverified.\n+            assume(SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va.addr <= usize::MAX - LEGACY_SETUP_SEC_SIZE);\n+        }\n         Self {\n             offset: va.addr + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupFileOffset> for SetupVA {\n+    #[verus_spec(ret =>\n+        ensures\n+            offset@ <= usize::MAX - SETUP32_LMA",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Do we need this since we assume it in the body?",
+      "created_at": "2026-11-11T12:04:58Z",
+      "updated_at": "2026-11-11T12:05:03Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537640441",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537640441"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4537640441"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Do we need this since we assume it in the body?</p>",
+      "body_text": "Do we need this since we assume it in the body?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537640441/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 146,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 143,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537659277",
+      "pull_request_review_id": 5858445877,
+      "id": 4537659277,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDncvjQ",
+      "diff_hunk": "@@ -3,6 +3,19 @@\n //! And the addresses are specified in the ELF file.\n //!\n //! This module centralizes the conversion between VA and FileOffset.\n+//!\n+//! # Verified Properties",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Agree, but LLM keeps generating these annoying comments.\nMaybe we shall let skills DO NOT generate any of these properties?",
+      "created_at": "2026-11-11T12:07:02Z",
+      "updated_at": "2026-11-11T12:07:02Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537659277",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537659277"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4537659277"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Agree, but LLM keeps generating these annoying comments.<br>\nMaybe we shall let skills DO NOT generate any of these properties?</p>",
+      "body_text": "Agree, but LLM keeps generating these annoying comments.\nMaybe we shall let skills DO NOT generate any of these properties?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537659277/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 7,
+      "side": "RIGHT",
+      "in_reply_to_id": 4537619287,
+      "author_association": "COLLABORATOR",
+      "original_position": 5,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537808867",
+      "pull_request_review_id": 5858635450,
+      "id": 4537808867,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDnl34w",
+      "diff_hunk": "@@ -11,93 +24,211 @@ use std::{\n \n // We chose the legacy setup sections to be 7 so that the setup header\n // is page-aligned and the legacy setup section size would be 0x1000.\n+#[verus_verify]\n pub const LEGACY_SETUP_SECS: usize = 7;\n+#[verus_verify]\n pub const LEGACY_SETUP_SEC_SIZE: usize = 0x200 * (LEGACY_SETUP_SECS + 1);\n \n+#[verus_verify]\n pub const SETUP32_LMA: usize = 0x100000;\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupVA {\n     addr: usize,\n }\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupFileOffset {\n     offset: usize,\n }\n \n+#[verus_verify]\n impl From<usize> for SetupVA {\n+    #[verus_spec(ret => ensures ret@ == addr)]\n     fn from(addr: usize) -> Self {\n         Self { addr }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for usize {\n+    #[verus_spec(returns va@)]\n     fn from(va: SetupVA) -> Self {\n         va.addr\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupVA {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.addr - rhs.addr\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupVA {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             addr: self.addr + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<usize> for SetupFileOffset {\n+    #[verus_spec(ret => ensures ret@ == offset)]\n     fn from(offset: usize) -> Self {\n         Self { offset }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupFileOffset> for usize {\n+    #[verus_spec(returns offset@)]\n     fn from(offset: SetupFileOffset) -> Self {\n         offset.offset\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupFileOffset {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.offset - rhs.offset\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupFileOffset {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             offset: self.offset + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for SetupFileOffset {\n+    #[verus_spec(ret =>\n+        ensures\n+            (SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va@ <= usize::MAX - LEGACY_SETUP_SEC_SIZE)",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "BTW, is this assumption reasonable?",
+      "created_at": "2026-11-11T12:22:55Z",
+      "updated_at": "2026-11-11T12:22:55Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4537808867",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537808867"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4537808867"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<p dir=\"auto\">BTW, is this assumption reasonable?</p>",
+      "body_text": "BTW, is this assumption reasonable?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4537808867/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 127,
+      "side": "RIGHT",
+      "in_reply_to_id": 4537637739,
+      "author_association": "COLLABORATOR",
+      "original_position": 124,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4538003899",
+      "pull_request_review_id": 5858882169,
+      "id": 4538003899,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDnxxuw",
+      "diff_hunk": "@@ -11,93 +24,211 @@ use std::{\n \n // We chose the legacy setup sections to be 7 so that the setup header\n // is page-aligned and the legacy setup section size would be 0x1000.\n+#[verus_verify]\n pub const LEGACY_SETUP_SECS: usize = 7;\n+#[verus_verify]\n pub const LEGACY_SETUP_SEC_SIZE: usize = 0x200 * (LEGACY_SETUP_SECS + 1);\n \n+#[verus_verify]\n pub const SETUP32_LMA: usize = 0x100000;\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupVA {\n     addr: usize,\n }\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupFileOffset {\n     offset: usize,\n }\n \n+#[verus_verify]\n impl From<usize> for SetupVA {\n+    #[verus_spec(ret => ensures ret@ == addr)]\n     fn from(addr: usize) -> Self {\n         Self { addr }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for usize {\n+    #[verus_spec(returns va@)]\n     fn from(va: SetupVA) -> Self {\n         va.addr\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupVA {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.addr - rhs.addr\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupVA {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             addr: self.addr + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<usize> for SetupFileOffset {\n+    #[verus_spec(ret => ensures ret@ == offset)]\n     fn from(offset: usize) -> Self {\n         Self { offset }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupFileOffset> for usize {\n+    #[verus_spec(returns offset@)]\n     fn from(offset: SetupFileOffset) -> Self {\n         offset.offset\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupFileOffset {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.offset - rhs.offset\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupFileOffset {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             offset: self.offset + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for SetupFileOffset {\n+    #[verus_spec(ret =>\n+        ensures\n+            (SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va@ <= usize::MAX - LEGACY_SETUP_SEC_SIZE)",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "lifetruthuu",
+        "id": 194752959,
+        "node_id": "U_kgDOC5uxvw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/194752959?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/lifetruthuu",
+        "html_url": "https://github.com/lifetruthuu",
+        "followers_url": "https://api.github.com/users/lifetruthuu/followers",
+        "following_url": "https://api.github.com/users/lifetruthuu/following{/other_user}",
+        "gists_url": "https://api.github.com/users/lifetruthuu/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/lifetruthuu/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/lifetruthuu/subscriptions",
+        "organizations_url": "https://api.github.com/users/lifetruthuu/orgs",
+        "repos_url": "https://api.github.com/users/lifetruthuu/repos",
+        "events_url": "https://api.github.com/users/lifetruthuu/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/lifetruthuu/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "The assumption holds for the setup ELF produced by the normal build pipeline. Both callers obtain `va` from its segment addresses. The linker script places the header at `0xff000` and text at `0x100000`. ELF32 addresses fit in `u32`; for ELF64, the checked `R_X86_64_32` relocation for `__executable_size` bounds the successfully linked image size. On the supported 64-bit host, these addresses satisfy the assumed range.",
+      "created_at": "2026-11-11T12:43:22Z",
+      "updated_at": "2026-11-11T12:43:23Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4538003899",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4538003899"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4538003899"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<p dir=\"auto\">The assumption holds for the setup ELF produced by the normal build pipeline. Both callers obtain <code class=\"notranslate\">va</code> from its segment addresses. The linker script places the header at <code class=\"notranslate\">0xff000</code> and text at <code class=\"notranslate\">0x100000</code>. ELF32 addresses fit in <code class=\"notranslate\">u32</code>; for ELF64, the checked <code class=\"notranslate\">R_X86_64_32</code> relocation for <code class=\"notranslate\">__executable_size</code> bounds the successfully linked image size. On the supported 64-bit host, these addresses satisfy the assumed range.</p>",
+      "body_text": "The assumption holds for the setup ELF produced by the normal build pipeline. Both callers obtain va from its segment addresses. The linker script places the header at 0xff000 and text at 0x100000. ELF32 addresses fit in u32; for ELF64, the checked R_X86_64_32 relocation for __executable_size bounds the successfully linked image size. On the supported 64-bit host, these addresses satisfy the assumed range.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4538003899/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 127,
+      "side": "RIGHT",
+      "in_reply_to_id": 4537637739,
+      "author_association": "CONTRIBUTOR",
+      "original_position": 124,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4540618810",
+      "pull_request_review_id": 5862172703,
+      "id": 4540618810,
+      "node_id": "PRRC_kwDONtWm_c8AAAABDqRYOg",
+      "diff_hunk": "@@ -11,93 +24,211 @@ use std::{\n \n // We chose the legacy setup sections to be 7 so that the setup header\n // is page-aligned and the legacy setup section size would be 0x1000.\n+#[verus_verify]\n pub const LEGACY_SETUP_SECS: usize = 7;\n+#[verus_verify]\n pub const LEGACY_SETUP_SEC_SIZE: usize = 0x200 * (LEGACY_SETUP_SECS + 1);\n \n+#[verus_verify]\n pub const SETUP32_LMA: usize = 0x100000;\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupVA {\n     addr: usize,\n }\n \n+#[verus_verify]\n #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]\n pub struct SetupFileOffset {\n     offset: usize,\n }\n \n+#[verus_verify]\n impl From<usize> for SetupVA {\n+    #[verus_spec(ret => ensures ret@ == addr)]\n     fn from(addr: usize) -> Self {\n         Self { addr }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for usize {\n+    #[verus_spec(returns va@)]\n     fn from(va: SetupVA) -> Self {\n         va.addr\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupVA {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.addr - rhs.addr\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupVA {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             addr: self.addr + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<usize> for SetupFileOffset {\n+    #[verus_spec(ret => ensures ret@ == offset)]\n     fn from(offset: usize) -> Self {\n         Self { offset }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupFileOffset> for usize {\n+    #[verus_spec(returns offset@)]\n     fn from(offset: SetupFileOffset) -> Self {\n         offset.offset\n     }\n }\n \n+#[verus_verify]\n impl Sub for SetupFileOffset {\n     type Output = usize;\n \n+    #[verus_spec(returns (self@ - rhs@) as usize)]\n     fn sub(self, rhs: Self) -> Self::Output {\n         self.offset - rhs.offset\n     }\n }\n \n+#[verus_verify]\n impl Add<usize> for SetupFileOffset {\n     type Output = Self;\n \n+    #[verus_spec(ret => ensures ret@ == self@ + rhs)]\n     fn add(self, rhs: usize) -> Self::Output {\n         Self {\n             offset: self.offset + rhs,\n         }\n     }\n }\n \n+#[verus_verify]\n impl From<SetupVA> for SetupFileOffset {\n+    #[verus_spec(ret =>\n+        ensures\n+            (SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= va@ <= usize::MAX - LEGACY_SETUP_SEC_SIZE)",
+      "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+      "commit_id": "de999286532a2a028279793075280baaf57662bb",
+      "original_commit_id": "7a42b67bb385417f3906765513485ff3e36c1346",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "> BTW, is this assumption reasonable?\n\nViolating the assumption would require a specially crafted or malformed image, which should not occur in the normal workflow.",
+      "created_at": "2026-11-11T16:41:22Z",
+      "updated_at": "2026-11-11T16:41:22Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/915#discussion_r4540618810",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/915",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4540618810"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/915#discussion_r4540618810"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/915"
+        }
+      },
+      "body_html": "<blockquote>\n<p dir=\"auto\">BTW, is this assumption reasonable?</p>\n</blockquote>\n<p dir=\"auto\">Violating the assumption would require a specially crafted or malformed image, which should not occur in the normal workflow.</p>",
+      "body_text": "BTW, is this assumption reasonable?\n\nViolating the assumption would require a specially crafted or malformed image, which should not occur in the normal workflow.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4540618810/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 127,
+      "side": "RIGHT",
+      "in_reply_to_id": 4537637739,
+      "author_association": "COLLABORATOR",
+      "original_position": 124,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

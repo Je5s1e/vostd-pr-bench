@@ -1,0 +1,187 @@
+From 7b2dc586f7fed23c43ec2a27a4da2496fa4d726e Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Wed, 16 Sep 2026 16:16:28 +0800
+Subject: [PATCH 1/2] docs(coding-guidelines): add avoid-redundant-as-int-casts
+ guideline
+
+---
+ docs/coding-guidelines/README.md            |  1 +
+ docs/coding-guidelines/maintainability.md   | 40 +++++++++++++++++++++
+ docs/coding-guidelines/proof-engineering.md | 30 ++++++++++++++--
+ 3 files changed, 68 insertions(+), 3 deletions(-)
+
+diff --git a/docs/coding-guidelines/README.md b/docs/coding-guidelines/README.md
+index 58059ed1c..64f106162 100644
+--- a/docs/coding-guidelines/README.md
++++ b/docs/coding-guidelines/README.md
+@@ -25,6 +25,7 @@ Reference guidelines in reviews by their stable kebab-case names.
+ - [`separate-verus-modes`](maintainability.md#separate-verus-modes) — keep executable code, specifications, and proofs visually distinct.
+ - [`use-chained-comparisons`](maintainability.md#use-chained-comparisons) — express contiguous bounds as one logically equivalent chained comparison.
+ - [`use-returns-for-exact-results`](maintainability.md#use-returns-for-exact-results) — express exact return values with `returns` and remove unused return binders.
++- [`avoid-redundant-as-int-casts`](maintainability.md#avoid-redundant-as-int-casts) — drop `as int` where Verus auto-coerces comparisons and arithmetic, but keep it at spec `int` parameters and standalone `/` divisors.
+ - [`organize-proof-imports`](maintainability.md#organize-proof-imports) — import proof symbols concisely while keeping proof-only dependencies visible and `reveal` calls minimal.
+ - [`group-imports-by-crate`](maintainability.md#group-imports-by-crate) — combine definitions imported from the same crate into one `use` group.
+ - [`bind-option-payloads`](maintainability.md#bind-option-payloads) — bind a shared `Some` payload once instead of repeating implications and projections.
+diff --git a/docs/coding-guidelines/maintainability.md b/docs/coding-guidelines/maintainability.md
+index 9e75bb846..fb858cd1c 100644
+--- a/docs/coding-guidelines/maintainability.md
++++ b/docs/coding-guidelines/maintainability.md
+@@ -47,6 +47,46 @@ See also: PR [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3940
+ [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3946322891), and
+ [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3947067359).
+ 
++### Avoid redundant `as int` casts
++
++<!-- guideline: avoid-redundant-as-int-casts -->
++
++Drop `as int` where Verus auto-coerces integer types in ghost code, but keep it
++where a coercion is genuinely required. Rely on Verus, then keep exactly the
++casts the compiler asks for, rather than casting defensively everywhere or
++stripping blindly — both create review friction.
++
++Verus compares values of different integer types in ghost code directly, and
++the same auto-coercion reaches `*`, `+`, `-` once any operand or literal is
++`int`/`nat` (see the [Verus integer guide](../../tools/verus/source/docs/guide/src/integers.md)
++on comparisons and `as` coercion). So these casts are redundant:
++
++```rust
++// Prefer this:
++len == smallvec_view(v).len(),
++2 * new_len * size_of::<A::Item>() <= isize::MAX,
++r == (self_ + rhs - 1) / (rhs as int),
++
++// Over this:
++(len as int) == smallvec_view(v).len(),
++2 * (new_len as int) * (size_of::<A::Item>() as int) <= isize::MAX as int,
++(r as int) == ((self_ as int) + (rhs as int) - 1) / (rhs as int),
++```
++
++Keep `as int` where Verus does not auto-coerce; `E0308` names the operand that
++still needs it:
++
++- A `usize`/`nat` argument to a spec function's `int` parameter. The call site
++  inserts no coercion, so `Seq::subrange(0, new_len)` and
++  `Seq::subrange(0, seq.len())` need `new_len as int` and `seq.len() as int`
++  (`Seq::len` returns `nat`; `subrange`'s bounds are `int`).
++- A standalone `/` divisor: once the dividend is `int`, `/` expects an `int`
++  divisor, so write `(self_ + rhs - 1) / (rhs as int)`, not `/ rhs`.
++- A narrowing cast whose target may not hold the value (e.g. `as usize` from a
++  sequence's `nat` length), where the cast is the point of the expression.
++
++See also: PR [#770](https://github.com/asterinas/vostd/pull/770#discussion_r4023112584).
++
+ ### Organize proof imports
+ 
+ <!-- guideline: organize-proof-imports -->
+diff --git a/docs/coding-guidelines/proof-engineering.md b/docs/coding-guidelines/proof-engineering.md
+index 46babf699..76b9bc9b7 100644
+--- a/docs/coding-guidelines/proof-engineering.md
++++ b/docs/coding-guidelines/proof-engineering.md
+@@ -16,8 +16,31 @@ For example, a `BTreeMap::get_mut` model must preserve entries other than the
+ selected key and must express the documented compatibility between the stored
+ key ordering and borrowed-key ordering. Exclude documented panic conditions with
+ explicit preconditions, such as capacity or index bounds, rather than merely
+-marking the operation `may_panic`. Do not claim `no_unwind` while a panic remains
+-possible under the preconditions.
++marking the operation `may_panic`. `no_unwind` asserts that the modeled function
++never unwinds — an unconditional claim, not one gated by the `requires` clause
++(see the [Verus unwinding-signature reference](../../tools/verus/source/docs/guide/src/reference-unwind-sig.md)).
++A function with a real panic path, such as `usize::div_ceil` on a zero divisor,
++must not carry bare `no_unwind`, even when a `requires` clause excludes the
++panicking input: the precondition restricts callers, it does not make the external
++function panic-free. Model the no-panic regime faithfully with
++`no_unwind when <precondition>` — giving callers the guarantee exactly where
++`requires` holds — or omit `no_unwind` when no caller needs it.
++
++```rust
++// Never panics: bare `no_unwind` is faithful.
++pub assume_specification[ usize::is_power_of_two ](self_: usize) -> (r: bool)
++    returns is_pow2(self_ as int)
++    opens_invariants none
++    no_unwind;
++
++// Panics on rhs == 0: no bare `no_unwind`, even though `requires rhs > 0`
++// excludes it. Model the no-panic regime faithfully with `no_unwind when rhs > 0`.
++pub assume_specification[ usize::div_ceil ](self_: usize, rhs: usize) -> (r: usize)
++    requires rhs > 0
++    ensures r == (self_ + rhs - 1) / (rhs as int)
++    opens_invariants none
++    no_unwind when rhs > 0;
++```
+ 
+ Mirror the standard library's evaluation semantics in adapter contracts. For
+ closure-driven adapters such as `Iterator::filter` and `map`, the closure runs
+@@ -40,7 +63,8 @@ See also: PR [#699](https://github.com/asterinas/vostd/pull/699#discussion_r3747
+ [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3946394200),
+ [#718](https://github.com/asterinas/vostd/pull/718#discussion_r3831831025),
+ [#718](https://github.com/asterinas/vostd/pull/718#discussion_r3831836346),
+-and [#718](https://github.com/asterinas/vostd/pull/718#issuecomment-5390400295).
++[#718](https://github.com/asterinas/vostd/pull/718#issuecomment-5390400295),
++and [#770](https://github.com/asterinas/vostd/pull/770#discussion_r4023000538).
+ 
+ ### Centralize trusted boundaries
+ 
+
+From df573da0411d736f26581c95f6b504fcdea292cf Mon Sep 17 00:00:00 2001
+From: Marsman1996 <lqliuyuwei@outlook.com>
+Date: Wed, 16 Sep 2026 19:26:27 +0800
+Subject: [PATCH 2/2] refine
+
+---
+ docs/coding-guidelines/maintainability.md   |  9 +++++----
+ docs/coding-guidelines/proof-engineering.md | 14 ++++++++------
+ 2 files changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/docs/coding-guidelines/maintainability.md b/docs/coding-guidelines/maintainability.md
+index fb858cd1c..b135b22d7 100644
+--- a/docs/coding-guidelines/maintainability.md
++++ b/docs/coding-guidelines/maintainability.md
+@@ -35,8 +35,8 @@ form a chain.
+ <!-- guideline: use-returns-for-exact-results -->
+ 
+ Use `returns expr` for an exact return value and `ensures` for other result or
+-state properties. Omit unused named return binders and unit return declarations
+-such as `-> (ret: ())`.
++state properties. This also applies to `assume_specification`. Omit unused named
++return binders and unit return declarations such as `-> (ret: ())`.
+ 
+ The expression must match the return type. Keep required casts, such as
+ `as usize` for a sequence's `nat` length, and justify that the value fits.
+@@ -44,8 +44,9 @@ The expression must match the return type. Keep required casts, such as
+ See also: PR [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3940933539),
+ [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3946290469),
+ [#742](https://github.com/asterinas/vostd/pull/742#discussion_r3946316792),
+-[#742](https://github.com/asterinas/vostd/pull/742#discussion_r3946322891), and
+-[#742](https://github.com/asterinas/vostd/pull/742#discussion_r3947067359).
++[#742](https://github.com/asterinas/vostd/pull/742#discussion_r3946322891),
++[#742](https://github.com/asterinas/vostd/pull/742#discussion_r3947067359), and
++[#770](https://github.com/asterinas/vostd/pull/770#discussion_r4023879416).
+ 
+ ### Avoid redundant `as int` casts
+ 
+diff --git a/docs/coding-guidelines/proof-engineering.md b/docs/coding-guidelines/proof-engineering.md
+index 76b9bc9b7..3fb773afc 100644
+--- a/docs/coding-guidelines/proof-engineering.md
++++ b/docs/coding-guidelines/proof-engineering.md
+@@ -33,13 +33,15 @@ pub assume_specification[ usize::is_power_of_two ](self_: usize) -> (r: bool)
+     opens_invariants none
+     no_unwind;
+ 
+-// Panics on rhs == 0: no bare `no_unwind`, even though `requires rhs > 0`
+-// excludes it. Model the no-panic regime faithfully with `no_unwind when rhs > 0`.
+-pub assume_specification[ usize::div_ceil ](self_: usize, rhs: usize) -> (r: usize)
+-    requires rhs > 0
+-    ensures r == (self_ + rhs - 1) / (rhs as int)
++/// `usize::div_ceil` panics if `rhs` is zero; the precondition excludes that case.
++pub assume_specification[ usize::div_ceil ](self_: usize, rhs: usize) -> usize
++    requires
++        rhs > 0,
++    returns
++        ((self_ + rhs - 1) / (rhs as int)) as usize,
+     opens_invariants none
+-    no_unwind when rhs > 0;
++    no_unwind when rhs > 0
++;
+ ```
+ 
+ Mirror the standard library's evaluation semantics in adapter contracts. For

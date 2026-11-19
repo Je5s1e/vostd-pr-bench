@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-518-4cb9ee7caa9e",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-518-4cb9ee7caa9e:review-comment-3402027390",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The non-optional `Rcu` type exposes a `new_none` constructor that creates a nullable inner value, contradicting the type's non-null read semantics.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/mod.rs",
+          "start_line": 730,
+          "end_line": 737
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/mod.rs",
+          "start_line": 1085,
+          "end_line": 1089
+        }
+      ],
+      "rationale": "`RcuInner::new_none` records `ghost_nullable == true` and holds a null pointer, but `Rcu` is the non-optional wrapper: its read guard invariant requires a non-nullable inner and its read API yields a non-optional reference. This selected predecessor both exposes `Rcu::new_none` and drops `!self.0.is_nullable()` from `Rcu`'s type invariant, so callers can construct a null value through a type whose public semantics do not permit null. The reviewer explicitly identifies this as potentially unsound and says nullable construction belongs to `RcuOption`. The next commit restores the non-null invariant and disables the constructor, directly confirming the repair.",
+      "source_evidence": "after/ostd/src/sync/rcu/mod.rs\n730: impl<P: NonNullPtr + Send> Rcu<P> {\n731:     /// Creates a new RCU primitive that contains nothing.\n735:     pub const fn new_none() -> Self {\n736:         Self(RcuInner::new_none())\n\nafter/ostd/src/sync/rcu/mod.rs\n1085: impl<P: NonNullPtr> Rcu<P> {\n1087:     closed spec fn type_inv(self) -> bool {\n1088:         &&& self.0.type_inv()\n1089:     }",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/515#discussion_r3402027390",
+      "related_comment_ids": [
+        "3402027390"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3402027390",
+          "url": "https://github.com/asterinas/vostd/pull/515#discussion_r3402027390",
+          "commit_id": "34eed1fc77c19a88872eab505bbf7983dafe7357"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Independently checked the official predecessor and repair Git objects, the nullable inner constructor, the `Rcu` and read-guard invariants, the complete linked PR #515 review thread, and the immediate fix commit."
+    }
+  ]
+}

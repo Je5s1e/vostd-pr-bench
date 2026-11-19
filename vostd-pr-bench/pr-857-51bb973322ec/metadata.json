@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-857-51bb973322ec",
+  "pr_number": 857,
+  "title": "fix: guard unmap bounds and reduce proof assumptions",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/857",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "18aea7a127610ad471325235b85395afe82710da",
+  "head_sha": "51bb973322ec9f9f9876cc5ffc721b9829497d76",
+  "base_method": "git merge-base(archived base_sha acd94a702714e593bfe9c4af383337b8f9aaedbb, original review commit 51bb973322ec9f9f9876cc5ffc721b9829497d76); result 18aea7a127610ad471325235b85395afe82710da",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/src/mm/vm_space.rs",
+    "ostd/src/sync/wait.rs"
+  ],
+  "diff_sha256": "c5aaaade948d7d7cc19d937b332d009b3e5bbe3cf28d6c6276b2b7ba60e57705",
+  "versions": {
+    "before": {
+      "commit": "18aea7a127610ad471325235b85395afe82710da",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "51bb973322ec9f9f9876cc5ffc721b9829497d76",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "6637e8653c11f7cac75f8eda850daca48c6d8310",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "archive_state": "OPEN",
+  "collection": {
+    "collected_at": "2026-11-18T12:05:43.219958+00:00",
+    "reviewed_at": "2026-10-24T13:56:56Z",
+    "upstream_updated_at": "2026-11-03T03:31:27Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/857",
+      "https://github.com/asterinas/vostd/pull/857#discussion_r4367334205",
+      "https://github.com/asterinas/vostd/pull/857#discussion_r4373608996",
+      "https://github.com/asterinas/vostd/pull/857#discussion_r4367336013",
+      "https://github.com/asterinas/vostd/pull/857#discussion_r4373605334",
+      "https://github.com/asterinas/vostd/pull/857#issuecomment-6519863536",
+      "https://github.com/asterinas/vostd/pull/857#issuecomment-6520458450"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00857"
+  }
+}

@@ -1,0 +1,506 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/656",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 656,
+    "title": "Prove MM embedding ownership helper axioms",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/656",
+    "state": "MERGED",
+    "createdAt": "2026-07-20T04:53:28Z",
+    "updatedAt": "2026-07-22T03:24:10Z",
+    "closedAt": "2026-07-20T07:19:00Z",
+    "mergedAt": "2026-07-20T07:19:00Z",
+    "author": {
+      "login": "DID-Lab-SZU"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "06065eb24a2b7e8a54bcf1983a4456fbf5d2402c",
+    "headRefName": "proof/mm-embedding-ownership-axioms",
+    "headRefOid": "800b03e59c213878cd5637d3a8dc10cb9ca3de61",
+    "changedFiles": 3,
+    "additions": 26,
+    "deletions": 34,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0wNy0yMFQwNzoxODo1NFq0MjAyNi0wNy0yMFQwNzoxODo1NFrPAAAAARoZQ7w="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c8AAAABGhV68A",
+          "databaseId": 4732582640,
+          "body": "",
+          "bodyHTML": "",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-07-20T06:30:24Z",
+          "createdAt": "2026-07-20T06:29:45Z",
+          "updatedAt": "2026-07-20T06:30:24Z",
+          "url": "https://github.com/asterinas/vostd/pull/656#pullrequestreview-4732582640",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABGhlDvA",
+          "databaseId": 4732830652,
+          "body": "LGTM, thanks for your contributions!",
+          "bodyHTML": "<p dir=\"auto\">LGTM, thanks for your contributions!</p>",
+          "state": "APPROVED",
+          "submittedAt": "2026-07-20T07:18:54Z",
+          "createdAt": "2026-07-20T07:18:54Z",
+          "updatedAt": "2026-07-20T07:18:54Z",
+          "url": "https://github.com/asterinas/vostd/pull/656#pullrequestreview-4732830652",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0wNy0yMFQwNjozMDowOFrOkijH5A=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c6SKMR0",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/specs/mm/embedding/io.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 155,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "DID-Lab-SZU"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 3612378541
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c6SKMfk",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/specs/mm/embedding/io.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 167,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "DID-Lab-SZU"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 3612379800
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 3,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Mw"
+      },
+      "nodes": [
+        {
+          "path": "ostd/specs/mm/embedding/cursor.rs",
+          "additions": 15,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/embedding/io.rs",
+          "additions": 2,
+          "deletions": 25,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/embedding/mod.rs",
+          "additions": 9,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5019089808",
+      "html_url": "https://github.com/asterinas/vostd/pull/656#issuecomment-5019089808",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/656",
+      "id": 5019089808,
+      "node_id": "IC_kwDONtWm_c8AAAABKyk7kA",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-07-20T05:31:56Z",
+      "updated_at": "2026-07-20T05:31:56Z",
+      "body_html": "<p dir=\"auto\">Please also mark CursorKind as ghost struct.</p>",
+      "body_text": "Please also mark CursorKind as ghost struct.",
+      "body": "Please also mark CursorKind as ghost struct.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/5019089808/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3612378541",
+      "pull_request_review_id": 4732582640,
+      "id": 3612378541,
+      "node_id": "PRRC_kwDONtWm_c7XUIWt",
+      "diff_hunk": "@@ -152,24 +152,26 @@ pub axiom fn vm_reader_read_embedded(\n ///\n /// Exec only mutates the handle's `end` field (no owner mutation), so\n /// owner state is fully preserved.\n-pub axiom fn vm_reader_limit_embedded(tracked owner: &mut VmIoOwner, max_remain: usize)\n+pub proof fn lemma_vm_reader_limit_embedded(tracked owner: &mut VmIoOwner, max_remain: usize)",
+      "path": "ostd/specs/mm/embedding/io.rs",
+      "commit_id": "96e04e705b5d1a6932391f22352d12a979ec2ee2",
+      "original_commit_id": "96e04e705b5d1a6932391f22352d12a979ec2ee2",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Maybe this lemma can be deleted? It does not seem to do anything.",
+      "created_at": "2026-07-20T06:29:45Z",
+      "updated_at": "2026-07-20T06:30:24Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/656#discussion_r3612378541",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/656",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3612378541"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/656#discussion_r3612378541"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/656"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Maybe this lemma can be deleted? It does not seem to do anything.</p>",
+      "body_text": "Maybe this lemma can be deleted? It does not seem to do anything.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3612378541/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 155,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 5,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3612379800",
+      "pull_request_review_id": 4732582640,
+      "id": 3612379800,
+      "node_id": "PRRC_kwDONtWm_c7XUIqY",
+      "diff_hunk": "@@ -152,24 +152,26 @@ pub axiom fn vm_reader_read_embedded(\n ///\n /// Exec only mutates the handle's `end` field (no owner mutation), so\n /// owner state is fully preserved.\n-pub axiom fn vm_reader_limit_embedded(tracked owner: &mut VmIoOwner, max_remain: usize)\n+pub proof fn lemma_vm_reader_limit_embedded(tracked owner: &mut VmIoOwner, max_remain: usize)\n     requires\n         old(owner).inv(),\n     ensures\n         final(owner).inv(),\n         *final(owner) == *old(owner),\n-;\n+{\n+}\n \n /// Mirror of [`crate::mm::io::VmReader::skip`].\n ///\n /// Exec only mutates the handle's `cursor` field (no owner mutation).\n-pub axiom fn vm_reader_skip_embedded(tracked owner: &mut VmIoOwner, nbytes: usize)\n+pub proof fn lemma_vm_reader_skip_embedded(tracked owner: &mut VmIoOwner, nbytes: usize)",
+      "path": "ostd/specs/mm/embedding/io.rs",
+      "commit_id": "96e04e705b5d1a6932391f22352d12a979ec2ee2",
+      "original_commit_id": "96e04e705b5d1a6932391f22352d12a979ec2ee2",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This one also does nothing.",
+      "created_at": "2026-07-20T06:30:08Z",
+      "updated_at": "2026-07-20T06:30:24Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/656#discussion_r3612379800",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/656",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3612379800"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/656#discussion_r3612379800"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/656"
+        }
+      },
+      "body_html": "<p dir=\"auto\">This one also does nothing.</p>",
+      "body_text": "This one also does nothing.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3612379800/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 167,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 19,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

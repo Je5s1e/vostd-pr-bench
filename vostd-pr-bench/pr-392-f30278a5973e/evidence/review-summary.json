@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 14,
+  "inline_review_comment_count": 8,
+  "review_count": 3,
+  "core_lesson": "验证适配不能悄悄移除 Rust 的 unsafe 调用边界",
+  "category": "可信边界",
+  "all_content_unadjudicated": true
+}

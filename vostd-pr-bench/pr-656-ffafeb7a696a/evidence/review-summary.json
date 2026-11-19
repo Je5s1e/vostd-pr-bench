@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 1,
+  "inline_review_comment_count": 2,
+  "review_count": 2,
+  "core_lesson": "抽象状态未变化的操作，不必保留一层无效果的可信包装",
+  "category": "规约与模型",
+  "all_content_unadjudicated": true
+}

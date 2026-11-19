@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-920-1358fc9ae842",
+  "pr_number": 920,
+  "title": "prove: Verify x86 AVX feature detection",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/920",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "30581d3014f3ddf537d406f997ddc3abe416b514",
+  "head_sha": "1358fc9ae84204e358d2da999325216af850c2c2",
+  "base_method": "git merge-base(archived base_sha 30581d3014f3ddf537d406f997ddc3abe416b514, original review commit 1358fc9ae84204e358d2da999325216af850c2c2); result 30581d3014f3ddf537d406f997ddc3abe416b514",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/mod.rs",
+    "verified_libs/vstd_extra/src/external/x86.rs"
+  ],
+  "diff_sha256": "d10289a11ae2103595fae79cd022c3bf07471154b389f371bc535c9a77ddffbe",
+  "versions": {
+    "before": {
+      "commit": "30581d3014f3ddf537d406f997ddc3abe416b514",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "1358fc9ae84204e358d2da999325216af850c2c2",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "OPEN",
+  "collection": {
+    "collected_at": "2026-11-18T13:20:54.785940+00:00",
+    "reviewed_at": "2026-11-18T02:07:16Z",
+    "upstream_updated_at": "2026-11-18T08:29:51Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/920",
+      "https://github.com/asterinas/vostd/pull/920#discussion_r4608327322",
+      "https://github.com/asterinas/vostd/pull/920#discussion_r4608334937",
+      "https://github.com/asterinas/vostd/pull/920#discussion_r4608336438"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      },
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/proof-engineering.md#centralize-trusted-boundaries"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00920"
+  }
+}

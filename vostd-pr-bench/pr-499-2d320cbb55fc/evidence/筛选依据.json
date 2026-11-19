@@ -1,0 +1,65 @@
+{
+  "number": 499,
+  "title": "fix: `arch::mm::PageTableEntry` overhaul",
+  "selected": true,
+  "category": "正文或讨论涉及验证",
+  "evidence": [
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/499#issuecomment-4658920663",
+      "excerpt": "ng`. - Refine the properties in `PageTableEntryTrait`. - Use and prove the correct source code in `src/arch/x86/mm`.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/x86_64/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/x86_64/page_table_entry.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/arch/x86_64/page_table_flags.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/node/entry_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/virt_mem.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "verified_libs/verified_bitflags/src/lib.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "verified_libs/vstd_extra/src/bit_mapping.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "verified_libs/vstd_extra/src/lib.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "verified_libs/vstd_extra/src/prelude.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "s; pub use page_table_entry::*; pub use page_table_flags::*; use vstd::prelude::*; use vstd::raw_ptr::*; use core::fmt::Debug; use vstd_extra::prelude::*; use super::*; use crate::mm::{ page_prop::{CachePolicy, Pag",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 11
+}

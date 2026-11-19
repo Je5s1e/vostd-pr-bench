@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-492-e7a37a7d7080",
+  "pr_number": 492,
+  "title": "fix: trigger warnings and delete remaining old files",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/492",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "825aa30410aa60d205ef484756fa8f9b167afc05",
+  "head_sha": "e7a37a7d708026cb6b0321df32c611613ce6bfaf",
+  "base_method": "The archived PR base 825aa30410aa60d205ef484756fa8f9b167afc05 is an ancestor of the selected historical review head; git merge-base(825aa30410aa60d205ef484756fa8f9b167afc05, e7a37a7d708026cb6b0321df32c611613ce6bfaf) returned that same base.",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "verified_bitflags/src/lib.rs"
+  ],
+  "diff_sha256": "673eb92479e2409e95cfaa395d8a8bc5069e35b79066286d87ceed7d60f07f35",
+  "versions": {
+    "before": {
+      "commit": "825aa30410aa60d205ef484756fa8f9b167afc05",
+      "file_count": 331,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "bdf3997cc866fd9a2eac0f73af230e14b84f2add",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "e7a37a7d708026cb6b0321df32c611613ce6bfaf",
+      "file_count": 331,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "bdf3997cc866fd9a2eac0f73af230e14b84f2add",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-18T11:46:18Z",
+    "reviewed_at": "2026-06-02T08:02:35Z",
+    "upstream_updated_at": "2026-06-02T08:34:44Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/492",
+      "https://github.com/asterinas/vostd/commit/e7a37a7d708026cb6b0321df32c611613ce6bfaf",
+      "https://github.com/asterinas/vostd/pull/492#discussion_r3339106905",
+      "https://github.com/asterinas/vostd/pull/492#discussion_r3339204060",
+      "https://github.com/asterinas/vostd/pull/492#discussion_r3339110119",
+      "https://github.com/asterinas/vostd/pull/492#pullrequestreview-4407721645"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "af3406cffc8500b06116606fc17c86d7d5d13c44",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/af3406cffc8500b06116606fc17c86d7d5d13c44/docs/coding-guidelines/maintainability.md#avoid-redundant-mode-markers"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00492"
+  }
+}

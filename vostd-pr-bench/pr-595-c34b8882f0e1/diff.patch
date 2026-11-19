@@ -1,0 +1,80 @@
+diff --git a/Makefile b/Makefile
+index 72a72b2f09da22f27f980203fdaa75e63de7cbf8..9cb8115d426a36cdd1c065c94e06504a6ee33fa7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -3,7 +3,7 @@
+ VERIFICATION_TARGETS := \
+ 	ostd \
+ 
+-.PHONY: all verify $(VERIFICATION_TARGETS) fmt clean verus update
++.PHONY: all verify $(VERIFICATION_TARGETS) fmt clean verus verus-upgrade
+ 
+ $(VERIFICATION_TARGETS):
+ 	cargo dv verify --targets $@
+@@ -19,8 +19,11 @@ fmt:
+ doc: verify
+ 	cargo dv doc --target ostd
+ 
+-verus update:
+-	cargo dv bootstrap $(if $(filter update,$@),--upgrade,)
++verus:
++	cargo dv bootstrap
++
++verus-upgrade:
++	cargo dv bootstrap --upgrade
+ 
+ clean:
+ 	cargo clean
+diff --git a/README.md b/README.md
+index 79b188092103a8aa70e7ff5ce70ce41708933280..6e80ec4ab59e98f5936f7695622088826f5c468c 100644
+--- a/README.md
++++ b/README.md
+@@ -65,24 +65,25 @@ make
+ or
+ 
+ ```bash
+-cargo dv verify --targets ostd
++cargo dv verify
+ ```
+ 
+-The `ostd` crate relies on a verified library: `vstd_extra`. To compile and verify the library independently, run:
++To verify only `ostd`, run:
+ 
+ ```bash
+-cargo dv compile --targets vstd_extra
++cargo dv verify --targets ostd
+ ```
+ 
+-### Clean Build Artifacts
+-
+-`dv` automatically skips recompilation and reverification for libraries that have not changed since the last build. To remove the build artifact of a particular library and force a fresh build, run:
++The `ostd` crate relies on a verified library: `vstd_extra`. To build it
++independently through `cargo-verus build`, run:
+ 
+ ```bash
+-cargo dv clean --targets vstd_extra
++cargo dv compile --targets vstd_extra
+ ```
+ 
+-To clean all artifacts at once, run:
++### Clean Build Artifacts
++
++`cargo verus` automatically skips recompilation and reverification for libraries that have not changed since the last build. To remove the build artifact force a fresh build, run:
+ 
+ ```bash
+ make clean
+@@ -127,6 +128,6 @@ We welcome your contributions!
+ 
+ ### Tips
+ 
+-- During your development process, please frequently run `make verus update` or `cargo dv bootstrap --upgrade` to stay up-to-date with the [latest supported version](https://github.com/asterinas/verus) of Verus.
++- During your development process, please frequently run `make verus-upgrade` or `cargo dv bootstrap --upgrade` to stay up-to-date with the [latest supported version](https://github.com/asterinas/verus) of Verus.
+ - Format checking is not enforced, but we still recommend formatting your code with `cargo dv fmt --paths path_to_your_file` before submission.
+ - If you are contributing to Verus, we recommend submitting pull requests to [the upstream repo](https://github.com/verus-lang/verus) rather than our fork, since we aim to minimize differences between them.
+diff --git a/dv b/dv
+index 5de8011be6322698f986be02de2858af8756fc59..4f29d1d95a3af37d93867e87f0360dfb3ec2276c 160000
+--- a/dv
++++ b/dv
+@@ -1 +1 @@
+-Subproject commit 5de8011be6322698f986be02de2858af8756fc59
++Subproject commit 4f29d1d95a3af37d93867e87f0360dfb3ec2276c

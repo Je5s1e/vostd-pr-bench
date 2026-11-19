@@ -1,0 +1,63 @@
+{
+  "number": 526,
+  "source_pr": "https://github.com/asterinas/vostd/pull/526",
+  "base_sha": "15d565113f260c984735cb63a071934129b310ab",
+  "head_sha": "614ad9c3f014d9b108e72ed65d682d69e6d51110",
+  "files": {
+    "totalCount": 5,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "NQ"
+    },
+    "nodes": [
+      {
+        "path": "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+        "additions": 171,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "additions": 51,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "additions": 126,
+        "deletions": 64,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/mod.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/vm_space.rs",
+        "additions": 19,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/526",
+    "accept": "application/vnd.github.diff",
+    "bytes": 26125,
+    "sha256": "154c72093dc70d58cd9003a6643ff5951ec84d3a47a99abd08c0057a734feb27",
+    "fetched_at": "2026-11-13T21:15:34.778277+00:00",
+    "diff_file_sections": 5,
+    "expected_changed_files": 5
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/526",
+    "accept": "application/vnd.github.patch",
+    "bytes": 32581,
+    "sha256": "21043a14730665583dabbd2037c338708d45291b52270af25c9b537de95ae555",
+    "fetched_at": "2026-11-13T21:23:41.542024+00:00"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-382-6a84ab163da0",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-382-6a84ab163da0:review-comment-3001356215",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "placeholder_slot_perm can manufacture initialized, non-unused, unmapped slot facts for any aligned in-range frame even though MetaRegionOwners::inv does not guarantee those facts.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+          "start_line": 104,
+          "end_line": 114
+        }
+      ],
+      "rationale": "The axiom requires only `regions.inv()`, alignment, and an in-range address, then ensures that the synthesized permission is initialized and well-formed and that the corresponding slot owner is non-unused with no page-table path. `MetaRegionOwners::inv()` guarantees those permission/value facts only for keys present in `regions.slots`; it does not require every valid slot to be active, non-unused, or unmapped. Therefore a caller can instantiate the axiom for a valid unused or already-mapped slot and derive a false state fact, making the proof logic inconsistent. Review comment 3001356215 states this failure precisely. Human issue comment 4149517603 says Copilot is right and the placeholder must be dealt with, while accepting it only as temporary proof scaffolding; that does not make the axiom sound. The selected final head retains the exact contract.",
+      "source_evidence": "after/ostd/specs/mm/page_table/node/entry_owners.rs\n104: pub axiom fn placeholder_slot_perm(paddr: Paddr, tracked regions: &MetaRegionOwners) -> (tracked res: PointsTo<MetaSlot>)\n105:     requires\n106:         regions.inv(),\n107:         paddr % PAGE_SIZE == 0,\n108:         paddr < MAX_PADDR,\n109:     ensures\n110:         res.addr() == meta_addr(frame_to_index(paddr)),\n111:         res.is_init(),\n112:         res.value().wf(regions.slot_owners[frame_to_index(paddr)]),\n113:         regions.slot_owners[frame_to_index(paddr)].inner_perms.ref_count.value() != REF_COUNT_UNUSED,\n114:         regions.slot_owners[frame_to_index(paddr)].path_if_in_pt is None;\n\nafter/ostd/specs/mm/frame/meta_region_owners.rs\n66-75: Initialization and well-formed permission facts are conditional on `self.slots.contains_key(i)`.\n78-81: A slot owner being present guarantees only `self.slot_owners[i].inv()`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/382#discussion_r3001356215",
+      "related_comment_ids": [
+        "3001356215",
+        "4149517603"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3001356215",
+          "url": "https://github.com/asterinas/vostd/pull/382#discussion_r3001356215",
+          "commit_id": "6a84ab163da0b467ce0310e60c643d555ad9b0b7"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4149517603",
+          "url": "https://github.com/asterinas/vostd/pull/382#issuecomment-4149517603",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Read the complete archived and current remote discussion, compared the axiom against the fixed-head MetaRegionOwners invariant, and confirmed the human follow-up recognizes the placeholder problem."
+    },
+    {
+      "id": "pr-382-6a84ab163da0:review-comment-3001356268",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The map_item_requires documentation omits its new regions argument and the item_not_mapped and item_slot_in_regions obligations.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/vm_space.rs",
+          "start_line": 788,
+          "end_line": 811
+        }
+      ],
+      "rationale": "The selected head extends `map_item_requires` with a `regions` parameter and two additional obligations at lines 810-811, but the immediately preceding documentation still mentions only frame well-formedness, physical-address agreement, and level bounds. Review comment 3001356268 identifies the stale documentation, and the final source confirms it remains. The later official `document-verified-apis` guideline requires public proof/specification helpers to document important caller obligations; it postdates this review and is used only to adjudicate the concrete source-confirmed omission.",
+      "source_evidence": "after/ostd/src/mm/vm_space.rs\n788: /// Collects the conditions that must hold on the frame being mapped.\n789: /// The frame must be well-formed with respect to the entry owner. When converted into a `MappedItem`,\n790: /// its physical address must also match, and its level must be between 1 and the highest translation level.\n791: pub open spec fn map_item_requires(\n...\n796:     regions: MetaRegionOwners,\n...\n810: &&& crate::mm::page_table::CursorMut::<'a, UserPtConfig, A>::item_not_mapped(item, regions)\n811: &&& crate::mm::page_table::CursorMut::<'a, UserPtConfig, A>::item_slot_in_regions(item, regions)\n\ndocs/coding-guidelines/maintainability.md at af3406cffc8500b06116606fc17c86d7d5d13c44\nProof/specification API documentation must explain important preconditions and caller obligations.",
+      "rule_ids": [
+        "document-verified-apis"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/382#discussion_r3001356268",
+      "related_comment_ids": [
+        "3001356268"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3001356268",
+          "url": "https://github.com/asterinas/vostd/pull/382#discussion_r3001356268",
+          "commit_id": "6a84ab163da0b467ce0310e60c643d555ad9b0b7"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Confirmed the comment's final-head commit, compared the documentation with the adjacent fixed specification, and checked the later official documentation guideline."
+    }
+  ]
+}

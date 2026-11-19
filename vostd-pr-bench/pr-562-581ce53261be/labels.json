@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-562-581ce53261be",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-562-581ce53261be:review-comment-3479795766",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "A checked proof function retains an `axiom_` name instead of the required `lemma_` prefix.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 263,
+          "end_line": 263
+        }
+      ],
+      "rationale": "The function has a checked proof body, but its name still advertises an axiom/trusted fact. The same-commit AGENTS.md naming rule requires proof lemmas to use `lemma_` and axioms to use `axiom_`. The next commit renames it to `lemma_kernel_range_valid`, directly confirming the issue.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n263: pub proof fn axiom_kernel_range_valid(r: core::ops::Range<Vaddr>)\n\nafter/AGENTS.md\n31: prefix proof lemmas using `lemma_` ... prefix axioms using `axiom_`",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/562#discussion_r3479795766",
+      "related_comment_ids": [
+        "3479795766"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3479795766",
+          "url": "https://github.com/asterinas/vostd/pull/562#discussion_r3479795766",
+          "commit_id": "581ce53261bef68cff1709b0fe30c9f0ae247813"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Independently checked the same-commit naming rule, fixed source, and immediate rename commit."
+    }
+  ]
+}

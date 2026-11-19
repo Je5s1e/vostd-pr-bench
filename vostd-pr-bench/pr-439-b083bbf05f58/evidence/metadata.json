@@ -1,0 +1,231 @@
+{
+  "number": 439,
+  "source_pr": "https://github.com/asterinas/vostd/pull/439",
+  "base_sha": "ee10447887411c2753db8bf20d7c74489891f8ad",
+  "head_sha": "b083bbf05f58a859a9f468d7d1347feca46162f3",
+  "files": {
+    "totalCount": 33,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MzM"
+    },
+    "nodes": [
+      {
+        "path": "Cargo.lock",
+        "additions": 5,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/arch/x86_64/kspace.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+        "additions": 31,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/meta_region_owners.rs",
+        "additions": 26,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/meta_specs.rs",
+        "additions": 2,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/mod.rs",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/frame/segment.rs",
+        "additions": 250,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "ostd/specs/mm/io.rs",
+        "additions": 2,
+        "deletions": 22,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/mod.rs",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+        "additions": 10,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/owners.rs",
+        "additions": 159,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/pod.rs",
+        "additions": 18,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/virt_mem_newer.rs",
+        "additions": 120,
+        "deletions": 17,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/vm_space.rs",
+        "additions": 14,
+        "deletions": 14,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/vm_space_embedding.rs",
+        "additions": 887,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "ostd/src/mm/frame/frame_ref.rs",
+        "additions": 5,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/linked_list.rs",
+        "additions": 27,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/meta.rs",
+        "additions": 28,
+        "deletions": 39,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/mod.rs",
+        "additions": 70,
+        "deletions": 15,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/segment.rs",
+        "additions": 444,
+        "deletions": 581,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/unique.rs",
+        "additions": 13,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/untyped.rs",
+        "additions": 9,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/io.rs",
+        "additions": 1132,
+        "deletions": 814,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "additions": 14,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/mod.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/mod.rs",
+        "additions": 14,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/child.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/entry.rs",
+        "additions": 28,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/mod.rs",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/vm_space.rs",
+        "additions": 12,
+        "deletions": 11,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "vstd_extra/src/drop_tracking.rs",
+        "additions": 6,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "vstd_extra/src/external/slice.rs",
+        "additions": 35,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/439",
+    "accept": "application/vnd.github.diff",
+    "bytes": 291920,
+    "sha256": "e262edcd841cebe00a19453aaa64c7f89c767ab037c50663356055584f027e52",
+    "fetched_at": "2026-11-13T21:15:24.729164+00:00",
+    "diff_file_sections": 33,
+    "expected_changed_files": 33
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/439",
+    "accept": "application/vnd.github.patch",
+    "bytes": 10118670,
+    "sha256": "adc2076b319288e2c860d2dc0fec80e7e1aa377ad45bdf079b86871eacabe180",
+    "fetched_at": "2026-11-13T21:23:38.527433+00:00"
+  }
+}

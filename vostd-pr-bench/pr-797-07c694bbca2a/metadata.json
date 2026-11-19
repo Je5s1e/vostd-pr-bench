@@ -10,7 +10,6 @@
   "base_sha": "d7d2ebec6b2d131e5d78ca40a052f67ce5b3a87a",
   "head_sha": "07c694bbca2a99c2c6800b7fa27bb0cae446621d",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/boot/memory_region.rs",
@@ -49,5 +48,5 @@
       ]
     }
   },
-  "known_issue_count": 12
+  "known_issue_count": 5
 }

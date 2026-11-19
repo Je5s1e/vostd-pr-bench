@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-595-c34b8882f0e1",
+  "pr_number": 595,
+  "title": "refactor: using cargo verus and improve the verus update in Makefile",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/595",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "75e0130b9533d23b5ad1e637426bab54a7c4834a",
+  "head_sha": "c34b8882f0e105d8933a3fd52f74aaa8ec5f1583",
+  "base_method": "git merge-base(remote PR base 75e0130b9533d23b5ad1e637426bab54a7c4834a, original review commit c34b8882f0e105d8933a3fd52f74aaa8ec5f1583); the review comment and accepted reply identify the missing --focus flag in this README revision",
+  "archive_base_sha": "75e0130b9533d23b5ad1e637426bab54a7c4834a",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Makefile",
+    "README.md",
+    "dv"
+  ],
+  "diff_sha256": "20304921d7c10a10196ef390869e7f507a469f2d7ba5e8370f01dc82a98e791e",
+  "versions": {
+    "before": {
+      "commit": "75e0130b9533d23b5ad1e637426bab54a7c4834a",
+      "file_count": 352,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "c34b8882f0e105d8933a3fd52f74aaa8ec5f1583",
+      "file_count": 352,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "4f29d1d95a3af37d93867e87f0360dfb3ec2276c",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:18:24.827192+00:00",
+    "reviewed_at": "2026-07-02T16:52:54Z",
+    "upstream_updated_at": "2026-07-22T06:21:48Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/595",
+      "https://github.com/asterinas/vostd/pull/595#discussion_r3512718712",
+      "https://github.com/asterinas/vostd/pull/595#discussion_r3512750336",
+      "https://github.com/asterinas/vostd/pull/595#pullrequestreview-4619595946"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00595"
+  }
+}

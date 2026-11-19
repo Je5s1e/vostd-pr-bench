@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-485-6fac7bc837f6",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-485-6fac7bc837f6:review-comment-3333153971",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Three new executable metadata helpers are called by runtime paths but have unimplemented bodies, so metadata writes or borrows can panic instead of performing the required operation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/meta_owners.rs",
+          "start_line": 431,
+          "end_line": 450
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/meta_owners.rs",
+          "start_line": 452,
+          "end_line": 468
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/meta_owners.rs",
+          "start_line": 470,
+          "end_line": 524
+        }
+      ],
+      "rationale": "write_metadata_into_storage, borrow_meta, and borrow_meta_mut are exec functions, and the PR wires them into MetaSlot::write_meta plus borrow_field!/update_field! runtime macro paths. In this review snapshot every body executes unimplemented!(), so reaching any of those paths panics and no metadata operation occurs. Although the initial reports were produced by Copilot, the source establishes the failure directly, the author agreed the borrow helpers should be filled or inlined, and accepted commit 3f436b5ef41cfb8f44bc2552f76c226be2182d0d replaces the stubs with an implementation/inlined borrows. The separate vtable_ptr=0 suggestion is excluded because the author explained it was an intentional model stub and the final head retained it.",
+      "source_evidence": "after/ostd/specs/mm/frame/meta_owners.rs\n436:     #[verifier::external_body]\n437:     pub exec fn write_metadata_into_storage(\n448:     {\n449:         unimplemented!()\n455:     #[verifier::external_body]\n456:     pub exec fn borrow_meta<'a>(\n466:     {\n467:         unimplemented!()\n485:     #[verifier::external_body]\n486:     pub exec fn borrow_meta_mut<'a>(\n522:     {\n523:         unimplemented!()",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/485#discussion_r3333153971",
+      "related_comment_ids": [
+        "3333153971",
+        "3333154020",
+        "3333154051",
+        "3337746980",
+        "3337798437"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3333153971",
+          "url": "https://github.com/asterinas/vostd/pull/485#discussion_r3333153971",
+          "commit_id": "6fac7bc837f67c2aa8702adf03205a6202ac6663"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3333154020",
+          "url": "https://github.com/asterinas/vostd/pull/485#discussion_r3333154020",
+          "commit_id": "6fac7bc837f67c2aa8702adf03205a6202ac6663"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3333154051",
+          "url": "https://github.com/asterinas/vostd/pull/485#discussion_r3333154051",
+          "commit_id": "6fac7bc837f67c2aa8702adf03205a6202ac6663"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3337746980",
+          "url": "https://github.com/asterinas/vostd/pull/485#discussion_r3337746980",
+          "commit_id": "6fac7bc837f67c2aa8702adf03205a6202ac6663"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3337798437",
+          "url": "https://github.com/asterinas/vostd/pull/485#discussion_r3337798437",
+          "commit_id": "6fac7bc837f67c2aa8702adf03205a6202ac6663"
+        }
+      ],
+      "verification": "source-only; historical Verus and runtime paths not executed. Independently inspected the fixed 6fac7bc837f6 source, complete archived and current remote threads, author replies, accepted commit 3f436b5ef41cfb8f44bc2552f76c226be2182d0d, and final head f7f9a489d4a0."
+    }
+  ]
+}

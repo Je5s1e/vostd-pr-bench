@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-855-5c9e493bb78b",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-855-5c9e493bb78b:issue-comment-6761817965",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The generic paging-constants trait hardcodes the build-selected CPU layout, so a valid three-level IOMMU page-table configuration cannot satisfy its required contract.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/mod.rs",
+          "start_line": 162,
+          "end_line": 166
+        }
+      ],
+      "rationale": "`PagingConstsTrait` is the common abstraction for paging layouts, but this historical head requires every implementation to prove equality with the build-selected CPU constants, including `Self::NR_LEVELS() == NR_LEVELS`. The review discussion establishes that `IommuPtConfig` implements the relevant paging configuration and uses three levels, whereas the current CPU layout uses a different level count. The author explicitly confirmed that this version does not work for IOMMU and promised to revise it. Consequently, the contract is not merely stronger than necessary: it excludes a supported implementation. The final PR head removes these CPU-specific equalities from the generic requirements and retains layout-independent range and power-of-two constraints.",
+      "source_evidence": "after/ostd/src/mm/mod.rs\n157:     /// The requirements of the paging constants so that the memory management system can work correctly.\n162:     proof fn lemma_paging_consts_requirements()\n163:         ensures\n164:             Self::BASE_PAGE_SIZE() == PAGE_SIZE,\n165:             Self::NR_LEVELS() == NR_LEVELS as PagingLevel,\n166:             Self::BASE_PAGE_SIZE() / Self::PTE_SIZE() == NR_ENTRIES,\n167:             0 < Self::BASE_PAGE_SIZE(),\n168:             is_pow2(Self::BASE_PAGE_SIZE() as int),",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6761817965",
+      "related_comment_ids": ["6731757954", "6737834717", "6757682321", "6761817965"],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "6731757954",
+          "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6731757954",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "6737834717",
+          "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6737834717",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "6757682321",
+          "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6757682321",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "6761817965",
+          "url": "https://github.com/asterinas/vostd/pull/855#issuecomment-6761817965",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Verified the exact Git objects and merge-base, read the complete archived and current remote discussion, located the hardcoded equalities in the selected head, and compared the final-head fix. The issue-comment API provides no commit_id; the selected head is the reviewed historical revision containing the admitted defect."
+    }
+  ]
+}

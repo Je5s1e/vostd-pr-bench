@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-920-d5764dad33a5",
+  "pr_number": 920,
+  "title": "prove: Verify x86 AVX feature detection",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/920",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "11d378516c021b68e3fd08298426935e10851cb3",
+  "head_sha": "d5764dad33a51a7686d34fe20c3a311d509ebdbe",
+  "base_method": "git merge-base(remote base_sha 11d378516c021b68e3fd08298426935e10851cb3 at collection, current reviewed head d5764dad33a51a7686d34fe20c3a311d509ebdbe); result 11d378516c021b68e3fd08298426935e10851cb3",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/mod.rs",
+    "verified_libs/vstd_extra/src/external/x86.rs"
+  ],
+  "diff_sha256": "a4cd594900256341ea32ca77bc58b3f4bb6ba029c5bb7777fe71ae3bead69439",
+  "versions": {
+    "before": {
+      "commit": "11d378516c021b68e3fd08298426935e10851cb3",
+      "file_count": 325,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "d5764dad33a51a7686d34fe20c3a311d509ebdbe",
+      "file_count": 325,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "OPEN",
+  "collection": {
+    "collected_at": "2026-11-18T13:20:55.594482+00:00",
+    "reviewed_at": "2026-11-18T08:29:51Z",
+    "upstream_updated_at": "2026-11-18T08:29:51Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/920",
+      "https://github.com/asterinas/vostd/pull/920#issuecomment-6973242424"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#name-proof-roles"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00920"
+  }
+}

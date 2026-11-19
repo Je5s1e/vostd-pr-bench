@@ -1,0 +1,300 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/616",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 616,
+    "title": "Prove fn page_size without external_body",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/616",
+    "state": "MERGED",
+    "createdAt": "2026-07-07T07:49:58Z",
+    "updatedAt": "2026-07-22T08:38:24Z",
+    "closedAt": "2026-07-09T01:26:05Z",
+    "mergedAt": "2026-07-09T01:26:04Z",
+    "author": {
+      "login": "Je5s1e"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "6306853680d09bab2e4b5928104c557cbd7da716",
+    "headRefName": "prove/page_size_withou_external_body",
+    "headRefOid": "3aa017accdf04a2c282eb840e0b160bd273442e3",
+    "changedFiles": 1,
+    "additions": 21,
+    "deletions": 5,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0wNy0wOVQwMToyNTo1N1q0MjAyNi0wNy0wOVQwMToyNTo1N1rPAAAAARWy2R8="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c8AAAABFScN0g",
+          "databaseId": 4649848274,
+          "body": "This modification changes the source code. I think you can put all the definitions in a proof block and keep the original code at the end of the function.",
+          "bodyHTML": "<p dir=\"auto\">This modification changes the source code. I think you can put all the definitions in a proof block and keep the original code at the end of the function.</p>",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-07-08T00:03:38Z",
+          "createdAt": "2026-07-08T00:03:38Z",
+          "updatedAt": "2026-07-08T00:03:38Z",
+          "url": "https://github.com/asterinas/vostd/pull/616#pullrequestreview-4649848274",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABFbLZHw",
+          "databaseId": 4659009823,
+          "body": "",
+          "bodyHTML": "",
+          "state": "APPROVED",
+          "submittedAt": "2026-07-09T01:25:57Z",
+          "createdAt": "2026-07-09T01:25:57Z",
+          "updatedAt": "2026-07-09T01:25:57Z",
+          "url": "https://github.com/asterinas/vostd/pull/616#pullrequestreview-4659009823",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MQ"
+      },
+      "nodes": [
+        {
+          "path": "ostd/src/mm/mod.rs",
+          "additions": 21,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4920653907",
+      "html_url": "https://github.com/asterinas/vostd/pull/616#issuecomment-4920653907",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/616",
+      "id": 4920653907,
+      "node_id": "IC_kwDONtWm_c8AAAABJUs4Uw",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-07-09T01:25:44Z",
+      "updated_at": "2026-07-09T01:25:44Z",
+      "body_html": "<p dir=\"auto\">LGTM, thanks for your contribution!</p>",
+      "body_text": "LGTM, thanks for your contribution!",
+      "body": "LGTM, thanks for your contribution!",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4920653907/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

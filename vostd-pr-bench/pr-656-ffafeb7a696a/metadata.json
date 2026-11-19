@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-656-ffafeb7a696a",
+  "pr_number": 656,
+  "title": "Prove MM embedding ownership helper axioms",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/656",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "06065eb24a2b7e8a54bcf1983a4456fbf5d2402c",
+  "head_sha": "ffafeb7a696a6daed0162e4428716d4e4c223a31",
+  "base_method": "git merge-base(archived base, pre-fix review commit); computed from official Git objects",
+  "archive_base_sha": "06065eb24a2b7e8a54bcf1983a4456fbf5d2402c",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/cursor.rs",
+    "ostd/specs/mm/embedding/io.rs",
+    "ostd/specs/mm/embedding/mod.rs"
+  ],
+  "diff_sha256": "ed94e8668a0058cda4dacfce3ecd627871882d7e0327840a68e0bc92cd10f227",
+  "versions": {
+    "before": {
+      "commit": "06065eb24a2b7e8a54bcf1983a4456fbf5d2402c",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "ffafeb7a696a6daed0162e4428716d4e4c223a31",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:21:55.548710+00:00",
+    "reviewed_at": "2026-07-20T05:31:56Z",
+    "upstream_updated_at": "2026-07-22T03:24:10Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/656",
+      "https://github.com/asterinas/vostd/pull/656#issuecomment-5019089808"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00656"
+  }
+}

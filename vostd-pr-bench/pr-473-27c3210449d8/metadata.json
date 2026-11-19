@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-473-27c3210449d8",
+  "pr_number": 473,
+  "title": "Rename tracked versions of spec functions",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/473",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "3427761e5bed09c688f87476c6b4ffa6d591b5ae",
+  "head_sha": "27c3210449d82ca416c0849b295f22159521fc0c",
+  "base_method": "GitHub compare and local git merge-base of archived PR base 3427761e5bed09c688f87476c6b4ffa6d591b5ae with selected original review commit 27c3210449d82ca416c0849b295f22159521fc0c; both report the archived base as merge-base, with selected head ahead by 2 commits and behind by 0",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/io.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/tlb.rs",
+    "ostd/specs/mm/virt_mem.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/specs/mm/vm_space_embedding.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/tlb.rs"
+  ],
+  "diff_sha256": "545cb3b53f52f08131bf6d92bc7693fe71b4acc75862fd424d3957f3cca994f5",
+  "versions": {
+    "before": {
+      "commit": "3427761e5bed09c688f87476c6b4ffa6d591b5ae",
+      "file_count": 329,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "ddb70f71e8ac0e0fb683b09ad2a0f10d0c229ccf",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "27c3210449d82ca416c0849b295f22159521fc0c",
+      "file_count": 329,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "ddb70f71e8ac0e0fb683b09ad2a0f10d0c229ccf",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T12:11:43.215643+00:00",
+    "reviewed_at": "2026-05-22T08:18:36Z",
+    "upstream_updated_at": "2026-05-24T09:20:37Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/473",
+      "https://github.com/asterinas/vostd/pull/473#discussion_r3286965930",
+      "https://github.com/asterinas/vostd/pull/473#discussion_r3294047808",
+      "https://github.com/asterinas/vostd/pull/473#discussion_r3294189046",
+      "https://github.com/asterinas/vostd/pull/473#pullrequestreview-4352081494"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "af3406cffc8500b06116606fc17c86d7d5d13c44",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/af3406cffc8500b06116606fc17c86d7d5d13c44/docs/coding-guidelines/maintainability.md#avoid-redundant-mode-markers"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00473"
+  }
+}

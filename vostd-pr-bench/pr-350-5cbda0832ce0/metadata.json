@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-350-5cbda0832ce0",
+  "pr_number": 350,
+  "title": "Prove rwarc APIs",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/350",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "b6efad3637b4efa21056f1c9c941bcc36d8cbc93",
+  "head_sha": "5cbda0832ce0122bc9d922dd2e7256904376cf39",
+  "base_method": "git merge-base(archived base_sha, archived head_sha); mechanical archive import, not an adjudicated review revision",
+  "archive_base_sha": "b6efad3637b4efa21056f1c9c941bcc36d8cbc93",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/sync/rwarc.rs"
+  ],
+  "diff_sha256": "7a87d57d440b318c53d2c06614dbdb272dae87e4dfd10c76ce15d7f83437dab9",
+  "versions": {
+    "before": {
+      "commit": "b6efad3637b4efa21056f1c9c941bcc36d8cbc93",
+      "file_count": 311,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "55b3285a73732973764fb41f9b3a9f9e33209215",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "5cbda0832ce0122bc9d922dd2e7256904376cf39",
+      "file_count": 311,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "55b3285a73732973764fb41f9b3a9f9e33209215",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:39:43.569711+00:00",
+    "reviewed_at": "2026-11-18T17:22:25Z",
+    "upstream_updated_at": "2026-03-23T14:40:13Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/350",
+      "https://github.com/asterinas/vostd/pull/350#issuecomment-4100231726",
+      "https://github.com/asterinas/vostd/pull/350#issuecomment-4111141806"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00350"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Archived final head; the post-merge issue-comment identifies a missing specification interface that remains in this exact revision, so no historical re-export is needed.",
+    "zero_issues_meaning": "Not applicable; one source-adjudicated semantic issue is recorded.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

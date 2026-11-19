@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-456-6aa8a9b0ede4",
+  "pr_number": 456,
+  "title": "add `dma_coherent`",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/456",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "9b395645f6108103f992e32781aa8e509e5ada1b",
+  "head_sha": "6aa8a9b0ede4cf8375b3df9685e9d9305de2e3ed",
+  "base_method": "git merge-base(archived base_sha 9b395645f6108103f992e32781aa8e509e5ada1b, reviewed head 6aa8a9b0ede4cf8375b3df9685e9d9305de2e3ed); result 9b395645f6108103f992e32781aa8e509e5ada1b",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/dma/dma_coherent.rs",
+    "ostd/src/mm/dma/mod.rs"
+  ],
+  "diff_sha256": "5fae0346d3a2dbf59b3fc11e014c4915366258aa1b04c592dc0a0eb479a45715",
+  "versions": {
+    "before": {
+      "commit": "9b395645f6108103f992e32781aa8e509e5ada1b",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "6aa8a9b0ede4cf8375b3df9685e9d9305de2e3ed",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:40:08.863058+00:00",
+    "reviewed_at": "2026-05-18T03:17:29Z",
+    "upstream_updated_at": "2026-05-18T03:27:53Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/456",
+      "https://github.com/asterinas/vostd/pull/456#discussion_r3256109828",
+      "https://github.com/asterinas/vostd/pull/456#discussion_r3256127591",
+      "https://github.com/asterinas/vostd/pull/456#pullrequestreview-4306980141"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00456"
+  }
+}

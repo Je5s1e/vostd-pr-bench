@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-499-2d320cbb55fc",
+  "pr_number": 499,
+  "title": "fix: `arch::mm::PageTableEntry` overhaul",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/499",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "401158bc47d840dc4193a8cb446bba1063f67b05",
+  "head_sha": "2d320cbb55fc9cbbdc93978dbd5c52b23df2e80b",
+  "base_method": "git merge-base(archived base_sha, archived head_sha); mechanical archive import, not an adjudicated review revision",
+  "archive_base_sha": "401158bc47d840dc4193a8cb446bba1063f67b05",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/x86_64/mod.rs",
+    "ostd/specs/arch/x86_64/page_table_entry.rs",
+    "ostd/specs/arch/x86_64/page_table_flags.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/virt_mem.rs",
+    "ostd/src/arch/x86/mm/mod.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_prop.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "verified_libs/verified_bitflags/src/lib.rs",
+    "verified_libs/vstd_extra/src/bit_mapping.rs",
+    "verified_libs/vstd_extra/src/lib.rs",
+    "verified_libs/vstd_extra/src/prelude.rs"
+  ],
+  "diff_sha256": "36fb4de976914821a3e4aff4c0746b8c0d4c9b42c8d5366eb85304c663903554",
+  "versions": {
+    "before": {
+      "commit": "401158bc47d840dc4193a8cb446bba1063f67b05",
+      "file_count": 326,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "2d320cbb55fc9cbbdc93978dbd5c52b23df2e80b",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:40:18.649403+00:00",
+    "reviewed_at": "2026-06-09T10:38:24Z",
+    "upstream_updated_at": "2026-06-10T07:26:35Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/499",
+      "https://github.com/asterinas/vostd/pull/499#issuecomment-4658920663"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00499"
+  }
+}

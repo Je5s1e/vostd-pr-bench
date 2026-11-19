@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-595-c34b8882f0e1",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-595-c34b8882f0e1:review-comment-3512718712",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The README command described as verifying only ostd omits the focus flag, so it also re-checks dependency proofs instead of limiting verification to the root crate.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "README.md",
+          "start_line": 71,
+          "end_line": 75
+        }
+      ],
+      "rationale": "The selected review head tells users that `cargo dv verify --targets ostd` verifies only `ostd`. In the same fixed revision, `dv` defines `-f/--focus` as “Verify root crates without re-checking dependency proofs” and passes that option to the cargo-verus focus path. Without `-f`, selecting `ostd` does not provide the documented root-only behavior. Review comment 3512718712 proposes the precise flag, the author accepts the correction in reply 3512750336, and the final approved head changes the README command to `cargo dv verify -f --targets ostd`.",
+      "source_evidence": "after/README.md\n71: To verify only `ostd`, run:\n72:\n73: ```bash\n74: cargo dv verify --targets ostd\n75: ```\n\nafter/dv/src/main.rs\n183:     #[arg(\n184:         short = 'f',\n185:         long = \"focus\",\n186:         help = \"Verify root crates without re-checking dependency proofs\",\n190:     focus: bool,\n\nFinal head 3b424f58fe50429689cfd114d2cfafbea863c8b9 changes README line 74 to `cargo dv verify -f --targets ostd`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/595#discussion_r3512718712",
+      "related_comment_ids": [
+        "3512718712",
+        "3512750336",
+        "4619595946"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3512718712",
+          "url": "https://github.com/asterinas/vostd/pull/595#discussion_r3512718712",
+          "commit_id": "c34b8882f0e105d8933a3fd52f74aaa8ec5f1583"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3512750336",
+          "url": "https://github.com/asterinas/vostd/pull/595#discussion_r3512750336",
+          "commit_id": "c34b8882f0e105d8933a3fd52f74aaa8ec5f1583"
+        },
+        {
+          "kind": "review",
+          "id": "4619595946",
+          "url": "https://github.com/asterinas/vostd/pull/595#pullrequestreview-4619595946",
+          "commit_id": "3b424f58fe50429689cfd114d2cfafbea863c8b9"
+        }
+      ],
+      "verification": "source-only; historical commands were not executed. Read the complete archived and current remote discussion, selected the comments' original commit, inspected the fixed README and its pinned dv submodule, and confirmed the final approved head adds the focus flag."
+    }
+  ]
+}

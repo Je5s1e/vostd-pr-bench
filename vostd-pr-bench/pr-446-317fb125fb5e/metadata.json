@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-446-317fb125fb5e",
+  "pr_number": 446,
+  "title": "Add `default` interface for `VmSpace`",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/446",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "fcac176337cb7f4d202488807d7db08aa8fbab5f",
+  "head_sha": "317fb125fb5ed854ef25a7760a9af97622a0f9a9",
+  "base_method": "git merge-base of archived GitHub base fcac176337cb7f4d202488807d7db08aa8fbab5f and selected final head 317fb125fb5ed854ef25a7760a9af97622a0f9a9; computed from official Git objects as fcac176337cb7f4d202488807d7db08aa8fbab5f; the accepted documentation request remains in this head",
+  "archive_base_sha": "fcac176337cb7f4d202488807d7db08aa8fbab5f",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "ab6b2a93f3db9e74cc15bf1ffa1706c19abd31bb8cf61a2b290a3dcff9a7a0d5",
+  "versions": {
+    "before": {
+      "commit": "fcac176337cb7f4d202488807d7db08aa8fbab5f",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "317fb125fb5ed854ef25a7760a9af97622a0f9a9",
+      "file_count": 323,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-17T04:40:07.314260+00:00",
+    "reviewed_at": "2026-05-13T02:15:20Z",
+    "upstream_updated_at": "2026-05-13T02:15:20Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/446",
+      "https://github.com/asterinas/vostd/pull/446#issuecomment-4429045610",
+      "https://github.com/asterinas/vostd/pull/446#issuecomment-4436541114",
+      "https://github.com/asterinas/vostd/pull/446#issuecomment-4436564747"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00446"
+  }
+}

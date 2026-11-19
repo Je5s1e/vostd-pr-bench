@@ -1,0 +1,73 @@
+{
+  "number": 658,
+  "title": "fix: Redesign `TrackDrop`",
+  "selected": true,
+  "category": "正文或讨论涉及验证",
+  "evidence": [
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5029674957",
+      "excerpt": "drop glue drops `T` when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be `core::mem::ManuallyDrop<T>` instead> Otherwise this is problematic.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/658#discussion_r3619199960",
+      "excerpt": "Indeed! Although currently Verus's support for `Drop` is very poor, and we have to call all `drop`s manually, this is definitely a flaw that I failed to catch in the source code.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5030350841",
+      "excerpt": "drop glue drops `T` when the wrapper goes out of the scope. The ghost obligation doesn't necessarily stop Rust field destruction. Should this be `core::mem::ManuallyDrop<T>` instead> Otherwise this is problematic. Do w",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/658#issuecomment-5030794102",
+      "excerpt": "with Rust. And making this change makes it eaiser to migrate if Verus adds more support for `Drop` and `ManuallyDrop` later.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/frame_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/segment.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/unique.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/node/child.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/node/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "verified_libs/vstd_extra/src/drop_tracking.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "y = usize; type Obligation = DropObligation<usize>; open spec fn key(self) -> Self::Key { self.index() } open spec fn constructor_requires(self, s: Self::State) -> bool { open spec fn tracked_r",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 12
+}

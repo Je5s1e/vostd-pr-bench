@@ -1,0 +1,99 @@
+{
+  "number": 916,
+  "source_pr": "https://github.com/asterinas/vostd/pull/916",
+  "base_sha": "52715e6ecd70b2b8aeb48818f4274dcb4930e598",
+  "head_sha": "d7cdf470b297e24b5299fc90e6e0b6e6769ff124",
+  "files": {
+    "totalCount": 11,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MTE"
+    },
+    "nodes": [
+      {
+        "path": ".github/workflows/ci-irc11.yml",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "Cargo.lock",
+        "additions": 4,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/libs/linux-bzimage/builder/Cargo.toml",
+        "additions": 4,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/libs/linux-bzimage/builder/src/lib.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+        "additions": 482,
+        "deletions": 46,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/patches/verus-irc11.patch",
+        "additions": 12,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/Cargo.toml",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/src/external/bytemuck.rs",
+        "additions": 24,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/src/external/int_specs.rs",
+        "additions": 19,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/src/external/mod.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/src/external/xmas_elf.rs",
+        "additions": 253,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/916",
+    "accept": "application/vnd.github.diff",
+    "bytes": 48353,
+    "sha256": "b5b6e39fcc316c6341f3480388e713f25b9d0ca539fb4d20bc63156231b8fbec",
+    "fetched_at": "2026-11-13T21:16:26.078117+00:00",
+    "diff_file_sections": 11,
+    "expected_changed_files": 11
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/916",
+    "accept": "application/vnd.github.patch",
+    "bytes": 60018,
+    "sha256": "2a56664db5649323a96a86c9ac1dc2f0c2acdfe899ec1b123560484ed808d3e5",
+    "fetched_at": "2026-11-13T21:24:29.538774+00:00"
+  }
+}

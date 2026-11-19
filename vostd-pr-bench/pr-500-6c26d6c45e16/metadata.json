@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-500-6c26d6c45e16",
+  "pr_number": 500,
+  "title": "refactor(mm): consolidate frame meta mapping into specs",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/500",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "3074681ff2e41ee87d264816b0a4712c9542c81e",
+  "head_sha": "6c26d6c45e16ed7bb8d1b8725101439357c95c00",
+  "base_method": "git merge-base(remote PR base 3074681ff2e41ee87d264816b0a4712c9542c81e, historical review head 6c26d6c45e16ed7bb8d1b8725101439357c95c00); selected for review comments 3353236200, 3353241431, and 3353250416",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/x86_64/page_table_entry.rs",
+    "ostd/specs/arch/x86_64/page_table_flags.rs",
+    "ostd/specs/mm/embedding/cursor.rs",
+    "ostd/specs/mm/embedding/frame.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/mapping.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/meta/mapping.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "77d9a4bd8047a0713e376fd5371e5c33fa5a3045f4f5f2e8b1fae5fa5bc28ed1",
+  "versions": {
+    "before": {
+      "commit": "3074681ff2e41ee87d264816b0a4712c9542c81e",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "6c26d6c45e16ed7bb8d1b8725101439357c95c00",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T11:42:17.100721+00:00",
+    "reviewed_at": "2026-06-04T03:35:18Z",
+    "upstream_updated_at": "2026-07-22T06:23:14Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/500",
+      "https://github.com/asterinas/vostd/pull/500#discussion_r3353236200",
+      "https://github.com/asterinas/vostd/pull/500#discussion_r3353241431",
+      "https://github.com/asterinas/vostd/pull/500#discussion_r3353250416"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4046a6b4bab0664e7f6504cb1a7efcd87c298f",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4046a6b4bab0664e7f6504cb1a7efcd87c298f/docs/coding-guidelines/maintainability.md#pair-exec-helpers-with-spec-models"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00500"
+  }
+}

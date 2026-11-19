@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-500-5c863f079762",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-500-5c863f079762:review-comment-3350635276",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Two proof lemmas carry unnecessary per-item `non_snake_case` lint suppressions.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/mapping.rs",
+          "start_line": 30,
+          "end_line": 30
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/mapping.rs",
+          "start_line": 38,
+          "end_line": 38
+        }
+      ],
+      "rationale": "The reviewer questions the first allowance, and the next PR commit is explicitly titled `fix: remove unnecessary #[allow(non_snake_case)]`, removing both identical attributes while leaving the lemma names unchanged. The final approved head contains neither suppression. With neither item triggering the lint, neither requires a suppression under narrow-lint-suppressions.",
+      "source_evidence": "after/ostd/specs/mm/frame/mapping.rs\n30: #[allow(non_snake_case)]\n31: pub broadcast proof fn lemma_FRAME_METADATA_RANGE_is_page_aligned()\n32:     ensures\n33:         #[trigger] FRAME_METADATA_RANGE.start % PAGE_SIZE == 0,\n38: #[allow(non_snake_case)]\n39: pub broadcast proof fn lemma_FRAME_METADATA_RANGE_is_large_enough()",
+      "rule_ids": [
+        "narrow-lint-suppressions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/500#discussion_r3350635276",
+      "related_comment_ids": [
+        "3350635276"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3350635276",
+          "url": "https://github.com/asterinas/vostd/pull/500#discussion_r3350635276",
+          "commit_id": "5c863f0797628efa034d6b9e45ca89f23d3e729c"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the fixed historical source, next commit, final approved head, and complete archived and remote discussion."
+    }
+  ]
+}

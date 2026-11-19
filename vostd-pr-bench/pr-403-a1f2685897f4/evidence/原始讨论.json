@@ -1,0 +1,313 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/403",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 403,
+    "title": "Remove `addr` field in `ReprPtr`",
+    "body": "The `addr: usize` field in `ReprPtr` does not provide any new information, as the `ptr: PPtr` field already has an `addr` method that produces a `usize`. This PR deletes this field, saves a bit line, and it may be easier to migrate if Verus supports `dyn` better in the future. @SNoAnd, do you think this change is okay?",
+    "bodyHTML": "<p dir=\"auto\">The <code class=\"notranslate\">addr: usize</code> field in <code class=\"notranslate\">ReprPtr</code> does not provide any new information, as the <code class=\"notranslate\">ptr: PPtr</code> field already has an <code class=\"notranslate\">addr</code> method that produces a <code class=\"notranslate\">usize</code>. This PR deletes this field, saves a bit line, and it may be easier to migrate if Verus supports <code class=\"notranslate\">dyn</code> better in the future. <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a>, do you think this change is okay?</p>",
+    "url": "https://github.com/asterinas/vostd/pull/403",
+    "state": "MERGED",
+    "createdAt": "2026-04-13T07:06:24Z",
+    "updatedAt": "2026-04-16T05:14:09Z",
+    "closedAt": "2026-04-14T06:22:10Z",
+    "mergedAt": "2026-04-14T06:22:10Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "dfe0dc8db7d0a97c83aee9d8ccbf2b5b20e0474e",
+    "headRefName": "fix-admit",
+    "headRefOid": "a1f2685897f49086fd3d62a5b1e1e044ba2083c7",
+    "changedFiles": 9,
+    "additions": 84,
+    "deletions": 87,
+    "labels": {
+      "nodes": [
+        {
+          "name": "model design"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 9,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "OQ"
+      },
+      "nodes": [
+        {
+          "path": "Cargo.lock",
+          "additions": 4,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+          "additions": 10,
+          "deletions": 15,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/mod.rs",
+          "additions": 1,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/specs/mm/page_table/node/entry.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "additions": 1,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/meta.rs",
+          "additions": 12,
+          "deletions": 15,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/unique.rs",
+          "additions": 1,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/page_table/cursor/mod.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/cast_ptr.rs",
+          "additions": 53,
+          "deletions": 37,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4235004952",
+      "html_url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4235004952",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/403",
+      "id": 4235004952,
+      "node_id": "IC_kwDONtWm_c78bQwY",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-13T08:37:35Z",
+      "updated_at": "2026-04-13T08:37:35Z",
+      "body_html": "<p dir=\"auto\">The <code class=\"notranslate\">take_inner_perms/put_inner_perms/take_pointsto</code> methods also seem unsound and should be replaced with the <code class=\"notranslate\">new-mut-ref</code> support. However, I ran into some Verus bugs when trying these modifications. I've created an issue in Verus Zulip and I hope there will be response from Verus maintainers soon.</p>",
+      "body_text": "The take_inner_perms/put_inner_perms/take_pointsto methods also seem unsound and should be replaced with the new-mut-ref support. However, I ran into some Verus bugs when trying these modifications. I've created an issue in Verus Zulip and I hope there will be response from Verus maintainers soon.",
+      "body": "The `take_inner_perms/put_inner_perms/take_pointsto` methods also seem unsound and should be replaced with the `new-mut-ref` support. However, I ran into some Verus bugs when trying these modifications. I've created an issue in Verus Zulip and I hope there will be response from Verus maintainers soon.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4235004952/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4241021752",
+      "html_url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4241021752",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/403",
+      "id": 4241021752,
+      "node_id": "IC_kwDONtWm_c78yNs4",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-14T02:58:15Z",
+      "updated_at": "2026-04-14T02:58:15Z",
+      "body_html": "<blockquote>\n<p dir=\"auto\">The <code class=\"notranslate\">take_inner_perms/put_inner_perms/take_pointsto</code> methods also seem unsound and should be replaced with the <code class=\"notranslate\">new-mut-ref</code> support.</p>\n</blockquote>\n<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a> I find that we no longer need any helper functions like these anymore, as we can directly use <code class=\"notranslate\">&amp;mut</code> in <code class=\"notranslate\">ostd</code> APIs, and it works pretty well!</p>",
+      "body_text": "The take_inner_perms/put_inner_perms/take_pointsto methods also seem unsound and should be replaced with the new-mut-ref support.\n\n@SNoAnd I find that we no longer need any helper functions like these anymore, as we can directly use &mut in ostd APIs, and it works pretty well!",
+      "body": "> The `take_inner_perms/put_inner_perms/take_pointsto` methods also seem unsound and should be replaced with the `new-mut-ref` support. \r\n\r\n@SNoAnd I find that we no longer need any helper functions like these anymore, as we can directly use `&mut` in `ostd` APIs, and it works pretty well!",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4241021752/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4241679125",
+      "html_url": "https://github.com/asterinas/vostd/pull/403#issuecomment-4241679125",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/403",
+      "id": 4241679125,
+      "node_id": "IC_kwDONtWm_c780uMV",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-04-14T06:22:01Z",
+      "updated_at": "2026-04-14T06:22:01Z",
+      "body_html": "<p dir=\"auto\">Yes, this looks great! The <code class=\"notranslate\">take_inner/put_inner</code> axioms are definitely worth replacing with borrows now that they're supported. Adding <code class=\"notranslate\">FromSpecImpl</code> is also a good idea.</p>",
+      "body_text": "Yes, this looks great! The take_inner/put_inner axioms are definitely worth replacing with borrows now that they're supported. Adding FromSpecImpl is also a good idea.",
+      "body": "Yes, this looks great! The `take_inner/put_inner` axioms are definitely worth replacing with borrows now that they're supported. Adding `FromSpecImpl` is also a good idea.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4241679125/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

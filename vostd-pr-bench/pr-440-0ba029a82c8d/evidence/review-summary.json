@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 5,
+  "inline_review_comment_count": 0,
+  "review_count": 1,
+  "core_lesson": "迭代器不变量应依赖公开逻辑序列接口，而非内部快照字段",
+  "category": "归纳与递归",
+  "all_content_unadjudicated": true
+}

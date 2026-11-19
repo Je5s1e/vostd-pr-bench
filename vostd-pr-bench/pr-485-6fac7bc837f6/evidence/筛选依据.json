@@ -1,0 +1,92 @@
+{
+  "number": 485,
+  "title": "Permission refactor, verify `cursor_mut_at` and `PageTablePageMeta::on_drop`",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Permission refactor, verify `cursor mut at` and `PageTablePageMeta::on drop`",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/485",
+      "excerpt": "rs` instead, via `borrow_typed_perm` and `borrow_mut_typed_perm` axioms. This lets us eliminate the excess preconditions on `cursor_mut_at`. It also removes some of the complexity in `on_drop`, where we previously had to",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码审查 COMMENTED",
+      "url": "https://github.com/asterinas/vostd/pull/485#pullrequestreview-4400110148",
+      "excerpt": "Owners` and to simplify guard tracking, in order to relax cursor preconditions and simplify/verify `PageTablePageMeta::on_drop`. **Changes:** - Added metadata-only borrow/write support (`Meta(...)`) to the `borrow_field!` / `up",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/485#issuecomment-4591484133",
+      "excerpt": "@copilot, please review the verus specification and proofs change; find any unsound spots.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/embedding/cursor.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/embedding/frame.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/embedding/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/embedding/segment.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/meta_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/meta_region_owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/meta_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/segment.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/unique.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+      "category": "规约或验证工具文件"
+    }
+  ],
+  "evidence_count": 26
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-474-a6fdca3a754f",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-474-a6fdca3a754f:issue-comment-4531408222",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "KVirtArea::query models page-table guard ownership with a 'static lifetime even though atomic mode is established only by a local preemption guard.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 401,
+          "end_line": 405
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/kspace/kvirt_area.rs",
+          "start_line": 460,
+          "end_line": 467
+        }
+      ],
+      "rationale": "The selected head's query contract receives `Guards<'static, KernelPtConfig>` and a `PageTableGuard<'static, KernelPtConfig>`, but the implementation creates `preempt_guard` locally with `disable_preempt()` and only borrows it for the cursor call. The executable guarantee that preemption is disabled therefore ends when this local guard is dropped, while the tracked/ghost lock state is typed as statically available and is not tied to that real borrow. A proof can consequently treat page-table lock capability as outliving the actual atomic-mode interval, invalidating the intended scheduling/locking safety argument. Reviewer comments 4531285586 and 4531408222 identify precisely this lifetime mismatch and call the associated specifications unsound; the author agrees that a caller/user-provided guard lifetime is not truthful and rejects bypassing the issue. The final PR head still has the static tracked parameters, and the PR was closed as superseded by #908 rather than accepting this design.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n401: #[verus_spec(r =>\n402:     with Tracked(owner): Tracked<KVirtAreaOwner>,\n403:         Tracked(regions): Tracked<&mut MetaRegionOwners>,\n404:         Tracked(guards): Tracked<&mut Guards<'static, KernelPtConfig>>,\n405:         Ghost(root_guard): Ghost<PageTableGuard<'static, KernelPtConfig>>\n\n460: let page_table = {\n462:     get_kernel_page_table(Tracked(&mut _kpt_owner), Tracked(regions), Tracked(guards))\n464: let preempt_guard = disable_preempt();\n466: #[verus_spec(with Tracked(owner.pt_owner), Ghost(root_guard), Tracked(regions), Tracked(guards))]\n467: page_table.cursor(&preempt_guard, &vaddr)).unwrap();",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531408222",
+      "related_comment_ids": [
+        "4531285586",
+        "4531408222",
+        "4531703863",
+        "4532937293",
+        "4533046504"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4531285586",
+          "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531285586",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4531408222",
+          "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531408222",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4531703863",
+          "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531703863",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4532937293",
+          "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4532937293",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4533046504",
+          "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4533046504",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Rust and Verus were not executed. Checked the complete archived and live discussion, all four official PR commits, the selected fixed head, its true remote merge-base, and the superseding PR #908, whose corresponding guard state no longer carries the static lifetime parameter."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "number": 577,
+  "title": "fix: simplification in frame",
+  "selected": true,
+  "category": "规约或验证工具文件",
+  "evidence": [
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/frame_lifecycle.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/frame/segment.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "e>> Deref for FrameRef<'_, M> { type Target = Frame<M>; #[verus_spec(ensures returns &self.inner.0)] fn deref(&self) -> &Self::Target { &self.inner } } old(regions).slots.contains_key(frame",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 4
+}

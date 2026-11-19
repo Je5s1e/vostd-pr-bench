@@ -1,0 +1,374 @@
+From 039c5db9264b2811cb96554691f64a260bded127 Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Fri, 12 Jun 2026 04:12:27 -0400
+Subject: [PATCH 1/6] fix missing tracked variable
+
+---
+ ostd/src/sync/rcu/mod.rs | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index e5b454780..4e857138c 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -232,7 +232,6 @@ impl<P: NonNullPtr> RcuInner<P> {
+     }
+ }
+ 
+-#[verus_verify]
+ impl<P: NonNullPtr + Send> RcuInner<P> {
+     #[inline(always)]
+     const fn new_none() -> (res: Self)
+@@ -240,24 +239,24 @@ impl<P: NonNullPtr + Send> RcuInner<P> {
+             res.is_nullable(),
+             res.wf(),
+     {
+-        proof_decl! {
+-            let tracked ptr_ghost: RcuPtrGhost<P> = RcuPtrGhost {
+-                current: None,
+-                retired: Map::tracked_empty(),
+-                returned: Map::tracked_empty(),
+-            };
+-        }
+         Self {
+             ptr: AtomicPtr::new(
+                 Ghost((Ghost(true), PhantomData::<*const <P as NonNullPtr>::Target>)),
+                 core::ptr::null_mut(),
+-                Tracked(ptr_ghost),
++                Tracked(RcuPtrGhost {
++                    current: None,
++                    retired: Map::tracked_empty(),
++                    returned: Map::tracked_empty(),
++                }),
+             ),
+             _marker: PhantomData::<*const <P as NonNullPtr>::Target>,
+             ghost_nullable: Ghost(true),
+         }
+     }
++}
+ 
++#[verus_verify]
++impl<P: NonNullPtr + Send> RcuInner<P> {
+     /// Creates a new RCU primitive with the given pointer `pointer`.
+     #[inline(always)]
+     #[verus_spec(r =>
+
+From 9fc278cd02f670d3034714c3e25e1b78a640f535 Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Fri, 12 Jun 2026 04:57:08 -0400
+Subject: [PATCH 2/6] format
+
+---
+ ostd/src/sync/rcu/mod.rs | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index 4e857138c..a627b1f33 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -243,11 +243,13 @@ impl<P: NonNullPtr + Send> RcuInner<P> {
+             ptr: AtomicPtr::new(
+                 Ghost((Ghost(true), PhantomData::<*const <P as NonNullPtr>::Target>)),
+                 core::ptr::null_mut(),
+-                Tracked(RcuPtrGhost {
+-                    current: None,
+-                    retired: Map::tracked_empty(),
+-                    returned: Map::tracked_empty(),
+-                }),
++                Tracked(
++                    RcuPtrGhost {
++                        current: None,
++                        retired: Map::tracked_empty(),
++                        returned: Map::tracked_empty(),
++                    },
++                ),
+             ),
+             _marker: PhantomData::<*const <P as NonNullPtr>::Target>,
+             ghost_nullable: Ghost(true),
+
+From a07403f1904f1f39527bb0631d6d176aa1b9b073 Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Fri, 12 Jun 2026 04:59:08 -0400
+Subject: [PATCH 3/6] more const fix
+
+---
+ ostd/src/mm/frame/mod.rs    | 34 ++++++++++++++++++----------------
+ ostd/src/mm/frame/unique.rs | 34 ++++++++++++++++++----------------
+ ostd/src/sync/rcu/mod.rs    | 18 ++++++++++--------
+ 3 files changed, 46 insertions(+), 40 deletions(-)
+
+diff --git a/ostd/src/mm/frame/mod.rs b/ostd/src/mm/frame/mod.rs
+index 6492ab417..60fb5544f 100644
+--- a/ostd/src/mm/frame/mod.rs
++++ b/ostd/src/mm/frame/mod.rs
+@@ -380,6 +380,24 @@ impl<M: AnyFrameMeta + Repr<MetaSlotStorage>> Frame<M> {
+     }
+ }
+ 
++impl<'a, M: AnyFrameMeta + Repr<MetaSlotStorage>> Frame<M> {
++    /// Gets the map level of this page.
++    ///
++    /// This is the level of the page table entry that maps the frame,
++    /// which determines the size of the frame.
++    ///
++    /// Currently, the level is always 1, which means the frame is a regular
++    /// page frame.
++    pub const fn map_level(&self) -> PagingLevel {
++        1
++    }
++
++    /// Gets the size of this page in bytes.
++    pub const fn size(&self) -> usize {
++        PAGE_SIZE
++    }
++}
++
+ #[verus_verify]
+ impl<'a, M: AnyFrameMeta + Repr<MetaSlotStorage>> Frame<M> {
+     /// Gets the physical address of the start of the frame.
+@@ -453,22 +471,6 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotStorage>> Frame<M> {
+         other.start_paddr())
+     }
+ 
+-    /// Gets the map level of this page.
+-    ///
+-    /// This is the level of the page table entry that maps the frame,
+-    /// which determines the size of the frame.
+-    ///
+-    /// Currently, the level is always 1, which means the frame is a regular
+-    /// page frame.
+-    pub const fn map_level(&self) -> PagingLevel {
+-        1
+-    }
+-
+-    /// Gets the size of this page in bytes.
+-    pub const fn size(&self) -> usize {
+-        PAGE_SIZE
+-    }
+-
+     /*    /// Gets the dynamically-typed metadata of this frame.
+     ///
+     /// If the type is known at compile time, use [`Frame::meta`] instead.
+diff --git a/ostd/src/mm/frame/unique.rs b/ostd/src/mm/frame/unique.rs
+index 961d9e720..3458cafa1 100644
+--- a/ostd/src/mm/frame/unique.rs
++++ b/ostd/src/mm/frame/unique.rs
+@@ -279,6 +279,24 @@ impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+     }
+ }
+ 
++impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + ?Sized> UniqueFrame<M> {
++    /// Gets the size of this page in bytes.
++    pub const fn size(&self) -> usize {
++        PAGE_SIZE
++    }
++
++    /// Gets the paging level of this page.
++    ///
++    /// This is the level of the page table entry that maps the frame,
++    /// which determines the size of the frame.
++    ///
++    /// Currently, the level is always 1, which means the frame is a regular
++    /// page frame.
++    pub const fn level(&self) -> PagingLevel {
++        1
++    }
++}
++
+ #[verus_verify]
+ impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + ?Sized> UniqueFrame<M> {
+     /// Gets the physical address of the start of the frame.
+@@ -305,22 +323,6 @@ impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf + ?Sized> UniqueFrame<M>
+         slot.frame_paddr()
+     }
+ 
+-    /// Gets the paging level of this page.
+-    ///
+-    /// This is the level of the page table entry that maps the frame,
+-    /// which determines the size of the frame.
+-    ///
+-    /// Currently, the level is always 1, which means the frame is a regular
+-    /// page frame.
+-    pub const fn level(&self) -> PagingLevel {
+-        1
+-    }
+-
+-    /// Gets the size of this page in bytes.
+-    pub const fn size(&self) -> usize {
+-        PAGE_SIZE
+-    }
+-
+     /*    /// Gets the dynamically-typed metadata of this frame.
+     ///
+     /// If the type is known at compile time, use [`Frame::meta`] instead.
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index a627b1f33..957762f22 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -727,6 +727,16 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+     }
+ }
+ 
++impl<P: NonNullPtr + Send> Rcu<P> {
++    /// Creates a new RCU primitive that contains nothing.
++    ///
++    /// This is a constant equivalence to [`RcuOption::new(None)`].
++    #[inline(always)]
++    pub const fn new_none() -> Self {
++        Self(RcuInner::new_none())
++    }
++}
++
+ #[verus_verify]
+ impl<P: NonNullPtr + Send> Rcu<P> {
+     /// Creates a new RCU primitive with the given pointer `pointer`.
+@@ -787,14 +797,6 @@ impl<P: NonNullPtr + Send> RcuOption<P> {
+         }
+     }
+ 
+-    /// Creates a new RCU primitive that contains nothing.
+-    ///
+-    /// This is a constant equivalence to [`RcuOption::new(None)`].
+-    #[inline(always)]
+-    pub const fn new_none() -> Self {
+-        Self(RcuInner::new_none())
+-    }
+-
+     /// Replaces the current pointer with a null pointer.
+     ///
+     /// This function updates the pointer to the new pointer regardless of the
+
+From 4cb9ee7caa9ed367de6984ae5ed68a94c090030b Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Fri, 12 Jun 2026 05:03:06 -0400
+Subject: [PATCH 4/6] perhaps unsound API
+
+---
+ ostd/src/sync/rcu/mod.rs | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index 957762f22..1795377b9 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -1086,7 +1086,6 @@ impl<P: NonNullPtr> Rcu<P> {
+     #[verifier::type_invariant]
+     closed spec fn type_inv(self) -> bool {
+         &&& self.0.type_inv()
+-        &&& !self.0.is_nullable()
+     }
+ }
+ 
+
+From 34eed1fc77c19a88872eab505bbf7983dafe7357 Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Fri, 12 Jun 2026 05:04:21 -0400
+Subject: [PATCH 5/6] fix unsound
+
+---
+ ostd/src/sync/rcu/mod.rs | 47 ++++++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
+
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index 1795377b9..7bcedc131 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -189,22 +189,22 @@ struct RcuInner<P: NonNullPtr> {
+ }
+ 
+ closed spec fn wf(self) -> bool {
+-        invariant on ptr with (ghost_nullable, _marker) is (
+-            v: *mut <P as NonNullPtr>::Target,
+-            g: RcuPtrGhost<P>,
+-        ) {
+-            &&& retired_pools_inv::<P>(g.retired)
+-            &&& returned_tokens_inv::<P>(g.returned)
+-            &&& match g.current {
+-                Some(perm) => {
+-                    &&& !v.is_null()
+-                    &&& P::ptr_perm_match(v, perm@)
+-                    &&& perm@.inv()
+-                    &&& perm.wf()
+-                    &&& perm.not_empty()
+-                },
+-                None => ghost_nullable@ && v.is_null(),
+-            }
++    invariant on ptr with (ghost_nullable, _marker) is (
++        v: *mut <P as NonNullPtr>::Target,
++        g: RcuPtrGhost<P>,
++    ) {
++        &&& retired_pools_inv::<P>(g.retired)
++        &&& returned_tokens_inv::<P>(g.returned)
++        &&& match g.current {
++            Some(perm) => {
++                &&& !v.is_null()
++                &&& P::ptr_perm_match(v, perm@)
++                &&& perm@.inv()
++                &&& perm.wf()
++                &&& perm.not_empty()
++            },
++            None => ghost_nullable@ && v.is_null(),
++        }
+     }
+ }
+ }
+@@ -728,13 +728,13 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+ }
+ 
+ impl<P: NonNullPtr + Send> Rcu<P> {
+-    /// Creates a new RCU primitive that contains nothing.
+-    ///
+-    /// This is a constant equivalence to [`RcuOption::new(None)`].
+-    #[inline(always)]
+-    pub const fn new_none() -> Self {
+-        Self(RcuInner::new_none())
+-    }
++    // Creates a new RCU primitive that contains nothing.
++    //
++    // This is a constant equivalence to [`RcuOption::new(None)`].
++    // #[inline(always)]
++    // pub const fn new_none() -> Self {
++    //     Self(RcuInner::new_none())
++    // }
+ }
+ 
+ #[verus_verify]
+@@ -1086,6 +1086,7 @@ impl<P: NonNullPtr> Rcu<P> {
+     #[verifier::type_invariant]
+     closed spec fn type_inv(self) -> bool {
+         &&& self.0.type_inv()
++        &&& !self.0.is_nullable()
+     }
+ }
+ 
+
+From 378590cc39aca0a74998f90513fd7ce11f9428a5 Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Fri, 12 Jun 2026 05:08:08 -0400
+Subject: [PATCH 6/6] remove non-existing API
+
+---
+ ostd/src/sync/rcu/mod.rs | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
+index 7bcedc131..f2370dc78 100644
+--- a/ostd/src/sync/rcu/mod.rs
++++ b/ostd/src/sync/rcu/mod.rs
+@@ -727,16 +727,6 @@ impl<'a, P: NonNullPtr + Send> RcuReadGuardInner<'a, P> {
+     }
+ }
+ 
+-impl<P: NonNullPtr + Send> Rcu<P> {
+-    // Creates a new RCU primitive that contains nothing.
+-    //
+-    // This is a constant equivalence to [`RcuOption::new(None)`].
+-    // #[inline(always)]
+-    // pub const fn new_none() -> Self {
+-    //     Self(RcuInner::new_none())
+-    // }
+-}
+-
+ #[verus_verify]
+ impl<P: NonNullPtr + Send> Rcu<P> {
+     /// Creates a new RCU primitive with the given pointer `pointer`.

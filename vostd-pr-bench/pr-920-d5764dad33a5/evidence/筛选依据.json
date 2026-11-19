@@ -1,0 +1,36 @@
+{
+  "number": 920,
+  "title": "prove: Verify x86 AVX feature detection",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "prove: Verify x86 AVX feature detection",
+      "category": "证明与规约"
+    },
+    {
+      "location": "标题",
+      "excerpt": "prove: Verify x86 AVX feature detection",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/920",
+      "excerpt": "existing x86 module, adding 16 Verified executable LoC. Per-call ghost samples specify the original leaf-0 gate and the exact AVX/AVX-512F bit checks; other inactive code and existing comments are preserved. Replace the",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "行内审查评论",
+      "url": "https://github.com/asterinas/vostd/pull/920#discussion_r4562531929",
+      "excerpt": "taking a look. The purpose of CpuidFeatureSamples is to let the postconditions refer to the register values read during this invocation. The existing CPUID specification leaves each call’s results unconstrained, so we cannot ass",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "use vstd::prelude::*; }*/ verus! { /// Registers sampled by one feature query; no relation between separate reads is assumed. ghost struct CpuidFeatureSamples",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 5
+}

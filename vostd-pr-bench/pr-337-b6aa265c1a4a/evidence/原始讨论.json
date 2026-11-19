@@ -1,0 +1,255 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/337",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 337,
+    "title": "Add Guard traits without implementation and make rwarc verifiable.",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/337",
+    "state": "MERGED",
+    "createdAt": "2026-03-06T10:51:43Z",
+    "updatedAt": "2026-05-01T09:36:18Z",
+    "closedAt": "2026-03-09T07:24:53Z",
+    "mergedAt": "2026-03-09T07:24:53Z",
+    "author": {
+      "login": "Marsman1996"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "b4ec91d7e031e4a432a08a4c85239e21b5f692e1",
+    "headRefName": "prove-rwarc",
+    "headRefOid": "6b22d624ab7698daa2615add8fa27e108c9a4266",
+    "changedFiles": 8,
+    "additions": 77,
+    "deletions": 35,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 8,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "OA"
+      },
+      "nodes": [
+        {
+          "path": "Cargo.lock",
+          "additions": 2,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/sync/guard.rs",
+          "additions": 24,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/sync/mod.rs",
+          "additions": 3,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/sync/rwarc.rs",
+          "additions": 21,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/sync/rwlock.rs",
+          "additions": 5,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/mod.rs",
+          "additions": 6,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/preempt/guard.rs",
+          "additions": 13,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/preempt/mod.rs",
+          "additions": 3,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4020780962",
+      "html_url": "https://github.com/asterinas/vostd/pull/337#issuecomment-4020780962",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/337",
+      "id": 4020780962,
+      "node_id": "IC_kwDONtWm_c7vqD-i",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-03-09T03:03:13Z",
+      "updated_at": "2026-03-09T03:03:13Z",
+      "body_html": "<p dir=\"auto\">I‘m not sure about the <code class=\"notranslate\">Guard</code> change. I think we can just make the <code class=\"notranslate\">disable_preempt</code> <code class=\"notranslate\">external_body</code>, instead of changing the struct definition and function definitions.</p>",
+      "body_text": "I‘m not sure about the Guard change. I think we can just make the disable_preempt external_body, instead of changing the struct definition and function definitions.",
+      "body": "I‘m not sure about the `Guard` change. I think we can just make the `disable_preempt` `external_body`, instead of changing the struct definition and function definitions.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4020780962/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4021666901",
+      "html_url": "https://github.com/asterinas/vostd/pull/337#issuecomment-4021666901",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/337",
+      "id": 4021666901,
+      "node_id": "IC_kwDONtWm_c7vtcRV",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-03-09T07:16:06Z",
+      "updated_at": "2026-03-09T07:16:06Z",
+      "body_html": "<p dir=\"auto\">I make the zero-variant enum compile with the <code class=\"notranslate\">external_type_specification</code> trick. However, to prove <code class=\"notranslate\">RwArc</code>, we have more things to do with <code class=\"notranslate\">RwLock</code>. I will leave this in a future PR.</p>",
+      "body_text": "I make the zero-variant enum compile with the external_type_specification trick. However, to prove RwArc, we have more things to do with RwLock. I will leave this in a future PR.",
+      "body": "I make the zero-variant enum compile with the `external_type_specification` trick. However, to prove `RwArc`, we have more things to do with `RwLock`. I will leave this in a future PR.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4021666901/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

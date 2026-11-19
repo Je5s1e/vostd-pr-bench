@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-782-1a8ec593d670",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-782-1a8ec593d670:review-comment-4044332915",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The replacement public `inv()` spec helper only forwards to `type_inv()` and has no justified consumer after the type-invariant migration.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 239,
+          "end_line": 241
+        }
+      ],
+      "rationale": "After removing the duplicate `Inv` trait implementation, this revision adds a public helper whose entire body is `self.type_inv()`. The collaborator asks where it is used; the following fix deletes the helper and removes its remaining contract call rather than establishing an abstraction-boundary consumer. `avoid-unused-spec-helpers` requires a current caller or a documented external abstraction need, not a compatibility alias introduced during cleanup.",
+      "source_evidence": "after/ostd/src/boot/memory_region.rs\n233: impl<const LEN: usize> MemoryRegionArray<LEN> {\n234:     #[verifier::type_invariant]\n235:     closed spec fn type_inv(self) -> bool {\n236:         self.count <= LEN\n237:     }\n239:     pub closed spec fn inv(self) -> bool {\n240:         self.type_inv()\n241:     }\n242: }",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/782#discussion_r4044332915",
+      "related_comment_ids": [
+        "4044332915"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4044332915",
+          "url": "https://github.com/asterinas/vostd/pull/782#discussion_r4044332915",
+          "commit_id": "1a8ec593d670b3ff4a1687c2b784059b35a69164"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the original review commit, subsequent fix, final merged head, complete archived discussion, and complete live remote discussion."
+    }
+  ]
+}

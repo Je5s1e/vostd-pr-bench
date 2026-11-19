@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-511-860ffa221455",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-511-860ffa221455:review-comment-3386412310",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The now-trivial `view_rec_finite` proof helper is unused and unnecessarily expands the proof API.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/owners.rs",
+          "start_line": 1206,
+          "end_line": 1214
+        }
+      ],
+      "rationale": "After the Verus set migration, the helper has an empty body and its own comment says finiteness is trivially true. A complete search of the selected snapshot finds no caller beyond the definition. The `avoid-unused-spec-helpers` guideline requires newly unnecessary proof helpers with zero call sites to be removed. Reviewer 3386412310 asks whether it is still needed; the author answers `nope` and commits to removing it, and the final approved head deletes the function.",
+      "source_evidence": "after/ostd/specs/mm/page_table/owners.rs\n1206:     /// `view_rec` is finite (trivially true: `Set` is now always finite).\n1207:     pub proof fn view_rec_finite(self, path: TreePath<NR_ENTRIES>)\n1208:         requires\n1209:             self.0.inv(),\n1210:             path.len() <= INC_LEVELS - 1,\n1211:             path.len() == self.0.level,\n1212:         decreases INC_LEVELS - path.len(),\n1213:     {\n1214:     }",
+      "rule_ids": [
+        "avoid-unused-spec-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/511#discussion_r3386412310",
+      "related_comment_ids": [
+        "3386412310",
+        "3386415534",
+        "3386417677"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3386412310",
+          "url": "https://github.com/asterinas/vostd/pull/511#discussion_r3386412310",
+          "commit_id": "860ffa221455abe554054721821e77f63626a8c9"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3386415534",
+          "url": "https://github.com/asterinas/vostd/pull/511#discussion_r3386415534",
+          "commit_id": "860ffa221455abe554054721821e77f63626a8c9"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3386417677",
+          "url": "https://github.com/asterinas/vostd/pull/511#discussion_r3386417677",
+          "commit_id": "860ffa221455abe554054721821e77f63626a8c9"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Searched the full selected source for call sites, read the complete archived and remote thread, and compared with the final approved head where the helper is deleted."
+    }
+  ]
+}

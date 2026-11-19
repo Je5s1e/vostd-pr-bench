@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 2,
+  "inline_review_comment_count": 0,
+  "review_count": 0,
+  "core_lesson": "把底层 guard 抽象成外部类型是集成手段，不是实现验证",
+  "category": "可信边界",
+  "all_content_unadjudicated": true
+}

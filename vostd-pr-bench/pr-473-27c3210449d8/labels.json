@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-473-27c3210449d8",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-473-27c3210449d8:review-comment-3286965930",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Trusted helpers that produce tracked owners use the legacy verifier::returns(proof) attribute and ordinary return binders instead of declaring tracked return values directly.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+          "start_line": 526,
+          "end_line": 535
+        }
+      ],
+      "rationale": "The selected original review head renames resource-producing helpers with the `tracked_` prefix, but still expresses their return mode through the legacy `#[verifier::returns(proof)]` attribute and either an ordinary `Self` return or an ordinary named `res`. Review comment 3286965930 asks whether the return should instead be `(tracked res: Self)`. The author explicitly agrees, the reviewer confirms that an `axiom fn` can directly return `tracked res`, and the final approved head removes all ten `returns(proof)` attributes in `ostd/` and uses named tracked results. The later official `avoid-redundant-mode-markers` rule requires `tracked` markers where they communicate or enforce a mode boundary; it postdates this review and is used to adjudicate this concrete, accepted migration rather than inventing a new rule.",
+      "source_evidence": "after/ostd/specs/mm/frame/linked_list/linked_list_owners.rs\n526: #[verifier::returns(proof)]\n527: pub axiom fn tracked_cursor_mut_at_owner(list_own: LinkedListOwner<M>, index: int) -> Self\n528:     returns Self::cursor_mut_at_owner(list_own, index);\n530: #[verifier::returns(proof)]\n531: pub axiom fn tracked_front_owner(\n532:     list_own: LinkedListOwner<M>,\n533: ) -> (res: Self)\n534:     ensures\n535:         res == Self::front_owner(list_own);\n\nReview comment 3286965930 proposes `(tracked res: Self)`; author reply 3294047808 accepts the switch; reviewer reply 3294189046 confirms `axiom fn` returning tracked res.\n\nThe final head uses `-> (tracked res: Self)` and contains zero `#[verifier::returns(proof)]` attributes under `ostd/`.",
+      "rule_ids": [
+        "avoid-redundant-mode-markers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/473#discussion_r3286965930",
+      "related_comment_ids": [
+        "3286965930",
+        "3292962930",
+        "3294047808",
+        "3294189046"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3286965930",
+          "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3286965930",
+          "commit_id": "27c3210449d82ca416c0849b295f22159521fc0c"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3292962930",
+          "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3292962930",
+          "commit_id": "27c3210449d82ca416c0849b295f22159521fc0c"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3294047808",
+          "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3294047808",
+          "commit_id": "27c3210449d82ca416c0849b295f22159521fc0c"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3294189046",
+          "url": "https://github.com/asterinas/vostd/pull/473#discussion_r3294189046",
+          "commit_id": "27c3210449d82ca416c0849b295f22159521fc0c"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Read the complete archived and current remote thread, selected the original review commit, compared all legacy attributes with the final approved source, and checked the later official mode-marker guideline."
+    }
+  ]
+}

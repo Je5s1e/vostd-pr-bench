@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-511-860ffa221455",
+  "pr_number": 511,
+  "title": "Migrate to latest Verus; replace `=~=`",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/511",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "5eed9668557afb43c85ed260cdb1e752e4962fb4",
+  "head_sha": "860ffa221455abe554054721821e77f63626a8c9",
+  "base_method": "git merge-base(archived remote PR base bd1d4ef274b2d288b99ee89edc46edc58cdc967b, historical review head 860ffa221455abe554054721821e77f63626a8c9); selected for review comment 3386412310",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/segment.rs",
+    "ostd/specs/mm/io.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/virt_mem.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/specs/sync/abstract_lock.rs",
+    "ostd/specs/sync/mutex.rs",
+    "ostd/specs/sync/mutex_verussync.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "ostd/src/sync/rcu/non_null/either.rs",
+    "rust-toolchain.toml",
+    "verified_libs/verified_bitflags/src/lib.rs",
+    "verified_libs/vstd_extra/src/array_ptr.rs",
+    "verified_libs/vstd_extra/src/function_properties.rs",
+    "verified_libs/vstd_extra/src/map_extra.rs",
+    "verified_libs/vstd_extra/src/resource/ghost_resource/count.rs",
+    "verified_libs/vstd_extra/src/resource/ghost_resource/csum.rs",
+    "verified_libs/vstd_extra/src/resource/ghost_resource/tokens.rs",
+    "verified_libs/vstd_extra/src/resource/storage_protocol/csum.rs",
+    "verified_libs/vstd_extra/src/resource/storage_protocol/excl.rs",
+    "verified_libs/vstd_extra/src/resource/storage_protocol/hybrid_product.rs",
+    "verified_libs/vstd_extra/src/set_extra.rs",
+    "verified_libs/vstd_extra/src/temporal_logic/rules.rs"
+  ],
+  "diff_sha256": "6bc362b3fa40b915298bbbf0c6f59491f188b2c40c1029e54f67fe18c64ee7c4",
+  "versions": {
+    "before": {
+      "commit": "5eed9668557afb43c85ed260cdb1e752e4962fb4",
+      "file_count": 335,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "860ffa221455abe554054721821e77f63626a8c9",
+      "file_count": 335,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-18T11:35:07.991797+00:00",
+    "reviewed_at": "2026-06-10T07:44:18Z",
+    "upstream_updated_at": "2026-07-22T06:22:09Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/511",
+      "https://github.com/asterinas/vostd/pull/511#discussion_r3386412310",
+      "https://github.com/asterinas/vostd/pull/511#discussion_r3386415534",
+      "https://github.com/asterinas/vostd/pull/511#discussion_r3386417677"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4046a6b4bab0664e7f6504cb1a7efcd87c298f",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4046a6b4bab0664e7f6504cb1a7efcd87c298f/docs/coding-guidelines/maintainability.md#avoid-unused-spec-helpers"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00511"
+  }
+}

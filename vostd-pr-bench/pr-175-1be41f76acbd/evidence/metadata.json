@@ -1,0 +1,74 @@
+{
+  "number": 175,
+  "source_pr": "https://github.com/asterinas/vostd/pull/175",
+  "base_sha": "63f6a052f73706b2db5282e46ef75f7da96d3c63",
+  "head_sha": "1be41f76acbd78c3a1bd88c5efc41246814631d7",
+  "files": {
+    "totalCount": 7,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "Nw"
+    },
+    "nodes": [
+      {
+        "path": "lock-protocol/src/exec/rcu/cpu.rs",
+        "additions": 1,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "additions": 461,
+        "deletions": 79,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/types.rs",
+        "additions": 11,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rw/tree.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/utils.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "vstd_extra/src/map_extra.rs",
+        "additions": 57,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://patch-diff.githubusercontent.com/raw/asterinas/vostd/pull/175.diff",
+    "bytes": 42987,
+    "sha256": "5458dbac582e2186bfb6045bbdc8af8f326f5bed6f0dcbed4180077c8fbc02eb",
+    "fetched_at": "2026-11-13T21:12:14.101040+00:00",
+    "diff_file_sections": 7,
+    "expected_changed_files": 7
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/175",
+    "accept": "application/vnd.github.patch",
+    "bytes": 69870,
+    "sha256": "eabf13344d6d2f3a965d42baccc93924ad1737eed6a79d9d1d0c91d69a2debce",
+    "fetched_at": "2026-11-13T21:20:43.912523+00:00"
+  }
+}

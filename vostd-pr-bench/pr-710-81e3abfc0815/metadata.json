@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-710-81e3abfc0815",
+  "pr_number": 710,
+  "title": "feat: introduce generic multi-architecture paging/address-space model",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/710",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0de9219aa933a2bcc1176b9639412dc2efc30612",
+  "head_sha": "81e3abfc0815bcff0ba233492689480371f45b9f",
+  "base_method": "direct parent of selected historical review commit 81e3abfc0815bcff0ba233492689480371f45b9f",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/arch/mod.rs",
+    "ostd/specs/arch/model.rs",
+    "ostd/specs/arch/x86/mod.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mod.rs",
+    "ostd/src/arch/x86/mm/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs"
+  ],
+  "diff_sha256": "26e98ee4cf58db946dd6198dca427b2652a461abac104169d2008dce30ab4bfe",
+  "versions": {
+    "before": {
+      "commit": "0de9219aa933a2bcc1176b9639412dc2efc30612",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "81e3abfc0815bcff0ba233492689480371f45b9f",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "e7db93afc4c0729fce88815283a275d00892a5e1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-18T09:38:49.611759+00:00",
+    "reviewed_at": "2026-10-11T02:20:22Z",
+    "upstream_updated_at": "2026-10-21T06:32:38Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/710",
+      "https://github.com/asterinas/vostd/pull/710#discussion_r4239968402",
+      "https://github.com/asterinas/vostd/pull/710#discussion_r4239971131",
+      "https://github.com/asterinas/vostd/pull/710#discussion_r4239980266"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "81e3abfc0815bcff0ba233492689480371f45b9f",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/81e3abfc0815bcff0ba233492689480371f45b9f/docs/coding-guidelines/maintainability.md#pair-exec-helpers-with-spec-models"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00710"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-127-ac14d35923e4",
+  "pr_number": 127,
+  "title": "Provide fallback to powershell if pwsh is not present when bootstrapping",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/127",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "9777ba2e0f04b144e2c306d5cf2fecaa334c7424",
+  "head_sha": "ac14d35923e4acbc662f98091638ca0a15ff4e7f",
+  "base_method": "git merge-base(archived PR base 9bb5c16487e8f7bd00132af393bb0415d7b1cbde, latest historical PR head ac14d35923e4acbc662f98091638ca0a15ff4e7f before issue comment 3121739038) = 9777ba2e0f04b144e2c306d5cf2fecaa334c7424; computed from official Git objects",
+  "archive_base_sha": "9bb5c16487e8f7bd00132af393bb0415d7b1cbde",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "xtask/src/main.rs"
+  ],
+  "diff_sha256": "89bda20d789051004cdc7c7e1f719f66e197f303c997c438aed1b5b3ab81aecb",
+  "versions": {
+    "before": {
+      "commit": "9777ba2e0f04b144e2c306d5cf2fecaa334c7424",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "ac14d35923e4acbc662f98091638ca0a15ff4e7f",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T18:43:08Z",
+    "reviewed_at": "2025-07-26T12:24:53Z",
+    "upstream_updated_at": "2025-07-31T12:14:55Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/127",
+      "https://github.com/asterinas/vostd/pull/127#issuecomment-3121739038",
+      "https://github.com/asterinas/vostd/pull/127#issuecomment-3125798365",
+      "https://github.com/asterinas/vostd/pull/127#issuecomment-3126156030"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00127"
+  }
+}

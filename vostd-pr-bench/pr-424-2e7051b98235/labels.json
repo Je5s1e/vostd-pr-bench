@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-424-2e7051b98235",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-424-2e7051b98235:issue-comment-4342695998",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "External specifications for slice pointer operations are placed in the generic std_extra module instead of the dedicated vstd_extra::external boundary.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/std_extra.rs",
+          "start_line": 6,
+          "end_line": 15
+        }
+      ],
+      "rationale": "The selected head places trusted `assume_specification` declarations for `<[T]>::as_ptr` and `<[T]>::as_mut_ptr` in `vstd_extra::std_extra`. Review comment 4342695998 asks that these assumptions be moved into modules under `vstd_extra::external` to make the trust boundary clear. The author confirms the merge, and the final approved head moves the pointer assumptions verbatim to `vstd_extra/src/external/slice.rs` while moving the non-trusted range helpers to `external/range.rs`. This matches `centralize-trusted-boundaries`: unavoidable specifications for opaque standard-library APIs belong under the dedicated external-specification hierarchy.",
+      "source_evidence": "after/vstd_extra/src/std_extra.rs\n6: #[verifier::when_used_as_spec(as_ptr_spec)]\n7: pub assume_specification<T>[ <[T]>::as_ptr ](s: &[T]) -> (r: *const T)\n8:     ensures\n9:         r == as_ptr_spec(s),\n10: ;\n12: pub uninterp spec fn as_ptr_spec<T>(s: &[T]) -> *const T;\n14: pub assume_specification<T>[ <[T]>::as_mut_ptr ](s: &mut [T]) -> *mut T\n15: ;\n\nFinal head f053bca745487764bae9d1ab5ff7e9ccdfad08d1 relocates these declarations to vstd_extra/src/external/slice.rs lines 5-14.",
+      "rule_ids": [
+        "centralize-trusted-boundaries"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342695998",
+      "related_comment_ids": [
+        "4342695998",
+        "4350099569"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4342695998",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342695998",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4350099569",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4350099569",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Selected the latest PR head before the issue-comment timestamp, confirmed its real merge-base and fixed source, and compared the final approved head where the assumptions are moved into vstd_extra::external."
+    }
+  ]
+}

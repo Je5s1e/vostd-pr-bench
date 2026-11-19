@@ -1,0 +1,38 @@
+{
+  "before": {
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "674c7500ec1a4f283fcf60cd44a5d4ceb3b27f28"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    },
+    "lock-protocol/src/spec/rcu/tree.rs": {
+      "mode": "100644",
+      "git_blob": "d87ab40bffd87094f40cf56f62bfa6ecab73ae4d"
+    },
+    "vstd_extra/src/map_extra.rs": {
+      "mode": "100644",
+      "git_blob": "cb9c6b783594037e83471dfac8d5ccc8fab63e1a"
+    }
+  },
+  "after": {
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "674c7500ec1a4f283fcf60cd44a5d4ceb3b27f28"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    },
+    "lock-protocol/src/spec/rcu/tree.rs": {
+      "mode": "100644",
+      "git_blob": "55cfc6ee717cd75811f09c03f467185827d4a228"
+    },
+    "vstd_extra/src/map_extra.rs": {
+      "mode": "100644",
+      "git_blob": "58d0d1e8008657846ecc60d1975adb580e92c68b"
+    }
+  }
+}

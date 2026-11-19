@@ -1,0 +1,14 @@
+{
+  "before": {
+    "xtask/src/main.rs": {
+      "mode": "100644",
+      "git_blob": "37164eb62bbbfb72eb1951331967878a5fed5b17"
+    }
+  },
+  "after": {
+    "xtask/src/main.rs": {
+      "mode": "100644",
+      "git_blob": "fbfc677cb8dcba6659781688aca88877f802175f"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-782-1a8ec593d670",
+  "pr_number": 782,
+  "title": "prove: boot::memory_region::Deref",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/782",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "809bdffe8c9605d86431dd7c59aabdb76fc46bba",
+  "head_sha": "1a8ec593d670b3ff4a1687c2b784059b35a69164",
+  "base_method": "git merge-base(archived base_sha dd7a8862017ee02a28e0543a1ecc35c8f697eb86, original review commit 1a8ec593d670b3ff4a1687c2b784059b35a69164); result 809bdffe8c9605d86431dd7c59aabdb76fc46bba",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/boot/memory_region.rs"
+  ],
+  "diff_sha256": "8302e52d57e9de6aa67264278ba4fc22e4885e8e782f22f5911c968c01921f1a",
+  "versions": {
+    "before": {
+      "commit": "809bdffe8c9605d86431dd7c59aabdb76fc46bba",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "1a8ec593d670b3ff4a1687c2b784059b35a69164",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "a8834cbb0dc227e83d05033a452dc95875d94fd5",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:05:58.940282+00:00",
+    "reviewed_at": "2026-09-18T06:26:21Z",
+    "upstream_updated_at": "2026-09-18T08:08:10Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/782",
+      "https://github.com/asterinas/vostd/pull/782#discussion_r4044332915"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#avoid-unused-spec-helpers"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00782"
+  }
+}

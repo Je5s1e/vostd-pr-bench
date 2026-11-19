@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-847-deb42343023f",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-847-deb42343023f:review-comment-4374956213",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The RISC-V set_prop implementation turns an absent PTE into a present entry, so the shared trait contract was weakened for one architecture instead of preserving its documented no-op behavior.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "start_line": 1521,
+          "end_line": 1535
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/arch/riscv/mm/mod.rs",
+          "start_line": 395,
+          "end_line": 438
+        }
+      ],
+      "rationale": "The shared PageTableEntryTrait documents set_prop as a no-op for an absent entry, but this snapshot weakens that guarantee specifically on RISC-V. Its implementation unconditionally includes VALID in the new flags and writes them back without checking is_present, so an absent PTE becomes present. The review thread confirms the old implementation violated the documented behavior; the final PR head restores the architecture-independent no-op postcondition and adds the missing RISC-V guard. No runtime failure was claimed or reproduced.",
+      "source_evidence": "after/ostd/src/mm/page_table/mod.rs\n1521:     fn set_prop(&mut self, prop: PageProperty)\n1525:             !cfg!(target_arch = \"riscv64\") && !old(self).is_present() ==> *old(self)\n1527:             (cfg!(target_arch = \"riscv64\") || old(self).is_present()) ==> {\n\nafter/ostd/src/arch/riscv/mm/mod.rs\n406:     fn set_prop(&mut self, prop: PageProperty) {\n411:         let mut flags = PageTableFlags::VALID().bits()\n438:         self.0 = (self.0 & Self::PHYS_ADDR_MASK) | flags;",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/847#discussion_r4374956213",
+      "related_comment_ids": [
+        "4374956213",
+        "4375064365",
+        "4375073818",
+        "4375140716"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4374956213",
+          "url": "https://github.com/asterinas/vostd/pull/847#discussion_r4374956213",
+          "commit_id": "deb42343023f3de346b5e0fd425817e8b2403c2c"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4375064365",
+          "url": "https://github.com/asterinas/vostd/pull/847#discussion_r4375064365",
+          "commit_id": "deb42343023f3de346b5e0fd425817e8b2403c2c"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4375073818",
+          "url": "https://github.com/asterinas/vostd/pull/847#discussion_r4375073818",
+          "commit_id": "deb42343023f3de346b5e0fd425817e8b2403c2c"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4375140716",
+          "url": "https://github.com/asterinas/vostd/pull/847#discussion_r4375140716",
+          "commit_id": "deb42343023f3de346b5e0fd425817e8b2403c2c"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the fixed deb42343023f snapshot, the complete archived and current remote review thread, and the accepted final-head fix."
+    }
+  ]
+}

@@ -1,0 +1,2562 @@
+{
+  "before": {
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "fd043f4353a9d9c66b28d3a504f5dea440fd9a46"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    },
+    "ostd/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "0b9283ff7e6ebccc8ba6e759b118da7476af1408"
+    },
+    "ostd/README.md": {
+      "mode": "100644",
+      "git_blob": "e848b3a609a2b90e3d7ffea6db54d5bee0e63f9c"
+    },
+    "ostd/libs/align_ext/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "31bd63e0486442c7b53bbe4751677f895a6b5880"
+    },
+    "ostd/libs/align_ext/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "3640e7c7c35a9e2a192b0a56279a6e443bdf3537"
+    },
+    "ostd/libs/id-alloc/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "6e39c66ad3905266959cbad204cb727351aa7a81"
+    },
+    "ostd/libs/id-alloc/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "c2ff2984b798dcb1ad306fe3e0546f8407a5a680"
+    },
+    "ostd/libs/linux-bzimage/boot-params/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "122df134da8a3d95d34d6899877d73408cb64324"
+    },
+    "ostd/libs/linux-bzimage/boot-params/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "af65b28bdb5fcd5b84bc561d611db69ec1dfca43"
+    },
+    "ostd/libs/linux-bzimage/builder/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "5a32e3788b32061930b97c97d2e3e24bd18c8e92"
+    },
+    "ostd/libs/linux-bzimage/builder/src/encoder.rs": {
+      "mode": "100644",
+      "git_blob": "382b3231904c886cc4d2e7eabe85edb258735877"
+    },
+    "ostd/libs/linux-bzimage/builder/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "c0a6a6f177daf5a6836119b5507ecf981ad33488"
+    },
+    "ostd/libs/linux-bzimage/builder/src/mapping.rs": {
+      "mode": "100644",
+      "git_blob": "7038ee07b2ddd1d67858624cfcccaf719653e35e"
+    },
+    "ostd/libs/linux-bzimage/builder/src/pe_header.rs": {
+      "mode": "100644",
+      "git_blob": "d0121482a25c3a02197c3ac38e91182243cfac28"
+    },
+    "ostd/libs/linux-bzimage/builder/src/x86_64-i386_pm-none.json": {
+      "mode": "100644",
+      "git_blob": "e7ab8fa6907e414d184ba93f80bdbe42ffb0c4bb"
+    },
+    "ostd/libs/linux-bzimage/setup/.cargo/config.toml": {
+      "mode": "100644",
+      "git_blob": "6cd933dd9b2c91cd574fe9811baf07b4cccac364"
+    },
+    "ostd/libs/linux-bzimage/setup/.gitignore": {
+      "mode": "100644",
+      "git_blob": "364274d81544a0cca5cbd74c5b29bebb2b191d24"
+    },
+    "ostd/libs/linux-bzimage/setup/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "afc5ac7a22da663db75c0f1f673c816e678e7b29"
+    },
+    "ostd/libs/linux-bzimage/setup/build.rs": {
+      "mode": "100644",
+      "git_blob": "b94e06321547972779268c68ef5cd82e4d990ca8"
+    },
+    "ostd/libs/linux-bzimage/setup/src/console.rs": {
+      "mode": "100644",
+      "git_blob": "a387f1957e7d8d905ea0d55bbcab849cbb2efecc"
+    },
+    "ostd/libs/linux-bzimage/setup/src/loader.rs": {
+      "mode": "100644",
+      "git_blob": "ef6ef18852f06969a37780c68b72f8ada2ae00fa"
+    },
+    "ostd/libs/linux-bzimage/setup/src/main.rs": {
+      "mode": "100644",
+      "git_blob": "2262f668a1d86c1f64221089a6c70f6d89e53b47"
+    },
+    "ostd/libs/linux-bzimage/setup/src/sync.rs": {
+      "mode": "100644",
+      "git_blob": "0112458651d1698f9b0b2e0bcb71cef78abc7584"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/alloc.rs": {
+      "mode": "100644",
+      "git_blob": "0cb964b5fc2c8b69abff6df0b3e72c933004105f"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/decoder.rs": {
+      "mode": "100644",
+      "git_blob": "165920c23558ed5f5440241e2a65867fd9c99f32"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/efi.rs": {
+      "mode": "100644",
+      "git_blob": "de1a641f9c10e108da4ab578f60290634e676033"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1760e9c8617cbd011142044c806f0795f95f5d7f"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/setup.S": {
+      "mode": "100644",
+      "git_blob": "5add6c2b0991646bdca29f4807a794742a2d107e"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/header.S": {
+      "mode": "100644",
+      "git_blob": "332559c7f1ea2be471f91b98ed1e29481936e641"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/legacy_i386/alloc.rs": {
+      "mode": "100644",
+      "git_blob": "0be5e28d1053d4e81413939b8103fb85e3c242b6"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/legacy_i386/mod.rs": {
+      "mode": "100644",
+      "git_blob": "dd2c3476cda89198199e14942cdc6d8b0214bae2"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/legacy_i386/setup.S": {
+      "mode": "100644",
+      "git_blob": "b855931d07f7f53c3df9fad124f7ecedc13ffa2c"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/linker.ld": {
+      "mode": "100644",
+      "git_blob": "d763d785e6ebf5dcfee4d903c7ba23ac04826677"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5d5cb3815ca176d8079ba9ebc0b189f86fca6149"
+    },
+    "ostd/libs/ostd-macros/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "a986e50293c2c4b2109458dbf14374bada873c1e"
+    },
+    "ostd/libs/ostd-macros/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "453e3de734f53dcfeb776d19294827e7e9821313"
+    },
+    "ostd/libs/ostd-pod/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "4d041cfb0bc7ba32c86f6c11c05c5694112e6c2c"
+    },
+    "ostd/libs/ostd-pod/README.md": {
+      "mode": "100644",
+      "git_blob": "ab5906cd101046ea2f45a8d31f5b79a02a9a9818"
+    },
+    "ostd/libs/ostd-pod/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "41d4025981080fdbe61977d48dc918a2ea7e3dc1"
+    },
+    "ostd/libs/ostd-test/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "8c7c51b02954ed485800e3f04930e0bb77c757df"
+    },
+    "ostd/libs/ostd-test/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "dc42b7bb3bedba82f2631c96e97917a8ed627edd"
+    },
+    "ostd/specs/arch/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b3ddd0a727c66739a942fcf115b0c004be6d82e7"
+    },
+    "ostd/specs/arch/model.rs": {
+      "mode": "100644",
+      "git_blob": "be6a41e70c971ad3b614cf246a8592b3600758fe"
+    },
+    "ostd/specs/arch/x86/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9a200b84276a3f8562f7c65ca989bffe07eb2916"
+    },
+    "ostd/specs/mm/embedding/cursor.rs": {
+      "mode": "100644",
+      "git_blob": "ffdf45ac2dec825b5afc99594ea33dcd17adf85a"
+    },
+    "ostd/specs/mm/embedding/frame.rs": {
+      "mode": "100644",
+      "git_blob": "b58d056d54b18542ea8a85e42a6667ccd7f9f99a"
+    },
+    "ostd/specs/mm/embedding/io.rs": {
+      "mode": "100644",
+      "git_blob": "98f0859fe26c87470abda568832d5af48217b255"
+    },
+    "ostd/specs/mm/embedding/kvirt_store.rs": {
+      "mode": "100644",
+      "git_blob": "368d972480dabc22256cb0b57be8fd3213b6f5d9"
+    },
+    "ostd/specs/mm/embedding/list_store.rs": {
+      "mode": "100644",
+      "git_blob": "ed9efc72c2b099113fdacd501b1f2b5f037c6374"
+    },
+    "ostd/specs/mm/embedding/mod.rs": {
+      "mode": "100644",
+      "git_blob": "245e13466dcdf565403d23b2893e435f50fe3fe2"
+    },
+    "ostd/specs/mm/embedding/segment.rs": {
+      "mode": "100644",
+      "git_blob": "120629e451a1c1d860db46ef184341ddbaba4345"
+    },
+    "ostd/specs/mm/embedding/trace.rs": {
+      "mode": "100644",
+      "git_blob": "200704924531426fcc016ac8f20109b39b1070c2"
+    },
+    "ostd/specs/mm/embedding/unique.rs": {
+      "mode": "100644",
+      "git_blob": "c42801f43906a9353fb973eef0104f680bf7e70c"
+    },
+    "ostd/specs/mm/embedding/vm_space.rs": {
+      "mode": "100644",
+      "git_blob": "140c61336ea6f5652101a55129f23ef9a4664312"
+    },
+    "ostd/specs/mm/frame/frame_specs.rs": {
+      "mode": "100644",
+      "git_blob": "84d006a6e08cf354697397b7cefdf2274c64fc10"
+    },
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs": {
+      "mode": "100644",
+      "git_blob": "c2ee323d97114dfd3d201d832aad1b2ea6058e41"
+    },
+    "ostd/specs/mm/frame/linked_list/linked_list_specs.rs": {
+      "mode": "100644",
+      "git_blob": "ddf5c1536080c20805ef3065109b1f95e11d928e"
+    },
+    "ostd/specs/mm/frame/linked_list/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b820347c964b9aaf770a8b32095032326845634d"
+    },
+    "ostd/specs/mm/frame/mapping.rs": {
+      "mode": "100644",
+      "git_blob": "edccbb53ac79d19e7c4272ea0f5ffc9b1136f2db"
+    },
+    "ostd/specs/mm/frame/meta_owners.rs": {
+      "mode": "100644",
+      "git_blob": "116cf7b9eff74f6c737a7d421ab2af24d13f5203"
+    },
+    "ostd/specs/mm/frame/meta_region_owners.rs": {
+      "mode": "100644",
+      "git_blob": "2b9ec0e2f50882b9db76e461d0ad060ae445a208"
+    },
+    "ostd/specs/mm/frame/meta_specs.rs": {
+      "mode": "100644",
+      "git_blob": "1c73b687231921443ce0d232195a338a18bdbfe7"
+    },
+    "ostd/specs/mm/frame/mod.rs": {
+      "mode": "100644",
+      "git_blob": "aa798fa551302cf5db01a3b332fcf1e327156cce"
+    },
+    "ostd/specs/mm/frame/segment.rs": {
+      "mode": "100644",
+      "git_blob": "153acdda5b0be0cfdb6f16abb5138171188a4dc2"
+    },
+    "ostd/specs/mm/frame/unique.rs": {
+      "mode": "100644",
+      "git_blob": "783206c84ba92ec63f4a52204fd506b16fc6fb8e"
+    },
+    "ostd/specs/mm/io.rs": {
+      "mode": "100644",
+      "git_blob": "1a03ae4a5019d123267226f40f420b85b11a4c0a"
+    },
+    "ostd/specs/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7b03da5f3a956a34023b06f6130c3eaa530c72fc"
+    },
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "79c0847e674d53243867a12c1d109f0dedb0ca76"
+    },
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs": {
+      "mode": "100644",
+      "git_blob": "7c1417b2513e810e4b0e750d3105e98728387bd9"
+    },
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs": {
+      "mode": "100644",
+      "git_blob": "e8bd4ba355f63c7aa7077ab302316d20d1e34ef4"
+    },
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "85422733f3e82ed450ee3ac6c888f7653446d295"
+    },
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "2b84ce41987fda11fe3d8911deae25d22dad2260"
+    },
+    "ostd/specs/mm/page_table/cursor/mod.rs": {
+      "mode": "100644",
+      "git_blob": "64e8869d09533eece7aef3e322b3c662e1d32feb"
+    },
+    "ostd/specs/mm/page_table/cursor/owners.rs": {
+      "mode": "100644",
+      "git_blob": "86dbefdc0f9d109c774509ecab53b1577000d1d3"
+    },
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "d33c7ee46153f5994b6381eb7b3fe2d6e5bdae85"
+    },
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs": {
+      "mode": "100644",
+      "git_blob": "950f2cbfd029cea0911c41351e450a501dbfe5d5"
+    },
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "0142fd30642fd8cf9d0305d966db8dea7d3fe279"
+    },
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "bdd989ce255ceeae5bfe346bac3127176ba619c7"
+    },
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "66c7c58e32b219161ebb13e8a9b74c0aff8cc069"
+    },
+    "ostd/specs/mm/page_table/mapping_set_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "67581d99d6fdce2fd5e2d79fe0c6f3696c5aa4a5"
+    },
+    "ostd/specs/mm/page_table/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9b52baa865b79908b7351097f178db34f5b488e5"
+    },
+    "ostd/specs/mm/page_table/node/child.rs": {
+      "mode": "100644",
+      "git_blob": "0f91cac4c59ec28c86c8107a4fde238ed3fd2163"
+    },
+    "ostd/specs/mm/page_table/node/entry.rs": {
+      "mode": "100644",
+      "git_blob": "b4c145947ff70afb72b2444edf35c25e674a4ce9"
+    },
+    "ostd/specs/mm/page_table/node/entry_owners.rs": {
+      "mode": "100644",
+      "git_blob": "beb0bf577ce9b656c5eb990087356d827247739f"
+    },
+    "ostd/specs/mm/page_table/node/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1c6c4c850271db137ba03965824933ffe50d37b1"
+    },
+    "ostd/specs/mm/page_table/node/owners.rs": {
+      "mode": "100644",
+      "git_blob": "e1c7ad261eb15d131098e21f37219c8f730dc03e"
+    },
+    "ostd/specs/mm/page_table/owners.rs": {
+      "mode": "100644",
+      "git_blob": "1660fe975c1689f65c9ef2fd19e8671d83c3ae26"
+    },
+    "ostd/specs/mm/page_table/vaddr_range_proofs.rs": {
+      "mode": "100644",
+      "git_blob": "7cdb16151239f62ecbecefb39ae2c6d95c261537"
+    },
+    "ostd/specs/mm/page_table/view.rs": {
+      "mode": "100644",
+      "git_blob": "05b086f9379e7834cc86dab51b80f1b3c7f7791c"
+    },
+    "ostd/specs/mm/tlb.rs": {
+      "mode": "100644",
+      "git_blob": "26ec9e9cb5c959ea0982ba1bc9c6dc499f0be26c"
+    },
+    "ostd/specs/mm/virt_mem.rs": {
+      "mode": "100644",
+      "git_blob": "fed3612ae1d73a509522b0d7b65737a88c2019a4"
+    },
+    "ostd/specs/mm/vm_space.rs": {
+      "mode": "100644",
+      "git_blob": "cbfd9c51d0214d520ec4d4932535a0ed01877f32"
+    },
+    "ostd/specs/mod.rs": {
+      "mode": "100644",
+      "git_blob": "f316bf9016a296f4653b694d63df1da5afcc105c"
+    },
+    "ostd/specs/sync/examples/abstract_lock_tla.rs": {
+      "mode": "100644",
+      "git_blob": "f19a4b8c3cc6ab18f15203de346120b9e22bfc1a"
+    },
+    "ostd/specs/sync/examples/mod.rs": {
+      "mode": "100644",
+      "git_blob": "37ed2c5d9d3ea960125083171c7cd908bfbfa03f"
+    },
+    "ostd/specs/sync/examples/mutex_tla.rs": {
+      "mode": "100644",
+      "git_blob": "36703a5c6b1a26b6234b099d4189f65fe7024ad1"
+    },
+    "ostd/specs/sync/examples/mutex_verussync.rs": {
+      "mode": "100644",
+      "git_blob": "297a87ff6a2519fe6e074c30ec1e12bd19b4133e"
+    },
+    "ostd/specs/sync/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5faf845362401db806bcd60c37fe414402e5a9c8"
+    },
+    "ostd/specs/task/cpu_core.rs": {
+      "mode": "100644",
+      "git_blob": "7853a5afd5b67282030676794e1d0cb0ca5d04b8"
+    },
+    "ostd/specs/task/cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "f602f526d0f5e590512aac04e7678732c6c31fd9"
+    },
+    "ostd/specs/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "8a4c96235591d3c050eeb456252fc3cd09aa4ad4"
+    },
+    "ostd/src/.dummy.rs": {
+      "mode": "100644",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "ostd/src/arch/loongarch/boot/boot.S": {
+      "mode": "100644",
+      "git_blob": "b0c37cc11f421a403de4d9bb7db75928e84af885"
+    },
+    "ostd/src/arch/loongarch/boot/efi.rs": {
+      "mode": "100644",
+      "git_blob": "fde1070b14e6e418d417be9a75de4b644b9062bf"
+    },
+    "ostd/src/arch/loongarch/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1de8b5cca6ddc963e3082a9bff6f8ef3420ef2c8"
+    },
+    "ostd/src/arch/loongarch/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "45075e49296b29dc64d972f80ecf2b35f847eaa8"
+    },
+    "ostd/src/arch/loongarch/cpu/context.rs": {
+      "mode": "100644",
+      "git_blob": "e2869c18e0a7615d55db7715680feb23b6bfbacb"
+    },
+    "ostd/src/arch/loongarch/cpu/local.rs": {
+      "mode": "100644",
+      "git_blob": "00895dec683e110dfb9219f1dd880aa90c2a7e8d"
+    },
+    "ostd/src/arch/loongarch/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "090a7e36a651d7c8be5191534e9f319091f3dfaf"
+    },
+    "ostd/src/arch/loongarch/device/io_port.rs": {
+      "mode": "100644",
+      "git_blob": "c677b51584c17b5a7a70bd96c467f4ee1719a391"
+    },
+    "ostd/src/arch/loongarch/device/mod.rs": {
+      "mode": "100644",
+      "git_blob": "88102ca470b3dd2e0c31cdb2c0ba962c2e54ce28"
+    },
+    "ostd/src/arch/loongarch/io.rs": {
+      "mode": "100644",
+      "git_blob": "101f599c4f02208d81d4aa4dec24e4f376b96f0f"
+    },
+    "ostd/src/arch/loongarch/iommu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5c5b4faa0cd31027d1096accdf228e840da7160e"
+    },
+    "ostd/src/arch/loongarch/irq.rs": {
+      "mode": "100644",
+      "git_blob": "e24319dd3a3bc96dedafcfaac4b0b97bb37cd8f3"
+    },
+    "ostd/src/arch/loongarch/kernel/irq/eiointc.rs": {
+      "mode": "100644",
+      "git_blob": "b0667b86f01438797b12428cfc596cccd9fa66a3"
+    },
+    "ostd/src/arch/loongarch/kernel/irq/mod.rs": {
+      "mode": "100644",
+      "git_blob": "20c269511d1a45f3b5085f9ecd18c7567f8ae756"
+    },
+    "ostd/src/arch/loongarch/kernel/mod.rs": {
+      "mode": "100644",
+      "git_blob": "43227399fa61df4900aeee007f4b8d9a44a916b6"
+    },
+    "ostd/src/arch/loongarch/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "848d22e86c98829f3e988bd8b2c42ad47ec0b1d2"
+    },
+    "ostd/src/arch/loongarch/mod.rs": {
+      "mode": "100644",
+      "git_blob": "c7da5030d1401adb288e97fc9e1b3414357906f8"
+    },
+    "ostd/src/arch/loongarch/pci.rs": {
+      "mode": "100644",
+      "git_blob": "1f9b4ee1c77b3b4963a1a9b111da53ad33984b8c"
+    },
+    "ostd/src/arch/loongarch/qemu.rs": {
+      "mode": "100644",
+      "git_blob": "a7291de319894f03771aa86e59df362f21793c6d"
+    },
+    "ostd/src/arch/loongarch/serial.rs": {
+      "mode": "100644",
+      "git_blob": "97ece5f1c3fa88d67d119d324e46fc961b8a88ad"
+    },
+    "ostd/src/arch/loongarch/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "56fb574fc10da4f05aac3364ceb13bc36852863f"
+    },
+    "ostd/src/arch/loongarch/task/switch.S": {
+      "mode": "100644",
+      "git_blob": "c120b89cdd485521310096ae9614119c6eab73b1"
+    },
+    "ostd/src/arch/loongarch/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "e13609b226e59daf79585cd60808893c6dc1a1c3"
+    },
+    "ostd/src/arch/loongarch/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "21c043dd0d90f8522fe8d142fbd3d9d3f51f314c"
+    },
+    "ostd/src/arch/loongarch/trap/trap.S": {
+      "mode": "100644",
+      "git_blob": "574032467f9992ffc362346c868218fccbc227dd"
+    },
+    "ostd/src/arch/loongarch/trap/trap.rs": {
+      "mode": "100644",
+      "git_blob": "48cab290e0c6dfdbcba96f6944c14d92cd19ff88"
+    },
+    "ostd/src/arch/riscv/boot/boot.S": {
+      "mode": "100644",
+      "git_blob": "26de5228f8d18d5370f38afdc21fdd244849cc6a"
+    },
+    "ostd/src/arch/riscv/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1d819beaaa4ff4f2ac652e4250e53639eae52cfe"
+    },
+    "ostd/src/arch/riscv/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "45075e49296b29dc64d972f80ecf2b35f847eaa8"
+    },
+    "ostd/src/arch/riscv/cpu/context.rs": {
+      "mode": "100644",
+      "git_blob": "d01ee03b92c7101db2c10ef52572dbce1d76e9c4"
+    },
+    "ostd/src/arch/riscv/cpu/extension.rs": {
+      "mode": "100644",
+      "git_blob": "a02a34c8b0a28b8567a381b15ed596502465e280"
+    },
+    "ostd/src/arch/riscv/cpu/local.rs": {
+      "mode": "100644",
+      "git_blob": "a6b1d568c648987bb624b7bec02e8503abd5ebab"
+    },
+    "ostd/src/arch/riscv/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "31749a13e07851fb95b50f0727c3bfc2b72143bc"
+    },
+    "ostd/src/arch/riscv/device/io_port.rs": {
+      "mode": "100644",
+      "git_blob": "c677b51584c17b5a7a70bd96c467f4ee1719a391"
+    },
+    "ostd/src/arch/riscv/device/mod.rs": {
+      "mode": "100644",
+      "git_blob": "88102ca470b3dd2e0c31cdb2c0ba962c2e54ce28"
+    },
+    "ostd/src/arch/riscv/iommu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9c39790b9efb153f1ae0a65eebfded90d26b505b"
+    },
+    "ostd/src/arch/riscv/irq.rs": {
+      "mode": "100644",
+      "git_blob": "fc29dfae72c63561d924f5b8a250b91c5628efd5"
+    },
+    "ostd/src/arch/riscv/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "2b02cf27cc1636533c96592d7c34c28a04138053"
+    },
+    "ostd/src/arch/riscv/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9a1e08c31c25ac978e145c645580a689627312b7"
+    },
+    "ostd/src/arch/riscv/pci.rs": {
+      "mode": "100644",
+      "git_blob": "0fac683ded2ec538e243a544c39f4a385df3044f"
+    },
+    "ostd/src/arch/riscv/qemu.rs": {
+      "mode": "100644",
+      "git_blob": "2f48121ec928361e841eb514d0b6be0bc170244f"
+    },
+    "ostd/src/arch/riscv/serial.rs": {
+      "mode": "100644",
+      "git_blob": "359a6874118cfcd5d82beaf6ed763cfada45d8f1"
+    },
+    "ostd/src/arch/riscv/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "59da63c26709050eed851a49e95c22b0d7271a50"
+    },
+    "ostd/src/arch/riscv/task/switch.S": {
+      "mode": "100644",
+      "git_blob": "69adab7835fd4292f84dde9f745ce40e9d9ddd9c"
+    },
+    "ostd/src/arch/riscv/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b873be3e14799704d4b0e468eba8b4c642a9f491"
+    },
+    "ostd/src/arch/riscv/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "319fc6bf08b303d88c8bc5b9ec4ec15a0da37d99"
+    },
+    "ostd/src/arch/riscv/trap/trap.S": {
+      "mode": "100644",
+      "git_blob": "575bad3c92f2fd4c4df121098c7847864f1dcd13"
+    },
+    "ostd/src/arch/riscv/trap/trap.rs": {
+      "mode": "100644",
+      "git_blob": "87e8d4dfa91455d5d8eba2aca45673e0ef51bae9"
+    },
+    "ostd/src/arch/x86/boot/ap_boot.S": {
+      "mode": "100644",
+      "git_blob": "194a8756436dc4156b8e9e8b38353288a937fe27"
+    },
+    "ostd/src/arch/x86/boot/bsp_boot.S": {
+      "mode": "100644",
+      "git_blob": "67dfcbf6c932d96f2fc822ff0bdf6e3d8fec4c7a"
+    },
+    "ostd/src/arch/x86/boot/linux_boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ae32141225c3fa2d747b16b27bd93eed2836aafc"
+    },
+    "ostd/src/arch/x86/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b86cf455b81c3f851c5842890456c3d445ef7ed8"
+    },
+    "ostd/src/arch/x86/boot/multiboot/header.S": {
+      "mode": "100644",
+      "git_blob": "fcdbde1be0bec63807e6d805f671642861aa81a4"
+    },
+    "ostd/src/arch/x86/boot/multiboot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b71ddb58184c33edc435dca3d55f55c664278bf6"
+    },
+    "ostd/src/arch/x86/boot/multiboot2/header.S": {
+      "mode": "100644",
+      "git_blob": "76d967ef4a2c5ecba3fb351c2d737943c05f625e"
+    },
+    "ostd/src/arch/x86/boot/multiboot2/mod.rs": {
+      "mode": "100644",
+      "git_blob": "861c188bc3a6a3c83f17b82eae22ce68f8228f80"
+    },
+    "ostd/src/arch/x86/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "05cfa780e4e0c1c0bc225def88014dcf6fff821b"
+    },
+    "ostd/src/arch/x86/cpu/context/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7d5e523da7d62bd5e70a1b1c18f91b078d8225d3"
+    },
+    "ostd/src/arch/x86/cpu/context/tdx.rs": {
+      "mode": "100644",
+      "git_blob": "dc56b6b0e5943c350f87e4e3a9758eba8c7e5254"
+    },
+    "ostd/src/arch/x86/cpu/local.rs": {
+      "mode": "100644",
+      "git_blob": "48317ab952517ee5d97c6f184bc90098588a473f"
+    },
+    "ostd/src/arch/x86/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "090a7e36a651d7c8be5191534e9f319091f3dfaf"
+    },
+    "ostd/src/arch/x86/device/cmos.rs": {
+      "mode": "100644",
+      "git_blob": "5b0e899a456aa75d05bd9c4fa1c194a9dcc86226"
+    },
+    "ostd/src/arch/x86/device/io_port.rs": {
+      "mode": "100644",
+      "git_blob": "74f7bbadf3f9f07b4c622f23a06205d78581ffbb"
+    },
+    "ostd/src/arch/x86/device/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5d3b7fe3c5acb11740c5951b702f73f968774fb1"
+    },
+    "ostd/src/arch/x86/device/serial.rs": {
+      "mode": "100644",
+      "git_blob": "93057750e3d2afa3b13fed7a7bf87e06754bbd1a"
+    },
+    "ostd/src/arch/x86/ex_table.rs": {
+      "mode": "100644",
+      "git_blob": "42539b4f1bb1f8d889f1f37ca9afe9ae47f60e6e"
+    },
+    "ostd/src/arch/x86/io.rs": {
+      "mode": "100644",
+      "git_blob": "b78d04f268b0c806c4b7748d0d9e7916165bb4cc"
+    },
+    "ostd/src/arch/x86/iommu/dma_remapping/context_table.rs": {
+      "mode": "100644",
+      "git_blob": "44b1c8f0df78728057f4265e17ee9bb986e87357"
+    },
+    "ostd/src/arch/x86/iommu/dma_remapping/mod.rs": {
+      "mode": "100644",
+      "git_blob": "eecc5db18628c4806ec9b1eccc891fc874c5b12c"
+    },
+    "ostd/src/arch/x86/iommu/dma_remapping/second_stage.rs": {
+      "mode": "100644",
+      "git_blob": "87cfc5a44bf42bf96f09b16b2d5c0617b1c67aa3"
+    },
+    "ostd/src/arch/x86/iommu/fault.rs": {
+      "mode": "100644",
+      "git_blob": "9fdf9db0d344d14671a9216f3d5598eff9127205"
+    },
+    "ostd/src/arch/x86/iommu/interrupt_remapping/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ad1261bce2cb8f634abb023897e7aa6697bbad2f"
+    },
+    "ostd/src/arch/x86/iommu/interrupt_remapping/table.rs": {
+      "mode": "100644",
+      "git_blob": "2c72e42914820197212ef54fc7c82822951a2634"
+    },
+    "ostd/src/arch/x86/iommu/invalidate/descriptor/mod.rs": {
+      "mode": "100644",
+      "git_blob": "543e138d4b2a3489bedee30e761e5b1c75d9af1d"
+    },
+    "ostd/src/arch/x86/iommu/invalidate/mod.rs": {
+      "mode": "100644",
+      "git_blob": "14a2256d54d0f2173c730a6901043343863f834f"
+    },
+    "ostd/src/arch/x86/iommu/invalidate/queue.rs": {
+      "mode": "100644",
+      "git_blob": "1a8c90129b9b643139a631e9e8b9226f34480937"
+    },
+    "ostd/src/arch/x86/iommu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b513770fac1f9f1d837a527df4b1fa0ba7198a2f"
+    },
+    "ostd/src/arch/x86/iommu/registers/capability.rs": {
+      "mode": "100644",
+      "git_blob": "6371c680822666b72bea58eb2045f2257d930bb5"
+    },
+    "ostd/src/arch/x86/iommu/registers/command.rs": {
+      "mode": "100644",
+      "git_blob": "a723add2d642cbf571804a1e7483e2a421fdb421"
+    },
+    "ostd/src/arch/x86/iommu/registers/extended_cap.rs": {
+      "mode": "100644",
+      "git_blob": "cd2f4fd67c6482b2d317270a7793073905f38a89"
+    },
+    "ostd/src/arch/x86/iommu/registers/invalidation.rs": {
+      "mode": "100644",
+      "git_blob": "073a612ca7f80d0b2fd2052d084674ca82ea7594"
+    },
+    "ostd/src/arch/x86/iommu/registers/mod.rs": {
+      "mode": "100644",
+      "git_blob": "d5ce3d32394c16fa899413423fa26c9c83f60a39"
+    },
+    "ostd/src/arch/x86/iommu/registers/status.rs": {
+      "mode": "100644",
+      "git_blob": "4ae57ac0567e8ae704b266d57fc676f5e9e1c99e"
+    },
+    "ostd/src/arch/x86/irq.rs": {
+      "mode": "100644",
+      "git_blob": "3279a988ed79727df12f0ccdd13f64ca568110bc"
+    },
+    "ostd/src/arch/x86/kernel/acpi/dmar.rs": {
+      "mode": "100644",
+      "git_blob": "b99d4e43156cb0a175c7d71b87225487a1cdf7de"
+    },
+    "ostd/src/arch/x86/kernel/acpi/mod.rs": {
+      "mode": "100644",
+      "git_blob": "578bfecea3306b902985c4ae8ce2370df9e26737"
+    },
+    "ostd/src/arch/x86/kernel/acpi/remapping.rs": {
+      "mode": "100644",
+      "git_blob": "a0f6883a1bcc12ed21311d1314c5e8a46eacc000"
+    },
+    "ostd/src/arch/x86/kernel/apic/mod.rs": {
+      "mode": "100644",
+      "git_blob": "d5bdf0c2611e75d2a2776767cadcf8bcd6cbdcc3"
+    },
+    "ostd/src/arch/x86/kernel/apic/x2apic.rs": {
+      "mode": "100644",
+      "git_blob": "34bd074211a48679b355b96e1eb14b832787c7b0"
+    },
+    "ostd/src/arch/x86/kernel/apic/xapic.rs": {
+      "mode": "100644",
+      "git_blob": "9fb8e579a5516311a5eb7046b15db3a66edf5fc2"
+    },
+    "ostd/src/arch/x86/kernel/irq/ioapic.rs": {
+      "mode": "100644",
+      "git_blob": "96eea04a1cec553bed9e69c2c92ad8aea0f54698"
+    },
+    "ostd/src/arch/x86/kernel/irq/mod.rs": {
+      "mode": "100644",
+      "git_blob": "8179d0a85128088ebbda0a7387e274d10d9965a4"
+    },
+    "ostd/src/arch/x86/kernel/irq/pic.rs": {
+      "mode": "100644",
+      "git_blob": "172750e46392a72e910c5ec7f20c5afa9945190b"
+    },
+    "ostd/src/arch/x86/kernel/mod.rs": {
+      "mode": "100644",
+      "git_blob": "e3493e18317b597d4072385a12200084beceb2c6"
+    },
+    "ostd/src/arch/x86/kernel/tsc.rs": {
+      "mode": "100644",
+      "git_blob": "6fa47d81d66c939074d8761a883795893f777fa3"
+    },
+    "ostd/src/arch/x86/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "091bf6116f3097dc2cbc73e4e51ca54912c5acc2"
+    },
+    "ostd/src/arch/x86/mm/util.rs": {
+      "mode": "100644",
+      "git_blob": "5ed5ec057040b2d9a67cedd9b23763039f6da00f"
+    },
+    "ostd/src/arch/x86/mod.rs": {
+      "mode": "100644",
+      "git_blob": "30ddccb5e8224e2363ed8fb5b9b39d7fb8056bd3"
+    },
+    "ostd/src/arch/x86/pci.rs": {
+      "mode": "100644",
+      "git_blob": "e212be1f7e4f5d94c360e17b13bc72e4d2cc4eb9"
+    },
+    "ostd/src/arch/x86/qemu.rs": {
+      "mode": "100644",
+      "git_blob": "403b56eecac0469ed5933dc485ff43992d6f53d6"
+    },
+    "ostd/src/arch/x86/serial.rs": {
+      "mode": "100644",
+      "git_blob": "edf6f0f5602994850929aeee17a83267ef9b393a"
+    },
+    "ostd/src/arch/x86/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ce7aa8c3af053563edf978cf817c7fcceab265f5"
+    },
+    "ostd/src/arch/x86/task/switch.S": {
+      "mode": "100644",
+      "git_blob": "8ee326bb73285a187d0bed4e5e0d1e2d2543ae4d"
+    },
+    "ostd/src/arch/x86/tdx_guest.rs": {
+      "mode": "100644",
+      "git_blob": "3becced20e78fad41d4e72bc307903ad604e71c9"
+    },
+    "ostd/src/arch/x86/timer/apic.rs": {
+      "mode": "100644",
+      "git_blob": "87590dbec2a106cf8b3b028858389e351fd7a149"
+    },
+    "ostd/src/arch/x86/timer/hpet.rs": {
+      "mode": "100644",
+      "git_blob": "a55b7bfe17b09301cc0e616c2eaeaf0a09918c28"
+    },
+    "ostd/src/arch/x86/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "816d3516898b69ec74bac7684986d3484cdf7607"
+    },
+    "ostd/src/arch/x86/timer/pit.rs": {
+      "mode": "100644",
+      "git_blob": "ba39e4734cd3685491c3d9648002ca1c37766885"
+    },
+    "ostd/src/arch/x86/trap/gdt.rs": {
+      "mode": "100644",
+      "git_blob": "24ef15af8c6d19e7c0ec4fc6323ae994ac2fe80e"
+    },
+    "ostd/src/arch/x86/trap/idt.rs": {
+      "mode": "100644",
+      "git_blob": "3cf711edaffc80eca707ecfd5eaed621d1abb198"
+    },
+    "ostd/src/arch/x86/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "595859af47bdf9b625082848ea8e9df63a0c9883"
+    },
+    "ostd/src/arch/x86/trap/syscall.S": {
+      "mode": "100644",
+      "git_blob": "4cad2a0d04834dc6d385b500b8aa2e327a899e9f"
+    },
+    "ostd/src/arch/x86/trap/syscall.rs": {
+      "mode": "100644",
+      "git_blob": "5c347cb5d3a191687ef55d8422e46233ebfc00c8"
+    },
+    "ostd/src/arch/x86/trap/trap.S": {
+      "mode": "100644",
+      "git_blob": "7d472573defddd7d76a369aafc9e9cb37e7f539f"
+    },
+    "ostd/src/boot/memory_region.rs": {
+      "mode": "100644",
+      "git_blob": "56e900316de29facfd546b5e0ebecab5f7b15801"
+    },
+    "ostd/src/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "96012a7ec0b68b10bbdd927ef3a0f3aa1fa20240"
+    },
+    "ostd/src/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "e6d1aa27a511a94b1cf1730ad2e3432f51aad774"
+    },
+    "ostd/src/bus/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7b81924ce6f6c506eb732b00d82eef5eace520c6"
+    },
+    "ostd/src/bus/pci/bus.rs": {
+      "mode": "100644",
+      "git_blob": "e756f8ae88c8abd4259a374ea2ed603370b735ae"
+    },
+    "ostd/src/bus/pci/capability/mod.rs": {
+      "mode": "100644",
+      "git_blob": "48a3f2dbb73d3a37987ab0aa78cb6683e9311236"
+    },
+    "ostd/src/bus/pci/capability/msix.rs": {
+      "mode": "100644",
+      "git_blob": "ada20bbd0c0a72d1f37be38aa02d02c2b2c0a4c0"
+    },
+    "ostd/src/bus/pci/capability/vendor.rs": {
+      "mode": "100644",
+      "git_blob": "7c18df9368601f21e802ea116a166c2414e9afc4"
+    },
+    "ostd/src/bus/pci/cfg_space.rs": {
+      "mode": "100644",
+      "git_blob": "94ea50891b75fd2c9f18b8f39fe1ddd816908c69"
+    },
+    "ostd/src/bus/pci/common_device.rs": {
+      "mode": "100644",
+      "git_blob": "d560520077eda7cf3b44fdd172cdecd48a586a51"
+    },
+    "ostd/src/bus/pci/device_info.rs": {
+      "mode": "100644",
+      "git_blob": "3d415c987238e306d8a480a6d3d1555af1f0e74c"
+    },
+    "ostd/src/bus/pci/mod.rs": {
+      "mode": "100644",
+      "git_blob": "0de48b517717553bb5efb6943c8cff085fb31efc"
+    },
+    "ostd/src/console.rs": {
+      "mode": "100644",
+      "git_blob": "dd7e05051ce6b6dde98f1809a2a5ea464f59c3ea"
+    },
+    "ostd/src/coverage.rs": {
+      "mode": "100644",
+      "git_blob": "a2680a28e1a2794f2e047495c218ed2358ed35de"
+    },
+    "ostd/src/cpu/local/cell.rs": {
+      "mode": "100644",
+      "git_blob": "823ed0a591fc1d48e09e0119a859cab3e3636f7c"
+    },
+    "ostd/src/cpu/local/dyn_cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "2c1d8d060ea2edaa090f5f728c66d72eff3d8a1a"
+    },
+    "ostd/src/cpu/local/mod.rs": {
+      "mode": "100644",
+      "git_blob": "cf94b23727fbd0086e56e6c5076253d189853af5"
+    },
+    "ostd/src/cpu/local/single_instr.rs": {
+      "mode": "100644",
+      "git_blob": "68f61868df1c4e161049a9b705087f08d4c5808d"
+    },
+    "ostd/src/cpu/local/static_cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "ffe4c30113903cc03138e462973436a87c88a031"
+    },
+    "ostd/src/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "f20cc7a112d1f48ac47f6d191f9b0be456d90202"
+    },
+    "ostd/src/cpu/set.rs": {
+      "mode": "100644",
+      "git_blob": "87ee52eefb98f6e19a5dbfbb62896fb15d5425a3"
+    },
+    "ostd/src/error.rs": {
+      "mode": "100644",
+      "git_blob": "1c6076156039b312168d676485169352639e35c6"
+    },
+    "ostd/src/io/io_mem/allocator.rs": {
+      "mode": "100644",
+      "git_blob": "0cd42a4e9f5c4e6f8e055cb9c432a92c707af785"
+    },
+    "ostd/src/io/io_mem/mod.rs": {
+      "mode": "100644",
+      "git_blob": "3afa2d077451bc3b7735591e9e82b0a164e86b1d"
+    },
+    "ostd/src/io/io_port/allocator.rs": {
+      "mode": "100644",
+      "git_blob": "0e5b85e9a04b1c579421e3cb810b3e1af36d126a"
+    },
+    "ostd/src/io/io_port/mod.rs": {
+      "mode": "100644",
+      "git_blob": "731ed357170863c7d5b83944e036540e2deefd36"
+    },
+    "ostd/src/io/mod.rs": {
+      "mode": "100644",
+      "git_blob": "a87940453618bdf8e180a71c65021d0d5bde4cec"
+    },
+    "ostd/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "8840e1ca6b477dae8438d8c3bbdcf29ec4bbed87"
+    },
+    "ostd/src/logger.rs": {
+      "mode": "100644",
+      "git_blob": "03912769d814697d0a2b8f9a97002ee0b9a7f1b9"
+    },
+    "ostd/src/mm/dma/dma_coherent.rs": {
+      "mode": "100644",
+      "git_blob": "93fd577c7c2a8ade8bcec43657cc7cb6cfa05c74"
+    },
+    "ostd/src/mm/dma/dma_stream.rs": {
+      "mode": "100644",
+      "git_blob": "b5f8a19d45f0da3bc8d60326297a5a75dbd7dcd3"
+    },
+    "ostd/src/mm/dma/mod.rs": {
+      "mode": "100644",
+      "git_blob": "91de24f34df4a8b9cc5dfc5c5b0540074e4b4a26"
+    },
+    "ostd/src/mm/dma/test.rs": {
+      "mode": "100644",
+      "git_blob": "c6e68e1e40eca7e6774a22866c7b73cdeb22f281"
+    },
+    "ostd/src/mm/frame/allocator.rs": {
+      "mode": "100644",
+      "git_blob": "75719c7ed562d0870e3ab59836f0b540bd59f912"
+    },
+    "ostd/src/mm/frame/frame_ref.rs": {
+      "mode": "100644",
+      "git_blob": "127cf6b22f6de3406daa410b2e04e78d90e42b62"
+    },
+    "ostd/src/mm/frame/linked_list.rs": {
+      "mode": "100644",
+      "git_blob": "0b9dd8a3fe74ae1491f71fbd927084620b7e349f"
+    },
+    "ostd/src/mm/frame/meta.rs": {
+      "mode": "100644",
+      "git_blob": "74df7a87813ad52cc44c2d7e00be3ae4297aa284"
+    },
+    "ostd/src/mm/frame/mod.rs": {
+      "mode": "100644",
+      "git_blob": "00038f47acb5d6cc1c8897cb071bf306f7cc237e"
+    },
+    "ostd/src/mm/frame/segment.rs": {
+      "mode": "100644",
+      "git_blob": "a722d2d67f3616b39df424d8e682ca7a06f940ae"
+    },
+    "ostd/src/mm/frame/test.rs": {
+      "mode": "100644",
+      "git_blob": "3df77fbd235723c5a60cc579edb7d7fb64ce5477"
+    },
+    "ostd/src/mm/frame/unique.rs": {
+      "mode": "100644",
+      "git_blob": "ee49c69df4ea1d909bea8f24644b6ffc489d9c29"
+    },
+    "ostd/src/mm/frame/untyped.rs": {
+      "mode": "100644",
+      "git_blob": "3f0d1660361da49b8b366fa906d951633dc69d9e"
+    },
+    "ostd/src/mm/heap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5dda22aa5b5dc1de79584ed90f4bdeb896cc73ce"
+    },
+    "ostd/src/mm/heap/slab.rs": {
+      "mode": "100644",
+      "git_blob": "a37810edc857aac84c86c33b852e88366b60dac4"
+    },
+    "ostd/src/mm/heap/slot.rs": {
+      "mode": "100644",
+      "git_blob": "0185e6e8516cd146c6d0dbb7d2cb9960d83772f1"
+    },
+    "ostd/src/mm/heap/slot_list.rs": {
+      "mode": "100644",
+      "git_blob": "f573d60e701619c87eb8c2bcf7e4dd62f0e04bf0"
+    },
+    "ostd/src/mm/io.rs": {
+      "mode": "100644",
+      "git_blob": "b81379524024ad867c8d75c53e2ec90e2b239e65"
+    },
+    "ostd/src/mm/kspace/kvirt_area.rs": {
+      "mode": "100644",
+      "git_blob": "4ffba3d9e3d23187c5e7337ca3898c2ed7d1b4d7"
+    },
+    "ostd/src/mm/kspace/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9b2775c7ea4f19570000ed66626b51639a834f89"
+    },
+    "ostd/src/mm/kspace/test.rs": {
+      "mode": "100644",
+      "git_blob": "dc18ad781796a020630d9bfd4540569d516d3c91"
+    },
+    "ostd/src/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "36071cb02e2e168160f7bceb7030d32642f6a2ca"
+    },
+    "ostd/src/mm/page_prop.rs": {
+      "mode": "100644",
+      "git_blob": "954d9456e026749edcb4f38c6f29ac388efe9fd0"
+    },
+    "ostd/src/mm/page_table/boot_pt.rs": {
+      "mode": "100644",
+      "git_blob": "68595316a3eca5d557a7e78f8f38cd96d8bfd68b"
+    },
+    "ostd/src/mm/page_table/cursor/locking.rs": {
+      "mode": "100644",
+      "git_blob": "cf118f53fef2756a15a1c0e1cd1de8ff6b908ab6"
+    },
+    "ostd/src/mm/page_table/cursor/mod.rs": {
+      "mode": "100644",
+      "git_blob": "56ab9df532ea703879cc89a0f4f828a182449553"
+    },
+    "ostd/src/mm/page_table/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ab3fd1e88b29e93185f4b351c7a1ac5dc373fc2e"
+    },
+    "ostd/src/mm/page_table/node/child.rs": {
+      "mode": "100644",
+      "git_blob": "369697eebb733e1af9bcf286d85104aa35763c90"
+    },
+    "ostd/src/mm/page_table/node/entry.rs": {
+      "mode": "100644",
+      "git_blob": "2e6a84e5b561b9d325e1c9d7c41ecbedbf3a7997"
+    },
+    "ostd/src/mm/page_table/node/mod.rs": {
+      "mode": "100644",
+      "git_blob": "52b1f927fd59925e5f6ee65ec02d1ebda4786976"
+    },
+    "ostd/src/mm/page_table/test.rs": {
+      "mode": "100644",
+      "git_blob": "f5e1dd8768ec579867013788b4cb476509d0b652"
+    },
+    "ostd/src/mm/test.rs": {
+      "mode": "100644",
+      "git_blob": "34672fadfcb6fb38305c52c866a7a3559877a422"
+    },
+    "ostd/src/mm/tlb.rs": {
+      "mode": "100644",
+      "git_blob": "ef9663a93621fb7def939876e94852ae19dbd6a2"
+    },
+    "ostd/src/mm/vm_space.rs": {
+      "mode": "100644",
+      "git_blob": "17dc89d07b709d8859bb87e68755d09f0004e6de"
+    },
+    "ostd/src/panic.rs": {
+      "mode": "100644",
+      "git_blob": "c179c0162e8e60da0fbd38b3bc7010b425746a88"
+    },
+    "ostd/src/prelude.rs": {
+      "mode": "100644",
+      "git_blob": "f9ab829ef428c69fdc9460f077050efcd781bdf3"
+    },
+    "ostd/src/smp.rs": {
+      "mode": "100644",
+      "git_blob": "46b4c143206403d59c82d337e8be2c73cd82b473"
+    },
+    "ostd/src/sync/guard.rs": {
+      "mode": "100644",
+      "git_blob": "2ccbdfeb8ed3a11e0ab97b2a6106180f475f9d09"
+    },
+    "ostd/src/sync/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1d3f5e951c2914c33e704eb7386fa81086911a33"
+    },
+    "ostd/src/sync/mutex.rs": {
+      "mode": "100644",
+      "git_blob": "b9557cde2bd28d135344c6ff1b22fc7656d844e0"
+    },
+    "ostd/src/sync/rcu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "2b022a38d2993f9156d7f8160b4dacfc2fd508e6"
+    },
+    "ostd/src/sync/rcu/monitor.rs": {
+      "mode": "100644",
+      "git_blob": "142e6cabbc7385cb5ebee77b70b1cdcf741bb3eb"
+    },
+    "ostd/src/sync/rcu/non_null/either.rs": {
+      "mode": "100644",
+      "git_blob": "34727d6f49f6ce4bf3ddf4ca2d9f154a4aebc6a4"
+    },
+    "ostd/src/sync/rcu/non_null/mod.rs": {
+      "mode": "100644",
+      "git_blob": "4a091430475025ddfa27dca7a3989c91b3161152"
+    },
+    "ostd/src/sync/rwarc.rs": {
+      "mode": "100644",
+      "git_blob": "e07c5f761de19ae93550613574183eeae19fd671"
+    },
+    "ostd/src/sync/rwlock.rs": {
+      "mode": "100644",
+      "git_blob": "ba9c4dbf5b72ee1cd2139e44888993880aeba1f4"
+    },
+    "ostd/src/sync/rwmutex.rs": {
+      "mode": "100644",
+      "git_blob": "bc674a5c94f8456aeab0238bed5a4b08b27cb727"
+    },
+    "ostd/src/sync/spin.rs": {
+      "mode": "100644",
+      "git_blob": "a1a0eb57e268ed2b3e69671cc9742bd785f8c387"
+    },
+    "ostd/src/sync/wait.rs": {
+      "mode": "100644",
+      "git_blob": "8676b57abf0928d9c4d903b7ec18fe04e86ff528"
+    },
+    "ostd/src/task/atomic_mode.rs": {
+      "mode": "100644",
+      "git_blob": "137d48d083b83391a2ba86b926ef4108c161ac41"
+    },
+    "ostd/src/task/kernel_stack.rs": {
+      "mode": "100644",
+      "git_blob": "a9861f548e98b72d2b810a5892583511875ddc84"
+    },
+    "ostd/src/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "294389d2f10d5e3a471b3edaf0d0643b5eaf153c"
+    },
+    "ostd/src/task/preempt/cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "cee1bee2de35e7168583cbf4e7a01fd2b1aaec9e"
+    },
+    "ostd/src/task/preempt/guard.rs": {
+      "mode": "100644",
+      "git_blob": "eae2345749b7eef8c274f516587712fd7140d4b0"
+    },
+    "ostd/src/task/preempt/mod.rs": {
+      "mode": "100644",
+      "git_blob": "05154f6ccd4b70c71ff66160fa21280087d107a6"
+    },
+    "ostd/src/task/processor.rs": {
+      "mode": "100644",
+      "git_blob": "9ef5bc960eb42bb2f2298428daf33e365d95ddf2"
+    },
+    "ostd/src/task/scheduler/fifo_scheduler.rs": {
+      "mode": "100644",
+      "git_blob": "7d0f364576cc468072914096ecb53741f4239f9e"
+    },
+    "ostd/src/task/scheduler/info.rs": {
+      "mode": "100644",
+      "git_blob": "0241fd1b316cdac9c578149efcbbc8e6313b8cc5"
+    },
+    "ostd/src/task/scheduler/mod.rs": {
+      "mode": "100644",
+      "git_blob": "0ab58d3de7ba60b0b120cb9adc66799875855534"
+    },
+    "ostd/src/task/scheduler/thread_view.rs": {
+      "mode": "100644",
+      "git_blob": "629e0d39082bde3156227128ac6148c71df1062c"
+    },
+    "ostd/src/task/utils.rs": {
+      "mode": "100644",
+      "git_blob": "f527ce0c3048d4845c28050a6e0a9b27f0ba3096"
+    },
+    "ostd/src/timer/jiffies.rs": {
+      "mode": "100644",
+      "git_blob": "94205e896343319906357af93a99318c2950cfe6"
+    },
+    "ostd/src/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5724e323e955875bfcb5818782502a8d25e7e980"
+    },
+    "ostd/src/trap/handler.rs": {
+      "mode": "100644",
+      "git_blob": "eb3749f4ab5fa8bed238599c398816a1dab59fe8"
+    },
+    "ostd/src/trap/irq.rs": {
+      "mode": "100644",
+      "git_blob": "dea4535dcac88d0b9b0cc8f82fa650a949c1b8a0"
+    },
+    "ostd/src/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7e42cbcf36a6184fdbd5cf418682fbeb0a2cf28e"
+    },
+    "ostd/src/user.rs": {
+      "mode": "100644",
+      "git_blob": "f34b5c3d2188f46a01a7dfbb47d46f317563bf77"
+    },
+    "ostd/src/util/either.rs": {
+      "mode": "100644",
+      "git_blob": "be45d190f4b0e245d5b1aa5901415d3a566461c8"
+    },
+    "ostd/src/util/macros.rs": {
+      "mode": "100644",
+      "git_blob": "8d73431b7cba3b12ec03c0e07dd45f3440733cd1"
+    },
+    "ostd/src/util/mod.rs": {
+      "mode": "100644",
+      "git_blob": "56fddbae5c6664d7c39555715e5642df46000ed3"
+    },
+    "ostd/src/util/ops.rs": {
+      "mode": "100644",
+      "git_blob": "3e556935cb5004963ebdbfd94e4d76c673e42dff"
+    },
+    "ostd/src/util/range_alloc.rs": {
+      "mode": "100644",
+      "git_blob": "d9a269a4344c8636246e0c9f7f1fcce0b348ee17"
+    },
+    "rust-toolchain.toml": {
+      "mode": "100644",
+      "git_blob": "0da240d2c01307daaa6af817ff0dcb2d016f901d"
+    }
+  },
+  "after": {
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "fd043f4353a9d9c66b28d3a504f5dea440fd9a46"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    },
+    "ostd/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "0b9283ff7e6ebccc8ba6e759b118da7476af1408"
+    },
+    "ostd/README.md": {
+      "mode": "100644",
+      "git_blob": "e848b3a609a2b90e3d7ffea6db54d5bee0e63f9c"
+    },
+    "ostd/libs/align_ext/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "31bd63e0486442c7b53bbe4751677f895a6b5880"
+    },
+    "ostd/libs/align_ext/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "3640e7c7c35a9e2a192b0a56279a6e443bdf3537"
+    },
+    "ostd/libs/id-alloc/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "6e39c66ad3905266959cbad204cb727351aa7a81"
+    },
+    "ostd/libs/id-alloc/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "c2ff2984b798dcb1ad306fe3e0546f8407a5a680"
+    },
+    "ostd/libs/linux-bzimage/boot-params/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "122df134da8a3d95d34d6899877d73408cb64324"
+    },
+    "ostd/libs/linux-bzimage/boot-params/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "af65b28bdb5fcd5b84bc561d611db69ec1dfca43"
+    },
+    "ostd/libs/linux-bzimage/builder/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "5a32e3788b32061930b97c97d2e3e24bd18c8e92"
+    },
+    "ostd/libs/linux-bzimage/builder/src/encoder.rs": {
+      "mode": "100644",
+      "git_blob": "382b3231904c886cc4d2e7eabe85edb258735877"
+    },
+    "ostd/libs/linux-bzimage/builder/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "c0a6a6f177daf5a6836119b5507ecf981ad33488"
+    },
+    "ostd/libs/linux-bzimage/builder/src/mapping.rs": {
+      "mode": "100644",
+      "git_blob": "7038ee07b2ddd1d67858624cfcccaf719653e35e"
+    },
+    "ostd/libs/linux-bzimage/builder/src/pe_header.rs": {
+      "mode": "100644",
+      "git_blob": "d0121482a25c3a02197c3ac38e91182243cfac28"
+    },
+    "ostd/libs/linux-bzimage/builder/src/x86_64-i386_pm-none.json": {
+      "mode": "100644",
+      "git_blob": "e7ab8fa6907e414d184ba93f80bdbe42ffb0c4bb"
+    },
+    "ostd/libs/linux-bzimage/setup/.cargo/config.toml": {
+      "mode": "100644",
+      "git_blob": "6cd933dd9b2c91cd574fe9811baf07b4cccac364"
+    },
+    "ostd/libs/linux-bzimage/setup/.gitignore": {
+      "mode": "100644",
+      "git_blob": "364274d81544a0cca5cbd74c5b29bebb2b191d24"
+    },
+    "ostd/libs/linux-bzimage/setup/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "afc5ac7a22da663db75c0f1f673c816e678e7b29"
+    },
+    "ostd/libs/linux-bzimage/setup/build.rs": {
+      "mode": "100644",
+      "git_blob": "b94e06321547972779268c68ef5cd82e4d990ca8"
+    },
+    "ostd/libs/linux-bzimage/setup/src/console.rs": {
+      "mode": "100644",
+      "git_blob": "a387f1957e7d8d905ea0d55bbcab849cbb2efecc"
+    },
+    "ostd/libs/linux-bzimage/setup/src/loader.rs": {
+      "mode": "100644",
+      "git_blob": "ef6ef18852f06969a37780c68b72f8ada2ae00fa"
+    },
+    "ostd/libs/linux-bzimage/setup/src/main.rs": {
+      "mode": "100644",
+      "git_blob": "2262f668a1d86c1f64221089a6c70f6d89e53b47"
+    },
+    "ostd/libs/linux-bzimage/setup/src/sync.rs": {
+      "mode": "100644",
+      "git_blob": "0112458651d1698f9b0b2e0bcb71cef78abc7584"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/alloc.rs": {
+      "mode": "100644",
+      "git_blob": "0cb964b5fc2c8b69abff6df0b3e72c933004105f"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/decoder.rs": {
+      "mode": "100644",
+      "git_blob": "165920c23558ed5f5440241e2a65867fd9c99f32"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/efi.rs": {
+      "mode": "100644",
+      "git_blob": "de1a641f9c10e108da4ab578f60290634e676033"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1760e9c8617cbd011142044c806f0795f95f5d7f"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/setup.S": {
+      "mode": "100644",
+      "git_blob": "5add6c2b0991646bdca29f4807a794742a2d107e"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/header.S": {
+      "mode": "100644",
+      "git_blob": "332559c7f1ea2be471f91b98ed1e29481936e641"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/legacy_i386/alloc.rs": {
+      "mode": "100644",
+      "git_blob": "0be5e28d1053d4e81413939b8103fb85e3c242b6"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/legacy_i386/mod.rs": {
+      "mode": "100644",
+      "git_blob": "dd2c3476cda89198199e14942cdc6d8b0214bae2"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/legacy_i386/setup.S": {
+      "mode": "100644",
+      "git_blob": "b855931d07f7f53c3df9fad124f7ecedc13ffa2c"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/linker.ld": {
+      "mode": "100644",
+      "git_blob": "d763d785e6ebf5dcfee4d903c7ba23ac04826677"
+    },
+    "ostd/libs/linux-bzimage/setup/src/x86/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5d5cb3815ca176d8079ba9ebc0b189f86fca6149"
+    },
+    "ostd/libs/ostd-macros/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "a986e50293c2c4b2109458dbf14374bada873c1e"
+    },
+    "ostd/libs/ostd-macros/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "453e3de734f53dcfeb776d19294827e7e9821313"
+    },
+    "ostd/libs/ostd-pod/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "4d041cfb0bc7ba32c86f6c11c05c5694112e6c2c"
+    },
+    "ostd/libs/ostd-pod/README.md": {
+      "mode": "100644",
+      "git_blob": "ab5906cd101046ea2f45a8d31f5b79a02a9a9818"
+    },
+    "ostd/libs/ostd-pod/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "41d4025981080fdbe61977d48dc918a2ea7e3dc1"
+    },
+    "ostd/libs/ostd-test/Cargo.toml": {
+      "mode": "100644",
+      "git_blob": "8c7c51b02954ed485800e3f04930e0bb77c757df"
+    },
+    "ostd/libs/ostd-test/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "dc42b7bb3bedba82f2631c96e97917a8ed627edd"
+    },
+    "ostd/specs/arch/mod.rs": {
+      "mode": "100644",
+      "git_blob": "2821fa0f0818788a08ae1dd84b4ad0c3b8ae6ea3"
+    },
+    "ostd/specs/arch/model.rs": {
+      "mode": "100644",
+      "git_blob": "be6a41e70c971ad3b614cf246a8592b3600758fe"
+    },
+    "ostd/specs/arch/riscv/mod.rs": {
+      "mode": "100644",
+      "git_blob": "371aaa2cdd6565ab7cdd71fb0d880c0047cc0e6f"
+    },
+    "ostd/specs/arch/x86/mod.rs": {
+      "mode": "100644",
+      "git_blob": "564e7ed6efd0318088ede9f48c13538f4710c131"
+    },
+    "ostd/specs/mm/embedding/cursor.rs": {
+      "mode": "100644",
+      "git_blob": "ffdf45ac2dec825b5afc99594ea33dcd17adf85a"
+    },
+    "ostd/specs/mm/embedding/frame.rs": {
+      "mode": "100644",
+      "git_blob": "b58d056d54b18542ea8a85e42a6667ccd7f9f99a"
+    },
+    "ostd/specs/mm/embedding/io.rs": {
+      "mode": "100644",
+      "git_blob": "98f0859fe26c87470abda568832d5af48217b255"
+    },
+    "ostd/specs/mm/embedding/kvirt_store.rs": {
+      "mode": "100644",
+      "git_blob": "368d972480dabc22256cb0b57be8fd3213b6f5d9"
+    },
+    "ostd/specs/mm/embedding/list_store.rs": {
+      "mode": "100644",
+      "git_blob": "ed9efc72c2b099113fdacd501b1f2b5f037c6374"
+    },
+    "ostd/specs/mm/embedding/mod.rs": {
+      "mode": "100644",
+      "git_blob": "245e13466dcdf565403d23b2893e435f50fe3fe2"
+    },
+    "ostd/specs/mm/embedding/segment.rs": {
+      "mode": "100644",
+      "git_blob": "120629e451a1c1d860db46ef184341ddbaba4345"
+    },
+    "ostd/specs/mm/embedding/trace.rs": {
+      "mode": "100644",
+      "git_blob": "200704924531426fcc016ac8f20109b39b1070c2"
+    },
+    "ostd/specs/mm/embedding/unique.rs": {
+      "mode": "100644",
+      "git_blob": "c42801f43906a9353fb973eef0104f680bf7e70c"
+    },
+    "ostd/specs/mm/embedding/vm_space.rs": {
+      "mode": "100644",
+      "git_blob": "140c61336ea6f5652101a55129f23ef9a4664312"
+    },
+    "ostd/specs/mm/frame/frame_specs.rs": {
+      "mode": "100644",
+      "git_blob": "84d006a6e08cf354697397b7cefdf2274c64fc10"
+    },
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs": {
+      "mode": "100644",
+      "git_blob": "c2ee323d97114dfd3d201d832aad1b2ea6058e41"
+    },
+    "ostd/specs/mm/frame/linked_list/linked_list_specs.rs": {
+      "mode": "100644",
+      "git_blob": "ddf5c1536080c20805ef3065109b1f95e11d928e"
+    },
+    "ostd/specs/mm/frame/linked_list/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b820347c964b9aaf770a8b32095032326845634d"
+    },
+    "ostd/specs/mm/frame/mapping.rs": {
+      "mode": "100644",
+      "git_blob": "edccbb53ac79d19e7c4272ea0f5ffc9b1136f2db"
+    },
+    "ostd/specs/mm/frame/meta_owners.rs": {
+      "mode": "100644",
+      "git_blob": "116cf7b9eff74f6c737a7d421ab2af24d13f5203"
+    },
+    "ostd/specs/mm/frame/meta_region_owners.rs": {
+      "mode": "100644",
+      "git_blob": "2b9ec0e2f50882b9db76e461d0ad060ae445a208"
+    },
+    "ostd/specs/mm/frame/meta_specs.rs": {
+      "mode": "100644",
+      "git_blob": "1c73b687231921443ce0d232195a338a18bdbfe7"
+    },
+    "ostd/specs/mm/frame/mod.rs": {
+      "mode": "100644",
+      "git_blob": "aa798fa551302cf5db01a3b332fcf1e327156cce"
+    },
+    "ostd/specs/mm/frame/segment.rs": {
+      "mode": "100644",
+      "git_blob": "153acdda5b0be0cfdb6f16abb5138171188a4dc2"
+    },
+    "ostd/specs/mm/frame/unique.rs": {
+      "mode": "100644",
+      "git_blob": "783206c84ba92ec63f4a52204fd506b16fc6fb8e"
+    },
+    "ostd/specs/mm/io.rs": {
+      "mode": "100644",
+      "git_blob": "1a03ae4a5019d123267226f40f420b85b11a4c0a"
+    },
+    "ostd/specs/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7b03da5f3a956a34023b06f6130c3eaa530c72fc"
+    },
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "79c0847e674d53243867a12c1d109f0dedb0ca76"
+    },
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs": {
+      "mode": "100644",
+      "git_blob": "7c1417b2513e810e4b0e750d3105e98728387bd9"
+    },
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs": {
+      "mode": "100644",
+      "git_blob": "e8bd4ba355f63c7aa7077ab302316d20d1e34ef4"
+    },
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "85422733f3e82ed450ee3ac6c888f7653446d295"
+    },
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "2b84ce41987fda11fe3d8911deae25d22dad2260"
+    },
+    "ostd/specs/mm/page_table/cursor/mod.rs": {
+      "mode": "100644",
+      "git_blob": "64e8869d09533eece7aef3e322b3c662e1d32feb"
+    },
+    "ostd/specs/mm/page_table/cursor/owners.rs": {
+      "mode": "100644",
+      "git_blob": "86dbefdc0f9d109c774509ecab53b1577000d1d3"
+    },
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "d33c7ee46153f5994b6381eb7b3fe2d6e5bdae85"
+    },
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs": {
+      "mode": "100644",
+      "git_blob": "950f2cbfd029cea0911c41351e450a501dbfe5d5"
+    },
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "0142fd30642fd8cf9d0305d966db8dea7d3fe279"
+    },
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "bdd989ce255ceeae5bfe346bac3127176ba619c7"
+    },
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "66c7c58e32b219161ebb13e8a9b74c0aff8cc069"
+    },
+    "ostd/specs/mm/page_table/mapping_set_lemmas.rs": {
+      "mode": "100644",
+      "git_blob": "719a7ccae059ff01d45e153a054df7de2597d696"
+    },
+    "ostd/specs/mm/page_table/mod.rs": {
+      "mode": "100644",
+      "git_blob": "03d0be231dfe65e322225e1371099899e6b5c6b4"
+    },
+    "ostd/specs/mm/page_table/node/child.rs": {
+      "mode": "100644",
+      "git_blob": "0f91cac4c59ec28c86c8107a4fde238ed3fd2163"
+    },
+    "ostd/specs/mm/page_table/node/entry.rs": {
+      "mode": "100644",
+      "git_blob": "b4c145947ff70afb72b2444edf35c25e674a4ce9"
+    },
+    "ostd/specs/mm/page_table/node/entry_owners.rs": {
+      "mode": "100644",
+      "git_blob": "beb0bf577ce9b656c5eb990087356d827247739f"
+    },
+    "ostd/specs/mm/page_table/node/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1c6c4c850271db137ba03965824933ffe50d37b1"
+    },
+    "ostd/specs/mm/page_table/node/owners.rs": {
+      "mode": "100644",
+      "git_blob": "e1c7ad261eb15d131098e21f37219c8f730dc03e"
+    },
+    "ostd/specs/mm/page_table/owners.rs": {
+      "mode": "100644",
+      "git_blob": "1660fe975c1689f65c9ef2fd19e8671d83c3ae26"
+    },
+    "ostd/specs/mm/page_table/vaddr_range_proofs.rs": {
+      "mode": "100644",
+      "git_blob": "7cdb16151239f62ecbecefb39ae2c6d95c261537"
+    },
+    "ostd/specs/mm/page_table/view.rs": {
+      "mode": "100644",
+      "git_blob": "05b086f9379e7834cc86dab51b80f1b3c7f7791c"
+    },
+    "ostd/specs/mm/tlb.rs": {
+      "mode": "100644",
+      "git_blob": "26ec9e9cb5c959ea0982ba1bc9c6dc499f0be26c"
+    },
+    "ostd/specs/mm/virt_mem.rs": {
+      "mode": "100644",
+      "git_blob": "fed3612ae1d73a509522b0d7b65737a88c2019a4"
+    },
+    "ostd/specs/mm/vm_space.rs": {
+      "mode": "100644",
+      "git_blob": "cbfd9c51d0214d520ec4d4932535a0ed01877f32"
+    },
+    "ostd/specs/mod.rs": {
+      "mode": "100644",
+      "git_blob": "f316bf9016a296f4653b694d63df1da5afcc105c"
+    },
+    "ostd/specs/sync/examples/abstract_lock_tla.rs": {
+      "mode": "100644",
+      "git_blob": "f19a4b8c3cc6ab18f15203de346120b9e22bfc1a"
+    },
+    "ostd/specs/sync/examples/mod.rs": {
+      "mode": "100644",
+      "git_blob": "37ed2c5d9d3ea960125083171c7cd908bfbfa03f"
+    },
+    "ostd/specs/sync/examples/mutex_tla.rs": {
+      "mode": "100644",
+      "git_blob": "36703a5c6b1a26b6234b099d4189f65fe7024ad1"
+    },
+    "ostd/specs/sync/examples/mutex_verussync.rs": {
+      "mode": "100644",
+      "git_blob": "297a87ff6a2519fe6e074c30ec1e12bd19b4133e"
+    },
+    "ostd/specs/sync/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5faf845362401db806bcd60c37fe414402e5a9c8"
+    },
+    "ostd/specs/task/cpu_core.rs": {
+      "mode": "100644",
+      "git_blob": "7853a5afd5b67282030676794e1d0cb0ca5d04b8"
+    },
+    "ostd/specs/task/cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "f602f526d0f5e590512aac04e7678732c6c31fd9"
+    },
+    "ostd/specs/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "8a4c96235591d3c050eeb456252fc3cd09aa4ad4"
+    },
+    "ostd/src/.dummy.rs": {
+      "mode": "100644",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "ostd/src/arch/loongarch/boot/boot.S": {
+      "mode": "100644",
+      "git_blob": "b0c37cc11f421a403de4d9bb7db75928e84af885"
+    },
+    "ostd/src/arch/loongarch/boot/efi.rs": {
+      "mode": "100644",
+      "git_blob": "fde1070b14e6e418d417be9a75de4b644b9062bf"
+    },
+    "ostd/src/arch/loongarch/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1de8b5cca6ddc963e3082a9bff6f8ef3420ef2c8"
+    },
+    "ostd/src/arch/loongarch/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "45075e49296b29dc64d972f80ecf2b35f847eaa8"
+    },
+    "ostd/src/arch/loongarch/cpu/context.rs": {
+      "mode": "100644",
+      "git_blob": "e2869c18e0a7615d55db7715680feb23b6bfbacb"
+    },
+    "ostd/src/arch/loongarch/cpu/local.rs": {
+      "mode": "100644",
+      "git_blob": "00895dec683e110dfb9219f1dd880aa90c2a7e8d"
+    },
+    "ostd/src/arch/loongarch/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "090a7e36a651d7c8be5191534e9f319091f3dfaf"
+    },
+    "ostd/src/arch/loongarch/device/io_port.rs": {
+      "mode": "100644",
+      "git_blob": "c677b51584c17b5a7a70bd96c467f4ee1719a391"
+    },
+    "ostd/src/arch/loongarch/device/mod.rs": {
+      "mode": "100644",
+      "git_blob": "88102ca470b3dd2e0c31cdb2c0ba962c2e54ce28"
+    },
+    "ostd/src/arch/loongarch/io.rs": {
+      "mode": "100644",
+      "git_blob": "101f599c4f02208d81d4aa4dec24e4f376b96f0f"
+    },
+    "ostd/src/arch/loongarch/iommu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5c5b4faa0cd31027d1096accdf228e840da7160e"
+    },
+    "ostd/src/arch/loongarch/irq.rs": {
+      "mode": "100644",
+      "git_blob": "e24319dd3a3bc96dedafcfaac4b0b97bb37cd8f3"
+    },
+    "ostd/src/arch/loongarch/kernel/irq/eiointc.rs": {
+      "mode": "100644",
+      "git_blob": "b0667b86f01438797b12428cfc596cccd9fa66a3"
+    },
+    "ostd/src/arch/loongarch/kernel/irq/mod.rs": {
+      "mode": "100644",
+      "git_blob": "20c269511d1a45f3b5085f9ecd18c7567f8ae756"
+    },
+    "ostd/src/arch/loongarch/kernel/mod.rs": {
+      "mode": "100644",
+      "git_blob": "43227399fa61df4900aeee007f4b8d9a44a916b6"
+    },
+    "ostd/src/arch/loongarch/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "848d22e86c98829f3e988bd8b2c42ad47ec0b1d2"
+    },
+    "ostd/src/arch/loongarch/mod.rs": {
+      "mode": "100644",
+      "git_blob": "c7da5030d1401adb288e97fc9e1b3414357906f8"
+    },
+    "ostd/src/arch/loongarch/pci.rs": {
+      "mode": "100644",
+      "git_blob": "1f9b4ee1c77b3b4963a1a9b111da53ad33984b8c"
+    },
+    "ostd/src/arch/loongarch/qemu.rs": {
+      "mode": "100644",
+      "git_blob": "a7291de319894f03771aa86e59df362f21793c6d"
+    },
+    "ostd/src/arch/loongarch/serial.rs": {
+      "mode": "100644",
+      "git_blob": "97ece5f1c3fa88d67d119d324e46fc961b8a88ad"
+    },
+    "ostd/src/arch/loongarch/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "56fb574fc10da4f05aac3364ceb13bc36852863f"
+    },
+    "ostd/src/arch/loongarch/task/switch.S": {
+      "mode": "100644",
+      "git_blob": "c120b89cdd485521310096ae9614119c6eab73b1"
+    },
+    "ostd/src/arch/loongarch/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "e13609b226e59daf79585cd60808893c6dc1a1c3"
+    },
+    "ostd/src/arch/loongarch/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "21c043dd0d90f8522fe8d142fbd3d9d3f51f314c"
+    },
+    "ostd/src/arch/loongarch/trap/trap.S": {
+      "mode": "100644",
+      "git_blob": "574032467f9992ffc362346c868218fccbc227dd"
+    },
+    "ostd/src/arch/loongarch/trap/trap.rs": {
+      "mode": "100644",
+      "git_blob": "48cab290e0c6dfdbcba96f6944c14d92cd19ff88"
+    },
+    "ostd/src/arch/riscv/boot/boot.S": {
+      "mode": "100644",
+      "git_blob": "26de5228f8d18d5370f38afdc21fdd244849cc6a"
+    },
+    "ostd/src/arch/riscv/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1d819beaaa4ff4f2ac652e4250e53639eae52cfe"
+    },
+    "ostd/src/arch/riscv/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "45075e49296b29dc64d972f80ecf2b35f847eaa8"
+    },
+    "ostd/src/arch/riscv/cpu/context.rs": {
+      "mode": "100644",
+      "git_blob": "d01ee03b92c7101db2c10ef52572dbce1d76e9c4"
+    },
+    "ostd/src/arch/riscv/cpu/extension.rs": {
+      "mode": "100644",
+      "git_blob": "a02a34c8b0a28b8567a381b15ed596502465e280"
+    },
+    "ostd/src/arch/riscv/cpu/local.rs": {
+      "mode": "100644",
+      "git_blob": "a6b1d568c648987bb624b7bec02e8503abd5ebab"
+    },
+    "ostd/src/arch/riscv/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "31749a13e07851fb95b50f0727c3bfc2b72143bc"
+    },
+    "ostd/src/arch/riscv/device/io_port.rs": {
+      "mode": "100644",
+      "git_blob": "c677b51584c17b5a7a70bd96c467f4ee1719a391"
+    },
+    "ostd/src/arch/riscv/device/mod.rs": {
+      "mode": "100644",
+      "git_blob": "88102ca470b3dd2e0c31cdb2c0ba962c2e54ce28"
+    },
+    "ostd/src/arch/riscv/iommu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9c39790b9efb153f1ae0a65eebfded90d26b505b"
+    },
+    "ostd/src/arch/riscv/irq.rs": {
+      "mode": "100644",
+      "git_blob": "fc29dfae72c63561d924f5b8a250b91c5628efd5"
+    },
+    "ostd/src/arch/riscv/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "d15fe3f0dc6aeaae58a55f10397d15537b46522c"
+    },
+    "ostd/src/arch/riscv/mod.rs": {
+      "mode": "100644",
+      "git_blob": "3d0c430d26d31e1cf9c36f7bd2be2bd4eaeb7246"
+    },
+    "ostd/src/arch/riscv/pci.rs": {
+      "mode": "100644",
+      "git_blob": "0fac683ded2ec538e243a544c39f4a385df3044f"
+    },
+    "ostd/src/arch/riscv/qemu.rs": {
+      "mode": "100644",
+      "git_blob": "2f48121ec928361e841eb514d0b6be0bc170244f"
+    },
+    "ostd/src/arch/riscv/serial.rs": {
+      "mode": "100644",
+      "git_blob": "359a6874118cfcd5d82beaf6ed763cfada45d8f1"
+    },
+    "ostd/src/arch/riscv/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "59da63c26709050eed851a49e95c22b0d7271a50"
+    },
+    "ostd/src/arch/riscv/task/switch.S": {
+      "mode": "100644",
+      "git_blob": "69adab7835fd4292f84dde9f745ce40e9d9ddd9c"
+    },
+    "ostd/src/arch/riscv/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "bd595c115fb39af1a55753bd46d269f274dfc162"
+    },
+    "ostd/src/arch/riscv/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "319fc6bf08b303d88c8bc5b9ec4ec15a0da37d99"
+    },
+    "ostd/src/arch/riscv/trap/trap.S": {
+      "mode": "100644",
+      "git_blob": "575bad3c92f2fd4c4df121098c7847864f1dcd13"
+    },
+    "ostd/src/arch/riscv/trap/trap.rs": {
+      "mode": "100644",
+      "git_blob": "87e8d4dfa91455d5d8eba2aca45673e0ef51bae9"
+    },
+    "ostd/src/arch/x86/boot/ap_boot.S": {
+      "mode": "100644",
+      "git_blob": "194a8756436dc4156b8e9e8b38353288a937fe27"
+    },
+    "ostd/src/arch/x86/boot/bsp_boot.S": {
+      "mode": "100644",
+      "git_blob": "67dfcbf6c932d96f2fc822ff0bdf6e3d8fec4c7a"
+    },
+    "ostd/src/arch/x86/boot/linux_boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ae32141225c3fa2d747b16b27bd93eed2836aafc"
+    },
+    "ostd/src/arch/x86/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b86cf455b81c3f851c5842890456c3d445ef7ed8"
+    },
+    "ostd/src/arch/x86/boot/multiboot/header.S": {
+      "mode": "100644",
+      "git_blob": "fcdbde1be0bec63807e6d805f671642861aa81a4"
+    },
+    "ostd/src/arch/x86/boot/multiboot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b71ddb58184c33edc435dca3d55f55c664278bf6"
+    },
+    "ostd/src/arch/x86/boot/multiboot2/header.S": {
+      "mode": "100644",
+      "git_blob": "76d967ef4a2c5ecba3fb351c2d737943c05f625e"
+    },
+    "ostd/src/arch/x86/boot/multiboot2/mod.rs": {
+      "mode": "100644",
+      "git_blob": "861c188bc3a6a3c83f17b82eae22ce68f8228f80"
+    },
+    "ostd/src/arch/x86/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "05cfa780e4e0c1c0bc225def88014dcf6fff821b"
+    },
+    "ostd/src/arch/x86/cpu/context/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7d5e523da7d62bd5e70a1b1c18f91b078d8225d3"
+    },
+    "ostd/src/arch/x86/cpu/context/tdx.rs": {
+      "mode": "100644",
+      "git_blob": "dc56b6b0e5943c350f87e4e3a9758eba8c7e5254"
+    },
+    "ostd/src/arch/x86/cpu/local.rs": {
+      "mode": "100644",
+      "git_blob": "48317ab952517ee5d97c6f184bc90098588a473f"
+    },
+    "ostd/src/arch/x86/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "090a7e36a651d7c8be5191534e9f319091f3dfaf"
+    },
+    "ostd/src/arch/x86/device/cmos.rs": {
+      "mode": "100644",
+      "git_blob": "5b0e899a456aa75d05bd9c4fa1c194a9dcc86226"
+    },
+    "ostd/src/arch/x86/device/io_port.rs": {
+      "mode": "100644",
+      "git_blob": "74f7bbadf3f9f07b4c622f23a06205d78581ffbb"
+    },
+    "ostd/src/arch/x86/device/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5d3b7fe3c5acb11740c5951b702f73f968774fb1"
+    },
+    "ostd/src/arch/x86/device/serial.rs": {
+      "mode": "100644",
+      "git_blob": "93057750e3d2afa3b13fed7a7bf87e06754bbd1a"
+    },
+    "ostd/src/arch/x86/ex_table.rs": {
+      "mode": "100644",
+      "git_blob": "42539b4f1bb1f8d889f1f37ca9afe9ae47f60e6e"
+    },
+    "ostd/src/arch/x86/io.rs": {
+      "mode": "100644",
+      "git_blob": "b78d04f268b0c806c4b7748d0d9e7916165bb4cc"
+    },
+    "ostd/src/arch/x86/iommu/dma_remapping/context_table.rs": {
+      "mode": "100644",
+      "git_blob": "44b1c8f0df78728057f4265e17ee9bb986e87357"
+    },
+    "ostd/src/arch/x86/iommu/dma_remapping/mod.rs": {
+      "mode": "100644",
+      "git_blob": "eecc5db18628c4806ec9b1eccc891fc874c5b12c"
+    },
+    "ostd/src/arch/x86/iommu/dma_remapping/second_stage.rs": {
+      "mode": "100644",
+      "git_blob": "87cfc5a44bf42bf96f09b16b2d5c0617b1c67aa3"
+    },
+    "ostd/src/arch/x86/iommu/fault.rs": {
+      "mode": "100644",
+      "git_blob": "9fdf9db0d344d14671a9216f3d5598eff9127205"
+    },
+    "ostd/src/arch/x86/iommu/interrupt_remapping/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ad1261bce2cb8f634abb023897e7aa6697bbad2f"
+    },
+    "ostd/src/arch/x86/iommu/interrupt_remapping/table.rs": {
+      "mode": "100644",
+      "git_blob": "2c72e42914820197212ef54fc7c82822951a2634"
+    },
+    "ostd/src/arch/x86/iommu/invalidate/descriptor/mod.rs": {
+      "mode": "100644",
+      "git_blob": "543e138d4b2a3489bedee30e761e5b1c75d9af1d"
+    },
+    "ostd/src/arch/x86/iommu/invalidate/mod.rs": {
+      "mode": "100644",
+      "git_blob": "14a2256d54d0f2173c730a6901043343863f834f"
+    },
+    "ostd/src/arch/x86/iommu/invalidate/queue.rs": {
+      "mode": "100644",
+      "git_blob": "1a8c90129b9b643139a631e9e8b9226f34480937"
+    },
+    "ostd/src/arch/x86/iommu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b513770fac1f9f1d837a527df4b1fa0ba7198a2f"
+    },
+    "ostd/src/arch/x86/iommu/registers/capability.rs": {
+      "mode": "100644",
+      "git_blob": "6371c680822666b72bea58eb2045f2257d930bb5"
+    },
+    "ostd/src/arch/x86/iommu/registers/command.rs": {
+      "mode": "100644",
+      "git_blob": "a723add2d642cbf571804a1e7483e2a421fdb421"
+    },
+    "ostd/src/arch/x86/iommu/registers/extended_cap.rs": {
+      "mode": "100644",
+      "git_blob": "cd2f4fd67c6482b2d317270a7793073905f38a89"
+    },
+    "ostd/src/arch/x86/iommu/registers/invalidation.rs": {
+      "mode": "100644",
+      "git_blob": "073a612ca7f80d0b2fd2052d084674ca82ea7594"
+    },
+    "ostd/src/arch/x86/iommu/registers/mod.rs": {
+      "mode": "100644",
+      "git_blob": "d5ce3d32394c16fa899413423fa26c9c83f60a39"
+    },
+    "ostd/src/arch/x86/iommu/registers/status.rs": {
+      "mode": "100644",
+      "git_blob": "4ae57ac0567e8ae704b266d57fc676f5e9e1c99e"
+    },
+    "ostd/src/arch/x86/irq.rs": {
+      "mode": "100644",
+      "git_blob": "3279a988ed79727df12f0ccdd13f64ca568110bc"
+    },
+    "ostd/src/arch/x86/kernel/acpi/dmar.rs": {
+      "mode": "100644",
+      "git_blob": "b99d4e43156cb0a175c7d71b87225487a1cdf7de"
+    },
+    "ostd/src/arch/x86/kernel/acpi/mod.rs": {
+      "mode": "100644",
+      "git_blob": "578bfecea3306b902985c4ae8ce2370df9e26737"
+    },
+    "ostd/src/arch/x86/kernel/acpi/remapping.rs": {
+      "mode": "100644",
+      "git_blob": "a0f6883a1bcc12ed21311d1314c5e8a46eacc000"
+    },
+    "ostd/src/arch/x86/kernel/apic/mod.rs": {
+      "mode": "100644",
+      "git_blob": "d5bdf0c2611e75d2a2776767cadcf8bcd6cbdcc3"
+    },
+    "ostd/src/arch/x86/kernel/apic/x2apic.rs": {
+      "mode": "100644",
+      "git_blob": "34bd074211a48679b355b96e1eb14b832787c7b0"
+    },
+    "ostd/src/arch/x86/kernel/apic/xapic.rs": {
+      "mode": "100644",
+      "git_blob": "9fb8e579a5516311a5eb7046b15db3a66edf5fc2"
+    },
+    "ostd/src/arch/x86/kernel/irq/ioapic.rs": {
+      "mode": "100644",
+      "git_blob": "96eea04a1cec553bed9e69c2c92ad8aea0f54698"
+    },
+    "ostd/src/arch/x86/kernel/irq/mod.rs": {
+      "mode": "100644",
+      "git_blob": "8179d0a85128088ebbda0a7387e274d10d9965a4"
+    },
+    "ostd/src/arch/x86/kernel/irq/pic.rs": {
+      "mode": "100644",
+      "git_blob": "172750e46392a72e910c5ec7f20c5afa9945190b"
+    },
+    "ostd/src/arch/x86/kernel/mod.rs": {
+      "mode": "100644",
+      "git_blob": "e3493e18317b597d4072385a12200084beceb2c6"
+    },
+    "ostd/src/arch/x86/kernel/tsc.rs": {
+      "mode": "100644",
+      "git_blob": "6fa47d81d66c939074d8761a883795893f777fa3"
+    },
+    "ostd/src/arch/x86/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "784cac9aa041a5e7cc1036af01b990682a1417a4"
+    },
+    "ostd/src/arch/x86/mm/util.rs": {
+      "mode": "100644",
+      "git_blob": "5ed5ec057040b2d9a67cedd9b23763039f6da00f"
+    },
+    "ostd/src/arch/x86/mod.rs": {
+      "mode": "100644",
+      "git_blob": "30ddccb5e8224e2363ed8fb5b9b39d7fb8056bd3"
+    },
+    "ostd/src/arch/x86/pci.rs": {
+      "mode": "100644",
+      "git_blob": "e212be1f7e4f5d94c360e17b13bc72e4d2cc4eb9"
+    },
+    "ostd/src/arch/x86/qemu.rs": {
+      "mode": "100644",
+      "git_blob": "403b56eecac0469ed5933dc485ff43992d6f53d6"
+    },
+    "ostd/src/arch/x86/serial.rs": {
+      "mode": "100644",
+      "git_blob": "edf6f0f5602994850929aeee17a83267ef9b393a"
+    },
+    "ostd/src/arch/x86/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "ce7aa8c3af053563edf978cf817c7fcceab265f5"
+    },
+    "ostd/src/arch/x86/task/switch.S": {
+      "mode": "100644",
+      "git_blob": "8ee326bb73285a187d0bed4e5e0d1e2d2543ae4d"
+    },
+    "ostd/src/arch/x86/tdx_guest.rs": {
+      "mode": "100644",
+      "git_blob": "3becced20e78fad41d4e72bc307903ad604e71c9"
+    },
+    "ostd/src/arch/x86/timer/apic.rs": {
+      "mode": "100644",
+      "git_blob": "87590dbec2a106cf8b3b028858389e351fd7a149"
+    },
+    "ostd/src/arch/x86/timer/hpet.rs": {
+      "mode": "100644",
+      "git_blob": "a55b7bfe17b09301cc0e616c2eaeaf0a09918c28"
+    },
+    "ostd/src/arch/x86/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "816d3516898b69ec74bac7684986d3484cdf7607"
+    },
+    "ostd/src/arch/x86/timer/pit.rs": {
+      "mode": "100644",
+      "git_blob": "ba39e4734cd3685491c3d9648002ca1c37766885"
+    },
+    "ostd/src/arch/x86/trap/gdt.rs": {
+      "mode": "100644",
+      "git_blob": "24ef15af8c6d19e7c0ec4fc6323ae994ac2fe80e"
+    },
+    "ostd/src/arch/x86/trap/idt.rs": {
+      "mode": "100644",
+      "git_blob": "3cf711edaffc80eca707ecfd5eaed621d1abb198"
+    },
+    "ostd/src/arch/x86/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "595859af47bdf9b625082848ea8e9df63a0c9883"
+    },
+    "ostd/src/arch/x86/trap/syscall.S": {
+      "mode": "100644",
+      "git_blob": "4cad2a0d04834dc6d385b500b8aa2e327a899e9f"
+    },
+    "ostd/src/arch/x86/trap/syscall.rs": {
+      "mode": "100644",
+      "git_blob": "5c347cb5d3a191687ef55d8422e46233ebfc00c8"
+    },
+    "ostd/src/arch/x86/trap/trap.S": {
+      "mode": "100644",
+      "git_blob": "7d472573defddd7d76a369aafc9e9cb37e7f539f"
+    },
+    "ostd/src/boot/memory_region.rs": {
+      "mode": "100644",
+      "git_blob": "56e900316de29facfd546b5e0ebecab5f7b15801"
+    },
+    "ostd/src/boot/mod.rs": {
+      "mode": "100644",
+      "git_blob": "96012a7ec0b68b10bbdd927ef3a0f3aa1fa20240"
+    },
+    "ostd/src/boot/smp.rs": {
+      "mode": "100644",
+      "git_blob": "e6d1aa27a511a94b1cf1730ad2e3432f51aad774"
+    },
+    "ostd/src/bus/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7b81924ce6f6c506eb732b00d82eef5eace520c6"
+    },
+    "ostd/src/bus/pci/bus.rs": {
+      "mode": "100644",
+      "git_blob": "e756f8ae88c8abd4259a374ea2ed603370b735ae"
+    },
+    "ostd/src/bus/pci/capability/mod.rs": {
+      "mode": "100644",
+      "git_blob": "48a3f2dbb73d3a37987ab0aa78cb6683e9311236"
+    },
+    "ostd/src/bus/pci/capability/msix.rs": {
+      "mode": "100644",
+      "git_blob": "ada20bbd0c0a72d1f37be38aa02d02c2b2c0a4c0"
+    },
+    "ostd/src/bus/pci/capability/vendor.rs": {
+      "mode": "100644",
+      "git_blob": "7c18df9368601f21e802ea116a166c2414e9afc4"
+    },
+    "ostd/src/bus/pci/cfg_space.rs": {
+      "mode": "100644",
+      "git_blob": "94ea50891b75fd2c9f18b8f39fe1ddd816908c69"
+    },
+    "ostd/src/bus/pci/common_device.rs": {
+      "mode": "100644",
+      "git_blob": "d560520077eda7cf3b44fdd172cdecd48a586a51"
+    },
+    "ostd/src/bus/pci/device_info.rs": {
+      "mode": "100644",
+      "git_blob": "3d415c987238e306d8a480a6d3d1555af1f0e74c"
+    },
+    "ostd/src/bus/pci/mod.rs": {
+      "mode": "100644",
+      "git_blob": "0de48b517717553bb5efb6943c8cff085fb31efc"
+    },
+    "ostd/src/console.rs": {
+      "mode": "100644",
+      "git_blob": "dd7e05051ce6b6dde98f1809a2a5ea464f59c3ea"
+    },
+    "ostd/src/coverage.rs": {
+      "mode": "100644",
+      "git_blob": "a2680a28e1a2794f2e047495c218ed2358ed35de"
+    },
+    "ostd/src/cpu/local/cell.rs": {
+      "mode": "100644",
+      "git_blob": "823ed0a591fc1d48e09e0119a859cab3e3636f7c"
+    },
+    "ostd/src/cpu/local/dyn_cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "2c1d8d060ea2edaa090f5f728c66d72eff3d8a1a"
+    },
+    "ostd/src/cpu/local/mod.rs": {
+      "mode": "100644",
+      "git_blob": "cf94b23727fbd0086e56e6c5076253d189853af5"
+    },
+    "ostd/src/cpu/local/single_instr.rs": {
+      "mode": "100644",
+      "git_blob": "68f61868df1c4e161049a9b705087f08d4c5808d"
+    },
+    "ostd/src/cpu/local/static_cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "ffe4c30113903cc03138e462973436a87c88a031"
+    },
+    "ostd/src/cpu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "f4ee89d133b6fcbe1e7eef6a4b89f3421ab0698a"
+    },
+    "ostd/src/cpu/set.rs": {
+      "mode": "100644",
+      "git_blob": "87ee52eefb98f6e19a5dbfbb62896fb15d5425a3"
+    },
+    "ostd/src/error.rs": {
+      "mode": "100644",
+      "git_blob": "1c6076156039b312168d676485169352639e35c6"
+    },
+    "ostd/src/io/io_mem/allocator.rs": {
+      "mode": "100644",
+      "git_blob": "0cd42a4e9f5c4e6f8e055cb9c432a92c707af785"
+    },
+    "ostd/src/io/io_mem/mod.rs": {
+      "mode": "100644",
+      "git_blob": "3afa2d077451bc3b7735591e9e82b0a164e86b1d"
+    },
+    "ostd/src/io/io_port/allocator.rs": {
+      "mode": "100644",
+      "git_blob": "0e5b85e9a04b1c579421e3cb810b3e1af36d126a"
+    },
+    "ostd/src/io/io_port/mod.rs": {
+      "mode": "100644",
+      "git_blob": "731ed357170863c7d5b83944e036540e2deefd36"
+    },
+    "ostd/src/io/mod.rs": {
+      "mode": "100644",
+      "git_blob": "a87940453618bdf8e180a71c65021d0d5bde4cec"
+    },
+    "ostd/src/lib.rs": {
+      "mode": "100644",
+      "git_blob": "0f5c041c3ee5cdb877a044ea1260a2c34096cd65"
+    },
+    "ostd/src/logger.rs": {
+      "mode": "100644",
+      "git_blob": "03912769d814697d0a2b8f9a97002ee0b9a7f1b9"
+    },
+    "ostd/src/mm/dma/dma_coherent.rs": {
+      "mode": "100644",
+      "git_blob": "93fd577c7c2a8ade8bcec43657cc7cb6cfa05c74"
+    },
+    "ostd/src/mm/dma/dma_stream.rs": {
+      "mode": "100644",
+      "git_blob": "b5f8a19d45f0da3bc8d60326297a5a75dbd7dcd3"
+    },
+    "ostd/src/mm/dma/mod.rs": {
+      "mode": "100644",
+      "git_blob": "91de24f34df4a8b9cc5dfc5c5b0540074e4b4a26"
+    },
+    "ostd/src/mm/dma/test.rs": {
+      "mode": "100644",
+      "git_blob": "c6e68e1e40eca7e6774a22866c7b73cdeb22f281"
+    },
+    "ostd/src/mm/frame/allocator.rs": {
+      "mode": "100644",
+      "git_blob": "75719c7ed562d0870e3ab59836f0b540bd59f912"
+    },
+    "ostd/src/mm/frame/frame_ref.rs": {
+      "mode": "100644",
+      "git_blob": "127cf6b22f6de3406daa410b2e04e78d90e42b62"
+    },
+    "ostd/src/mm/frame/linked_list.rs": {
+      "mode": "100644",
+      "git_blob": "0b9dd8a3fe74ae1491f71fbd927084620b7e349f"
+    },
+    "ostd/src/mm/frame/meta.rs": {
+      "mode": "100644",
+      "git_blob": "74df7a87813ad52cc44c2d7e00be3ae4297aa284"
+    },
+    "ostd/src/mm/frame/mod.rs": {
+      "mode": "100644",
+      "git_blob": "00038f47acb5d6cc1c8897cb071bf306f7cc237e"
+    },
+    "ostd/src/mm/frame/segment.rs": {
+      "mode": "100644",
+      "git_blob": "a722d2d67f3616b39df424d8e682ca7a06f940ae"
+    },
+    "ostd/src/mm/frame/test.rs": {
+      "mode": "100644",
+      "git_blob": "3df77fbd235723c5a60cc579edb7d7fb64ce5477"
+    },
+    "ostd/src/mm/frame/unique.rs": {
+      "mode": "100644",
+      "git_blob": "ee49c69df4ea1d909bea8f24644b6ffc489d9c29"
+    },
+    "ostd/src/mm/frame/untyped.rs": {
+      "mode": "100644",
+      "git_blob": "3f0d1660361da49b8b366fa906d951633dc69d9e"
+    },
+    "ostd/src/mm/heap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5dda22aa5b5dc1de79584ed90f4bdeb896cc73ce"
+    },
+    "ostd/src/mm/heap/slab.rs": {
+      "mode": "100644",
+      "git_blob": "a37810edc857aac84c86c33b852e88366b60dac4"
+    },
+    "ostd/src/mm/heap/slot.rs": {
+      "mode": "100644",
+      "git_blob": "0185e6e8516cd146c6d0dbb7d2cb9960d83772f1"
+    },
+    "ostd/src/mm/heap/slot_list.rs": {
+      "mode": "100644",
+      "git_blob": "f573d60e701619c87eb8c2bcf7e4dd62f0e04bf0"
+    },
+    "ostd/src/mm/io.rs": {
+      "mode": "100644",
+      "git_blob": "b81379524024ad867c8d75c53e2ec90e2b239e65"
+    },
+    "ostd/src/mm/kspace/kvirt_area.rs": {
+      "mode": "100644",
+      "git_blob": "b88633b4602cd77ac2c7b9c460a0138769c1c038"
+    },
+    "ostd/src/mm/kspace/mod.rs": {
+      "mode": "100644",
+      "git_blob": "9b2775c7ea4f19570000ed66626b51639a834f89"
+    },
+    "ostd/src/mm/kspace/test.rs": {
+      "mode": "100644",
+      "git_blob": "dc18ad781796a020630d9bfd4540569d516d3c91"
+    },
+    "ostd/src/mm/mod.rs": {
+      "mode": "100644",
+      "git_blob": "36071cb02e2e168160f7bceb7030d32642f6a2ca"
+    },
+    "ostd/src/mm/page_prop.rs": {
+      "mode": "100644",
+      "git_blob": "954d9456e026749edcb4f38c6f29ac388efe9fd0"
+    },
+    "ostd/src/mm/page_table/boot_pt.rs": {
+      "mode": "100644",
+      "git_blob": "68595316a3eca5d557a7e78f8f38cd96d8bfd68b"
+    },
+    "ostd/src/mm/page_table/cursor/locking.rs": {
+      "mode": "100644",
+      "git_blob": "cf118f53fef2756a15a1c0e1cd1de8ff6b908ab6"
+    },
+    "ostd/src/mm/page_table/cursor/mod.rs": {
+      "mode": "100644",
+      "git_blob": "56ab9df532ea703879cc89a0f4f828a182449553"
+    },
+    "ostd/src/mm/page_table/mod.rs": {
+      "mode": "100644",
+      "git_blob": "b545a8e3c130bff1eb89b699682d7592390334c1"
+    },
+    "ostd/src/mm/page_table/node/child.rs": {
+      "mode": "100644",
+      "git_blob": "369697eebb733e1af9bcf286d85104aa35763c90"
+    },
+    "ostd/src/mm/page_table/node/entry.rs": {
+      "mode": "100644",
+      "git_blob": "2e6a84e5b561b9d325e1c9d7c41ecbedbf3a7997"
+    },
+    "ostd/src/mm/page_table/node/mod.rs": {
+      "mode": "100644",
+      "git_blob": "52b1f927fd59925e5f6ee65ec02d1ebda4786976"
+    },
+    "ostd/src/mm/page_table/test.rs": {
+      "mode": "100644",
+      "git_blob": "f5e1dd8768ec579867013788b4cb476509d0b652"
+    },
+    "ostd/src/mm/test.rs": {
+      "mode": "100644",
+      "git_blob": "34672fadfcb6fb38305c52c866a7a3559877a422"
+    },
+    "ostd/src/mm/tlb.rs": {
+      "mode": "100644",
+      "git_blob": "ef9663a93621fb7def939876e94852ae19dbd6a2"
+    },
+    "ostd/src/mm/vm_space.rs": {
+      "mode": "100644",
+      "git_blob": "17dc89d07b709d8859bb87e68755d09f0004e6de"
+    },
+    "ostd/src/panic.rs": {
+      "mode": "100644",
+      "git_blob": "c179c0162e8e60da0fbd38b3bc7010b425746a88"
+    },
+    "ostd/src/prelude.rs": {
+      "mode": "100644",
+      "git_blob": "f9ab829ef428c69fdc9460f077050efcd781bdf3"
+    },
+    "ostd/src/smp.rs": {
+      "mode": "100644",
+      "git_blob": "46b4c143206403d59c82d337e8be2c73cd82b473"
+    },
+    "ostd/src/sync/guard.rs": {
+      "mode": "100644",
+      "git_blob": "2ccbdfeb8ed3a11e0ab97b2a6106180f475f9d09"
+    },
+    "ostd/src/sync/mod.rs": {
+      "mode": "100644",
+      "git_blob": "1d3f5e951c2914c33e704eb7386fa81086911a33"
+    },
+    "ostd/src/sync/mutex.rs": {
+      "mode": "100644",
+      "git_blob": "b9557cde2bd28d135344c6ff1b22fc7656d844e0"
+    },
+    "ostd/src/sync/rcu/mod.rs": {
+      "mode": "100644",
+      "git_blob": "2b022a38d2993f9156d7f8160b4dacfc2fd508e6"
+    },
+    "ostd/src/sync/rcu/monitor.rs": {
+      "mode": "100644",
+      "git_blob": "142e6cabbc7385cb5ebee77b70b1cdcf741bb3eb"
+    },
+    "ostd/src/sync/rcu/non_null/either.rs": {
+      "mode": "100644",
+      "git_blob": "34727d6f49f6ce4bf3ddf4ca2d9f154a4aebc6a4"
+    },
+    "ostd/src/sync/rcu/non_null/mod.rs": {
+      "mode": "100644",
+      "git_blob": "4a091430475025ddfa27dca7a3989c91b3161152"
+    },
+    "ostd/src/sync/rwarc.rs": {
+      "mode": "100644",
+      "git_blob": "e07c5f761de19ae93550613574183eeae19fd671"
+    },
+    "ostd/src/sync/rwlock.rs": {
+      "mode": "100644",
+      "git_blob": "ba9c4dbf5b72ee1cd2139e44888993880aeba1f4"
+    },
+    "ostd/src/sync/rwmutex.rs": {
+      "mode": "100644",
+      "git_blob": "bc674a5c94f8456aeab0238bed5a4b08b27cb727"
+    },
+    "ostd/src/sync/spin.rs": {
+      "mode": "100644",
+      "git_blob": "a1a0eb57e268ed2b3e69671cc9742bd785f8c387"
+    },
+    "ostd/src/sync/wait.rs": {
+      "mode": "100644",
+      "git_blob": "8676b57abf0928d9c4d903b7ec18fe04e86ff528"
+    },
+    "ostd/src/task/atomic_mode.rs": {
+      "mode": "100644",
+      "git_blob": "137d48d083b83391a2ba86b926ef4108c161ac41"
+    },
+    "ostd/src/task/kernel_stack.rs": {
+      "mode": "100644",
+      "git_blob": "a9861f548e98b72d2b810a5892583511875ddc84"
+    },
+    "ostd/src/task/mod.rs": {
+      "mode": "100644",
+      "git_blob": "6e5cf466213ef96c550cbf131f9ec377ce4290af"
+    },
+    "ostd/src/task/preempt/cpu_local.rs": {
+      "mode": "100644",
+      "git_blob": "cee1bee2de35e7168583cbf4e7a01fd2b1aaec9e"
+    },
+    "ostd/src/task/preempt/guard.rs": {
+      "mode": "100644",
+      "git_blob": "eae2345749b7eef8c274f516587712fd7140d4b0"
+    },
+    "ostd/src/task/preempt/mod.rs": {
+      "mode": "100644",
+      "git_blob": "05154f6ccd4b70c71ff66160fa21280087d107a6"
+    },
+    "ostd/src/task/processor.rs": {
+      "mode": "100644",
+      "git_blob": "9ef5bc960eb42bb2f2298428daf33e365d95ddf2"
+    },
+    "ostd/src/task/scheduler/fifo_scheduler.rs": {
+      "mode": "100644",
+      "git_blob": "7d0f364576cc468072914096ecb53741f4239f9e"
+    },
+    "ostd/src/task/scheduler/info.rs": {
+      "mode": "100644",
+      "git_blob": "0241fd1b316cdac9c578149efcbbc8e6313b8cc5"
+    },
+    "ostd/src/task/scheduler/mod.rs": {
+      "mode": "100644",
+      "git_blob": "0ab58d3de7ba60b0b120cb9adc66799875855534"
+    },
+    "ostd/src/task/scheduler/thread_view.rs": {
+      "mode": "100644",
+      "git_blob": "629e0d39082bde3156227128ac6148c71df1062c"
+    },
+    "ostd/src/task/utils.rs": {
+      "mode": "100644",
+      "git_blob": "f527ce0c3048d4845c28050a6e0a9b27f0ba3096"
+    },
+    "ostd/src/timer/jiffies.rs": {
+      "mode": "100644",
+      "git_blob": "94205e896343319906357af93a99318c2950cfe6"
+    },
+    "ostd/src/timer/mod.rs": {
+      "mode": "100644",
+      "git_blob": "5724e323e955875bfcb5818782502a8d25e7e980"
+    },
+    "ostd/src/trap/handler.rs": {
+      "mode": "100644",
+      "git_blob": "eb3749f4ab5fa8bed238599c398816a1dab59fe8"
+    },
+    "ostd/src/trap/irq.rs": {
+      "mode": "100644",
+      "git_blob": "dea4535dcac88d0b9b0cc8f82fa650a949c1b8a0"
+    },
+    "ostd/src/trap/mod.rs": {
+      "mode": "100644",
+      "git_blob": "7e42cbcf36a6184fdbd5cf418682fbeb0a2cf28e"
+    },
+    "ostd/src/user.rs": {
+      "mode": "100644",
+      "git_blob": "f34b5c3d2188f46a01a7dfbb47d46f317563bf77"
+    },
+    "ostd/src/util/either.rs": {
+      "mode": "100644",
+      "git_blob": "be45d190f4b0e245d5b1aa5901415d3a566461c8"
+    },
+    "ostd/src/util/macros.rs": {
+      "mode": "100644",
+      "git_blob": "8d73431b7cba3b12ec03c0e07dd45f3440733cd1"
+    },
+    "ostd/src/util/mod.rs": {
+      "mode": "100644",
+      "git_blob": "56fddbae5c6664d7c39555715e5642df46000ed3"
+    },
+    "ostd/src/util/ops.rs": {
+      "mode": "100644",
+      "git_blob": "3e556935cb5004963ebdbfd94e4d76c673e42dff"
+    },
+    "ostd/src/util/range_alloc.rs": {
+      "mode": "100644",
+      "git_blob": "d9a269a4344c8636246e0c9f7f1fcce0b348ee17"
+    },
+    "rust-toolchain.toml": {
+      "mode": "100644",
+      "git_blob": "81724dbb1f2709f171a09bf83b05dd0a5bbb9aed"
+    }
+  }
+}

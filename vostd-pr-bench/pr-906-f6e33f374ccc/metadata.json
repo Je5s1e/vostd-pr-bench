@@ -10,7 +10,6 @@
   "base_sha": "24317fd3c8b086a637c239cf7c9f426b3c7e368d",
   "head_sha": "f6e33f374cccf7ec2a35694d2f2e53a573747ed0",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/src/task/kernel_stack.rs",

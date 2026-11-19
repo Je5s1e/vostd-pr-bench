@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-857-51bb973322ec",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-857-51bb973322ec:review-comment-4367334205",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The verification patch rewrites `unmap`'s executable overflow check locally instead of first fixing and adopting the upstream Asterinas implementation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/vm_space.rs",
+          "start_line": 951,
+          "end_line": 957
+        }
+      ],
+      "rationale": "The reviewed code replaces the upstream executable assertion with two new checks so the proof can remove an intended overflow assumption. Reviewers state that the assumption is intentional while upstream still contains the known bug, and that the effective workflow is to fix Asterinas first and then adopt that change. The author later confirms there is no active upstream fix and the PR remains open with a Suspended label. Under `preserve-exec-code`, a VOSTD proof patch should not independently change upstream runtime behavior merely to reduce a proof assumption.",
+      "source_evidence": "after/ostd/src/mm/vm_space.rs\n951: /* Bounding `va + len` requires evaluating that sum, which wraps for a huge `len`\n954:  * Origin Rust: assert!(self.virt_addr() + len <= self.pt_cursor.0.barrier_va.end);\n956: assert!(self.virt_addr() <= self.pt_cursor.0.barrier_va.end);\n957: assert!(len <= self.pt_cursor.0.barrier_va.end - self.virt_addr());",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/857#discussion_r4367334205",
+      "related_comment_ids": [
+        "4367334205",
+        "4373608996",
+        "6519863536",
+        "6520458450"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4367334205",
+          "url": "https://github.com/asterinas/vostd/pull/857#discussion_r4367334205",
+          "commit_id": "51bb973322ec9f9f9876cc5ffc721b9829497d76"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4373608996",
+          "url": "https://github.com/asterinas/vostd/pull/857#discussion_r4373608996",
+          "commit_id": "51bb973322ec9f9f9876cc5ffc721b9829497d76"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "6519863536",
+          "url": "https://github.com/asterinas/vostd/pull/857#issuecomment-6519863536",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "6520458450",
+          "url": "https://github.com/asterinas/vostd/pull/857#issuecomment-6520458450",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the fixed original review source, current suspended head, complete archived discussion, and complete live remote discussion."
+    },
+    {
+      "id": "pr-857-51bb973322ec:review-comment-4367336013",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "`wait_until_or_cancelled` rewrites executable Option control flow without removing the proof cheat or otherwise benefiting the verification.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/wait.rs",
+          "start_line": 382,
+          "end_line": 393
+        }
+      ],
+      "rationale": "The patch changes `if let Some(res) = cond()` into a separate runtime binding plus branch and assertions, but still requires an `admit` before returning. One collaborator requests changes because the rewrite does not make sense, and another confirms that it brings no benefit. The current suspended head retains the same block. This violates `preserve-exec-code`: proof work should not rewrite executable control flow when the rewrite neither discharges the proof obligation nor establishes a necessary behavior-preserving adaptation.",
+      "source_evidence": "after/ostd/src/sync/wait.rs\n382: /* Binding the scrutinee first keeps `call_ensures` reachable in the branch; with\n385:  * Origin Rust: if let Some(res) = cond() {\n387: let r = cond();\n388: if let Some(res) = r {\n389:     assert(r == Some(res));\n390:     assert(cond.ensures((), Some(res)));\n393:     proof! { admit(); }",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/857#discussion_r4367336013",
+      "related_comment_ids": [
+        "4367336013",
+        "4373605334"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4367336013",
+          "url": "https://github.com/asterinas/vostd/pull/857#discussion_r4367336013",
+          "commit_id": "51bb973322ec9f9f9876cc5ffc721b9829497d76"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4373605334",
+          "url": "https://github.com/asterinas/vostd/pull/857#discussion_r4373605334",
+          "commit_id": "51bb973322ec9f9f9876cc5ffc721b9829497d76"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the original review source, unchanged block in the current suspended head, complete archived thread, and complete live remote discussion."
+    }
+  ]
+}

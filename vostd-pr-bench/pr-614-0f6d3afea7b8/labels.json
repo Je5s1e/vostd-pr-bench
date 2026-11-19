@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-614-0f6d3afea7b8",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-614-0f6d3afea7b8:review-comment-3557696368",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Two proof helpers that construct tracked resources use the `lemma_` prefix instead of the ownership-role prefix `tracked_`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/mod.rs",
+          "start_line": 5397,
+          "end_line": 5397
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/mod.rs",
+          "start_line": 5406,
+          "end_line": 5406
+        }
+      ],
+      "rationale": "Both functions return a tracked resource and their bodies construct and return tracked values, so `name-proof-roles` requires the `tracked_` prefix rather than `lemma_`, which is reserved for reusable proved facts. Review comments 3557696368 and 3557698288 request that correction, and the final PR head renames them to `tracked_frame_entry_new` and `tracked_segment_entry_new`.",
+      "source_evidence": "after/ostd/specs/mm/embedding/mod.rs\n5396: /// Tracked constructor for [`FrameEntry`].\n5397: pub proof fn lemma_frame_entry_new(paddr: Paddr) -> tracked FrameEntry\n5398:     returns\n5399:         (FrameEntry { paddr }),\n5405: /// Tracked constructor for [`SegmentEntry`].\n5406: pub proof fn lemma_segment_entry_new(range: Range<Paddr>) -> tracked SegmentEntry\n5407:     returns\n5408:         (SegmentEntry { range }),",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557696368",
+      "related_comment_ids": [
+        "3557696368",
+        "3557698288"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3557696368",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557696368",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3557698288",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557698288",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the complete archived and current remote discussion, the fixed historical source, and the final approved PR head where both helpers use `tracked_`."
+    },
+    {
+      "id": "pr-614-0f6d3afea7b8:review-comment-3557701673",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Three reusable proof facts are missing the required `lemma_` prefix.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+          "start_line": 371,
+          "end_line": 371
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/mod.rs",
+          "start_line": 800,
+          "end_line": 800
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+          "start_line": 642,
+          "end_line": 642
+        }
+      ],
+      "rationale": "Each function is a `proof fn` whose contract establishes a reusable fact for callers and none is a tracked-resource constructor. The `name-proof-roles` rule therefore requires a `lemma_` prefix. Review comments 3557701673, 3557703902, and 3557707042 identify the same naming root cause; the final head adds `lemma_` to all three names.",
+      "source_evidence": "after/ostd/specs/mm/page_table/cursor/va_lemmas.rs\n371:     pub proof fn locked_range_vaddr_prefix_match(self, new_va: AbstractVaddr)\n\nafter/ostd/specs/mm/page_table/mod.rs\n797:     /// Two virtual addresses in the same page_size(level+1) aligned block\n800:     pub proof fn same_node_leading_bits_match(\n\nafter/ostd/specs/mm/page_table/node/entry_owners.rs\n640:     /// An active page-table node cannot occupy a metadata slot whose refcount is\n642:     pub proof fn active_entry_not_in_free_pool(",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557701673",
+      "related_comment_ids": [
+        "3557701673",
+        "3557703902",
+        "3557707042"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3557701673",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557701673",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3557703902",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557703902",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3557707042",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557707042",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected each complete signature, the archived and remote review threads, and the corresponding `lemma_` renames in the final approved PR head."
+    },
+    {
+      "id": "pr-614-0f6d3afea7b8:review-comment-3557714902",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "Proof work rewrites the executable `NR_LEVELS()` method instead of preserving its original direct return shape.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/mod.rs",
+          "start_line": 463,
+          "end_line": 470
+        }
+      ],
+      "rationale": "The selected head changes the executable method from a direct `C::C::NR_LEVELS()` return into a named result, local variable, proof block, and final return. The `preserve-exec-code` rule requires proof additions to avoid rewriting executable Rust unless necessary and to keep any unavoidable change minimal. Review comment 3557714902 calls the rewrite surprising, the author reply 3563072027 explicitly says it will be changed back, and the final approved head restores the direct executable call while keeping only the necessary proof assertion.",
+      "source_evidence": "after/ostd/src/mm/page_table/mod.rs\n459:     open spec fn NR_LEVELS_spec() -> PagingLevel {\n460:         C::C::NR_LEVELS_spec()\n461:     }\n462:\n463:     fn NR_LEVELS() -> (res: PagingLevel) {\n464:         let res = C::C::NR_LEVELS();\n465:         proof {\n466:             assert(Self::NR_LEVELS_spec() == C::C::NR_LEVELS_spec());\n467:             assert(res == C::C::NR_LEVELS_spec());\n468:             assert(res == Self::NR_LEVELS_spec());\n469:         }\n470:         res\n471:     }",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557714902",
+      "related_comment_ids": [
+        "3557714902",
+        "3563072027"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3557714902",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3557714902",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3563072027",
+          "url": "https://github.com/asterinas/vostd/pull/614#discussion_r3563072027",
+          "commit_id": "0f6d3afea7b8d2042da129656703df122c5a7cc7"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the base, fixed historical review head, author reply, and final approved head, confirming that the executable rewrite was reverted."
+    }
+  ]
+}

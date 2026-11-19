@@ -1,0 +1,81 @@
+{
+  "number": 924,
+  "source_pr": "https://github.com/asterinas/vostd/pull/924",
+  "base_sha": "46440af7206dc3132253ebb8cb5e190a5d711e76",
+  "head_sha": "fa4046a6b4bab0664e7f6504cb1a7efcd87c298f",
+  "files": {
+    "totalCount": 8,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "OA"
+    },
+    "nodes": [
+      {
+        "path": "docs/coding-guidelines/maintainability.md",
+        "additions": 31,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/io.rs",
+        "additions": 56,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/io.rs",
+        "additions": 53,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/test.rs",
+        "additions": 20,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/mod.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/test.rs",
+        "additions": 289,
+        "deletions": 103,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "verified_libs/vstd_extra/src/layout.rs",
+        "additions": 11,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/924",
+    "accept": "application/vnd.github.diff",
+    "bytes": 40262,
+    "sha256": "73a81805ebe6cc344bb489e8792758dc1e03fe64cbb610e4cbc60b13942f95b1",
+    "fetched_at": "2026-11-13T21:16:26.834396+00:00",
+    "diff_file_sections": 8,
+    "expected_changed_files": 8
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/924",
+    "accept": "application/vnd.github.patch",
+    "bytes": 51453,
+    "sha256": "4e262ed4335dad77d2221ff56d06889cfdab093932077fa16b3fc9f3b6712fee",
+    "fetched_at": "2026-11-13T21:24:29.939975+00:00"
+  }
+}

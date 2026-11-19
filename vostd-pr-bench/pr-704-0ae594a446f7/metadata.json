@@ -10,7 +10,6 @@
   "base_sha": "e87443ef658488349d1f3625923a5bec1c9bb967",
   "head_sha": "0ae594a446f71c1fab772384701e60686c5357c5",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "verified_libs/vstd_extra/src/external/btree.rs",

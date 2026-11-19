@@ -1,0 +1,24 @@
+{
+  "number": 915,
+  "title": "Verify bzImage address mappings",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Verify bzImage address mappings",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "dv",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "ommit 5ba6ba4ebf2e5e59f05b6eaddfe8dfc8554fb740 [package.metadata.verus] verify = true vstd = { workspace = true, features = [\"std\"] } use vstd::{ prelude::*, std_specs::{ convert::FromSpecImpl, o",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

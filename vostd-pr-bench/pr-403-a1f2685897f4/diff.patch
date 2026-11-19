@@ -1,0 +1,476 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index c28cb1c01bf290ffd00687b42e96004245225a05..38ff002b6d060ee4077779c54c6e55bb19288da4 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -548,11 +548,11 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_builtin"
+-version = "0.0.0-2026-04-05-0114"
++version = "0.0.0-2026-04-12-0118"
+ 
+ [[package]]
+ name = "verus_builtin_macros"
+-version = "0.0.0-2026-04-05-0114"
++version = "0.0.0-2026-04-12-0118"
+ dependencies = [
+  "proc-macro2",
+  "quote",
+@@ -564,7 +564,7 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_prettyplease"
+-version = "0.0.0-2026-04-05-0114"
++version = "0.0.0-2026-04-12-0118"
+ dependencies = [
+  "proc-macro2",
+  "verus_syn",
+@@ -603,7 +603,7 @@ checksum = "af8ca9a5d4debca0633e697c88269395493cebf2e10db21ca2dbde37c1356452"
+ 
+ [[package]]
+ name = "vstd"
+-version = "0.0.0-2026-04-05-0114"
++version = "0.0.0-2026-04-12-0118"
+ dependencies = [
+  "verus_builtin",
+  "verus_builtin_macros",
+diff --git a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+index 44a0092f73c53204f71fdde516de7a7214058af5..2436e3aa3f522e681c711c8d68e4faf93e33813f 100644
+--- a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
++++ b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+@@ -57,6 +57,8 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Repr<MetaSlotStorage> for Link<M> {
+                 &&& M::wf(link.slot, perm.storage)
+                 &&& (link.next is Some) == (perm.next_ptr is Some)
+                 &&& (link.prev is Some) == (perm.prev_ptr is Some)
++                &&& link.next is Some ==> link.next->Some_0 == perm.next_ptr->Some_0.addr()
++                &&& link.prev is Some ==> link.prev->Some_0 == perm.prev_ptr->Some_0.addr()
+             },
+             _ => false,
+         }
+@@ -67,11 +69,11 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Repr<MetaSlotStorage> for Link<M> {
+         (
+             MetaSlotStorage::FrameLink(StoredLink {
+                 next: match self.next {
+-                    Some(ptr) => Some(ptr.addr),
++                    Some(ptr) => Some(ptr.ptr.addr()),
+                     None => None,
+                 },
+                 prev: match self.prev {
+-                    Some(ptr) => Some(ptr.addr),
++                    Some(ptr) => Some(ptr.ptr.addr()),
+                     None => None,
+                 },
+                 slot,
+@@ -100,7 +102,6 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Repr<MetaSlotStorage> for Link<M> {
+             MetaSlotStorage::FrameLink(link) => Link {
+                 next: match link.next {
+                     Some(addr) => Some(ReprPtr {
+-                        addr,
+                         ptr: perm.next_ptr.unwrap(),
+                         _T: PhantomData,
+                     }),
+@@ -108,7 +109,6 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Repr<MetaSlotStorage> for Link<M> {
+                 },
+                 prev: match link.prev {
+                     Some(addr) => Some(ReprPtr {
+-                        addr,
+                         ptr: perm.prev_ptr.unwrap(),
+                         _T: PhantomData,
+                     }),
+@@ -605,11 +605,6 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> Repr<MetaSlot> for MetadataAsLink<M>
+ 
+     open spec fn wf(r: MetaSlot, perm: MetadataInnerPerms) -> bool {
+         &&& <Metadata<Link<M>> as Repr<MetaSlot>>::wf(r, perm)
+-        &&& ({
+-            let md = <Metadata<Link<M>> as Repr<MetaSlot>>::from_repr_spec(r, perm);
+-            &&& (md.metadata.next matches Some(next) ==> next.addr == next.ptr.addr())
+-            &&& (md.metadata.prev matches Some(prev) ==> prev.addr == prev.ptr.addr())
+-        })
+     }
+ 
+     open spec fn to_repr_spec(self, perm: MetadataInnerPerms) -> (MetaSlot, MetadataInnerPerms) {
+@@ -714,11 +709,11 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> FromSpecImpl<MetadataAsLink<M>> for
+         Metadata {
+             metadata: Link {
+                 next: match m.next {
+-                    Some(pptr) => Some(ReprPtr { addr: pptr.addr(), ptr: pptr, _T: PhantomData }),
++                    Some(pptr) => Some(ReprPtr { ptr: pptr, _T: PhantomData }),
+                     None => None,
+                 },
+                 prev: match m.prev {
+-                    Some(pptr) => Some(ReprPtr { addr: pptr.addr(), ptr: pptr, _T: PhantomData }),
++                    Some(pptr) => Some(ReprPtr { ptr: pptr, _T: PhantomData }),
+                     None => None,
+                 },
+                 meta: m.metadata,
+@@ -733,11 +728,11 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> FromSpecImpl<MetadataAsLink<M>> for
+ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> From<MetadataAsLink<M>> for Metadata<Link<M>> {
+     fn from(m: MetadataAsLink<M>) -> Self {
+         let next = match m.next {
+-            Some(pptr) => Some(ReprPtr { addr: pptr.addr(), ptr: pptr, _T: PhantomData }),
++            Some(pptr) => Some(ReprPtr { ptr: pptr, _T: PhantomData }),
+             None => None,
+         };
+         let prev = match m.prev {
+-            Some(pptr) => Some(ReprPtr { addr: pptr.addr(), ptr: pptr, _T: PhantomData }),
++            Some(pptr) => Some(ReprPtr { ptr: pptr, _T: PhantomData }),
+             None => None,
+         };
+         Metadata {
+@@ -755,7 +750,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> MetadataAsLink<M> {
+             res.addr() == ptr.addr(),
+             res.ptr == ptr.ptr,
+     {
+-        ReprPtr { addr: ptr.addr, ptr: ptr.ptr, _T: PhantomData }
++        ReprPtr { ptr: ptr.ptr, _T: PhantomData }
+     }
+ 
+     pub fn cast_from_metadata(ptr: ReprPtr<MetaSlot, Metadata<Link<M>>>) -> (res: ReprPtr<MetaSlot, Self>)
+@@ -763,7 +758,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> MetadataAsLink<M> {
+             res.addr() == ptr.addr(),
+             res.ptr == ptr.ptr,
+     {
+-        ReprPtr { addr: ptr.addr, ptr: ptr.ptr, _T: PhantomData }
++        ReprPtr { ptr: ptr.ptr, _T: PhantomData }
+     }
+ 
+ }
+diff --git a/ostd/specs/mm/page_table/mod.rs b/ostd/specs/mm/page_table/mod.rs
+index 21ee04025b3ec2f2e1d33977945afd5b70fbf3ea..2fefdce038c1e791dea89d5765242e6214e30665 100644
+--- a/ostd/specs/mm/page_table/mod.rs
++++ b/ostd/specs/mm/page_table/mod.rs
+@@ -43,8 +43,7 @@ impl Inv for AbstractVaddr {
+             #![trigger self.index.contains_key(i)]
+             0 <= i < NR_LEVELS ==> {
+                 &&& self.index.contains_key(i)
+-                &&& 0 <= self.index[i]
+-                &&& self.index[i] < NR_ENTRIES
++                &&& 0 <= self.index[i] < NR_ENTRIES
+             }
+     }
+ }
+diff --git a/ostd/specs/mm/page_table/node/entry.rs b/ostd/specs/mm/page_table/node/entry.rs
+index 46b44300eabd2b7084b1fbfeba032ca8eb79f8b8..ebf167c365d613142e3ee5f0a1b9592f9daccebc 100644
+--- a/ostd/specs/mm/page_table/node/entry.rs
++++ b/ostd/specs/mm/page_table/node/entry.rs
+@@ -200,7 +200,7 @@ impl<'rcu, C: PageTableConfig> Entry<'rcu, C> {
+         &&& forall|i: int| 0 <= i < NR_ENTRIES ==> i != self.idx ==>
+             parent_owner0.children_perm.value()[i] == parent_owner1.children_perm.value()[i]
+         // meta_perm is unchanged: only children_perm and meta_own are modified by entry operations.
+-        &&& parent_owner1.meta_perm.addr == parent_owner0.meta_perm.addr
++        &&& parent_owner1.meta_perm.addr() == parent_owner0.meta_perm.addr()
+         &&& parent_owner1.meta_perm.points_to == parent_owner0.meta_perm.points_to
+         &&& parent_owner1.meta_perm.inner_perms == parent_owner0.meta_perm.inner_perms
+     }
+diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
+index a07db402790157cea0219b5ed496bb2b0b1ec1e6..df7b332fcf99ed1018171fa6de5501e3262838b2 100644
+--- a/ostd/src/mm/frame/linked_list.rs
++++ b/ostd/src/mm/frame/linked_list.rs
+@@ -967,14 +967,9 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<M> {
+         #[verus_spec(with Tracked(&mut owner.list_own))]
+         let list_id = LinkedList::<M>::lazy_get_id(self.list);
+ 
+-        let tracked mut inner_perms;
+-        proof {
+-            inner_perms = frame_own.meta_perm.take_inner_perms();
+-        }
+         #[verus_spec(with Tracked(&frame_own.meta_perm.points_to))]
+         let slot = frame.slot();
+-        slot.in_list.store(Tracked(&mut inner_perms.in_list), list_id);
+-        proof { frame_own.meta_perm.put_inner_perms(inner_perms); }
++        slot.in_list.store(Tracked(&mut frame_own.meta_perm.inner_perms.in_list), list_id);
+ 
+         proof {
+             // The store only changed in_list.value(); ref_count is unchanged.
+diff --git a/ostd/src/mm/frame/meta.rs b/ostd/src/mm/frame/meta.rs
+index dfdf4832bd506fe04274a1d336c1b17c409b70fc..3fc4173dba9bc8ba4bf18d5ff24a302f6a8bb023 100644
+--- a/ostd/src/mm/frame/meta.rs
++++ b/ostd/src/mm/frame/meta.rs
+@@ -234,23 +234,21 @@ impl MetaSlot {
+             addr == perm.addr(),
+         ensures
+             res.ptr.addr() == addr,
+-            res.addr == addr,
++            res.addr() == addr,
+     {
+-        ReprPtr::<MetaSlot, Metadata<M>> { addr: addr, ptr: PPtr::from_addr(addr), _T: PhantomData }
++        ReprPtr::<MetaSlot, Metadata<M>> { ptr: PPtr::from_addr(addr), _T: PhantomData }
+     }
+ 
+     /// A helper function that casts `MetaSlot` permission to a `Metadata` permission of type `M`.
+-    pub fn cast_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(
+-        addr: usize,
+-        Tracked(perm): Tracked<vstd::simple_pptr::PointsTo<MetaSlot>>,
+-        Tracked(inner_perms): Tracked<MetadataInnerPerms>,
+-    ) -> (res: Tracked<PointsTo<MetaSlot, Metadata<M>>>)
++    pub proof fn cast_perm<M: AnyFrameMeta + Repr<MetaSlotStorage>>(
++        tracked perm: vstd::simple_pptr::PointsTo<MetaSlot>,
++        tracked inner_perms: MetadataInnerPerms,
++    ) -> (tracked res: PointsTo<MetaSlot, Metadata<M>>)
+         ensures
+-            res@.addr == addr,
+-            res@.points_to == perm,
+-            res@.inner_perms == inner_perms,
++            res.points_to == perm,
++            res.inner_perms == inner_perms,
+     {
+-        Tracked(PointsTo { addr, points_to: perm, inner_perms, _T: PhantomData })
++        PointsTo { points_to: perm, inner_perms, _T: PhantomData }
+     }
+ 
+     /// Initializes the metadata slot of a frame assuming it is unused.
+@@ -354,10 +352,9 @@ impl MetaSlot {
+             regions.slot_owners.tracked_insert(frame_to_index(paddr), slot_own);
+             assert(regions.inv());
+         }
++        let tracked perm = MetaSlot::cast_perm::<M>(slot_perm, inner_perms);
+ 
+-        let perm = MetaSlot::cast_perm::<M>(slot.addr(), Tracked(slot_perm), Tracked(inner_perms));
+-
+-        Ok((slot, perm))
++        Ok((slot, Tracked(perm)))
+     }
+ 
+     /// The inner loop of `Self::get_from_in_use`.
+@@ -708,7 +705,7 @@ impl MetaSlot {
+             self == perm.value(),
+         ensures
+             res.ptr.addr() == perm.addr(),
+-            res.addr == perm.addr(),
++            res.addr() == perm.addr(),
+     {
+         let addr = self.addr_of(Tracked(perm));
+         self.cast_slot(addr, Tracked(perm))
+diff --git a/ostd/src/mm/frame/unique.rs b/ostd/src/mm/frame/unique.rs
+index 0a2d5718b6fa2599512ae25738deffbee986fe53..1c870f099d767c3b18ec4b15a647947767a9a177 100644
+--- a/ostd/src/mm/frame/unique.rs
++++ b/ostd/src/mm/frame/unique.rs
+@@ -167,12 +167,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+ 
+         // Re-sync slot_own with the updated inner_perms (now storage+vtable are init).
+         proof { slot_own.sync_inner(&inner_perms); }
+-
+-        let Tracked(meta_perm) = MetaSlot::cast_perm::<M1>(
+-            self.ptr.addr(),
+-            Tracked(slot_perm),
+-            Tracked(inner_perms),
+-        );
++        let tracked meta_perm = MetaSlot::cast_perm::<M1>(slot_perm, inner_perms);
+ 
+         let tracked mut new_owner = UniqueFrameOwner::<M1>::from_unused_owner(
+             regions,
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 2e9a2157bd0dc066b8b4997b26770c720be67216..36c09fd6204a05ede906c7b9770b836c17e2f589 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -1519,7 +1519,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {
+         let tracked child = parent_continuation.take_child();
+         let tracked parent_own = parent_continuation.entry_own.node.tracked_take();
+ 
+-        let ghost index = frame_to_index(meta_to_frame(parent_own.meta_perm.addr));
++        let ghost index = frame_to_index(meta_to_frame(parent_own.meta_perm.addr()));
+ 
+         let ghost ptei = AbstractVaddr::from_vaddr(self.va).index[owner.level - 1];
+ 
+diff --git a/vstd_extra/src/cast_ptr.rs b/vstd_extra/src/cast_ptr.rs
+index 26701bc989a55334b6157d9ee451dd3f1c6e989c..ab3ffa228641fbf6fdbe3159f06aa65f0c0b6a32 100644
+--- a/vstd_extra/src/cast_ptr.rs
++++ b/vstd_extra/src/cast_ptr.rs
+@@ -5,6 +5,7 @@ use vstd::raw_ptr::MemContents;
+ use vstd::set;
+ use vstd::set_lib;
+ use vstd::simple_pptr::{self, PPtr};
++use vstd::std_specs::convert::{FromSpec, FromSpecImpl};
+ 
+ use core::marker::PhantomData;
+ use core::ops::Deref;
+@@ -61,15 +62,14 @@ pub trait Repr<R: Sized>: Sized {
+ 
+ /// Concrete representation of a pointer to an object of type T with representation type R
+ /// The length of the array is not stored in the pointer
+-pub struct ReprPtr<R, T: Repr<R>> {
+-    pub addr: usize,
++pub struct ReprPtr<R, T: Repr<R>> { 
+     pub ptr: PPtr<R>,
+     pub _T: PhantomData<T>,
+ }
+ 
+ impl<R, T: Repr<R>> Clone for ReprPtr<R, T> {
+     fn clone(&self) -> Self {
+-        Self { addr: self.addr, ptr: self.ptr, _T: PhantomData }
++        Self { ptr: self.ptr, _T: PhantomData }
+     }
+ }
+ 
+@@ -77,15 +77,33 @@ impl<R, T: Repr<R>> Copy for ReprPtr<R, T> {
+ 
+ }
+ 
++impl<R, T: Repr<R>> FromSpecImpl<PPtr<R>> for ReprPtr<R, T> {
++    open spec fn obeys_from_spec() -> bool {
++        true
++    }
++
++    open spec fn from_spec(ptr: PPtr<R>) -> Self {
++        Self { ptr: ptr, _T: PhantomData }
++    }
++}
++
+ impl<R, T: Repr<R>> From<PPtr<R>> for ReprPtr<R, T> {
+-    #[verifier::external_body]
+     fn from(ptr: PPtr<R>) -> Self {
+-        Self { addr: ptr.addr(), ptr: ptr, _T: PhantomData }
++        Self { ptr: ptr, _T: PhantomData }
++    }
++}
++
++impl<R, T: Repr<R>> FromSpecImpl<ReprPtr<R, T>> for PPtr<R> {
++    open spec fn obeys_from_spec() -> bool {
++        true
++    }
++
++    open spec fn from_spec(ptr: ReprPtr<R, T>) -> Self {
++        ptr.ptr
+     }
+ }
+ 
+ impl<R, T: Repr<R>> From<ReprPtr<R, T>> for PPtr<R> {
+-    #[verifier::external_body]
+     fn from(ptr: ReprPtr<R, T>) -> Self {
+         ptr.ptr
+     }
+@@ -93,7 +111,7 @@ impl<R, T: Repr<R>> From<ReprPtr<R, T>> for PPtr<R> {
+ 
+ impl<R, T: Repr<R>> ReprPtr<R, T> {
+     pub open spec fn new_spec(ptr: PPtr<R>) -> Self {
+-        Self { addr: ptr.addr(), ptr: ptr, _T: PhantomData }
++        Self { ptr: ptr, _T: PhantomData }
+     }
+ 
+     #[verifier::external_body]
+@@ -107,10 +125,10 @@ impl<R, T: Repr<R>> ReprPtr<R, T> {
+     pub fn from_pptr(ptr: PPtr<R>) -> (res: Self)
+         ensures
+             res == Self::new_spec(ptr),
+-            res.addr == ptr.addr(),
++            res.addr() == ptr.addr(),
+             res.ptr == ptr,
+     {
+-        Self { addr: ptr.addr(), ptr: ptr, _T: PhantomData }
++        Self { ptr: ptr, _T: PhantomData }
+     }
+ 
+     pub open spec fn to_pptr(self) -> PPtr<R> {
+@@ -118,15 +136,14 @@ impl<R, T: Repr<R>> ReprPtr<R, T> {
+     }
+ 
+     pub open spec fn addr_spec(self) -> usize {
+-        self.addr
++        self.ptr.addr()
+     }
+ 
+     #[verifier::when_used_as_spec(addr_spec)]
+     pub fn addr(self) -> (u: usize)
+-        ensures
+-            u == self.addr,
++        returns self.addr_spec(),
+     {
+-        self.addr
++        self.ptr.addr()
+     }
+ 
+     pub exec fn take(self, Tracked(perm): Tracked<&mut PointsTo<R, T>>) -> (v: T)
+@@ -175,27 +192,24 @@ impl<R, T: Repr<R>> ReprPtr<R, T> {
+ 
+ #[verifier::accept_recursive_types(T)]
+ pub tracked struct PointsTo<R, T: Repr<R>> {
+-    pub ghost addr: usize,
+-    pub points_to: simple_pptr::PointsTo<R>,
+-    pub inner_perms: T::Perm,
++    pub tracked points_to: simple_pptr::PointsTo<R>,
++    pub tracked inner_perms: T::Perm,
+     pub _T: PhantomData<T>,
+ }
+ 
+ impl<R, T: Repr<R>> PointsTo<R, T> {
+     pub open spec fn new_spec(
+-        addr: usize,
+         points_to: simple_pptr::PointsTo<R>,
+         inner_perms: T::Perm,
+     ) -> Self {
+-        Self { addr: addr@, points_to, inner_perms, _T: PhantomData }
++        Self { points_to, inner_perms, _T: PhantomData }
+     }
+ 
+     pub proof fn new(
+-        addr: Ghost<usize>,
+         tracked points_to: simple_pptr::PointsTo<R>,
+         tracked inner_perms: T::Perm,
+     ) -> tracked Self {
+-        Self { addr: addr@, points_to: points_to, inner_perms, _T: PhantomData }
++        Self { points_to: points_to, inner_perms, _T: PhantomData }
+     }
+ 
+     pub open spec fn wf(self, perm: &T::Perm) -> bool {
+@@ -203,7 +217,7 @@ impl<R, T: Repr<R>> PointsTo<R, T> {
+     }
+ 
+     pub open spec fn addr(self) -> usize {
+-        self.addr
++        self.points_to.addr()
+     }
+ 
+     pub open spec fn mem_contents(self) -> MemContents<T> {
+@@ -231,7 +245,7 @@ impl<R, T: Repr<R>> PointsTo<R, T> {
+     }
+ 
+     pub open spec fn pptr(self) -> ReprPtr<R, T> {
+-        ReprPtr { addr: self.addr, ptr: self.points_to.pptr(), _T: PhantomData }
++        ReprPtr { ptr: self.points_to.pptr(), _T: PhantomData }
+     }
+ 
+     pub broadcast proof fn pptr_implies_addr(&self)
+@@ -240,26 +254,28 @@ impl<R, T: Repr<R>> PointsTo<R, T> {
+     {
+     }
+ 
+-    pub axiom fn take_inner_perms(tracked &mut self) -> (tracked result: T::Perm)
+-        ensures
+-            result == old(self).inner_perms,
+-            final(self).addr == old(self).addr,
+-            final(self).points_to == old(self).points_to,
+-    ;
+-
+-    pub axiom fn put_inner_perms(tracked &mut self, tracked perms: T::Perm)
++    // FIXME: https://verus-lang.zulipchat.com/#narrow/channel/399078-help/topic/Returning.20a.20mutable.20reference.20in.20proof.20fn/with/585146634
++    #[verifier::external_body]
++    pub proof fn borrow_mut_inner_perms(tracked &mut self) -> (tracked result: &mut T::Perm)
+         ensures
+-            final(self).inner_perms == perms,
+-            final(self).addr == old(self).addr,
++            *result == old(self).inner_perms,
++            final(self).addr() == old(self).addr(),
+             final(self).points_to == old(self).points_to,
+-    ;
++            final(self).inner_perms == *final(result),
++    {
++        &mut self.inner_perms
++    }
+ 
+-    pub axiom fn take_points_to(tracked &mut self) -> (tracked result: simple_pptr::PointsTo<R>)
++    // FIXME: https://verus-lang.zulipchat.com/#narrow/channel/399078-help/topic/Returning.20a.20mutable.20reference.20in.20proof.20fn/with/585146634
++    #[verifier::external_body]
++    pub proof fn borrow_mut_points_to(tracked &mut self) -> (tracked result: &mut simple_pptr::PointsTo<R>)
+         ensures
+-            result == old(self).points_to,
+-            final(self).addr == old(self).addr,
++            *result == old(self).points_to,
+             final(self).inner_perms == old(self).inner_perms,
+-    ;
++            final(self).points_to == *final(result),
++    {
++        &mut self.points_to
++    }
+ }
+ 
+ impl<R, T: Repr<R>> From<PointsTo<R, T>> for vstd::simple_pptr::PointsTo<R> {

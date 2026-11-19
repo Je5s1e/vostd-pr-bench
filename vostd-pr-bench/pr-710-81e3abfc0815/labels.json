@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-710-81e3abfc0815",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-710-81e3abfc0815:review-comment-4239980266",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The new architecture-selection module unconditionally selects and re-exports x86, so it cannot compile as a generic multi-architecture interface on a non-x86 target.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/arch/mod.rs",
+          "start_line": 15,
+          "end_line": 21
+        }
+      ],
+      "rationale": "The PR introduces a build-selected CurrentArch abstraction but this snapshot declares mod x86, re-exports it, and aliases CurrentArch to X86Arch without target_arch guards. Review comment 4239980266 asks for an architecture attribute; the accepted follow-up adds x86_64 cfg guards to these declarations, confirming that the unguarded version did not meet the PR's multi-architecture intent.",
+      "source_evidence": "after/ostd/specs/arch/mod.rs\n15: mod x86;\n16: pub use x86::*;\n20: /// The architecture selected by the current verification target.\n21: pub type CurrentArch = x86::X86Arch;",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/710#discussion_r4239980266",
+      "related_comment_ids": [
+        "4239980266"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4239980266",
+          "url": "https://github.com/asterinas/vostd/pull/710#discussion_r4239980266",
+          "commit_id": "81e3abfc0815bcff0ba233492689480371f45b9f"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the fixed 81e3abfc0815 snapshot, the complete archived and current remote thread, and the accepted final-head cfg fix."
+    },
+    {
+      "id": "pr-710-81e3abfc0815:review-comment-4239971131",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The spec helper bypasses the public dual-mode paging-constant methods and calls their generated _spec implementation names directly.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/mod.rs",
+          "start_line": 268,
+          "end_line": 270
+        }
+      ],
+      "rationale": "BASE_PAGE_SIZE and PTE_SIZE already use when_used_as_spec, so calls from a spec context resolve to their specification models automatically. Naming the generated _spec functions directly couples this helper to implementation details and needlessly diverges from the public API. The reviewer questions the change, and reply 4244446752 confirms it was unnecessary and restores the public calls. This is the same design goal as pair-exec-helpers-with-spec-models: keep one public helper name usable in both modes.",
+      "source_evidence": "after/ostd/src/mm/mod.rs\n268: #[verifier::inline]\n269: pub open spec fn nr_subpage_per_huge_spec<C: PagingConstsTrait>() -> usize {\n270:     C::BASE_PAGE_SIZE_spec() / C::PTE_SIZE_spec()",
+      "rule_ids": [
+        "pair-exec-helpers-with-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/710#discussion_r4239971131",
+      "related_comment_ids": [
+        "4239971131",
+        "4244446752"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4239971131",
+          "url": "https://github.com/asterinas/vostd/pull/710#discussion_r4239971131",
+          "commit_id": "81e3abfc0815bcff0ba233492689480371f45b9f"
+        },
+        {
+          "kind": "review-comment",
+          "id": "4244446752",
+          "url": "https://github.com/asterinas/vostd/pull/710#discussion_r4244446752",
+          "commit_id": "81e3abfc0815bcff0ba233492689480371f45b9f"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the selected snapshot, the full archived and remote review thread, and the accepted final-head restoration of the public when_used_as_spec calls."
+    }
+  ]
+}

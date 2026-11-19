@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-424-8d7b6621ed81",
+  "pr_number": 424,
+  "title": "Interrelated arithmetic, &mut porting, and panic handling fixes",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/424",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "f09a07cab06065070dc842e3e786f8ceba675eaf",
+  "head_sha": "8d7b6621ed81339e92225d8184bfc24425e65707",
+  "base_method": "git merge-base(remote PR base 835ea7642b955f8a8329d4d1748911e201bdff49, historical review head 8d7b6621ed81339e92225d8184bfc24425e65707); this is the reviewed revision where inline comments 3159151317 and 3159232533 identified the outdated DMA stream and dependencies",
+  "archive_base_sha": "835ea7642b955f8a8329d4d1748911e201bdff49",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/frame_specs.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/page_table_cursor_specs.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/mod.rs",
+    "ostd/specs/mm/page_table/node/entry.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/entry_view.rs",
+    "ostd/specs/mm/page_table/node/mod.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+    "ostd/specs/mm/virt_mem_example.rs",
+    "ostd/specs/mm/virt_mem_newer.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/src/mm/dma/dma_stream.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs",
+    "vstd_extra/src/std_extra.rs"
+  ],
+  "diff_sha256": "e1450f4d2eb43258ddfb369fd11ffe43d2a47b42a7f994bef46a57f658b7f2a1",
+  "versions": {
+    "before": {
+      "commit": "f09a07cab06065070dc842e3e786f8ceba675eaf",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "8d7b6621ed81339e92225d8184bfc24425e65707",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T13:05:01.402022+00:00",
+    "reviewed_at": "2026-04-29T09:54:03Z",
+    "upstream_updated_at": "2026-04-30T08:57:28Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/424",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4332218658",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4341516336",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4341557118",
+      "https://github.com/asterinas/vostd/pull/424#discussion_r3159151317",
+      "https://github.com/asterinas/vostd/pull/424#discussion_r3159232533",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4342103554",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4342537876",
+      "https://github.com/asterinas/vostd/pull/424#issuecomment-4342629612"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00424"
+  }
+}

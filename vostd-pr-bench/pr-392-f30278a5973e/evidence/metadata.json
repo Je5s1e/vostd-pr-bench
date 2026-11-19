@@ -1,0 +1,135 @@
+{
+  "number": 392,
+  "source_pr": "https://github.com/asterinas/vostd/pull/392",
+  "base_sha": "a3e34d2957a2275638aa96b4f5753b7fa31bdfc3",
+  "head_sha": "4ff940c6752021dfb1f2264586032381e5017e69",
+  "files": {
+    "totalCount": 17,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MTc"
+    },
+    "nodes": [
+      {
+        "path": "ostd/specs/mm/frame/frame_lifecycle.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/owners.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/lib.rs",
+        "additions": 6,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/frame_ref.rs",
+        "additions": 5,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/frame/mod.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "additions": 6,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/cursor/mod.rs",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/child.rs",
+        "additions": 11,
+        "deletions": 4,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/page_table/node/entry.rs",
+        "additions": 9,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/mm/vm_space.rs",
+        "additions": 4,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/sync/mutex.rs",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/sync/rwarc.rs",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/sync/rwlock.rs",
+        "additions": 6,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "ostd/src/util/either.rs",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/392",
+    "accept": "application/vnd.github.diff",
+    "bytes": 22968,
+    "sha256": "c6921a34b005378acfb1e35c7a1828589069689cb27ebafe4ddd115eda02dde8",
+    "fetched_at": "2026-11-13T21:15:16.960762+00:00",
+    "diff_file_sections": 17,
+    "expected_changed_files": 17
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/392",
+    "accept": "application/vnd.github.patch",
+    "bytes": 27181,
+    "sha256": "a717c59a0920c5e483a08ba9c667ac326cdb4a84cc3d9f6121f951994539d8dc",
+    "fetched_at": "2026-11-13T21:21:52.642434+00:00"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-703-9481481143aa",
+  "pr_number": 703,
+  "title": "prove: util::range_alloc with 4 external bodies",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/703",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "c07dd34b965efaa590f05d3cbfbaecd7be735a35",
+  "head_sha": "9481481143aad952657f6ef584b8247fecc63c89",
+  "base_method": "git merge-base(original review commit 9481481143aad952657f6ef584b8247fecc63c89, its first-parent history); result c07dd34b965efaa590f05d3cbfbaecd7be735a35",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "ostd/src/util/mod.rs",
+    "ostd/src/util/range_alloc.rs"
+  ],
+  "diff_sha256": "6f15699c7a42fb6b4abcb264a0291e41bc50a606a4cb5ac1fda622f06cda50ed",
+  "versions": {
+    "before": {
+      "commit": "c07dd34b965efaa590f05d3cbfbaecd7be735a35",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "9481481143aad952657f6ef584b8247fecc63c89",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 2,
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-18T11:59:28.140114+00:00",
+    "reviewed_at": "2026-08-12T06:00:29Z",
+    "upstream_updated_at": "2026-08-18T09:51:01Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/703",
+      "https://github.com/asterinas/vostd/pull/703#discussion_r3763958841",
+      "https://github.com/asterinas/vostd/pull/703#discussion_r3763965236",
+      "https://github.com/asterinas/vostd/pull/703#discussion_r3763964334",
+      "https://github.com/asterinas/vostd/pull/703#discussion_r3763971349",
+      "https://github.com/asterinas/vostd/pull/703#discussion_r3763989475"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#avoid-redundant-mode-markers"
+      },
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#document-real-proof-debt"
+      },
+      {
+        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/proof-engineering.md#canonical-spec-models"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00703"
+  }
+}

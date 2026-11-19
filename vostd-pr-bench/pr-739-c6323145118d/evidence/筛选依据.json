@@ -1,0 +1,25 @@
+{
+  "number": 739,
+  "title": "Prove simple kvirt area obligations",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Prove simple kvirt area obligations",
+      "category": "证明与规约"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/739#issuecomment-5658466904",
+      "excerpt": "recorded main (`bc7200b7a8e3d65c33e072f671a2cb1c2fe9bbc8`). ## Verus verification cost: `before` (previous main) vs `after` (new main) | metric | before | after | Δ | |---|---|---|---| | verified | 4,081 | 4,081 | +0",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "#[verus_spec(returns self.range)] final(regions).inv(), res.inv(), assume(range.end > 0); assert(KERNEL_BASE_VADDR > 0",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

@@ -1,0 +1,57 @@
+{
+  "number": 474,
+  "title": "Try to use `dyn InAtomicMode`",
+  "selected": true,
+  "category": "正文或讨论涉及验证",
+  "evidence": [
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531285586",
+      "excerpt": "ing `addr`, or `None` if there is no mapping. /// /// ## Preconditions /// - The kernel virtual area invariant holds ([`inv`](Inv::inv)). /// - The address is within the virtual area's range. /// ## Postcondi",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4531408222",
+      "excerpt": "first. I'd suggest doing: ```rs #[verus_spec(r => with Tracked(owner): Tracked<KVirtAreaOwner>, Tracked(regions): Tracked<&mut MetaRegionOwners>, // Tracked(guards): Tracked<&mut Guards<'st",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "普通评论",
+      "url": "https://github.com/asterinas/vostd/pull/474#issuecomment-4532401786",
+      "excerpt": "st first replace `'_` or explicit local lifetime for some of the tracked guards with `'static` lifetimes. These may be easy to fix",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/lib.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/page_table/cursor/owners.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/mm/vm_space.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "ostd/specs/task/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "Mut::<'a, UserPtConfig>::item_slot_in_regions(item, regions) use vstd::prelude::*; verus! { pub trait InAtomicMode { } /// A dummy type satisfying [`InAtomicMode`], used when the concrete /// guard typ",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 9
+}

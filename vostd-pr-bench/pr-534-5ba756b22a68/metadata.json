@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-534-5ba756b22a68",
+  "pr_number": 534,
+  "title": "Fix unverified code and update cursor",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/534",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0257b3bcfa4ae2711c4b40e274c20ac34df14b1f",
+  "head_sha": "5ba756b22a68dfba31f21b9d5ae499798fe87e0e",
+  "base_method": "git merge-base of archived GitHub base 0257b3bcfa4ae2711c4b40e274c20ac34df14b1f and selected review head 5ba756b22a68dfba31f21b9d5ae499798fe87e0e; computed from official Git objects",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/mm/mod.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "25df8b33b540bd806564c1f6312cc5e3a99df8fffca39fd308d0fe22f1e42440",
+  "versions": {
+    "before": {
+      "commit": "0257b3bcfa4ae2711c4b40e274c20ac34df14b1f",
+      "file_count": 316,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "5ba756b22a68dfba31f21b9d5ae499798fe87e0e",
+      "file_count": 316,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-17T04:40:27.125164+00:00",
+    "reviewed_at": "2026-06-18T02:44:58Z",
+    "upstream_updated_at": "2026-06-18T02:56:05Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/534",
+      "https://github.com/asterinas/vostd/pull/534#discussion_r3432632282",
+      "https://github.com/asterinas/vostd/pull/534#discussion_r3432633664",
+      "https://github.com/asterinas/vostd/pull/534#discussion_r3432660518"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "5ba756b22a68dfba31f21b9d5ae499798fe87e0e",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/5ba756b22a68dfba31f21b9d5ae499798fe87e0e/AGENTS.md#L54"
+      }
+    ]
+  }
+}

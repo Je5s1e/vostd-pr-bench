@@ -1,0 +1,293 @@
+diff --git a/ostd/src/bus/mod.rs b/ostd/src/bus/mod.rs
+index 7b81924ce..7d55712ca 100644
+--- a/ostd/src/bus/mod.rs
++++ b/ostd/src/bus/mod.rs
+@@ -11,7 +11,9 @@ pub enum BusProbeError {
+     ConfigurationSpaceError,
+ }
+ 
++/*
+ /// Initializes the bus
+ pub(crate) fn init() {
+     pci::init();
+ }
++*/
+diff --git a/ostd/src/bus/pci/capability/mod.rs b/ostd/src/bus/pci/capability/mod.rs
+index 48a3f2dbb..b3d83f8d1 100644
+--- a/ostd/src/bus/pci/capability/mod.rs
++++ b/ostd/src/bus/pci/capability/mod.rs
+@@ -2,6 +2,7 @@
+ //! PCI device capabilities.
+ #![expect(dead_code)]
+ 
++/*
+ use alloc::vec::Vec;
+ 
+ use self::{msix::CapabilityMsixData, vendor::CapabilityVndrData};
+@@ -11,9 +12,11 @@ use super::{
+     common_device::PciCommonDevice,
+ };
+ 
++*/
+ pub mod msix;
+ pub mod vendor;
+ 
++/*
+ /// PCI Capability
+ #[derive(Debug)]
+ pub struct Capability {
+@@ -144,3 +147,4 @@ impl Capability {
+         capabilities
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/capability/msix.rs b/ostd/src/bus/pci/capability/msix.rs
+index ada20bbd0..22b161400 100644
+--- a/ostd/src/bus/pci/capability/msix.rs
++++ b/ostd/src/bus/pci/capability/msix.rs
+@@ -3,6 +3,9 @@
+ #![expect(dead_code)]
+ #![expect(unused_variables)]
+ 
++use vstd::prelude::*;
++
++/*
+ use alloc::{sync::Arc, vec::Vec};
+ 
+ use crate::{
+@@ -186,6 +189,16 @@ impl CapabilityMsixData {
+     }
+ }
+ 
++*/
++
++#[verus_verify]
++#[verus_verify(dual_spec)]
++#[verus_spec(
++    requires
++        offset < 16,
++    returns
++        set_bit(origin_value, offset, set),
++)]
+ fn set_bit(origin_value: u16, offset: usize, set: bool) -> u16 {
+     (origin_value & (!(1 << offset))) | ((set as u16) << offset)
+ }
+diff --git a/ostd/src/bus/pci/capability/vendor.rs b/ostd/src/bus/pci/capability/vendor.rs
+index 7c18df936..b5fd1a2ad 100644
+--- a/ostd/src/bus/pci/capability/vendor.rs
++++ b/ostd/src/bus/pci/capability/vendor.rs
+@@ -1,19 +1,22 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Vendor-specific capability support.
++use vstd::prelude::*;
++
+ use crate::{
+-    Error, Result,
+-    bus::pci::{common_device::PciCommonDevice, device_info::PciDeviceLocation},
++    /*Error, Result,*/
++    bus::pci::{/*common_device::PciCommonDevice,*/ device_info::PciDeviceLocation},
+ };
+ 
+ /// Vendor specific capability. Users can access this capability area at will,
+ /// except for the PCI configuration space which cannot be accessed at will through this structure.
++#[verus_verify]
+ #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+ pub struct CapabilityVndrData {
+     location: PciDeviceLocation,
+     cap_ptr: u16,
+     length: u16,
+ }
+-
++/*
+ impl CapabilityVndrData {
+     pub(super) fn new(dev: &PciCommonDevice, cap_ptr: u16, length: u16) -> Self {
+         Self {
+@@ -22,13 +25,23 @@ impl CapabilityVndrData {
+             length,
+         }
+     }
++}
++
++*/
+ 
++#[verus_verify]
++impl CapabilityVndrData {
+     /// The length of this capability
+     #[expect(clippy::len_without_is_empty)]
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns self.len())]
+     pub fn len(&self) -> u16 {
+         self.length
+     }
++}
+ 
++/*
++impl CapabilityVndrData {
+     /// Reads u8 from the capability.
+     pub fn read8(&self, offset: u16) -> Result<u8> {
+         self.check_range(offset)?;
+@@ -75,3 +88,4 @@ impl CapabilityVndrData {
+         Ok(())
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/cfg_space.rs b/ostd/src/bus/pci/cfg_space.rs
+index 94ea50891..120afcf53 100644
+--- a/ostd/src/bus/pci/cfg_space.rs
++++ b/ostd/src/bus/pci/cfg_space.rs
+@@ -2,6 +2,9 @@
+ //! The PCI configuration space.
+ //!
+ //! Reference: <https://wiki.osdev.org/PCI>
++use vstd::prelude::*;
++
++/*
+ use alloc::sync::Arc;
+ use core::mem::size_of;
+ 
+@@ -314,24 +317,34 @@ pub enum AddrLen {
+     Bits64,
+ }
+ 
++*/
++
+ /// I/O port BAR.
++#[verus_verify]
+ #[derive(Debug, Clone, Copy)]
+ pub struct IoBar {
+     base: u32,
+     size: u32,
+ }
+-
++#[verus_verify]
+ impl IoBar {
+     /// Base port
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns self.base())]
+     pub fn base(&self) -> u32 {
+         self.base
+     }
+ 
+     /// Size of the port
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns self.size())]
+     pub fn size(&self) -> u32 {
+         self.size
+     }
++}
+ 
++/*
++impl IoBar {
+     /// Reads from port
+     pub fn read<T: PortRead>(&self, offset: u32) -> Result<T> {
+         // Check alignment
+@@ -376,3 +389,4 @@ impl IoBar {
+         })
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/device_info.rs b/ostd/src/bus/pci/device_info.rs
+index 3d415c987..128d5326f 100644
+--- a/ostd/src/bus/pci/device_info.rs
++++ b/ostd/src/bus/pci/device_info.rs
+@@ -1,8 +1,10 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! PCI device Information
++use vstd::prelude::*;
++
+ use core::iter;
+ 
+-use super::cfg_space::PciDeviceCommonCfgOffset;
++// use super::cfg_space::PciDeviceCommonCfgOffset;
+ 
+ /// PCI device ID
+ #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+@@ -25,6 +27,7 @@ pub struct PciDeviceId {
+     pub subsystem_id: u16,
+ }
+ 
++/*
+ impl PciDeviceId {
+     pub(super) fn new(location: PciDeviceLocation) -> Self {
+         let vendor_id = location.read16(PciDeviceCommonCfgOffset::VendorId as u16);
+@@ -49,7 +52,10 @@ impl PciDeviceId {
+     }
+ }
+ 
++*/
++
+ /// PCI device Location
++#[verus_verify]
+ #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+ pub struct PciDeviceLocation {
+     /// Bus number
+@@ -88,9 +94,14 @@ impl PciDeviceLocation {
+             },
+         )
+     }
++}
+ 
++#[verus_verify]
++impl PciDeviceLocation {
+     /// The page table of all devices is the same. So we can use any device ID.
+     /// FIXME: distinguish different device id.
++    #[verus_verify(dual_spec)]
++    #[verus_spec(returns Self::zero())]
+     pub fn zero() -> Self {
+         Self {
+             bus: 0,
+@@ -100,6 +111,7 @@ impl PciDeviceLocation {
+     }
+ }
+ 
++/*
+ impl PciDeviceLocation {
+     pub(super) const BIT32_ALIGN_MASK: u16 = 0xFFFC;
+ 
+@@ -149,3 +161,4 @@ impl PciDeviceLocation {
+         crate::arch::pci::write32(self, offset as u32, val).unwrap()
+     }
+ }
++*/
+diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
+index 0de48b517..a9e8dff9b 100644
+--- a/ostd/src/bus/pci/mod.rs
++++ b/ostd/src/bus/pci/mod.rs
+@@ -48,14 +48,15 @@
+ //!     PCI_BUS.lock().register_driver(driver_a);
+ //! }
+ //! ```
+-pub mod bus;
++/*pub mod bus;*/
+ pub mod capability;
+ pub mod cfg_space;
+-pub mod common_device;
++/*pub mod common_device;*/
+ mod device_info;
+ 
+ pub use device_info::{PciDeviceId, PciDeviceLocation};
+ 
++/*
+ use self::{bus::PciBus, common_device::PciCommonDevice};
+ use crate::{arch::pci::has_pci_bus, sync::Mutex};
+ 
+@@ -75,3 +76,4 @@ pub(crate) fn init() {
+         lock.register_common_device(device);
+     }
+ }
++*/
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 749dd3c21..406f247ad 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -41,8 +41,8 @@ pub mod arch;
+ #[path = "arch/loongarch/mod.rs"]
+ pub mod arch;
+ pub mod boot;
+-/*pub mod bus;
+-pub mod console;*/
++pub mod bus;
++/*pub mod console;*/
+ pub mod cpu;
+ pub mod error;
+ /*pub mod io;

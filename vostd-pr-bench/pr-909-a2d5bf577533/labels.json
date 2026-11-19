@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-909-a2d5bf577533",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-909-a2d5bf577533:review-comment-4535917662",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The NonNull equality boundary duplicates raw-pointer equality semantics instead of reusing the existing *mut T PartialEq specification.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/external/nonnull.rs",
+          "start_line": 10,
+          "end_line": 18
+        }
+      ],
+      "rationale": "The file already imports vstd::std_specs::cmp, which supplies the raw-pointer PartialEq contract. Re-declaring the same address-and-metadata relation as a second trusted NonNull assume_specification creates an overlapping trust source that can drift. Review comment 4535917662 asks to reuse *mut T::eq; the final PR head replaces the hand-written relation with call_ensures on the raw-pointer implementation.",
+      "source_evidence": "after/verified_libs/vstd_extra/src/external/nonnull.rs\n6: use vstd::std_specs::{cmp::*, nonzero::*, ptr::*};\n10: /// Rust 1.99.1 core/src/ptr/non_null.rs: equality compares addresses and metadata.\n11: pub assume_specification<T: PointeeSized>[ <NonNull<T> as core::cmp::PartialEq>::eq ](\n12:     left: &NonNull<T>,\n13:     right: &NonNull<T>,\n14: ) -> bool\n15:     returns\n16:         left.as_ptr().addr() == right.as_ptr().addr() && left.as_ptr()@.metadata\n17:             == right.as_ptr()@.metadata,\n18: ;",
+      "rule_ids": ["reuse-existing-specifications"],
+      "review_url": "https://github.com/asterinas/vostd/pull/909#discussion_r4535917662",
+      "related_comment_ids": ["4535917662"],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4535917662",
+          "url": "https://github.com/asterinas/vostd/pull/909#discussion_r4535917662",
+          "commit_id": "a2d5bf5775339e41efbfa8d32b65f21fbbe00ef8"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Checked the selected review commit, complete archived and remote thread, pinned guideline, and the final-head call_ensures fix."
+    }
+  ]
+}

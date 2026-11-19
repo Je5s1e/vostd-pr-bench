@@ -1,0 +1,2143 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/921",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 921,
+    "title": "prove: verify task stack-size parsing",
+    "body": "Verify the original kernel-stack size parsers in place, with exact-result contracts for decimal input fitting in `u32`. Preserve empty input as zero, absent input as the supplied default, leading zeroes, and both private `const fn` signatures and executable bodies.\n\nEnable only the parsers in `task::kernel_stack`; the environment-dependent initializer and stack operations remain commented out. Remove the separate parser module and temporary proof entry. Focused and full OSTD verification pass.\n\nPowered by fy0/Veriflow\n",
+    "bodyHTML": "<p dir=\"auto\">Verify the original kernel-stack size parsers in place, with exact-result contracts for decimal input fitting in <code class=\"notranslate\">u32</code>. Preserve empty input as zero, absent input as the supplied default, leading zeroes, and both private <code class=\"notranslate\">const fn</code> signatures and executable bodies.</p>\n<p dir=\"auto\">Enable only the parsers in <code class=\"notranslate\">task::kernel_stack</code>; the environment-dependent initializer and stack operations remain commented out. Remove the separate parser module and temporary proof entry. Focused and full OSTD verification pass.</p>\n<p dir=\"auto\">Powered by fy0/Veriflow</p>",
+    "url": "https://github.com/asterinas/vostd/pull/921",
+    "state": "OPEN",
+    "createdAt": "2026-11-12T11:57:41Z",
+    "updatedAt": "2026-11-13T11:12:41Z",
+    "closedAt": null,
+    "mergedAt": null,
+    "author": {
+      "login": "YuQuuu"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "d079460c09249fe2be21b4fa4fe0559a44c372fa",
+    "headRefName": "prove/verify-task-stack-size",
+    "headRefOid": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+    "changedFiles": 4,
+    "additions": 147,
+    "deletions": 14,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        },
+        {
+          "name": "exec code"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 11,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0xMS0xM1QxMToxMjoxOFq0MjAyNi0xMS0xM1QxMToxMjoxOFrPAAAAAV8RdQw="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXs1xgw",
+          "databaseId": 5885489539,
+          "body": "",
+          "bodyHTML": "",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-11-13T03:20:05Z",
+          "createdAt": "2026-11-13T03:17:21Z",
+          "updatedAt": "2026-11-13T03:20:05Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5885489539",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXs5CTw",
+          "databaseId": 5885542991,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T03:25:18Z",
+          "createdAt": "2026-11-13T03:25:18Z",
+          "updatedAt": "2026-11-13T03:25:18Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5885542991",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXs-F1Q",
+          "databaseId": 5885625813,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T03:37:36Z",
+          "createdAt": "2026-11-13T03:37:35Z",
+          "updatedAt": "2026-11-13T03:37:36Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5885625813",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXtOrFQ",
+          "databaseId": 5885897493,
+          "body": "Guidelines pass (maintainability, proof engineering, API contracts) over the verified stack-size parser. Findings: `complete-external-contracts`, `reuse-existing-specifications`.\n\n🤖 Powered by GLM-5.3-Flash on behalf of @Marsman1996",
+          "bodyHTML": "<p dir=\"auto\">Guidelines pass (maintainability, proof engineering, API contracts) over the verified stack-size parser. Findings: <code class=\"notranslate\">complete-external-contracts</code>, <code class=\"notranslate\">reuse-existing-specifications</code>.</p>\n<p dir=\"auto\">🤖 Powered by GLM-5.3-Flash on behalf of <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a></p>",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-11-13T04:09:34Z",
+          "createdAt": "2026-11-13T04:09:33Z",
+          "updatedAt": "2026-11-13T04:09:34Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5885897493",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXtPngA",
+          "databaseId": 5885912960,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T04:11:10Z",
+          "createdAt": "2026-11-13T04:11:09Z",
+          "updatedAt": "2026-11-13T04:11:10Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5885912960",
+          "author": {
+            "login": "Marsman1996"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXuNDNg",
+          "databaseId": 5886919478,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T06:10:31Z",
+          "createdAt": "2026-11-13T06:10:31Z",
+          "updatedAt": "2026-11-13T06:10:31Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5886919478",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXvaCcw",
+          "databaseId": 5888180851,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T08:31:56Z",
+          "createdAt": "2026-11-13T08:31:56Z",
+          "updatedAt": "2026-11-13T08:31:56Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5888180851",
+          "author": {
+            "login": "YuQuuu"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXwA01g",
+          "databaseId": 5888816342,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T09:30:22Z",
+          "createdAt": "2026-11-13T09:30:22Z",
+          "updatedAt": "2026-11-13T09:30:22Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5888816342",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXwWRXg",
+          "databaseId": 5889167710,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T10:03:42Z",
+          "createdAt": "2026-11-13T10:03:42Z",
+          "updatedAt": "2026-11-13T10:03:42Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5889167710",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXwX-ew",
+          "databaseId": 5889195643,
+          "body": "",
+          "bodyHTML": "",
+          "state": "CHANGES_REQUESTED",
+          "submittedAt": "2026-11-13T10:07:49Z",
+          "createdAt": "2026-11-13T10:06:00Z",
+          "updatedAt": "2026-11-13T10:07:49Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5889195643",
+          "author": {
+            "login": "rikosellic"
+          },
+          "authorAssociation": "COLLABORATOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDONtWm_c8AAAABXxF1DA",
+          "databaseId": 5889946892,
+          "body": "",
+          "bodyHTML": "",
+          "state": "COMMENTED",
+          "submittedAt": "2026-11-13T11:12:18Z",
+          "createdAt": "2026-11-13T11:12:18Z",
+          "updatedAt": "2026-11-13T11:12:18Z",
+          "url": "https://github.com/asterinas/vostd/pull/921#pullrequestreview-5889946892",
+          "author": {
+            "login": "YuQuuu"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 8,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0xMS0xM1QxMDowNjoxN1rOtwp5jg=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c628Dqg",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/src/task/kernel_stack.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 111,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4559257507
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c628EEf",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/src/task/kernel_stack.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 150,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4559259770
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c628GgD",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/src/task/kernel_stack.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 117,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 3,
+            "nodes": [
+              {
+                "databaseId": 4559275317
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c628vPH",
+          "isResolved": false,
+          "isOutdated": false,
+          "path": "ostd/src/task/kernel_stack.rs",
+          "line": 126,
+          "startLine": 126,
+          "originalLine": 119,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": null,
+          "comments": {
+            "totalCount": 6,
+            "nodes": [
+              {
+                "databaseId": 4559547787
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c628vPM",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/src/task/kernel_stack.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 100,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4559547794
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c63Cj_f",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "ostd/src/task/kernel_stack.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 7,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4561986754
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c63CnL6",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "verified_libs/vstd_extra/src/number.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 27,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4562008567
+              }
+            ]
+          }
+        },
+        {
+          "id": "PRRT_kwDONtWm_c63CnmO",
+          "isResolved": true,
+          "isOutdated": true,
+          "path": "verified_libs/vstd_extra/src/number.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 33,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": {
+            "login": "YuQuuu"
+          },
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 4562011367
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 4,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "NA"
+      },
+      "nodes": [
+        {
+          "path": "ostd/src/task/kernel_stack.rs",
+          "additions": 73,
+          "deletions": 13,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/task/mod.rs",
+          "additions": 1,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "verified_libs/vstd_extra/src/lib.rs",
+          "additions": 1,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "verified_libs/vstd_extra/src/number.rs",
+          "additions": 72,
+          "deletions": 0,
+          "changeType": "ADDED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559257507",
+      "pull_request_review_id": 5885489539,
+      "id": 4559257507,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8C_ow",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This function and `decimal_value` look like useful definitions, you can move them to `vstd_extra/number` (or any other names you think reasonable), and make them `pub open spec fn`",
+      "created_at": "2026-11-13T03:17:21Z",
+      "updated_at": "2026-11-13T03:20:05Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559257507",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559257507"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559257507"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">This function and <code class=\"notranslate\">decimal_value</code> look like useful definitions, you can move them to <code class=\"notranslate\">vstd_extra/number</code> (or any other names you think reasonable), and make them <code class=\"notranslate\">pub open spec fn</code></p>",
+      "body_text": "This function and decimal_value look like useful definitions, you can move them to vstd_extra/number (or any other names you think reasonable), and make them pub open spec fn",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559257507/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 111,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 29,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559259770",
+      "pull_request_review_id": 5885489539,
+      "id": 4559259770,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8DIeg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),\n+    returns match size {\n+        Some(value) => decimal_value(value.spec_bytes()) as u32,\n+        None => default,\n+    },\n+)]\n const fn parse_u32_or_default(size: Option<&str>, default: u32) -> u32 {\n     match size {\n         Some(value) => parse_u32(value),\n         None => default,\n     }\n }\n \n+#[verus_spec(\n+    requires valid_decimal(input.spec_bytes()),\n+    returns decimal_value(input.spec_bytes()) as u32,\n+)]\n const fn parse_u32(input: &str) -> u32 {\n     let mut output: u32 = 0;\n     let bytes = input.as_bytes();\n     let mut i = 0;\n+    #[verus_spec(\n+        invariant\n+            i <= bytes.len(),\n+            valid_decimal(bytes@),\n+            bytes@ == input.spec_bytes(),\n+            output == decimal_value(bytes@[..i]),\n+        decreases bytes.len() - i,\n+    )]\n     while i < bytes.len() {\n+        proof! {\n+            /// Every decimal prefix has a nonnegative value bounded by the complete value.",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "redundant comment",
+      "created_at": "2026-11-13T03:17:38Z",
+      "updated_at": "2026-11-13T03:20:05Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559259770",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559259770"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559259770"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">redundant comment</p>",
+      "body_text": "redundant comment",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559259770/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 150,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 68,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559275317",
+      "pull_request_review_id": 5885489539,
+      "id": 4559275317,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8EFNQ",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "@Marsman1996 How should we deal with this?",
+      "created_at": "2026-11-13T03:20:00Z",
+      "updated_at": "2026-11-13T03:20:05Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559275317",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559275317"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559275317"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a> How should we deal with this?</p>",
+      "body_text": "@Marsman1996 How should we deal with this?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559275317/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 117,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 35,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559305002",
+      "pull_request_review_id": 5885542991,
+      "id": 4559305002,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8F5Kg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Dead code in Rust only rise a warning if I don't remember wrong.\nSo just remove it is enough?",
+      "created_at": "2026-11-13T03:25:18Z",
+      "updated_at": "2026-11-13T03:25:18Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559305002",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559305002"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559305002"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Dead code in Rust only rise a warning if I don't remember wrong.<br>\nSo just remove it is enough?</p>",
+      "body_text": "Dead code in Rust only rise a warning if I don't remember wrong.\nSo just remove it is enough?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559305002/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 117,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559275317,
+      "author_association": "COLLABORATOR",
+      "original_position": 35,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559373686",
+      "pull_request_review_id": 5885625813,
+      "id": 4559373686,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8KFdg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Just delete it, the warning will disappear when we finish the verification above",
+      "created_at": "2026-11-13T03:37:35Z",
+      "updated_at": "2026-11-13T03:37:36Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559373686",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559373686"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559373686"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Just delete it, the warning will disappear when we finish the verification above</p>",
+      "body_text": "Just delete it, the warning will disappear when we finish the verification above",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559373686/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 117,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559275317,
+      "author_association": "COLLABORATOR",
+      "original_position": 35,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559547787",
+      "pull_request_review_id": 5885897493,
+      "id": 4559547787,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8Utiw",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "**Type:** complete-external-contracts\n**Problem:** The `requires` admits only inputs satisfying `valid_decimal`, but the documented caller (the disabled `STACK_SIZE_IN_PAGES` initializer) feeds `option_env!(\"OSTD_TASK_STACK_SIZE_IN_PAGES\")`, whose value carries no decimal or `u32`-range guarantee. Outside `valid_decimal` the body panics (`bytes[i] - b'0'` underflows u8, `output * 10 + digit` overflows u32), and const-eval at the static initializer gives no runtime check — so once re-enabled this caller obligation is undischargable. Mark the open trust boundary (e.g. state under what condition the initializer may be re-enabled) or close it (build-script validation plus a trusted spec fact for the env value).",
+      "created_at": "2026-11-13T04:09:33Z",
+      "updated_at": "2026-11-13T04:09:34Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559547787",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559547787"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559547787"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\"><strong>Type:</strong> complete-external-contracts<br>\n<strong>Problem:</strong> The <code class=\"notranslate\">requires</code> admits only inputs satisfying <code class=\"notranslate\">valid_decimal</code>, but the documented caller (the disabled <code class=\"notranslate\">STACK_SIZE_IN_PAGES</code> initializer) feeds <code class=\"notranslate\">option_env!(\"OSTD_TASK_STACK_SIZE_IN_PAGES\")</code>, whose value carries no decimal or <code class=\"notranslate\">u32</code>-range guarantee. Outside <code class=\"notranslate\">valid_decimal</code> the body panics (<code class=\"notranslate\">bytes[i] - b'0'</code> underflows u8, <code class=\"notranslate\">output * 10 + digit</code> overflows u32), and const-eval at the static initializer gives no runtime check — so once re-enabled this caller obligation is undischargable. Mark the open trust boundary (e.g. state under what condition the initializer may be re-enabled) or close it (build-script validation plus a trusted spec fact for the env value).</p>",
+      "body_text": "Type: complete-external-contracts\nProblem: The requires admits only inputs satisfying valid_decimal, but the documented caller (the disabled STACK_SIZE_IN_PAGES initializer) feeds option_env!(\"OSTD_TASK_STACK_SIZE_IN_PAGES\"), whose value carries no decimal or u32-range guarantee. Outside valid_decimal the body panics (bytes[i] - b'0' underflows u8, output * 10 + digit overflows u32), and const-eval at the static initializer gives no runtime check — so once re-enabled this caller obligation is undischargable. Mark the open trust boundary (e.g. state under what condition the initializer may be re-enabled) or close it (build-script validation plus a trusted spec fact for the env value).",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559547787/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 126,
+      "original_line": 119,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 37,
+      "position": 87,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559547794",
+      "pull_request_review_id": 5885897493,
+      "id": 4559547794,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8Utkg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "**Type:** reuse-existing-specifications\n**Problem:** `decimal_value`/`valid_decimal` restate the positional-numeral model vstd already ships (`EndianNat::to_nat` + `in_bounds` in `vstd::endian`, identical big-endian recursion). Either derive them on `EndianNat` with a base-10 `Base` instance, or state in one line why the local model is kept; note `to_nat_properties` does not supply the `<= u32::MAX` value bound, so a bridge/monotonicity step is needed either way.",
+      "created_at": "2026-11-13T04:09:34Z",
+      "updated_at": "2026-11-13T04:09:34Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559547794",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559547794"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559547794"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\"><strong>Type:</strong> reuse-existing-specifications<br>\n<strong>Problem:</strong> <code class=\"notranslate\">decimal_value</code>/<code class=\"notranslate\">valid_decimal</code> restate the positional-numeral model vstd already ships (<code class=\"notranslate\">EndianNat::to_nat</code> + <code class=\"notranslate\">in_bounds</code> in <code class=\"notranslate\">vstd::endian</code>, identical big-endian recursion). Either derive them on <code class=\"notranslate\">EndianNat</code> with a base-10 <code class=\"notranslate\">Base</code> instance, or state in one line why the local model is kept; note <code class=\"notranslate\">to_nat_properties</code> does not supply the <code class=\"notranslate\">&lt;= u32::MAX</code> value bound, so a bridge/monotonicity step is needed either way.</p>",
+      "body_text": "Type: reuse-existing-specifications\nProblem: decimal_value/valid_decimal restate the positional-numeral model vstd already ships (EndianNat::to_nat + in_bounds in vstd::endian, identical big-endian recursion). Either derive them on EndianNat with a base-10 Base instance, or state in one line why the local model is kept; note to_nat_properties does not supply the <= u32::MAX value bound, so a bridge/monotonicity step is needed either way.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559547794/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 100,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 18,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559556196",
+      "pull_request_review_id": 5885912960,
+      "id": 4559556196,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8VOZA",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "Marsman1996",
+        "id": 22045841,
+        "node_id": "MDQ6VXNlcjIyMDQ1ODQx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/22045841?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Marsman1996",
+        "html_url": "https://github.com/Marsman1996",
+        "followers_url": "https://api.github.com/users/Marsman1996/followers",
+        "following_url": "https://api.github.com/users/Marsman1996/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Marsman1996/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Marsman1996/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Marsman1996/subscriptions",
+        "organizations_url": "https://api.github.com/users/Marsman1996/orgs",
+        "repos_url": "https://api.github.com/users/Marsman1996/repos",
+        "events_url": "https://api.github.com/users/Marsman1996/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Marsman1996/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Actually I think we could include these code\n```rust\n/// The kernel stack size of a task, specified in pages.\n///\n/// By default, we choose a rather large stack size.\n/// OSTD users can choose a smaller size by specifying\n/// the `OSTD_TASK_STACK_SIZE_IN_PAGES` environment variable\n/// at build time.\npub static STACK_SIZE_IN_PAGES: u32 = parse_u32_or_default(\n    option_env!(\"OSTD_TASK_STACK_SIZE_IN_PAGES\"),\n    DEFAULT_STACK_SIZE_IN_PAGES,\n);\n\n/// The default kernel stack size of a task, specified in pages.\npub const DEFAULT_STACK_SIZE_IN_PAGES: u32 = 128;\n\npub static KERNEL_STACK_SIZE: usize = STACK_SIZE_IN_PAGES as usize * PAGE_SIZE;\n```\n\nIn this PR, @rikosellic what do you think?",
+      "created_at": "2026-11-13T04:11:09Z",
+      "updated_at": "2026-11-13T04:11:10Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4559556196",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559556196"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4559556196"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Actually I think we could include these code</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"/// The kernel stack size of a task, specified in pages.\n///\n/// By default, we choose a rather large stack size.\n/// OSTD users can choose a smaller size by specifying\n/// the `OSTD_TASK_STACK_SIZE_IN_PAGES` environment variable\n/// at build time.\npub static STACK_SIZE_IN_PAGES: u32 = parse_u32_or_default(\n    option_env!(&quot;OSTD_TASK_STACK_SIZE_IN_PAGES&quot;),\n    DEFAULT_STACK_SIZE_IN_PAGES,\n);\n\n/// The default kernel stack size of a task, specified in pages.\npub const DEFAULT_STACK_SIZE_IN_PAGES: u32 = 128;\n\npub static KERNEL_STACK_SIZE: usize = STACK_SIZE_IN_PAGES as usize * PAGE_SIZE;\"><pre class=\"notranslate\"><span class=\"pl-c\">/// The kernel stack size of a task, specified in pages.</span>\n<span class=\"pl-c\"></span><span class=\"pl-c\">///</span>\n<span class=\"pl-c\"></span><span class=\"pl-c\">/// By default, we choose a rather large stack size.</span>\n<span class=\"pl-c\"></span><span class=\"pl-c\">/// OSTD users can choose a smaller size by specifying</span>\n<span class=\"pl-c\"></span><span class=\"pl-c\">/// the `OSTD_TASK_STACK_SIZE_IN_PAGES` environment variable</span>\n<span class=\"pl-c\"></span><span class=\"pl-c\">/// at build time.</span>\n<span class=\"pl-c\"></span><span class=\"pl-k\">pub</span> <span class=\"pl-k\">static</span> <span class=\"pl-v\">STACK_SIZE_IN_PAGES</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">u32</span> = <span class=\"pl-en\">parse_u32_or_default</span><span class=\"pl-kos\">(</span>\n    <span class=\"pl-en\">option_env</span><span class=\"pl-en\">!</span><span class=\"pl-kos\">(</span><span class=\"pl-s\">\"OSTD_TASK_STACK_SIZE_IN_PAGES\"</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">,</span>\n    <span class=\"pl-v\">DEFAULT_STACK_SIZE_IN_PAGES</span><span class=\"pl-kos\">,</span>\n<span class=\"pl-kos\">)</span><span class=\"pl-kos\">;</span>\n\n<span class=\"pl-c\">/// The default kernel stack size of a task, specified in pages.</span>\n<span class=\"pl-c\"></span><span class=\"pl-k\">pub</span> <span class=\"pl-k\">const</span> <span class=\"pl-v\">DEFAULT_STACK_SIZE_IN_PAGES</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">u32</span> = <span class=\"pl-c1\">128</span><span class=\"pl-kos\">;</span>\n\n<span class=\"pl-k\">pub</span> <span class=\"pl-k\">static</span> <span class=\"pl-v\">KERNEL_STACK_SIZE</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">usize</span> = <span class=\"pl-v\">STACK_SIZE_IN_PAGES</span> <span class=\"pl-k\">as</span> <span class=\"pl-smi\">usize</span> <span class=\"pl-c1\">*</span> <span class=\"pl-v\">PAGE_SIZE</span><span class=\"pl-kos\">;</span></pre></div>\n<p dir=\"auto\">In this PR, <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/rikosellic/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/rikosellic\">@rikosellic</a> what do you think?</p>",
+      "body_text": "Actually I think we could include these code\n/// The kernel stack size of a task, specified in pages.\n///\n/// By default, we choose a rather large stack size.\n/// OSTD users can choose a smaller size by specifying\n/// the `OSTD_TASK_STACK_SIZE_IN_PAGES` environment variable\n/// at build time.\npub static STACK_SIZE_IN_PAGES: u32 = parse_u32_or_default(\n    option_env!(\"OSTD_TASK_STACK_SIZE_IN_PAGES\"),\n    DEFAULT_STACK_SIZE_IN_PAGES,\n);\n\n/// The default kernel stack size of a task, specified in pages.\npub const DEFAULT_STACK_SIZE_IN_PAGES: u32 = 128;\n\npub static KERNEL_STACK_SIZE: usize = STACK_SIZE_IN_PAGES as usize * PAGE_SIZE;\nIn this PR, @rikosellic what do you think?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4559556196/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 126,
+      "original_line": 119,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559547787,
+      "author_association": "COLLABORATOR",
+      "original_position": 37,
+      "position": 87,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4560235302",
+      "pull_request_review_id": 5886919478,
+      "id": 4560235302,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD8-rJg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Indeed, nothing special here.",
+      "created_at": "2026-11-13T06:10:31Z",
+      "updated_at": "2026-11-13T06:10:31Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4560235302",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4560235302"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4560235302"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Indeed, nothing special here.</p>",
+      "body_text": "Indeed, nothing special here.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4560235302/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 126,
+      "original_line": 119,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559547787,
+      "author_association": "COLLABORATOR",
+      "original_position": 37,
+      "position": 87,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561228469",
+      "pull_request_review_id": 5888180851,
+      "id": 4561228469,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD97StQ",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "YuQuuu",
+        "id": 157275997,
+        "node_id": "U_kgDOCV_XXQ",
+        "avatar_url": "https://avatars.githubusercontent.com/u/157275997?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/YuQuuu",
+        "html_url": "https://github.com/YuQuuu",
+        "followers_url": "https://api.github.com/users/YuQuuu/followers",
+        "following_url": "https://api.github.com/users/YuQuuu/following{/other_user}",
+        "gists_url": "https://api.github.com/users/YuQuuu/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/YuQuuu/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/YuQuuu/subscriptions",
+        "organizations_url": "https://api.github.com/users/YuQuuu/orgs",
+        "repos_url": "https://api.github.com/users/YuQuuu/repos",
+        "events_url": "https://api.github.com/users/YuQuuu/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/YuQuuu/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Would it be appropriate to use `#[verifier::external_body]` on a small `const fn configured_stack_size_in_pages()` helper that wraps the `option_env!()` initializer?\r\n\r\nThe intent is to keep the environment-dependent initialization as an explicit unverified boundary, while verifying `DEFAULT_STACK_SIZE_IN_PAGES` and the bounds and alignment of `KERNEL_STACK_SIZE`. The helper would expose only its `u32` return type, without claiming that the environment value satisfies `valid_decimal` or that parsing is verified.\r\n\r\nDoes this approach fit the boundary-marking option you suggested? Is there a better way to address this?",
+      "created_at": "2026-11-13T08:31:56Z",
+      "updated_at": "2026-11-13T08:31:56Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4561228469",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561228469"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4561228469"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Would it be appropriate to use <code class=\"notranslate\">#[verifier::external_body]</code> on a small <code class=\"notranslate\">const fn configured_stack_size_in_pages()</code> helper that wraps the <code class=\"notranslate\">option_env!()</code> initializer?</p>\n<p dir=\"auto\">The intent is to keep the environment-dependent initialization as an explicit unverified boundary, while verifying <code class=\"notranslate\">DEFAULT_STACK_SIZE_IN_PAGES</code> and the bounds and alignment of <code class=\"notranslate\">KERNEL_STACK_SIZE</code>. The helper would expose only its <code class=\"notranslate\">u32</code> return type, without claiming that the environment value satisfies <code class=\"notranslate\">valid_decimal</code> or that parsing is verified.</p>\n<p dir=\"auto\">Does this approach fit the boundary-marking option you suggested? Is there a better way to address this?</p>",
+      "body_text": "Would it be appropriate to use #[verifier::external_body] on a small const fn configured_stack_size_in_pages() helper that wraps the option_env!() initializer?\nThe intent is to keep the environment-dependent initialization as an explicit unverified boundary, while verifying DEFAULT_STACK_SIZE_IN_PAGES and the bounds and alignment of KERNEL_STACK_SIZE. The helper would expose only its u32 return type, without claiming that the environment value satisfies valid_decimal or that parsing is verified.\nDoes this approach fit the boundary-marking option you suggested? Is there a better way to address this?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561228469/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 126,
+      "original_line": 119,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559547787,
+      "author_association": "CONTRIBUTOR",
+      "original_position": 37,
+      "position": 87,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561717530",
+      "pull_request_review_id": 5888816342,
+      "id": 4561717530,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD-ZJGg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "I didn't realize there was a macro call. Maybe we should not verify this in this PR.",
+      "created_at": "2026-11-13T09:30:22Z",
+      "updated_at": "2026-11-13T09:30:23Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4561717530",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561717530"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4561717530"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">I didn't realize there was a macro call. Maybe we should not verify this in this PR.</p>",
+      "body_text": "I didn't realize there was a macro call. Maybe we should not verify this in this PR.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561717530/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 126,
+      "original_line": 119,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559547787,
+      "author_association": "COLLABORATOR",
+      "original_position": 37,
+      "position": 87,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561986754",
+      "pull_request_review_id": 5889167710,
+      "id": 4561986754,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD-pkwg",
+      "diff_hunk": "@@ -1,5 +1,12 @@\n // SPDX-License-Identifier: MPL-2.0\n-use core::sync::atomic::Ordering;\n+use vstd::{prelude::*, string::StringSliceAdditionalSpecFns};\n+use vstd_extra::number::{\n+    decimal_value, lemma_decimal_prefix, lemma_decimal_value_step, valid_decimal,\n+};\n+\n+use crate::mm::PAGE_SIZE;",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "ffdb0e008540498a5d72927cf54ba62b320ced7c",
+      "original_commit_id": "ffdb0e008540498a5d72927cf54ba62b320ced7c",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This one is included in the original import(line 11-19). Use that import (commenting out unused ones) rather than add a new one.",
+      "created_at": "2026-11-13T10:03:42Z",
+      "updated_at": "2026-11-13T10:03:42Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4561986754",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561986754"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4561986754"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">This one is included in the original import(line 11-19). Use that import (commenting out unused ones) rather than add a new one.</p>",
+      "body_text": "This one is included in the original import(line 11-19). Use that import (commenting out unused ones) rather than add a new one.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4561986754/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 7,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 8,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562008567",
+      "pull_request_review_id": 5889195643,
+      "id": 4562008567,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD-q59w",
+      "diff_hunk": "@@ -0,0 +1,72 @@\n+// SPDX-License-Identifier: MPL-2.0\n+use vstd::{\n+    endian::{Base, Endian, EndianNat},\n+    prelude::*,\n+};\n+\n+verus! {\n+\n+pub ghost struct Base10 {}\n+\n+impl Base for Base10 {\n+    open spec fn base() -> nat {\n+        10\n+    }\n+\n+    proof fn base_min() {\n+    }\n+}\n+\n+/// The mathematical value of an ASCII decimal byte sequence; empty input is zero.\n+pub open spec fn decimal_value(bytes: Seq<u8>) -> int {\n+    EndianNat::<Base10>::new(Endian::Big, bytes.map_values(|byte: u8| byte - b'0')).to_nat() as int\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+pub open spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'",
+      "path": "verified_libs/vstd_extra/src/number.rs",
+      "commit_id": "ffdb0e008540498a5d72927cf54ba62b320ced7c",
+      "original_commit_id": "ffdb0e008540498a5d72927cf54ba62b320ced7c",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "We prefer `Seq::all`.",
+      "created_at": "2026-11-13T10:06:00Z",
+      "updated_at": "2026-11-13T10:07:49Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4562008567",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562008567"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4562008567"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">We prefer <code class=\"notranslate\">Seq::all</code>.</p>",
+      "body_text": "We prefer Seq::all.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562008567/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 27,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 27,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562011367",
+      "pull_request_review_id": 5889195643,
+      "id": 4562011367,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD-rE5w",
+      "diff_hunk": "@@ -0,0 +1,72 @@\n+// SPDX-License-Identifier: MPL-2.0\n+use vstd::{\n+    endian::{Base, Endian, EndianNat},\n+    prelude::*,\n+};\n+\n+verus! {\n+\n+pub ghost struct Base10 {}\n+\n+impl Base for Base10 {\n+    open spec fn base() -> nat {\n+        10\n+    }\n+\n+    proof fn base_min() {\n+    }\n+}\n+\n+/// The mathematical value of an ASCII decimal byte sequence; empty input is zero.\n+pub open spec fn decimal_value(bytes: Seq<u8>) -> int {\n+    EndianNat::<Base10>::new(Endian::Big, bytes.map_values(|byte: u8| byte - b'0')).to_nat() as int\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+pub open spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n+}\n+\n+pub proof fn lemma_decimal_value_step(bytes: Seq<u8>)\n+    requires\n+        forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9',",
+      "path": "verified_libs/vstd_extra/src/number.rs",
+      "commit_id": "ffdb0e008540498a5d72927cf54ba62b320ced7c",
+      "original_commit_id": "ffdb0e008540498a5d72927cf54ba62b320ced7c",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Seq:all",
+      "created_at": "2026-11-13T10:06:17Z",
+      "updated_at": "2026-11-13T10:07:49Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4562011367",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562011367"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4562011367"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Seq:all</p>",
+      "body_text": "Seq:all",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562011367/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 33,
+      "side": "RIGHT",
+      "author_association": "COLLABORATOR",
+      "original_position": 33,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562585190",
+      "pull_request_review_id": 5889946892,
+      "id": 4562585190,
+      "node_id": "PRRC_kwDONtWm_c8AAAABD_OGZg",
+      "diff_hunk": "@@ -90,23 +92,96 @@ impl KernelStack {\n     pub fn end_vaddr(&self) -> Vaddr {\n         self.end_vaddr\n     }\n+}*/\n+\n+verus! {\n+\n+/// The mathematical value of a decimal byte sequence; the empty sequence is zero.\n+spec fn decimal_value(bytes: Seq<u8>) -> int\n+    decreases bytes.len(),\n+{\n+    if bytes.len() == 0 {\n+        0\n+    } else {\n+        decimal_value(bytes[..bytes.len() - 1]) * 10 + (bytes.last() - b'0')\n+    }\n+}\n+\n+/// Decimal input whose mathematical value fits in a `u32`, including empty input.\n+spec fn valid_decimal(bytes: Seq<u8>) -> bool {\n+    &&& forall|i: int| 0 <= i < bytes.len() ==> b'0' <= #[trigger] bytes[i] <= b'9'\n+    &&& decimal_value(bytes) <= u32::MAX\n }\n \n+} // verus!\n+#[expect(dead_code, reason = \"the kernel-stack initializer is not enabled yet\")]\n+#[verus_spec(\n+    requires size matches Some(value) ==> valid_decimal(value.spec_bytes()),",
+      "path": "ostd/src/task/kernel_stack.rs",
+      "commit_id": "26e8809aa4070c5242958f3b40bda2145ae40cae",
+      "original_commit_id": "2e0101c40ea6cddeb8bed6b6a63d9dfdc12cc2a7",
+      "user": {
+        "login": "YuQuuu",
+        "id": 157275997,
+        "node_id": "U_kgDOCV_XXQ",
+        "avatar_url": "https://avatars.githubusercontent.com/u/157275997?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/YuQuuu",
+        "html_url": "https://github.com/YuQuuu",
+        "followers_url": "https://api.github.com/users/YuQuuu/followers",
+        "following_url": "https://api.github.com/users/YuQuuu/following{/other_user}",
+        "gists_url": "https://api.github.com/users/YuQuuu/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/YuQuuu/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/YuQuuu/subscriptions",
+        "organizations_url": "https://api.github.com/users/YuQuuu/orgs",
+        "repos_url": "https://api.github.com/users/YuQuuu/repos",
+        "events_url": "https://api.github.com/users/YuQuuu/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/YuQuuu/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "Should I exclude this initialization code from the verification scope of this PR, or wait for @Marsman1996’s input before making that change?",
+      "created_at": "2026-11-13T11:12:18Z",
+      "updated_at": "2026-11-13T11:12:18Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/921#discussion_r4562585190",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/921",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562585190"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/921#discussion_r4562585190"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/921"
+        }
+      },
+      "body_html": "<p dir=\"auto\">Should I exclude this initialization code from the verification scope of this PR, or wait for <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a>’s input before making that change?</p>",
+      "body_text": "Should I exclude this initialization code from the verification scope of this PR, or wait for @Marsman1996’s input before making that change?",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/4562585190/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": 126,
+      "original_line": 119,
+      "side": "RIGHT",
+      "in_reply_to_id": 4559547787,
+      "author_association": "CONTRIBUTOR",
+      "original_position": 37,
+      "position": 87,
+      "subject_type": "line",
+      "is_copilot_code_review": false,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

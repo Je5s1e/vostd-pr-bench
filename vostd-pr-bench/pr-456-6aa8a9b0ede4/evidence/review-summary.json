@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 0,
+  "inline_review_comment_count": 3,
+  "review_count": 2,
+  "core_lesson": "验证改写必须保留硬件相关行为，不能只保存一个标志位",
+  "category": "内存与I/O",
+  "all_content_unadjudicated": true
+}

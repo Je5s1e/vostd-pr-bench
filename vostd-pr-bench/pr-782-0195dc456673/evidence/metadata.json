@@ -1,0 +1,39 @@
+{
+  "number": 782,
+  "source_pr": "https://github.com/asterinas/vostd/pull/782",
+  "base_sha": "dd7a8862017ee02a28e0543a1ecc35c8f697eb86",
+  "head_sha": "edb34defe2ea0a763f28e53edd384e0b4c7c7469",
+  "files": {
+    "totalCount": 1,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MQ"
+    },
+    "nodes": [
+      {
+        "path": "ostd/src/boot/memory_region.rs",
+        "additions": 15,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/782",
+    "accept": "application/vnd.github.diff",
+    "bytes": 2381,
+    "sha256": "e92c9c781417ad8af42c6d5c26f7575e2b0807bda7cf038da1f395a7410941c8",
+    "fetched_at": "2026-11-13T21:16:10.036555+00:00",
+    "diff_file_sections": 1,
+    "expected_changed_files": 1
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/782",
+    "accept": "application/vnd.github.patch",
+    "bytes": 5805,
+    "sha256": "97e06a5ef4d12123e73b7eb239f7ae9e87d4456b128aca6482fca4c0109cbc0c",
+    "fetched_at": "2026-11-13T21:24:13.613789+00:00"
+  }
+}

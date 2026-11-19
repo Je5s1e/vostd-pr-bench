@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-424-8d7b6621ed81",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-424-8d7b6621ed81:review-comment-3159151317",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The selected PR revision disables the DMA module and replaces the current generic, ownership-tracked DMA stream implementation with an outdated pre-port version.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/mod.rs",
+          "start_line": 22,
+          "end_line": 22
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/dma/dma_stream.rs",
+          "start_line": 20,
+          "end_line": 55
+        }
+      ],
+      "rationale": "The merge-base exports `pub(crate) mod dma` and the then-current `DmaStream<M>` built around `Segment<M>`, `RwArc`, and tracked ownership. The selected review head comments out the DMA module declaration and carries the older non-generic `Arc`/`USegment` implementation instead. Thus the revision removes the DMA module from compilation and regresses its implementation and dependencies, rather than merely changing proof text. Reviewers explicitly identify the file and dependencies as outdated, request changes, and warn that the regression nearly had serious consequences. Commit 27eae07b77e38001cf8c55bdf5d76a30cf875847 restores DMA from 3716ba9d; a reviewer then confirms the restoration looks correct, and the final approved head retains it.",
+      "source_evidence": "before/ostd/src/mm/mod.rs\n22: pub(crate) mod dma;\n\nafter/ostd/src/mm/mod.rs\n22: //pub(crate) mod dma;\n\nbefore/ostd/src/mm/dma/dma_stream.rs\n87: pub struct DmaStream<M: AnyUFrameMeta + ?Sized> {\n88:     pub inner: RwArc<DmaStreanInnerAtomic<M>>,\n112: pub struct DmaStreamInner<M: AnyUFrameMeta + ?Sized> {\n117:     pub segment: Segment<M>,\n\nafter/ostd/src/mm/dma/dma_stream.rs\n20: #[derive(Debug, Clone)]\n21: pub struct DmaStream {\n22:     inner: Arc<DmaStreamInner>,\n26: struct DmaStreamInner {\n27:     segment: USegment,\n47: impl DmaStream {\n51:     pub fn map(\n52:         segment: USegment,",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/424#discussion_r3159151317",
+      "related_comment_ids": [
+        "4332218658",
+        "4341516336",
+        "4341557118",
+        "3159151317",
+        "3159232533",
+        "4342103554",
+        "4342537876",
+        "4342629612"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "4332218658",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4332218658",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4341516336",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341516336",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4341557118",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4341557118",
+          "commit_id": null
+        },
+        {
+          "kind": "review-comment",
+          "id": "3159151317",
+          "url": "https://github.com/asterinas/vostd/pull/424#discussion_r3159151317",
+          "commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3159232533",
+          "url": "https://github.com/asterinas/vostd/pull/424#discussion_r3159232533",
+          "commit_id": "8d7b6621ed81339e92225d8184bfc24425e65707"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4342103554",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342103554",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4342537876",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342537876",
+          "commit_id": null
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4342629612",
+          "url": "https://github.com/asterinas/vostd/pull/424#issuecomment-4342629612",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Read the complete archived and current remote discussion, selected both inline comments' original commit, confirmed its real merge-base, compared the fixed Git objects, and verified the restoration commit and final approved head re-enable and update DMA."
+    }
+  ]
+}

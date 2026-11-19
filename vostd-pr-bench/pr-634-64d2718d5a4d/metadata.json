@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-634-64d2718d5a4d",
+  "pr_number": 634,
+  "title": "Prove page table owner construction and segment drop",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/634",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "afe85e126a2cf19dd93978a594ba57ec2540c14d",
+  "head_sha": "64d2718d5a4d1aa1792e0d181b134f24cea3e263",
+  "base_method": "git merge-base(archived final base, original review commit); equals review commit parent",
+  "archive_base_sha": "db71adbc6fdc62b0ca38d0482dbc4d8b42389fe9",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "verified_libs/vstd_extra/src/ghost_tree.rs"
+  ],
+  "diff_sha256": "4cb26d3aa1e2eac5357d4769670819fcebce98a849205cd5ad2438f1ec1baa34",
+  "versions": {
+    "before": {
+      "commit": "afe85e126a2cf19dd93978a594ba57ec2540c14d",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "64d2718d5a4d1aa1792e0d181b134f24cea3e263",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "archive_state": "CLOSED",
+  "collection": {
+    "collected_at": "2026-11-18T12:08:26.926788+00:00",
+    "reviewed_at": "2026-07-16T05:16:20Z",
+    "upstream_updated_at": "2026-07-17T09:16:34Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/634",
+      "https://github.com/asterinas/vostd/pull/634#discussion_r3592805724"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "64d2718d5a4d1aa1792e0d181b134f24cea3e263",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/64d2718d5a4d1aa1792e0d181b134f24cea3e263/AGENTS.md#L31"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00634"
+  }
+}

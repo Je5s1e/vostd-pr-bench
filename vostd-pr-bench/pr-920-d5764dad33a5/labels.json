@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-920-d5764dad33a5",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-920-d5764dad33a5:issue-comment-6973242424",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The feature-specific ghost model is named the overly broad `CpuModel`, even though it contains only the maximum basic leaf and AVX/AVX-512F capability bits.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "verified_libs/vstd_extra/src/external/x86.rs",
+          "start_line": 33,
+          "end_line": 41
+        }
+      ],
+      "rationale": "The model does not represent the CPU generally: it records only `max_basic_leaf`, `avx_bit`, and `avx512f_bit`, and its methods expose only those two enumerated features. The collaborator explicitly recommends `CpuFeatureModel` because `CpuModel` overstates the abstraction's scope. This matches `name-proof-roles`, which rejects broad type names when the type represents a narrower state or role. A feature-specific name also prevents future unrelated CPU state or enablement assumptions from being silently folded into this small trusted capability model.",
+      "source_evidence": "after/verified_libs/vstd_extra/src/external/x86.rs\n33: /// CPU capabilities enumerated by CPUID, without OS enablement state.\n34: pub ghost struct CpuModel {\n35:     /// Maximum basic leaf reported by CPUID.(0, 0):EAX.\n36:     pub max_basic_leaf: u32,\n37:     /// CPUID.(1, 0):ECX[28], meaningful only when leaf 1 is supported.\n38:     pub avx_bit: bool,\n39:     /// CPUID.(7, 0):EBX[16], meaningful only when leaf 7 is supported.\n40:     pub avx512f_bit: bool,\n41: }",
+      "rule_ids": [
+        "name-proof-roles"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/920#issuecomment-6973242424",
+      "related_comment_ids": [
+        "6973242424"
+      ],
+      "sources": [
+        {
+          "kind": "issue-comment",
+          "id": "6973242424",
+          "url": "https://github.com/asterinas/vostd/pull/920#issuecomment-6973242424",
+          "commit_id": null
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected the exact current head and remote base, the complete live discussion through the latest comment, and the same-version naming guideline."
+    }
+  ]
+}

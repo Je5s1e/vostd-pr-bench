@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-505-cb2be5a80af1",
+  "pr_number": 505,
+  "title": "prove: mm/heap",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/505",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "5eed9668557afb43c85ed260cdb1e752e4962fb4",
+  "head_sha": "cb2be5a80af1fa3286752092ec51f6eb9af29d91",
+  "base_method": "git merge-base(archived base_sha, archived head_sha); mechanical archive import, not an adjudicated review revision",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/mm/heap/mod.rs",
+    "ostd/src/mm/heap/slab.rs",
+    "ostd/src/mm/heap/slot.rs",
+    "ostd/src/mm/heap/slot_list.rs",
+    "ostd/src/mm/mod.rs",
+    "verified_libs/vstd_extra/src/external/alloc_types.rs",
+    "verified_libs/vstd_extra/src/external/mod.rs",
+    "verified_libs/vstd_extra/src/lib.rs"
+  ],
+  "diff_sha256": "e5604172c8d74072d64eba5f12eed18cfcc35c3e468598a489cb18c44da208a6",
+  "versions": {
+    "before": {
+      "commit": "5eed9668557afb43c85ed260cdb1e752e4962fb4",
+      "file_count": 324,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "cb2be5a80af1fa3286752092ec51f6eb9af29d91",
+      "file_count": 325,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-17T04:40:20.258951+00:00",
+    "reviewed_at": "2026-06-05T08:24:15Z",
+    "upstream_updated_at": "2026-06-09T08:37:06Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/505",
+      "https://github.com/asterinas/vostd/pull/505#discussion_r3361399035",
+      "https://github.com/asterinas/vostd/pull/505#discussion_r3361399095",
+      "https://github.com/asterinas/vostd/pull/505#discussion_r3361399117",
+      "https://github.com/asterinas/vostd/pull/505#discussion_r3361399135",
+      "https://github.com/asterinas/vostd/pull/505#discussion_r3361399148"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00505"
+  }
+}

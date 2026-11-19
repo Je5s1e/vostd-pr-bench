@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-526-614ad9c3f014",
+  "pr_number": 526,
+  "title": "verify axioms for page table arithmetics",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/526",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "59ce5af524392661ad0c4874d8caa252415a411d",
+  "head_sha": "614ad9c3f014d9b108e72ed65d682d69e6d51110",
+  "base_method": "git merge-base of archived GitHub base 15d565113f260c984735cb63a071934129b310ab and selected final head 614ad9c3f014d9b108e72ed65d682d69e6d51110; computed from official Git objects as 59ce5af524392661ad0c4874d8caa252415a411d; both confirmed issues remain in this head",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/page_table/vaddr_range_proofs.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "b64c8dad75bdbfd788e64f386a923a2473153bf2920decbf3686d8563c7f5b9f",
+  "versions": {
+    "before": {
+      "commit": "59ce5af524392661ad0c4874d8caa252415a411d",
+      "file_count": 316,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "614ad9c3f014d9b108e72ed65d682d69e6d51110",
+      "file_count": 316,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 2,
+  "collection": {
+    "collected_at": "2026-11-17T04:40:25.074243+00:00",
+    "reviewed_at": "2026-06-15T09:38:07Z",
+    "upstream_updated_at": "2026-10-21T06:42:21Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/526",
+      "https://github.com/asterinas/vostd/pull/526#discussion_r3412368616",
+      "https://github.com/asterinas/vostd/pull/526#discussion_r3412368685",
+      "https://github.com/asterinas/vostd/pull/526#discussion_r3412368726"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "614ad9c3f014d9b108e72ed65d682d69e6d51110",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/614ad9c3f014d9b108e72ed65d682d69e6d51110/AGENTS.md#L47-L54"
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00526"
+  }
+}

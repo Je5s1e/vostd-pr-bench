@@ -1,0 +1,24 @@
+{
+  "number": 895,
+  "title": "prove: verify PCI foundations",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "prove: verify PCI foundations",
+      "category": "证明与规约"
+    },
+    {
+      "location": "标题",
+      "excerpt": "prove: verify PCI foundations",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "/* */ /* */ /* */ use vstd::prelude::*; /* */ #[verus_verify] #[verus_verify(dual_spec)] #[verus_spec( requires offset < 16, returns set_bit(origin_valu",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

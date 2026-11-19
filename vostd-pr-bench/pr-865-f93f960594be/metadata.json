@@ -10,7 +10,6 @@
   "base_sha": "2f621c2bbe5ab8ea913485963d80a425385797dd",
   "head_sha": "f93f960594be1942b3d9e26ad6d6fdc59026b48f",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "dev",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "ostd/specs/arch/loongarch/mod.rs",

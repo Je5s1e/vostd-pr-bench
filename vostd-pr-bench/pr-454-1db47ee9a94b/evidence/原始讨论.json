@@ -1,0 +1,525 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/454",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 454,
+    "title": "prove: cursor_mut_at at mm::frame::linked_list",
+    "body": "```\r\nStrength assessment: stronger.\r\nIntent preservation assessment: preserved.\r\nRedundancy assessment: minor.\r\nScore: 9/10.\r\n\r\n  Rationale: The changes strengthen the target contract in ostd/src/mm/frame/linked_list.rs:428 by requiring list/region well-formedness and by\r\n  guaranteeing that a successful cursor_mut_at returns a valid cursor owner pointing at frame. That matches the nearby documented intent that\r\n  the cursor should be well-formed and point to the matching element.\r\n\r\n  The owner invariant edits in ostd/specs/mm/frame/linked_list/linked_list_owners.rs:230 also strengthen consistency: nonempty lists must have\r\n  a nonzero list_id, and each link’s tracked in_list permission value must agree with the logical list_id.\r\n\r\n  The only deduction is minor redundancy/proof-shaping: the added cursor_mut_at preconditions around non-list safe slots and in_list == 0\r\n  appear to restate properties that should mostly follow from region ownership invariants, so they add some maintenance burden. I do not see a\r\n  spec weakening or a changed contract purpose.\r\n```",
+    "bodyHTML": "<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"Strength assessment: stronger.\nIntent preservation assessment: preserved.\nRedundancy assessment: minor.\nScore: 9/10.\n\n  Rationale: The changes strengthen the target contract in ostd/src/mm/frame/linked_list.rs:428 by requiring list/region well-formedness and by\n  guaranteeing that a successful cursor_mut_at returns a valid cursor owner pointing at frame. That matches the nearby documented intent that\n  the cursor should be well-formed and point to the matching element.\n\n  The owner invariant edits in ostd/specs/mm/frame/linked_list/linked_list_owners.rs:230 also strengthen consistency: nonempty lists must have\n  a nonzero list_id, and each link’s tracked in_list permission value must agree with the logical list_id.\n\n  The only deduction is minor redundancy/proof-shaping: the added cursor_mut_at preconditions around non-list safe slots and in_list == 0\n  appear to restate properties that should mostly follow from region ownership invariants, so they add some maintenance burden. I do not see a\n  spec weakening or a changed contract purpose.\"><pre class=\"notranslate\"><code class=\"notranslate\">Strength assessment: stronger.\nIntent preservation assessment: preserved.\nRedundancy assessment: minor.\nScore: 9/10.\n\n  Rationale: The changes strengthen the target contract in ostd/src/mm/frame/linked_list.rs:428 by requiring list/region well-formedness and by\n  guaranteeing that a successful cursor_mut_at returns a valid cursor owner pointing at frame. That matches the nearby documented intent that\n  the cursor should be well-formed and point to the matching element.\n\n  The owner invariant edits in ostd/specs/mm/frame/linked_list/linked_list_owners.rs:230 also strengthen consistency: nonempty lists must have\n  a nonzero list_id, and each link’s tracked in_list permission value must agree with the logical list_id.\n\n  The only deduction is minor redundancy/proof-shaping: the added cursor_mut_at preconditions around non-list safe slots and in_list == 0\n  appear to restate properties that should mostly follow from region ownership invariants, so they add some maintenance burden. I do not see a\n  spec weakening or a changed contract purpose.\n</code></pre></div>",
+    "url": "https://github.com/asterinas/vostd/pull/454",
+    "state": "CLOSED",
+    "createdAt": "2026-05-16T04:10:07Z",
+    "updatedAt": "2026-07-22T06:20:43Z",
+    "closedAt": "2026-07-22T06:20:27Z",
+    "mergedAt": null,
+    "author": {
+      "login": "Marsman1996"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "98aaa837b7a02758c55c783ec2a91550de0ce725",
+    "headRefName": "prove-cursor_mut_at",
+    "headRefOid": "1db47ee9a94bf4d4f4d5ba5fa63b8c16eb1f7650",
+    "changedFiles": 2,
+    "additions": 54,
+    "deletions": 18,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 5
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpO0MjAyNi0wNS0xNlQwNDoxMjo1N1q0MjAyNi0wNS0xNlQwNDoxMjo1N1rPAAAAAQB15Dk="
+      },
+      "nodes": [
+        {
+          "id": "PRR_kwDONtWm_c8AAAABAHXkOQ",
+          "databaseId": 4302693433,
+          "body": "## Pull request overview\n\nThis PR attempts to prove `LinkedList::cursor_mut_at` by removing its external verification body and adding the proof obligations needed to borrow frame metadata and load `in_list`.\n\n**Changes:**\n- Adds `regions.slots`/`in_list` permission requirements to `cursor_mut_at`.\n- Moves tracked owner/permission handling inside the successful `get_slot` branch.\n- Uses a borrowed slot permission for metadata access instead of indexing `regions.slots` directly.\n\n\n\n\n\n\n---\n\n💡 <a href=\"/asterinas/vostd/new/main?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>.",
+          "bodyHTML": "<h2 dir=\"auto\">Pull request overview</h2>\n<p dir=\"auto\">This PR attempts to prove <code class=\"notranslate\">LinkedList::cursor_mut_at</code> by removing its external verification body and adding the proof obligations needed to borrow frame metadata and load <code class=\"notranslate\">in_list</code>.</p>\n<p dir=\"auto\"><strong>Changes:</strong></p>\n<ul dir=\"auto\">\n<li>Adds <code class=\"notranslate\">regions.slots</code>/<code class=\"notranslate\">in_list</code> permission requirements to <code class=\"notranslate\">cursor_mut_at</code>.</li>\n<li>Moves tracked owner/permission handling inside the successful <code class=\"notranslate\">get_slot</code> branch.</li>\n<li>Uses a borrowed slot permission for metadata access instead of indexing <code class=\"notranslate\">regions.slots</code> directly.</li>\n</ul>\n<hr>\n<p dir=\"auto\">💡 <a href=\"/asterinas/vostd/new/main?filename=.github/instructions/*.instructions.md\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\">Learn how to get started</a>.</p>",
+          "state": "COMMENTED",
+          "submittedAt": "2026-05-16T04:12:57Z",
+          "createdAt": "2026-05-16T04:12:57Z",
+          "updatedAt": "2026-05-26T03:24:08Z",
+          "url": "https://github.com/asterinas/vostd/pull/454#pullrequestreview-4302693433",
+          "author": {
+            "login": "copilot-pull-request-reviewer"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "reactionGroups": [
+            {
+              "content": "THUMBS_UP",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "THUMBS_DOWN",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "LAUGH",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HOORAY",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "CONFUSED",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "HEART",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "ROCKET",
+              "users": {
+                "totalCount": 0
+              }
+            },
+            {
+              "content": "EYES",
+              "users": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reviewThreads": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0wNS0xNlQwNDoxMjo1N1rOgoXuaQ=="
+      },
+      "nodes": [
+        {
+          "id": "PRRT_kwDONtWm_c6Che5p",
+          "isResolved": false,
+          "isOutdated": true,
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "line": null,
+          "startLine": null,
+          "originalLine": 430,
+          "originalStartLine": null,
+          "diffSide": "RIGHT",
+          "startDiffSide": null,
+          "resolvedBy": null,
+          "comments": {
+            "totalCount": 1,
+            "nodes": [
+              {
+                "databaseId": 3252020451
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "files": {
+      "totalCount": 2,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Mg"
+      },
+      "nodes": [
+        {
+          "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+          "additions": 3,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "additions": 51,
+          "deletions": 17,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4474002613",
+      "html_url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4474002613",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/454",
+      "id": 4474002613,
+      "node_id": "IC_kwDONtWm_c8AAAABCqvctQ",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-18T03:29:22Z",
+      "updated_at": "2026-05-18T03:29:22Z",
+      "body_html": "<p dir=\"auto\">This PR will be reviewed after <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"4450859657\" data-permission-text=\"Title is private\" data-url=\"https://github.com/asterinas/vostd/issues/452\" data-hovercard-type=\"pull_request\" data-hovercard-url=\"/asterinas/vostd/pull/452/hovercard\" href=\"https://github.com/asterinas/vostd/pull/452\">#452</a> to avoid potential conflicts.</p>",
+      "body_text": "This PR will be reviewed after #452 to avoid potential conflicts.",
+      "body": "This PR will be reviewed after #452 to avoid potential conflicts.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4474002613/reactions",
+        "total_count": 2,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 2,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4505514521",
+      "html_url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4505514521",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/454",
+      "id": 4505514521,
+      "node_id": "IC_kwDONtWm_c8AAAABDIyyGQ",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-21T06:50:08Z",
+      "updated_at": "2026-05-21T06:50:08Z",
+      "body_html": "<p dir=\"auto\"><a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/Marsman1996/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/Marsman1996\">@Marsman1996</a> Please merge the latest main to check whether everything is consistent.</p>",
+      "body_text": "@Marsman1996 Please merge the latest main to check whether everything is consistent.",
+      "body": "@Marsman1996 Please merge the latest main to check whether everything is consistent.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4505514521/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 1,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4516225147",
+      "html_url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4516225147",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/454",
+      "id": 4516225147,
+      "node_id": "IC_kwDONtWm_c8AAAABDTAgew",
+      "user": {
+        "login": "rikosellic",
+        "id": 64517311,
+        "node_id": "MDQ6VXNlcjY0NTE3MzEx",
+        "avatar_url": "https://avatars.githubusercontent.com/u/64517311?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/rikosellic",
+        "html_url": "https://github.com/rikosellic",
+        "followers_url": "https://api.github.com/users/rikosellic/followers",
+        "following_url": "https://api.github.com/users/rikosellic/following{/other_user}",
+        "gists_url": "https://api.github.com/users/rikosellic/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/rikosellic/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/rikosellic/subscriptions",
+        "organizations_url": "https://api.github.com/users/rikosellic/orgs",
+        "repos_url": "https://api.github.com/users/rikosellic/repos",
+        "events_url": "https://api.github.com/users/rikosellic/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/rikosellic/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-22T07:14:04Z",
+      "updated_at": "2026-05-22T07:14:04Z",
+      "body_html": "<p dir=\"auto\">I think this pre-condition is suspicious because it is completely irrelevant with the <code class=\"notranslate\">LinkedListOwner</code>. Maybe we need a better way to do this. I will think more about it when reviewing <code class=\"notranslate\">mm</code> code. <a class=\"user-mention notranslate\" data-hovercard-type=\"user\" data-hovercard-url=\"/users/SNoAnd/hovercard\" data-octo-click=\"hovercard-link-click\" data-octo-dimensions=\"link_type:self\" href=\"https://github.com/SNoAnd\">@SNoAnd</a> What do you think?</p>",
+      "body_text": "I think this pre-condition is suspicious because it is completely irrelevant with the LinkedListOwner. Maybe we need a better way to do this. I will think more about it when reviewing mm code. @SNoAnd What do you think?",
+      "body": "I think this pre-condition is suspicious because it is completely irrelevant with the `LinkedListOwner`. Maybe we need a better way to do this. I will think more about it when reviewing `mm` code. @SNoAnd What do you think?",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4516225147/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4516892458",
+      "html_url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4516892458",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/454",
+      "id": 4516892458,
+      "node_id": "IC_kwDONtWm_c8AAAABDTpPKg",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-22T08:19:19Z",
+      "updated_at": "2026-05-22T08:19:19Z",
+      "body_html": "<p dir=\"auto\">This is tricky. Because the frames owned by the <code class=\"notranslate\">LinkedList</code> always come from <code class=\"notranslate\">UniqueFrame</code>, we transfer ownership to the list itself, and the perms are carried by <code class=\"notranslate\">owner.list_own.perms</code> and not found in <code class=\"notranslate\">regions</code>. But the proof code in this function is old, and doesn't really work with the approach; it assumes that the perm can be found in <code class=\"notranslate\">regions</code>.</p>\n<p dir=\"auto\">The idiomatic approach would be to find <code class=\"notranslate\">paddr</code> in <code class=\"notranslate\">owner.list_own.perms</code> and extract it. <code class=\"notranslate\">in_list</code> should match iff the perm is actually present.</p>",
+      "body_text": "This is tricky. Because the frames owned by the LinkedList always come from UniqueFrame, we transfer ownership to the list itself, and the perms are carried by owner.list_own.perms and not found in regions. But the proof code in this function is old, and doesn't really work with the approach; it assumes that the perm can be found in regions.\nThe idiomatic approach would be to find paddr in owner.list_own.perms and extract it. in_list should match iff the perm is actually present.",
+      "body": "This is tricky. Because the frames owned by the `LinkedList` always come from `UniqueFrame`, we transfer ownership to the list itself, and the perms are carried by `owner.list_own.perms` and not found in `regions`. But the proof code in this function is old, and doesn't really work with the approach; it assumes that the perm can be found in `regions`.\r\n\r\nThe idiomatic approach would be to find `paddr` in `owner.list_own.perms` and extract it. `in_list` should match iff the perm is actually present.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4516892458/reactions",
+        "total_count": 2,
+        "+1": 2,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    },
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4537882561",
+      "html_url": "https://github.com/asterinas/vostd/pull/454#issuecomment-4537882561",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/454",
+      "id": 4537882561,
+      "node_id": "IC_kwDONtWm_c8AAAABDnqXwQ",
+      "user": {
+        "login": "SNoAnd",
+        "id": 33380099,
+        "node_id": "MDQ6VXNlcjMzMzgwMDk5",
+        "avatar_url": "https://avatars.githubusercontent.com/u/33380099?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/SNoAnd",
+        "html_url": "https://github.com/SNoAnd",
+        "followers_url": "https://api.github.com/users/SNoAnd/followers",
+        "following_url": "https://api.github.com/users/SNoAnd/following{/other_user}",
+        "gists_url": "https://api.github.com/users/SNoAnd/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/SNoAnd/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/SNoAnd/subscriptions",
+        "organizations_url": "https://api.github.com/users/SNoAnd/orgs",
+        "repos_url": "https://api.github.com/users/SNoAnd/repos",
+        "events_url": "https://api.github.com/users/SNoAnd/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/SNoAnd/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-05-25T23:12:14Z",
+      "updated_at": "2026-05-25T23:12:14Z",
+      "body_html": "<p dir=\"auto\">This is good progress. It is illustrating an issue with the permission division, though. It works great when the chosen <code class=\"notranslate\">paddr</code> is part of the linked list, because we can access the permission directly. But if not, we still need to access the permission in order to read the slot <em>before</em> checking the list id. Hence the preconditions here asserting that the permission must otherwise be in <code class=\"notranslate\">regions</code>.</p>\n<p dir=\"auto\">I think that removing those preconditions will actually require us to retire the \"uniquely-owned perms live with their owners\" pattern and just keep all slot permissions in <code class=\"notranslate\">regions</code> at all times. I have some sketches of what that looks like, I can see how tractable it would be to make the migration.</p>\n<p dir=\"auto\">Currently this proof is vacuous if <code class=\"notranslate\">paddr</code> is in a different linked list, or if it corresponds to a <code class=\"notranslate\">UniqueFrame</code> or a page table node, the other instances where the permission is allowed to leave <code class=\"notranslate\">perms</code>.</p>",
+      "body_text": "This is good progress. It is illustrating an issue with the permission division, though. It works great when the chosen paddr is part of the linked list, because we can access the permission directly. But if not, we still need to access the permission in order to read the slot before checking the list id. Hence the preconditions here asserting that the permission must otherwise be in regions.\nI think that removing those preconditions will actually require us to retire the \"uniquely-owned perms live with their owners\" pattern and just keep all slot permissions in regions at all times. I have some sketches of what that looks like, I can see how tractable it would be to make the migration.\nCurrently this proof is vacuous if paddr is in a different linked list, or if it corresponds to a UniqueFrame or a page table node, the other instances where the permission is allowed to leave perms.",
+      "body": "This is good progress. It is illustrating an issue with the permission division, though. It works great when the chosen `paddr` is part of the linked list, because we can access the permission directly. But if not, we still need to access the permission in order to read the slot _before_ checking the list id. Hence the preconditions here asserting that the permission must otherwise be in `regions`.\r\n\r\nI think that removing those preconditions will actually require us to retire the \"uniquely-owned perms live with their owners\" pattern and just keep all slot permissions in `regions` at all times. I have some sketches of what that looks like, I can see how tractable it would be to make the migration.\r\n\r\nCurrently this proof is vacuous if `paddr` is in a different linked list, or if it corresponds to a `UniqueFrame` or a page table node, the other instances where the permission is allowed to leave `perms`.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/4537882561/reactions",
+        "total_count": 1,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 1,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3252020451",
+      "pull_request_review_id": 4302693433,
+      "id": 3252020451,
+      "node_id": "PRRC_kwDONtWm_c7B1eTj",
+      "diff_hunk": "@@ -427,25 +427,31 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> LinkedList<M> {\n             -> cursor_owner: Tracked<Option<CursorOwner<M>>>,\n         requires\n             old(regions).inv(),\n+            has_safe_slot(frame) ==> old(regions).slots.contains_key(frame_to_index(frame)),",
+      "path": "ostd/src/mm/frame/linked_list.rs",
+      "commit_id": "a6ca5bd32c1f932324f8db120a4edec22a2c55a5",
+      "original_commit_id": "c531288040e00949dcf05ffdef82fb4f76c9f67d",
+      "user": {
+        "login": "Copilot",
+        "id": 175728472,
+        "node_id": "BOT_kgDOCnlnWA",
+        "avatar_url": "https://avatars.githubusercontent.com/in/946600?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Copilot",
+        "html_url": "https://github.com/apps/copilot-pull-request-reviewer",
+        "followers_url": "https://api.github.com/users/Copilot/followers",
+        "following_url": "https://api.github.com/users/Copilot/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Copilot/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Copilot/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Copilot/subscriptions",
+        "organizations_url": "https://api.github.com/users/Copilot/orgs",
+        "repos_url": "https://api.github.com/users/Copilot/repos",
+        "events_url": "https://api.github.com/users/Copilot/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Copilot/received_events",
+        "type": "Bot",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "body": "This precondition narrows `cursor_mut_at` so it no longer covers the documented list-owned-frame case. `LinkedListOwner` tracks link slot permissions in its `perms` map, while `MetaRegionOwners::slots` is for slots not otherwise owned, so a frame already in the list can legitimately be absent from `regions.slots`; requiring it here makes callers unable to get a cursor for such frames. Use the matching permission from `owner.perms` (or express that as the contract) instead of requiring the global slot map to contain the frame.",
+      "created_at": "2026-05-16T04:12:57Z",
+      "updated_at": "2026-05-16T04:12:57Z",
+      "html_url": "https://github.com/asterinas/vostd/pull/454#discussion_r3252020451",
+      "pull_request_url": "https://api.github.com/repos/asterinas/vostd/pulls/454",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3252020451"
+        },
+        "html": {
+          "href": "https://github.com/asterinas/vostd/pull/454#discussion_r3252020451"
+        },
+        "pull_request": {
+          "href": "https://api.github.com/repos/asterinas/vostd/pulls/454"
+        }
+      },
+      "body_html": "<p dir=\"auto\">This precondition narrows <code class=\"notranslate\">cursor_mut_at</code> so it no longer covers the documented list-owned-frame case. <code class=\"notranslate\">LinkedListOwner</code> tracks link slot permissions in its <code class=\"notranslate\">perms</code> map, while <code class=\"notranslate\">MetaRegionOwners::slots</code> is for slots not otherwise owned, so a frame already in the list can legitimately be absent from <code class=\"notranslate\">regions.slots</code>; requiring it here makes callers unable to get a cursor for such frames. Use the matching permission from <code class=\"notranslate\">owner.perms</code> (or express that as the contract) instead of requiring the global slot map to contain the frame.</p>",
+      "body_text": "This precondition narrows cursor_mut_at so it no longer covers the documented list-owned-frame case. LinkedListOwner tracks link slot permissions in its perms map, while MetaRegionOwners::slots is for slots not otherwise owned, so a frame already in the list can legitimately be absent from regions.slots; requiring it here makes callers unable to get a cursor for such frames. Use the matching permission from owner.perms (or express that as the contract) instead of requiring the global slot map to contain the frame.",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/pulls/comments/3252020451/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "start_line": null,
+      "original_start_line": null,
+      "start_side": null,
+      "line": null,
+      "original_line": 430,
+      "side": "RIGHT",
+      "author_association": "CONTRIBUTOR",
+      "original_position": 4,
+      "position": 1,
+      "subject_type": "line",
+      "is_copilot_code_review": true,
+      "copilot_code_review_sources": []
+    }
+  ],
+  "review_dismissals": []
+}

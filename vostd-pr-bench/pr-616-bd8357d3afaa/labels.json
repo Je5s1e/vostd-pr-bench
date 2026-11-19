@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-616-bd8357d3afaa",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-616-bd8357d3afaa:review-4649848274",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The proof removes `external_body` by decomposing the original one-line `page_size` execution into new executable locals and a temporary result instead of keeping all proof scaffolding in proof mode.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/mod.rs",
+          "start_line": 214,
+          "end_line": 239
+        }
+      ],
+      "rationale": "The base implementation returns `PAGE_SIZE << (nr_subpage_per_huge::<PagingConsts>().ilog2() as usize * (level as usize - 1))` directly. The reviewed revision removes `external_body`, but also changes executable structure by computing `index_bits`, `level_index`, `shift`, and `ret` outside proof blocks. These locals are not required for runtime behavior; they exist to name expressions used by the proof. The collaborator reviewer explicitly requests keeping the original source expression and moving all definitions into a proof block. The final `Keep page_size exec body unchanged` commit does exactly that and then receives approval. This violates the same-head hard constraint to avoid changing executable Rust for verification work unless required and to keep proof edits minimal, captured as `preserve-exec-code`.",
+      "source_evidence": "after/ostd/src/mm/mod.rs\n214: let index_bits = nr_subpage_per_huge::<PagingConsts>().ilog2() as usize;\n215-222: proof { ... }\n223: let level_index = level as usize - 1;\n224: let shift = index_bits * level_index;\n225-234: proof { ... }\n235: let ret = PAGE_SIZE << shift;\n236-238: proof { ... }\n239: ret\n\nbefore/ostd/src/mm/mod.rs\n215: PAGE_SIZE << (nr_subpage_per_huge::<PagingConsts>().ilog2() as usize * (level as usize - 1))\n\nAGENTS.md at reviewed commit\n52: Try to only change proof code first to fix verification issues.\n53: Avoid changing executable Rust code unless required to support verification.\n54: Keep edits minimal and localized to the smallest necessary dependency closure.",
+      "rule_ids": [
+        "preserve-exec-code"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/616#pullrequestreview-4649848274",
+      "related_comment_ids": [
+        "4649848274"
+      ],
+      "sources": [
+        {
+          "kind": "review",
+          "id": "4649848274",
+          "url": "https://github.com/asterinas/vostd/pull/616#pullrequestreview-4649848274",
+          "commit_id": "bd8357d3afaabb1c2df1f39918d52406f7744a8f"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the fixed base, reviewed merge commit, final approved head, complete archived/live discussion, and the same-head executable-code constraint."
+    }
+  ]
+}

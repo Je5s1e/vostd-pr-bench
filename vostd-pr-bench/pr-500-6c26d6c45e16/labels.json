@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-500-6c26d6c45e16",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-500-6c26d6c45e16:review-comment-3353236200",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The restored executable address conversions use duplicate local spec models while the specification module aliases a second model under the exec names.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/meta.rs",
+          "start_line": 41,
+          "end_line": 49
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/mapping.rs",
+          "start_line": 44,
+          "end_line": 59
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/mapping.rs",
+          "start_line": 152,
+          "end_line": 153
+        }
+      ],
+      "rationale": "At this revision, the exec functions in `mm` are attached to `frame_to_meta_local_spec` and `meta_to_frame_local_spec`, while the spec module independently defines the same formulas and re-exports those second definitions under the exec names. The reviewer questions the aliases and proposes binding the exec functions directly with `when_used_as_spec(frame_to_meta_spec)`; the author agrees. This matches `pair-exec-helpers-with-spec-models`, which requires one faithful model attached to each exec helper rather than duplicate formulas and aliases. The final head co-locates each model with its exec helper, attaches it directly, and re-exports the actual exec/spec pairs.",
+      "source_evidence": "after/ostd/src/mm/frame/meta.rs\n41:     #[verifier::inline]\n42:     pub open spec fn frame_to_meta_local_spec(paddr: Paddr) -> Vaddr {\n46:     #[verifier::inline]\n47:     pub open spec fn meta_to_frame_local_spec(vaddr: Vaddr) -> Paddr {\n53:     #[verifier::when_used_as_spec(frame_to_meta_local_spec)]\n69:     #[verifier::when_used_as_spec(meta_to_frame_local_spec)]\n\nafter/ostd/specs/mm/frame/mapping.rs\n44: #[verifier::inline]\n45: pub open spec fn frame_to_meta_spec(paddr: Paddr) -> (res: Vaddr)\n53: #[verifier::inline]\n54: pub open spec fn meta_to_frame_spec(vaddr: Vaddr) -> Paddr\n152: pub use frame_to_meta_spec as frame_to_meta;\n153: pub use meta_to_frame_spec as meta_to_frame;",
+      "rule_ids": [
+        "pair-exec-helpers-with-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/500#discussion_r3353236200",
+      "related_comment_ids": [
+        "3353236200",
+        "3353241431",
+        "3353250416"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3353236200",
+          "url": "https://github.com/asterinas/vostd/pull/500#discussion_r3353236200",
+          "commit_id": "6c26d6c45e16ed7bb8d1b8725101439357c95c00"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3353241431",
+          "url": "https://github.com/asterinas/vostd/pull/500#discussion_r3353241431",
+          "commit_id": "6c26d6c45e16ed7bb8d1b8725101439357c95c00"
+        },
+        {
+          "kind": "review-comment",
+          "id": "3353250416",
+          "url": "https://github.com/asterinas/vostd/pull/500#discussion_r3353250416",
+          "commit_id": "6c26d6c45e16ed7bb8d1b8725101439357c95c00"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Inspected both duplicate model definitions and aliases, read the full archived and remote thread, and compared the direct pairing/re-export structure in the final approved head."
+    }
+  ]
+}

@@ -10,7 +10,6 @@
   "base_sha": "a7a57fabff88ca077f7303cdecbcab7a2639feb0",
   "head_sha": "d3b5ea0301129d909b49687a9d7357308b26a12f",
   "base_method": "merge-base of historical head and upstream main tip before first selected review comment",
-  "original_split": "heldout",
   "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
   "changed_paths": [
     "verified_libs/vstd_extra/src/ghost_tree.rs"

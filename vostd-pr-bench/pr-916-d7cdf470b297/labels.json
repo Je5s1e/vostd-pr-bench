@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-916-d7cdf470b297",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-916-d7cdf470b297:review-comment-4561893594",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The zero-valued data-directory constructor duplicates a spec-compatible struct literal instead of exposing the executable helper through dual_spec.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+          "start_line": 172,
+          "end_line": 175
+        }
+      ],
+      "rationale": "The executable body is already the exact spec expression. In this snapshot the contract repeats the literal, leaving no spec-side Self::none() definition for other models to reuse. The pair-exec-helpers-with-spec-models guideline prefers dual_spec when one definition serves both modes. Review comment 4561893594 requests this change, and subsequent commit 12a489a1c6fa8d055f74a28b17302d0627d46468 adds #[verus_verify(dual_spec)] and changes the contract to returns Self::none().",
+      "source_evidence": "after/ostd/libs/linux-bzimage/builder/src/pe_header.rs\n170: #[verus_verify]\n171: impl Pe32PlusOptDataDirEnt {\n172:     #[verus_spec(returns (Self { rva: 0, size: 0 }))]\n173:     fn none() -> Self {\n174:         Self { rva: 0, size: 0 }\n175:     }",
+      "rule_ids": [
+        "pair-exec-helpers-with-spec-models"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/916#discussion_r4561893594",
+      "related_comment_ids": [
+        "4561893594"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4561893594",
+          "url": "https://github.com/asterinas/vostd/pull/916#discussion_r4561893594",
+          "commit_id": "d7cdf470b297e24b5299fc90e6e0b6e6769ff124"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the archived d7cdf470b297 snapshot, complete archived and current remote review threads, and the accepted follow-up commit 12a489a1c6fa8d055f74a28b17302d0627d46468."
+    },
+    {
+      "id": "pr-916-d7cdf470b297:review-comment-4561916242",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The public PE-header contract requires closed specification predicates whose definitions callers cannot unfold to establish the precondition or use the returned byte model.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+          "start_line": 671,
+          "end_line": 680
+        },
+        {
+          "version": "after",
+          "path": "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+          "start_line": 761,
+          "end_line": 768
+        }
+      ],
+      "rationale": "make_pe_coff_header exposes valid_setup_elf as its caller obligation and pe_coff_bytes_spec as its result model, but both are closed in this snapshot and their supporting predicates are also private and closed. External callers therefore cannot unfold the advertised relations for concrete inputs. Review comment 4561916242 identifies this usability failure. The accepted follow-up commit 12a489a1c6fa8d055f74a28b17302d0627d46468 makes the caller-facing predicates pub(crate) open and separates the packed internal representation behind a closed helper.",
+      "source_evidence": "after/ostd/libs/linux-bzimage/builder/src/pe_header.rs\n669: /// Successful, readable setup ELF input whose computed optional-header fields\n670: /// fit their PE widths. Malformed-input panic paths remain executable.\n671: pub(crate) closed spec fn valid_setup_elf(input: &[u8]) -> bool {\n672:     &&& elf_parse_no_unwind(input)\n673:     &&& elf_parse_result(input) matches Ok(elf) && {\n674:         let headers = all_pe_section_headers_spec(elf_program_headers(&elf));\n675:         &&& elf_program_headers_readable(&elf)\n676:         &&& valid_pe_segments(elf_program_headers(&elf))\n677:         &&& headers.base <= header_entry_point(&elf.header.pt2) <= headers.base + u32::MAX\n678:         &&& headers.rodata.raw_data_size + headers.data.raw_data_size <= u32::MAX\n679:         &&& headers.data.virtual_address + headers.data.virtual_size <= u32::MAX\n680:     }\n\n759: /// The complete DOS prefix, PE/COFF header, optional header, and three sections.\n760: /// Packed object representations remain the audited bytemuck boundary.\n761: pub(crate) closed spec fn pe_coff_bytes_spec(elf: &xmas_elf::ElfFile<'_>) -> Seq<u8> {\n762:     let headers = all_pe_section_headers_spec(elf_program_headers(elf));\n763:     spec_u16_to_le_bytes(MZ_MAGIC) + Seq::new(58, |i: int| 0u8) + spec_u32_to_le_bytes(64)\n764:         + object_bytes(pe_header_spec()) + object_bytes(pe_optional_header_spec(elf, headers))",
+      "rule_ids": [
+        "api-preconditions",
+        "api-postconditions"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/916#discussion_r4561916242",
+      "related_comment_ids": [
+        "4561916242"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "4561916242",
+          "url": "https://github.com/asterinas/vostd/pull/916#discussion_r4561916242",
+          "commit_id": "d7cdf470b297e24b5299fc90e6e0b6e6769ff124"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the archived d7cdf470b297 snapshot, complete archived and current remote review threads, and the accepted follow-up commit 12a489a1c6fa8d055f74a28b17302d0627d46468."
+    }
+  ]
+}

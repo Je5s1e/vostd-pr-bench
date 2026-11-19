@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-927-cd548f6f2503",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-927-cd548f6f2503:review-comment-4566010092",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Fallible VM value and collection APIs omit success postconditions needed to establish their documented cursor and result-length behavior.",
+      "locations": [
+        {"version":"after","path":"ostd/src/mm/io.rs","start_line":1088,"end_line":1099},
+        {"version":"after","path":"ostd/src/mm/io.rs","start_line":1132,"end_line":1141},
+        {"version":"after","path":"ostd/src/mm/io.rs","start_line":1854,"end_line":1867}
+      ],
+      "rationale": "The selected review head constrains only short-buffer and Err behavior. It does not say that successful read_val/write_val consume exactly size_of::<T>(), or that successful collect returns the old remaining length. Callers therefore cannot derive the documented happy-path cursor/result facts. The next revision 48e9017 added exactly these Ok rows, independently confirming the root cause.",
+      "source_evidence": "after/ostd/src/mm/io.rs\n1096: old(self).remain_spec() < core::mem::size_of::<T>()\n1098: r is Err ==> *final(self) == *old(self),\n1140: r is Err ==> *final(self) == *old(self),\n1854: /// - On success, the cursor advances by `size_of::<T>()`.\n1864: old(self).avail_spec() < core::mem::size_of::<T>()\n1866: r is Err ==> *final(self) == *old(self),",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/927#discussion_r4566010092",
+      "related_comment_ids": ["4566010092","4566010099","4566010111"],
+      "sources": [
+        {"kind":"review-comment","id":"4566010092","url":"https://github.com/asterinas/vostd/pull/927#discussion_r4566010092","commit_id":"cd548f6f2503284dccfb84886741b38f772db2e1"},
+        {"kind":"review-comment","id":"4566010099","url":"https://github.com/asterinas/vostd/pull/927#discussion_r4566010099","commit_id":"cd548f6f2503284dccfb84886741b38f772db2e1"},
+        {"kind":"review-comment","id":"4566010111","url":"https://github.com/asterinas/vostd/pull/927#discussion_r4566010111","commit_id":"cd548f6f2503284dccfb84886741b38f772db2e1"}
+      ],
+      "verification": "source-only; historical Verus not executed. Independently compared official Git trees cd548f6f and 48e9017; the latter adds the missing success rows. AI-assisted comments were used only as leads."
+    },
+    {
+      "id": "pr-927-cd548f6f2503:review-comment-4566010147",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The trusted generic Vec::index_mut specification omits the SliceIndex bounds-admissibility condition.",
+      "locations": [{"version":"after","path":"verified_libs/vstd_extra/src/external/vec.rs","start_line":14,"end_line":24}],
+      "rationale": "This assume_specification is the verification contract for generic trait-method dispatch, but its handwritten existential postcondition does not carry SliceIndex::in_bounds. It can therefore describe an output without exposing the precondition required for safe indexing. The next revision replaces it with call_ensures on SliceIndex::index_mut, which imports the native declaration's baked requires.",
+      "source_evidence": "after/verified_libs/vstd_extra/src/external/vec.rs\n14: pub assume_specification<T, I: SliceIndex<[T]>, A: Allocator>[ <Vec<T, A> as IndexMut<\n17:     ensures\n18:         exists|old_slice: &[T], final_slice: &[T]|\n19:             old_slice@ == old(vec)@ && final_slice@ == final(vec)@ && index.index_mut_postcondition(\n24:             ),",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/927#discussion_r4566010147",
+      "related_comment_ids": ["4566010141","4566010147"],
+      "sources": [
+        {"kind":"review-comment","id":"4566010141","url":"https://github.com/asterinas/vostd/pull/927#discussion_r4566010141","commit_id":"cd548f6f2503284dccfb84886741b38f772db2e1"},
+        {"kind":"review-comment","id":"4566010147","url":"https://github.com/asterinas/vostd/pull/927#discussion_r4566010147","commit_id":"cd548f6f2503284dccfb84886741b38f772db2e1"}
+      ],
+      "verification": "source-only; historical Verus not executed. Independently inspected the trusted spec and the immediate fixing revision, which replaces the handwritten postcondition with call_ensures. AI-assisted comments were not treated as authoritative."
+    }
+  ]
+}

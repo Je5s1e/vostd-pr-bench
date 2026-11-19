@@ -1,0 +1,34 @@
+From 317fb125fb5ed854ef25a7760a9af97622a0f9a9 Mon Sep 17 00:00:00 2001
+From: Hiroki <haobin.chen@certik.com>
+Date: Tue, 12 May 2026 02:20:52 -0400
+Subject: [PATCH] Add `default` interface for `VmSpace`
+
+---
+ ostd/src/mm/vm_space.rs | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index 849b922f0..4495dda0d 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -147,6 +147,20 @@ type Result<A> = core::result::Result<A, Error>;
+ 
+ #[verus_verify]
+ impl<'a> VmSpace<'a> {
++    #[inline]
++    #[verus_spec(r =>
++        with Tracked(regions): Tracked<&mut MetaRegionOwners>,
++            Tracked(guards_k): Tracked<&mut Guards<'static, KernelPtConfig>>,
++            Tracked(guards_u): Tracked<&mut Guards<'static, UserPtConfig>>,
++        requires
++            old(regions).inv(),
++    )]
++    #[allow(private_interfaces)]
++    pub fn default() -> Self {
++        proof_with!(Tracked(regions), Tracked(guards_k), Tracked(guards_u));
++        Self::new()
++    }
++
+     /// Creates a new VM address space.
+     ///
+     /// This allocates a new user page table by duplicating the kernel page

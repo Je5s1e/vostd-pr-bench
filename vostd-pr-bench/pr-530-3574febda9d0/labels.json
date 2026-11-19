@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-530-3574febda9d0",
+  "status": "incremental_source_adjudicated",
+  "issues": [{
+    "id": "pr-530-3574febda9d0:review-comment-3419069655",
+    "original_label_id": null,
+    "category": "semantic",
+    "description": "`PagingConstsTrait` hard-codes the global x86 page size, level count, and entry ratio as requirements for every paging configuration.",
+    "locations": [{"version": "after", "path": "ostd/src/mm/mod.rs", "start_line": 131, "end_line": 151}],
+    "rationale": "The generic trait contract requires every implementation to equal architecture-level PAGE_SIZE, NR_LEVELS, and NR_ENTRIES. This rules out otherwise valid paging configurations instead of proving their properties generically. The reviewer questions placing the property in PagingConstsTrait and points out that the x86-specific subpage/entry relation already has its own lemma. The PR was closed as superseded by #532, whose review independently identifies the same hard-coded-trait root cause; it remains present in this fixed head.",
+    "source_evidence": "after/ostd/src/mm/mod.rs\n141: proof fn lemma_paging_consts_properties()\n145: Self::BASE_PAGE_SIZE_spec() == PAGE_SIZE,\n147: Self::NR_LEVELS_spec() == NR_LEVELS,\n150: Self::BASE_PAGE_SIZE_spec() / Self::PTE_SIZE_spec() == NR_ENTRIES,",
+    "rule_ids": [],
+    "review_url": "https://github.com/asterinas/vostd/pull/530#discussion_r3419069655",
+    "related_comment_ids": ["3419069655", "3419075088"],
+    "sources": [
+      {"kind": "review-comment", "id": "3419069655", "url": "https://github.com/asterinas/vostd/pull/530#discussion_r3419069655", "commit_id": "3574febda9d04adbcd5fa291e72ac57552f71eb3"},
+      {"kind": "review-comment", "id": "3419075088", "url": "https://github.com/asterinas/vostd/pull/530#discussion_r3419075088", "commit_id": "3574febda9d04adbcd5fa291e72ac57552f71eb3"}
+    ],
+    "verification": "source-only; historical Verus not executed. Read the complete generic trait contract, the existing x86-specific lemma and both review comments; cross-checked the same unresolved abstraction failure in the superseding PR #532."
+  }]
+}

@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-382-045fa97a6577",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-382-045fa97a6577:review-comment-3000945837",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "lock_range removes its retry loop and unwraps a traversal result that can be None when a stray node is encountered.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "start_line": 67,
+          "end_line": 84
+        }
+      ],
+      "rationale": "The selected review commit leaves the documented retry loop commented out, calls `try_traverse_and_lock_subtree_root` once, proves `Some` only through the contradictory external specification, and then executes `unwrap()`. The implementation of the traversal returns `None` at lines 260-261 and 327-328 when it detects a stray node. Therefore a valid race/stray-node execution reaches `unwrap()` with `None` instead of retrying, violating the function's own documented behavior and causing a runtime panic. The force-pushed final PR head drops this entire commit, so the issue belongs only to this historical snapshot.",
+      "source_evidence": "after/ostd/src/mm/page_table/cursor/locking.rs\n67: // The re-try loop of finding the sub-tree root.\n73: /*\n74: let mut subtree_root = loop {\n75:     if let Some(subtree_root) = try_traverse_and_lock_subtree_root(pt, guard, va) {\n76:         break subtree_root;\n77:     }\n78: };\n79: */\n81: let subtree_root = try_traverse_and_lock_subtree_root(pt, guard, va);\n83: assert(subtree_root is Some);\n84: let subtree_root = subtree_root.unwrap();\n\n260-261 and 327-328: `if is_stray { return None; }`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945837",
+      "related_comment_ids": [
+        "3000945837"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3000945837",
+          "url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945837",
+          "commit_id": "045fa97a6577a98e3133c4e6fbf995840e0ff5a2"
+        }
+      ],
+      "verification": "source-only; historical Rust/Verus not executed. Inspected the fixed original review commit, traced both concrete None return paths to the single-call unwrap, and confirmed the final PR head force-pushed this commit away."
+    },
+    {
+      "id": "pr-382-045fa97a6577:review-comment-3000945881",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The external specification guarantees Some even though the implementation explicitly returns None for stray nodes.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "start_line": 149,
+          "end_line": 188
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "start_line": 252,
+          "end_line": 261
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "start_line": 319,
+          "end_line": 328
+        }
+      ],
+      "rationale": "The rustdoc says stray detection returns `None` so the caller can retry, and the external-body implementation has two such returns. Nevertheless its `#[verus_spec]` unconditionally ensures `r is Some`. Because Verus trusts an external-body contract without checking the implementation, callers can prove `Some` for executions that return `None`, invalidating the verification boundary. This is distinct from the caller's runtime unwrap: the contract itself is unsound for every verification client. The final PR head removes the force-pushed locking commit.",
+      "source_evidence": "after/ostd/src/mm/page_table/cursor/locking.rs\n155: /// If this function founds that a locked node is stray ...\n156: /// page table recycling), it will return `None`. The caller should retry ...\n165: ensures\n166:     r is Some,\n183: #[verifier::external_body]\n184: fn try_traverse_and_lock_subtree_root...\n\n260-261: if is_stray { return None; }\n327-328: if is_stray { return None; }",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945881",
+      "related_comment_ids": [
+        "3000945881"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3000945881",
+          "url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945881",
+          "commit_id": "045fa97a6577a98e3133c4e6fbf995840e0ff5a2"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Directly compared the trusted contract with both executable None branches at the fixed review commit and confirmed the commit was later force-pushed out."
+    },
+    {
+      "id": "pr-382-045fa97a6577:review-comment-3000945911",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "lock_range drops the invariant, in_locked_range, and strict guard-level postconditions required by its callers.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/cursor/locking.rs",
+          "start_line": 33,
+          "end_line": 56
+        }
+      ],
+      "rationale": "The base contract guarantees that the returned cursor satisfies its invariants, that its owner is in the locked range, and that its level is strictly below the guard level. The selected review commit removes all three and retains only `level <= guard_level` plus address/frame facts. Callers such as cursor construction rely on the stronger properties to establish their success contracts; the weakened function contract no longer provides those proof facts, so the downstream API cannot be verified against its declared guarantees. This review commit was later force-pushed out rather than merged.",
+      "source_evidence": "before/ostd/src/mm/page_table/cursor/locking.rs\n43: ensures\n44:     ret.0.invariants(*ret.1, *regions, *guards),\n45:     (*ret.1).in_locked_range(),\n46:     ret.0.level < ret.0.guard_level,\n\nafter/ostd/src/mm/page_table/cursor/locking.rs\n43: ensures\n44:     ret.0.level <= ret.0.guard_level,\n45:     ret.0.va < ret.0.barrier_va.end,\n...\n56: )]",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945911",
+      "related_comment_ids": [
+        "3000945911"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3000945911",
+          "url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945911",
+          "commit_id": "045fa97a6577a98e3133c4e6fbf995840e0ff5a2"
+        }
+      ],
+      "verification": "source-only; historical Verus not executed. Compared the before/after contracts at the selected review commit, checked the named downstream obligations in fixed source, and confirmed the commit was force-pushed out."
+    }
+  ]
+}
