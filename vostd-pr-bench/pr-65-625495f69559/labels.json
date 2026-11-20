@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-65-625495f69559:commit-fix-58149432cd448cd6c116e581461d3379c4e2c73b-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Both PageFlags::RW implementations map specification calls to X_spec, so proofs observe execute-only bits 4 instead of the executable read/write bits 3.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/pte/page_prop.rs",
+          "start_line": 260,
+          "end_line": 272
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_prop.rs",
+          "start_line": 253,
+          "end_line": 265
+        }
+      ],
+      "rationale": "At the selected problem snapshot, both RW bodies and their RW_spec functions compute R|W = 0b001|0b010 = 3, but #[verifier::when_used_as_spec(X_spec)] redirects a specification call to X_spec = 0b100 = 4. The first repair commit replaces the exec/rw copy with an exact allow_in_spec return expression; the final repair commit does the same for the mm copy. The identical copied annotation error is one root with two locations.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/pte/page_prop.rs:260-272\nRW_spec returns Self { bits: R().bits() | W().bits() }, but RW is annotated #[verifier::when_used_as_spec(X_spec)].\n\nafter/lock-protocol/src/mm/page_prop.rs:253-265\nThe second PageFlags copy repeats the same RW_spec=R|W and when_used_as_spec(X_spec) mismatch.\n\nrepair/lock-protocol/src/exec/rw/pte/page_prop.rs @ a8491dff31e06a219b0c4be65771cdc7fee7de72\nRW becomes allow_in_spec with an exact return of R().bits() | W().bits().\n\nrepair/lock-protocol/src/mm/page_prop.rs @ 58149432cd448cd6c116e581461d3379c4e2c73b\nThe remaining copy becomes allow_in_spec with the same exact R|W return.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/58149432cd448cd6c116e581461d3379c4e2c73b",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "58149432cd448cd6c116e581461d3379c4e2c73b:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/58149432cd448cd6c116e581461d3379c4e2c73b",
+          "commit_id": "58149432cd448cd6c116e581461d3379c4e2c73b"
+        }
+      ],
+      "verification": "Source review and a Verus 0b6f3cbb/Rust 1.88/Z3 4.12.5 micro-harness: 5 verified, 0 errors; the bad form proves RW().bits == 4 and != 3, while the repaired form proves == 3. Full target: problem 494 verified/0 errors and final 496/0 errors; these passes do not expose a trusted when_used_as_spec redirection. The verifier revision postdates the PR and is compatibility evidence only."
+    }
+  ],
+  "sample_id": "pr-65-625495f69559"
+}

@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 3,
-  "inline_review_comment_count": 0,
-  "review_count": 0,
-  "core_lesson": "从指针导出地址，避免维护两个可能不一致的身份字段",
-  "category": "所有权与生命周期",
-  "all_content_unadjudicated": true
-}

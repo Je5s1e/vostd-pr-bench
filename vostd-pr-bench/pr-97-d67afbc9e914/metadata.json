@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-97-d67afbc9e914",
+  "pr_number": 97,
+  "title": "Prove align_down and part of move_forward",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/97",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "cd3814905fc435b61a7d403fe7e3b1755dd8225d",
+  "head_sha": "d67afbc9e914dc05b2a59d8d76d8d22d203badfe",
+  "base_method": "Use the selected problem snapshot and its immutable direct historical parent. This truthful non-empty comparison contains the approved byte-wise cursor-progress root in a mechanically changed path. Unchanged align_ext.rs is not added as a changed path or additional context under the current narrow policy.",
+  "archive_base_sha": "f3a2503705b582fd74d69aab2ce3622c8e516aa5",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "lock-protocol/src/mm/page_table/node/entry.rs"
+  ],
+  "diff_sha256": "8a9384727def753bb765d2e0c3cc30087746e49bc7d6ebe401693dda0ad02bd1",
+  "versions": {
+    "before": {
+      "commit": "cd3814905fc435b61a7d403fe7e3b1755dd8225d",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "d67afbc9e914dc05b2a59d8d76d8d22d203badfe",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T14:37:03.024951+00:00",
+    "reviewed_at": "2026-11-19T14:30:49Z",
+    "upstream_updated_at": "2025-07-18T09:09:34Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/97",
+      "https://github.com/asterinas/vostd/commit/8499a98174592cdc7c24ad951e82fa45bece61b9"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00097"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected immutable problem d67afbc9e914dc05b2a59d8d76d8d22d203badfe and direct historical parent cd3814905fc435b61a7d403fe7e3b1755dd8225d; only the changed-path byte-wise cursor-progress root is labeled.",
+    "zero_issues_meaning": "Not applicable; this case contains one independently adjudicated semantic runtime-progress issue.",
+    "source_export": "Regenerate the full-index binary diff for cd3814905fc435b61a7d403fe7e3b1755dd8225d..d67afbc9e914dc05b2a59d8d76d8d22d203badfe and byte-check every manifest entry against fixed Git blobs. No additional context is exported.",
+    "tool_result": "Independent review approved one exportable semantic root: move_forward is a no-op while take_next compensates with one-byte increments, causing unaligned byte-wise scanning instead of next-PTE progress. Repair 8499a981 implements aligned page-wise progress and removes all three +1 compensations. The distinct align_down proof-boundary root is confirmed but deferred because unchanged align_ext.rs is outside the current narrow additional-context policy; it is not labeled or represented as changed. Historical Verus was not executed."
+  },
+  "additional_context_paths": [],
+  "verification_summary": "Independent review approved one exportable semantic root: move_forward is a no-op while take_next compensates with one-byte increments, causing unaligned byte-wise scanning instead of next-PTE progress. Repair 8499a981 implements aligned page-wise progress and removes all three +1 compensations. The distinct align_down proof-boundary root is confirmed but deferred because unchanged align_ext.rs is outside the current narrow additional-context policy; it is not labeled or represented as changed. Historical Verus was not executed."
+}

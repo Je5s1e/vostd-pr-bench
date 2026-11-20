@@ -7,7 +7,7 @@
       "id": "pr-718-80dcb9bc16eb:issue-3920632755",
       "original_label_id": "3920632755",
       "category": "guideline",
-      "description": "`Seq` has a `Seq::any` method that encapsulates this `exists`, that may be cleaner.",
+      "description": "The sequence-union membership contract spells out an indexed existential instead of using the equivalent Seq::any predicate.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
       "id": "pr-718-80dcb9bc16eb:issue-3920681960",
       "original_label_id": "3920681960",
       "category": "guideline",
-      "description": "This forall clause can be expressed by `Seq::all`.",
+      "description": "The nonempty-range postcondition spells out an indexed universal instead of using Seq::all for that element-wise property.",
       "locations": [
         {
           "version": "after",
@@ -55,7 +55,7 @@
       "id": "pr-718-80dcb9bc16eb:issue-3920738708",
       "original_label_id": "3920738708",
       "category": "guideline",
-      "description": "This function is used only once, you can inline it in the following proof.",
+      "description": "The private lemma_seq_range_union_small helper has only one caller and can be kept local to that proof instead of expanding the module proof API.",
       "locations": [
         {
           "version": "after",

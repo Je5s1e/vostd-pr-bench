@@ -16,7 +16,7 @@
     "verified_libs/vstd_extra/src/external/mod.rs",
     "verified_libs/vstd_extra/src/lib.rs"
   ],
-  "diff_sha256": "c1b369e15149956612daa1a5bca216b00790e580cb2426be59c41869f620f246",
+  "diff_sha256": "399a70b717c910dec9c5608db3a4c9fbadb2713601469b6c3fcf4d054abd4673",
   "versions": {
     "before": {
       "commit": "e87443ef658488349d1f3625923a5bec1c9bb967",

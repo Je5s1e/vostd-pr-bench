@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-237-24bb220c7879",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-237-24bb220c7879:commit-fix-8488536c7972ae7e223853e2722efbe7f609988f-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The align-up arithmetic theorem and the executable AlignExt::align_up contract are accepted through admit, so callers receive lower-bound, divisibility, least-aligned-value, and nat_align_up equality guarantees that are not checked against the rounding implementation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/arithmetic.rs",
+          "start_line": 23,
+          "end_line": 34
+        },
+        {
+          "version": "after",
+          "path": "ostd/libs/align_ext/src/lib.rs",
+          "start_line": 55,
+          "end_line": 69
+        }
+      ],
+      "rationale": "The selected problem snapshot introduces a public arithmetic lemma whose proof body is admit and an unsigned-integer align_up implementation whose specification is discharged by a second admit. The repair chain first proves the nat rounding lemma, then removes the method admit while temporarily assuming the mask/modulo bridge, and finally proves that bridge. Commit 8488536c7972ae7e223853e2722efbe7f609988f is the first reviewed snapshot where the complete public align-up contract is checked without admit or assume.",
+      "source_evidence": "after/vstd_extra/src/arithmetic.rs:23-34 contains lemma_nat_align_up_sound with admit at line 33; after/ostd/libs/align_ext/src/lib.rs:55-69 specifies AlignExt::align_up and contains proof!{admit();} at line 68. Commits dfb8afc4a1ae4bb26b44f6a88eae192399c264e5 and 033aeb13a36590557a769f5a2044188778dfbddd partially repair the proof, and 8488536c7972ae7e223853e2722efbe7f609988f removes the remaining trust assumption.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/8488536c7972ae7e223853e2722efbe7f609988f",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "8488536c7972ae7e223853e2722efbe7f609988f:root-1",
+          "commit_id": "8488536c7972ae7e223853e2722efbe7f609988f",
+          "url": "https://github.com/asterinas/vostd/commit/8488536c7972ae7e223853e2722efbe7f609988f"
+        }
+      ],
+      "verification": "Primary and independent second review confirmed the repair chain and this root's independence from align-down. Historical Verus was not executed; the finding is source- and fixed-Git-history-adjudicated."
+    },
+    {
+      "id": "pr-237-24bb220c7879:commit-fix-8488536c7972ae7e223853e2722efbe7f609988f-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The align-down arithmetic theorem and the executable AlignExt::align_down contract are accepted through admit, so callers receive upper-bound, divisibility, greatest-aligned-value, and nat_align_down equality guarantees without a checked proof for the masking implementation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/arithmetic.rs",
+          "start_line": 36,
+          "end_line": 47
+        },
+        {
+          "version": "after",
+          "path": "ostd/libs/align_ext/src/lib.rs",
+          "start_line": 73,
+          "end_line": 86
+        }
+      ],
+      "rationale": "The selected problem snapshot introduces a separate public align-down theorem with an admit and a masking implementation whose contract is discharged by another admit. Commit 5152c6a7261e9ca2df511d4f42b98239a93d418d proves the nat theorem, and 8488536c7972ae7e223853e2722efbe7f609988f removes the public method admit using checked mask/modulo and bit-vector reasoning. This is independent from align-up because it establishes the opposite extremal property for a distinct public operation.",
+      "source_evidence": "after/vstd_extra/src/arithmetic.rs:36-47 contains lemma_nat_align_down_sound with admit at line 46; after/ostd/libs/align_ext/src/lib.rs:73-86 specifies AlignExt::align_down and contains proof!{admit();} at line 85. Commit 5152c6a7261e9ca2df511d4f42b98239a93d418d proves the arithmetic lemma, and 8488536c7972ae7e223853e2722efbe7f609988f completes the public method proof.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/8488536c7972ae7e223853e2722efbe7f609988f",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "8488536c7972ae7e223853e2722efbe7f609988f:root-2",
+          "commit_id": "8488536c7972ae7e223853e2722efbe7f609988f",
+          "url": "https://github.com/asterinas/vostd/commit/8488536c7972ae7e223853e2722efbe7f609988f"
+        }
+      ],
+      "verification": "Primary and independent second review confirmed the repair chain and this root's independence from align-up. Historical Verus was not executed; the finding is source- and fixed-Git-history-adjudicated."
+    }
+  ]
+}

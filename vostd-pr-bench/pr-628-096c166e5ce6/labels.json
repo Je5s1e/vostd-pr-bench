@@ -7,7 +7,7 @@
       "id": "pr-628-096c166e5ce6:issue-3577128689",
       "original_label_id": "3577128689",
       "category": "guideline",
-      "description": "Complete signature and ensures mutate tracked MetaRegionOwners/LinkedListOwner and transfer frame permissions. name-proof-roles specifically requires tracked_ for resource-transform helpers, not lemma_ factual-proof prefix. Reviewer premise of missing role prefix is supported; preserve correction distinction.",
+      "description": "The embedded linked-list ownership helpers mutate tracked owners and transfer frame permissions but lack the tracked_ resource-role prefix.",
       "locations": [
         {
           "version": "after",

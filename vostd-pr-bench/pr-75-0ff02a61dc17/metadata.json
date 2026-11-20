@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-75-0ff02a61dc17",
+  "pr_number": 75,
+  "title": "Prove unused_pte_addrs contains cur_entry.pte's pte_paddr",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/75",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "8ed4154f39be3bedde17ba115f01eeec971b110d",
+  "head_sha": "0ff02a61dc178b89bef4d2c31794093fc3683089",
+  "base_method": "Use the selected problem commit's immutable first parent. This yields a truthful non-empty parent-to-problem comparison. It contains the first PR cleanup commit, not the later repair diff; the labeled cursor file is therefore exported as fixed additional context at the problem SHA.",
+  "archive_base_sha": "8ed4154f39be3bedde17ba115f01eeec971b110d",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/spec/sub_page_table.rs"
+  ],
+  "diff_sha256": "120a8150430928f01ee615a3e179a12cf967171b6b97ee2c653a33cc23aaf134",
+  "versions": {
+    "before": {
+      "commit": "8ed4154f39be3bedde17ba115f01eeec971b110d",
+      "file_count": 6,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "0ff02a61dc178b89bef4d2c31794093fc3683089",
+      "file_count": 6,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T14:18:18.907405+00:00",
+    "reviewed_at": "2026-11-19T13:56:33Z",
+    "upstream_updated_at": "2025-07-13T08:08:02Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/75",
+      "https://github.com/asterinas/vostd/commit/ea0e7a3b4febd1988c10a6fceba3e492236c0d65"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00075"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected immutable problem commit 0ff02a61dc178b89bef4d2c31794093fc3683089 and its direct parent 8ed4154f39be3bedde17ba115f01eeec971b110d; the repair commit is evidence, not the exported after snapshot.",
+    "zero_issues_meaning": "Not applicable; this case contains one independently adjudicated semantic trusted-boundary issue.",
+    "source_export": "Regenerate the full-index binary diff for 8ed4154f39be3bedde17ba115f01eeec971b110d..0ff02a61dc178b89bef4d2c31794093fc3683089 and byte-check every manifest entry against fixed Git blobs; five repair-context paths are exported as additional_context_paths.",
+    "tool_result": "Two independent reviewers confirmed one trusted-boundary semantic root: the intermediate Child::None allocation path assumes ownership-map membership immediately before tracked_remove. Repair ea0e7a3 strengthens the SPT/token complement relation, carries it through the loop, and removes this exact assumption. Historical Verus was not executed; the result is source adjudication of a repaired explicit trust boundary."
+  },
+  "additional_context_paths": [
+    "lock-protocol/src/mm/mod.rs",
+    "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "lock-protocol/src/mm/page_table/cursor/spec_helpers.rs",
+    "lock-protocol/src/mm/page_table/mod.rs",
+    "lock-protocol/src/mm/page_table/node/mod.rs"
+  ],
+  "verification_summary": "Two independent reviewers confirmed one trusted-boundary semantic root: the intermediate Child::None allocation path assumes ownership-map membership immediately before tracked_remove. Repair ea0e7a3 strengthens the SPT/token complement relation, carries it through the loop, and removes this exact assumption. Historical Verus was not executed; the result is source adjudication of a repaired explicit trust boundary."
+}

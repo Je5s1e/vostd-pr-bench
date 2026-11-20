@@ -54,7 +54,7 @@
     "vstd_extra/src/external/slice.rs",
     "vstd_extra/src/panic.rs"
   ],
-  "diff_sha256": "cdf76fd12da95a32bf1457c07a19cb30deab87fd07664c87709caf7cfb447654",
+  "diff_sha256": "da9ca657055e0aae7a68ad3f093cd8559839b2d478e807adde5f7f07b80655b3",
   "versions": {
     "before": {
       "commit": "064c5f5b202cc6df2e179ccade47226cbd68e68f",

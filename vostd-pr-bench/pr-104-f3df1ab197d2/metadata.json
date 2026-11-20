@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-104-f3df1ab197d2",
+  "pr_number": 104,
+  "title": "Prove pop_level",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/104",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "226216829fef719b26702437783c7f8fc2f05ff8",
+  "head_sha": "f3df1ab197d2ca02f997b992c5d6029ca3c3f99a",
+  "base_method": "Use the selected problem commit and the immutable direct parent of the first official PR commit. The archive records a later baseRefOid, but its merge-base with final and the actual first-parent base are both 226216829fef719b26702437783c7f8fc2f05ff8. The selected problem is also PR #103's final head; PR #104 retains it as the problem because its final official commit supplies the first in-PR repair.",
+  "archive_base_sha": "b45fdf7ac1618a257651c474d1c7b32546ee1ed0",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/mm/page_table/cursor/mod.rs"
+  ],
+  "diff_sha256": "0e60b6b792ae4d941fbc34f4fca723e0c2f86ab1ac61ee6f90aa14dd232ab6eb",
+  "versions": {
+    "before": {
+      "commit": "226216829fef719b26702437783c7f8fc2f05ff8",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "f3df1ab197d2ca02f997b992c5d6029ca3c3f99a",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T15:10:22.087090+00:00",
+    "reviewed_at": "2026-11-19T15:04:58Z",
+    "upstream_updated_at": "2025-07-22T14:06:48Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/104",
+      "https://github.com/asterinas/vostd/commit/1b93c8f936ebbdd8a9aa6119a09182616639e825",
+      "https://github.com/asterinas/vostd/pull/103"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00104"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected immutable problem f3df1ab197d2ca02f997b992c5d6029ca3c3f99a and fixed comparison base 226216829fef719b26702437783c7f8fc2f05ff8; repair/final 1b93c8f936ebbdd8a9aa6119a09182616639e825 is evidence only.",
+    "zero_issues_meaning": "Not applicable; this case contains one independently adjudicated semantic level-transition issue.",
+    "source_export": "Regenerate the full-index binary diff for 226216829fef719b26702437783c7f8fc2f05ff8..f3df1ab197d2ca02f997b992c5d6029ca3c3f99a and byte-check every manifest entry against fixed Git blobs. No additional context is exported.",
+    "tool_result": "Two independent reviewers approved one semantic level-transition root. At the problem snapshot, move_forward leaves its cross-node upward loop disabled, and the dormant pop_level increments level without clearing the departed guard slot. These are two necessary pieces of one transition failure and are repaired atomically by 1b93c8f. The root is attributed only to PR #104, which owns the repair, not to the shared PR #103 problem history; it is distinct from PR #97's byte-progress repair. Final still contains an inclusive current-level PTE-index equality assume, which is unresolved and excluded from labels and prevents a no-findings interpretation. Historical Rust/Verus was not executed."
+  },
+  "additional_context_paths": [],
+  "verification_summary": "Two independent reviewers approved one semantic level-transition root. At the problem snapshot, move_forward leaves its cross-node upward loop disabled, and the dormant pop_level increments level without clearing the departed guard slot. These are two necessary pieces of one transition failure and are repaired atomically by 1b93c8f. The root is attributed only to PR #104, which owns the repair, not to the shared PR #103 problem history; it is distinct from PR #97's byte-progress repair. Final still contains an inclusive current-level PTE-index equality assume, which is unresolved and excluded from labels and prevents a no-findings interpretation. Historical Rust/Verus was not executed.",
+  "deduplication": {
+    "identity_fields": [
+      "repository",
+      "base_sha",
+      "head_sha"
+    ],
+    "related_pr_numbers": [
+      103,
+      104
+    ],
+    "merged_cases": [
+      {
+        "sample_id": "pr-103-f3df1ab197d2",
+        "pr_number": 103,
+        "url": "https://github.com/asterinas/vostd/pull/103",
+        "title": "More complete path_wf",
+        "original_status": "pending_verification",
+        "original_issue_count": 0,
+        "archive_path": "resource/deduplication/20261120T091948Z/removed-cases/pr-103-f3df1ab197d2"
+      }
+    ],
+    "reason": "Identical fixed before/after commits, exported source trees and diff. Retain the labeled case; for two pending cases retain the merged upstream PR. Original metadata and labels archived; no issue provenance reassigned."
+  }
+}

@@ -15,7 +15,7 @@
     "Cargo.lock",
     "ostd/src/util/range_alloc.rs"
   ],
-  "diff_sha256": "a393ef008c2928255e385896faee9df62831e7dd2299d36831174887badf75ce",
+  "diff_sha256": "61be8bf481462eae537bd860ccaa0146d56958c4a7d96ba77a9ec7a84d703250",
   "versions": {
     "before": {
       "commit": "d445e8281c8530db8186001f2dd220e5b96baea6",

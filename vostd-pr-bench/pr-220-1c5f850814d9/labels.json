@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-220-1c5f850814d9",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-220-1c5f850814d9:commit-fix-cfcd9e87ed0da9aed525d3155885f1131c74733f-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Both shell if/then/else blocks in the verification workflow omit their closing fi.",
+      "locations": [
+        {"version": "after", "path": ".github/workflows/verus-update-test.yml", "start_line": 32, "end_line": 40},
+        {"version": "after", "path": ".github/workflows/verus-update-test.yml", "start_line": 50, "end_line": 58}
+      ],
+      "rationale": "The two GitHub Actions run scripts are syntactically incomplete, so the main and phaseII verification steps cannot reach their intended result handling. The first PR commit adds both fi tokens.",
+      "source_evidence": "The fixed after workflow has an else branch at lines 38-39 and another at 56-57 with no closing fi. Repair cfcd9e87 adds a fi after each branch.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/cfcd9e87ed0da9aed525d3155885f1131c74733f",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "cfcd9e87ed0da9aed525d3155885f1131c74733f:root-1", "commit_id": "cfcd9e87ed0da9aed525d3155885f1131c74733f", "url": "https://github.com/asterinas/vostd/commit/cfcd9e87ed0da9aed525d3155885f1131c74733f"}
+      ],
+      "verification": "Fixed workflow and direct repair-diff analysis. Historical workflow execution was not performed."
+    }
+  ]
+}

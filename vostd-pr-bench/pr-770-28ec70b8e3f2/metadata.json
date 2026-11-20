@@ -26,7 +26,7 @@
     "verified_libs/vstd_extra/src/external/smallvec.rs",
     "verified_libs/vstd_extra/src/lib.rs"
   ],
-  "diff_sha256": "1935f63eb0506706ba25c9d1e53944a6488bbe960d90330897c6b24636a6d1bd",
+  "diff_sha256": "59e4da18f62bb42f47d9281c037b4695d3b8cab5dda15739c12198fe89bf82a0",
   "versions": {
     "before": {
       "commit": "cf3be3cd8ce55aa06fecb0381b769f9929956c03",
@@ -59,5 +59,17 @@
       ]
     }
   },
-  "known_issue_count": 2
+  "known_issue_count": 2,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "28ec70b8e3f2124f4fd6c0060cbaa506f963a673",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/28ec70b8e3f2124f4fd6c0060cbaa506f963a673/docs/coding-guidelines/proof-engineering.md#L174",
+        "rule_id": "quantifiers-and-triggers",
+        "line": 174,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

@@ -7,7 +7,7 @@
       "id": "pr-632-1be8099780ff:issue-3594255389",
       "original_label_id": "3594255389",
       "category": "semantic",
-      "description": "@DID-Lab-SZU @hiroki-chen @Marsman1996. I find this modification is unsound. `frame_obligations` is used to track the `DropObligations` (which is also tracked) that are given to frames. If we change this field to ghost, then `MetaRegionOwners` will lose this track because it can be arbitrarily modified.",
+      "description": "The ghost frame_obligations ledger can be cleared without consuming outstanding tracked DropObligation tokens, undermining the clean-boundary accounting.",
       "locations": [
         {
           "version": "after",

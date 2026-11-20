@@ -19,7 +19,7 @@
     "ostd/src/mm/page_table/mod.rs",
     "ostd/src/mm/vm_space.rs"
   ],
-  "diff_sha256": "8aa5508aa676b0ecfbe24aa69ae53659ddf63cba9e92bf42355ffcaf44f8c6d1",
+  "diff_sha256": "ff4747586ff24a8e5dc953a82bf274ffb13fb79e9f8953c0024d90483bebba5b",
   "versions": {
     "before": {
       "commit": "9f303a1bdce25c7def21ce28b60a7d4f84217262",

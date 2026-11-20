@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-233-9d89be46b390",
+  "pr_number": 233,
+  "title": "Remove `vstd_extra::functional_properties::injective_on` with `vstd::relations::injective_on`",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/233",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd",
+  "head_sha": "9d89be46b390baf213ffca2b82183f6ef253020c",
+  "base_method": "Direct-parent incremental comparison: 8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd is the sole parent of selected problem commit 9d89be46b390baf213ffca2b82183f6ef253020c; direct repair aa2547b7ff107ddfdfb3ac756740473faeb3e093 is its sole child.",
+  "archive_base_sha": "8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "vstd_extra/src/function_properties.rs"
+  ],
+  "diff_sha256": "69af1e1f893e52024d67da978bbb82d217952711a7b8d9b07a16d8fe695e4515",
+  "versions": {
+    "before": {
+      "commit": "8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd",
+      "file_count": 5,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "9d89be46b390baf213ffca2b82183f6ef253020c",
+      "file_count": 5,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T12:21:42.314773+00:00",
+    "reviewed_at": "2026-11-20T12:14:10Z",
+    "upstream_updated_at": "2025-11-25T02:46:38Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/233",
+      "https://github.com/asterinas/vostd/commit/aa2547b7ff107ddfdfb3ac756740473faeb3e093"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00233"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected the direct parent of repair aa2547b7ff107ddfdfb3ac756740473faeb3e093. The evaluation comparison is the problem commit's sole parent 8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd to problem commit 9d89be46b390baf213ffca2b82183f6ef253020c.",
+    "zero_issues_meaning": "Not applicable; the case contains one independently adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary problem diff regenerated. The unchanged caller and re-export module are explicitly included as additional context.",
+    "double_review": "Primary candidate review and independent second review both confirmed one semantic name-resolution root."
+  },
+  "additional_context_paths": [
+    "lock-protocol-rcu/src/spec/utils.rs",
+    "vstd_extra/src/prelude.rs"
+  ]
+}

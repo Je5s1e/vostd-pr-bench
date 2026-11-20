@@ -1,5 +1,5 @@
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index f29416f9e..a8554c81f 100644
+index f29416f9e1123ec03031c189ece756ccebfe66ec..a8554c81f960962a329bcb4b5289d141464984a6 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -36,6 +36,7 @@ pub mod map_extra;
@@ -12,7 +12,7 @@ index f29416f9e..a8554c81f 100644
  pub mod spec_operators;
 diff --git a/verified_libs/vstd_extra/src/rcu_read_lease.rs b/verified_libs/vstd_extra/src/rcu_read_lease.rs
 new file mode 100644
-index 000000000..84b5c439e
+index 0000000000000000000000000000000000000000..84b5c439ef02016e0044a3a61f484aab0792c48b
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/rcu_read_lease.rs
 @@ -0,0 +1,914 @@

@@ -1,0 +1,409 @@
+diff --git a/aster_common/src/page/meta/page_meta.rs b/aster_common/src/page/meta/page_meta.rs
+index cac375ccfff8cb1e615d27606aeb466207b12dab..f7a032e449cdf072eac0401fd2e860308b88c942 100644
+--- a/aster_common/src/page/meta/page_meta.rs
++++ b/aster_common/src/page/meta/page_meta.rs
+@@ -52,7 +52,6 @@ impl PageMeta for FrameMeta {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(USAGE_spec)]
+     fn USAGE() -> (res: PageUsage)
+         ensures
+             res == Self::USAGE_spec(),
+@@ -141,7 +140,6 @@ impl PageMeta for PageTablePageMeta {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(USAGE_spec)]
+     fn USAGE() -> (res: PageUsage)
+         ensures
+             res == Self::USAGE_spec(),
+@@ -222,7 +220,6 @@ impl PageMeta for MetaPageMeta {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(USAGE_spec)]
+     fn USAGE() -> (res: PageUsage)
+         ensures
+             res == Self::USAGE_spec(),
+@@ -260,7 +257,6 @@ impl PageMeta for KernelMeta {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(USAGE_spec)]
+     fn USAGE() -> (res: PageUsage)
+         ensures
+             res == Self::USAGE_spec(),
+diff --git a/aster_common/src/page_table/page_table_mode.rs b/aster_common/src/page_table/page_table_mode.rs
+index e5c18e3f8381e2fc733d02d081715001d12ecd82..86db5a7ce6be7559423bd3b5491480f240eec343 100644
+--- a/aster_common/src/page_table/page_table_mode.rs
++++ b/aster_common/src/page_table/page_table_mode.rs
+@@ -60,7 +60,6 @@ impl PageTableMode for UserMode {
+         0..MAX_USERSPACE_VADDR()
+     }
+ 
+-    #[verifier::when_used_as_spec(VADDR_RANGE_spec)]
+     #[inline(always)]
+     #[allow(non_snake_case)]
+     fn VADDR_RANGE() -> (res: Range<Vaddr>)
+@@ -91,7 +90,6 @@ impl PageTableMode for KernelMode {
+         KERNEL_VADDR_RANGE()
+     }
+ 
+-    #[verifier::when_used_as_spec(VADDR_RANGE_spec)]
+     #[inline(always)]
+     #[allow(non_snake_case)]
+     fn VADDR_RANGE() -> (res: Range<Vaddr>)
+diff --git a/aster_common/src/x86_64/page_table_entry.rs b/aster_common/src/x86_64/page_table_entry.rs
+index e8cac0173cac791c211d1bc3efff82cb5a14077b..cba7af00cc2690ce87422d73cd47a39e442aaff1 100644
+--- a/aster_common/src/x86_64/page_table_entry.rs
++++ b/aster_common/src/x86_64/page_table_entry.rs
+@@ -224,7 +224,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(default_spec)]
+     fn default() -> (res: Self)
+         ensures res == Self::default_spec()
+     {
+@@ -237,7 +236,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(new_absent_spec)]
+     fn new_absent() -> (res: Self)
+         ensures res == Self::new_absent_spec()
+     {
+@@ -250,7 +248,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(as_value_spec)]
+     fn as_value(&self) -> (res: u64)
+             ensures res == self.as_value_spec()
+     {
+@@ -263,7 +260,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(is_present_spec)]
+     fn is_present(&self) -> (res: bool)
+         ensures res == self.is_present_spec()
+     {
+@@ -316,7 +312,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(paddr_spec)]
+     fn paddr(&self) -> (res: Paddr)
+         ensures res == self.paddr_spec()
+     {
+@@ -329,7 +324,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(prop_spec)]
+     fn prop(&self) -> (res: PageProperty)
+         ensures res == self.prop_spec()
+     {
+@@ -342,7 +336,6 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(is_last_spec)]
+     fn is_last(&self, level: PagingLevel) -> (res: bool)
+         ensures res == self.is_last_spec(level)
+     {
+diff --git a/aster_common/src/x86_64/paging_consts.rs b/aster_common/src/x86_64/paging_consts.rs
+index 923c3f190a611ee5ee698986917cfcfa185d8114..f8b2210f0e8081afe098978e947ff382a205420e 100644
+--- a/aster_common/src/x86_64/paging_consts.rs
++++ b/aster_common/src/x86_64/paging_consts.rs
+@@ -27,7 +27,6 @@ impl PagingConstsTrait for PagingConsts {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(BASE_PAGE_SIZE_spec)]
+     fn BASE_PAGE_SIZE() -> (res: usize)
+         ensures
+             res == Self::BASE_PAGE_SIZE_spec(),
+@@ -45,7 +44,6 @@ impl PagingConstsTrait for PagingConsts {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(NR_LEVELS_spec)]
+     fn NR_LEVELS() -> (res: PagingLevel)
+         ensures
+             res == Self::NR_LEVELS_spec(),
+@@ -60,7 +58,6 @@ impl PagingConstsTrait for PagingConsts {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(ADDRESS_WIDTH_spec)]
+     fn ADDRESS_WIDTH() -> (res: usize)
+         ensures
+             res == Self::ADDRESS_WIDTH_spec(),
+@@ -75,7 +72,6 @@ impl PagingConstsTrait for PagingConsts {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(HIGHEST_TRANSLATION_LEVEL_spec)]
+     fn HIGHEST_TRANSLATION_LEVEL() -> (res: PagingLevel)
+         ensures
+             res == Self::HIGHEST_TRANSLATION_LEVEL_spec(),
+@@ -98,7 +94,6 @@ impl PagingConstsTrait for PagingConsts {
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(PTE_SIZE_spec)]
+     fn PTE_SIZE() -> (res: usize)
+         ensures
+             res == Self::PTE_SIZE_spec(),
+diff --git a/lock-protocol/src/exec/mod.rs b/lock-protocol/src/exec/mod.rs
+index 22a38027d0abf059c91c626df0216884de94981e..af4c141fa005e5a8c75a127836d2981352033842 100644
+--- a/lock-protocol/src/exec/mod.rs
++++ b/lock-protocol/src/exec/mod.rs
+@@ -105,10 +105,7 @@ impl PageTableEntryTrait for SimplePageTableEntry {
+         self.frame_pa != 0
+     }
+ 
+-    fn frame_paddr(&self) -> (res: usize)
+-        ensures
+-            res == self.frame_paddr_spec(),
+-    {
++    fn frame_paddr(&self) -> (res: usize) {
+         self.frame_pa as usize
+     }
+ 
+@@ -212,10 +209,7 @@ impl PageTableEntryTrait for SimplePageTableEntry {
+         res
+     }
+ 
+-    fn pte_paddr(&self) -> (res: Paddr)
+-        ensures
+-            res == self.pte_addr_spec(),
+-    {
++    fn pte_paddr(&self) -> (res: Paddr) {
+         self.pte_addr as Paddr
+     }
+ 
+diff --git a/lock-protocol/src/mm/page_table/mod.rs b/lock-protocol/src/mm/page_table/mod.rs
+index 9b2b41b7dc462c0a7a7a55ca997c35f9b93c8501..159c6f192e6e7802f78c30163c2dfef54f9716ee 100644
+--- a/lock-protocol/src/mm/page_table/mod.rs
++++ b/lock-protocol/src/mm/page_table/mod.rs
+@@ -212,17 +212,17 @@ Sized {
+     ///  - the physical address of the page it maps to;
+     ///  - the value of the token.
+     #[verifier::when_used_as_spec(frame_paddr_spec)]
+-    fn frame_paddr(&self) -> (res: Paddr)
+-        ensures
+-            res == self.frame_paddr_spec(),
++    fn frame_paddr(&self) -> Paddr
++        returns
++            self.frame_paddr_spec(),
+     ;
+ 
+     spec fn frame_paddr_spec(&self) -> Paddr;
+ 
+     #[verifier::when_used_as_spec(pte_addr_spec)]
+-    fn pte_paddr(&self) -> (res: Paddr)
+-        ensures
+-            res == self.pte_addr_spec(),
++    fn pte_paddr(&self) -> Paddr
++        returns
++            self.pte_addr_spec(),
+     ;
+ 
+     spec fn pte_addr_spec(&self) -> Paddr;
+@@ -276,10 +276,12 @@ Sized {
+ 
+     // /// The smallest page size.
+     // /// This is also the page size at level 1 page tables.
++    #[verifier::when_used_as_spec(BASE_PAGE_SIZE_SPEC)]
+     fn BASE_PAGE_SIZE() -> (res: usize)
+         ensures
+             res == Self::BASE_PAGE_SIZE_SPEC(),
+             res != 0,
++            res == Self::BASE_PAGE_SIZE_SPEC(),
+     ;
+ 
+     spec fn NR_LEVELS_SPEC() -> PagingLevel;
+@@ -289,11 +291,11 @@ Sized {
+     // /// the level 1 to 5 on AMD64 corresponds to Page Tables, Page Directory Tables,
+     // /// Page Directory Pointer Tables, Page-Map Level-4 Table, and Page-Map Level-5
+     // /// Table, respectively.
+-    fn NR_LEVELS() -> (res: PagingLevel)
+-        ensures
+-            res == Self::NR_LEVELS_SPEC(),
+-            res != 0,
+-    ;
++    #[verifier::when_used_as_spec(NR_LEVELS_SPEC)]
++    fn NR_LEVELS() -> PagingLevel
++        returns
++            Self::NR_LEVELS_SPEC(),
++    ;  // /
+     // The highest level that a PTE can be directly used to translate a VA.
+     // /// This affects the the largest page size supported by the page table.
+     // const HIGHEST_TRANSLATION_LEVEL: PagingLevel;
+@@ -318,11 +320,7 @@ impl PagingConstsTrait for PagingConsts {
+         4096
+     }
+ 
+-    #[verifier::when_used_as_spec(BASE_PAGE_SIZE_SPEC)]
+-    fn BASE_PAGE_SIZE() -> (res: usize)
+-        ensures
+-            res == Self::BASE_PAGE_SIZE_SPEC(),
+-    {
++    fn BASE_PAGE_SIZE() -> (res: usize) {
+         4096
+     }
+ 
+@@ -330,11 +328,7 @@ impl PagingConstsTrait for PagingConsts {
+         4
+     }
+ 
+-    #[verifier::when_used_as_spec(NR_LEVELS_SPEC)]
+-    fn NR_LEVELS() -> (res: PagingLevel)
+-        ensures
+-            res == Self::NR_LEVELS_SPEC(),
+-    {
++    fn NR_LEVELS() -> (res: PagingLevel) {
+         4
+     }
+     // const ADDRESS_WIDTH: usize = 48;
+diff --git a/vstd_extra/src/array_ptr.rs b/vstd_extra/src/array_ptr.rs
+index 68d32dd55edafac8d5110dada0370bfd7160b367..04352034a4944d0ac57bc8fee38553de18e91984 100644
+--- a/vstd_extra/src/array_ptr.rs
++++ b/vstd_extra/src/array_ptr.rs
+@@ -354,9 +354,9 @@ impl<V, const N: usize> ArrayPtr<V, N> {
+     /// Impl: cast the pointer to an integer
+     #[inline(always)]
+     #[verifier::when_used_as_spec(addr_spec)]
+-    pub exec fn addr(&self) -> (res: usize)
+-        ensures
+-            res == self.addr,
++    pub exec fn addr(&self) -> usize
++        returns
++            self.addr,
+     {
+         self.addr
+     }
+@@ -387,7 +387,7 @@ impl<V, const N: usize> PointsTo<V, N> {
+     /// #[verifier::type_invariant]
+     pub closed spec fn wf(&self) -> bool {
+         /// The pointer is not a slice, so it is still thin
+-        &&& self.points_to.ptr()@.metadata == raw_ptr::Metadata::Thin
++        &&& self.points_to.ptr()@.metadata == ()
+         &&& self.points_to.ptr()@.provenance == self.exposed.provenance()
+         &&& match self.dealloc {
+             Some(dealloc) => {
+diff --git a/vstd_extra/src/bit_mapping.rs b/vstd_extra/src/bit_mapping.rs
+index 44522733b6e35d429564fb225341ca832717183a..318b28a1f80abb94c63bcfbb66328984f88858aa 100644
+--- a/vstd_extra/src/bit_mapping.rs
++++ b/vstd_extra/src/bit_mapping.rs
+@@ -15,9 +15,9 @@ pub trait MapForwardTrait<Dst>: Sized {
+     spec fn map_forward_spec(self, bm: &[BitMapping<Self, Dst>]) -> Dst;
+ 
+     #[verifier::when_used_as_spec(map_forward_spec)]
+-    fn map_forward(self, bm: &[BitMapping<Self, Dst>]) -> (res: Dst)
+-        ensures
+-            res == self.map_forward_spec(bm),
++    fn map_forward(self, bm: &[BitMapping<Self, Dst>]) -> Dst
++        returns
++            self.map_forward_spec(bm),
+     ;
+ 
+     broadcast proof fn lemma_equal_map_froward(
+@@ -50,8 +50,7 @@ macro_rules! impl_map_forward {
+             }
+ 
+             #[verifier::external_body]
+-            #[verifier::when_used_as_spec(map_forward_spec)]
+-            fn map_forward(self, bm: &[BitMapping<Self, $dst>]) -> (res: $dst)
++            fn map_forward(self, bm: &[BitMapping<Self, $dst>]) -> $dst
+             {
+                 bm.iter().fold(0 as $dst, |acc, m| {
+                     if self & m.src == m.src {
+@@ -76,9 +75,9 @@ pub trait MapInvertForwardTrait<Dst>: Sized {
+     spec fn map_invert_forward_spec(self, bm: &[BitMapping<Self, Dst>]) -> Dst;
+ 
+     #[verifier::when_used_as_spec(map_invert_forward_spec)]
+-    fn map_invert_forward(self, bm: &[BitMapping<Self, Dst>]) -> (res: Dst)
+-        ensures
+-            res == self.map_invert_forward_spec(bm),
++    fn map_invert_forward(self, bm: &[BitMapping<Self, Dst>]) -> Dst
++        returns
++            self.map_invert_forward_spec(bm),
+     ;
+ 
+     broadcast proof fn lemma_equal_map_invert_froward(
+@@ -112,9 +111,7 @@ macro_rules! impl_map_invert_forward {
+             }
+ 
+             #[verifier::external_body]
+-            #[verifier::when_used_as_spec(map_invert_forward_spec)]
+-            fn map_invert_forward(self, bm: &[BitMapping<Self, $dst>]) -> (res: $dst)
+-                ensures res == self.map_invert_forward_spec(bm)
++            fn map_invert_forward(self, bm: &[BitMapping<Self, $dst>]) -> $dst
+             {
+                 let inv_src = !self;
+                 bm.iter().fold(0 as $dst, |acc, m| {
+@@ -140,9 +137,9 @@ pub trait MapBackward<Src>: Sized {
+     spec fn map_backward_spec(self, bm: &[BitMapping<Src, Self>]) -> Src;
+ 
+     #[verifier::when_used_as_spec(map_backward_spec)]
+-    fn map_backward(self, bm: &[BitMapping<Src, Self>]) -> (res: Src)
+-        ensures
+-            res == self.map_backward_spec(bm),
++    fn map_backward(self, bm: &[BitMapping<Src, Self>]) -> Src
++        returns
++            self.map_backward_spec(bm),
+     ;
+ 
+     broadcast proof fn lemma_equal_map_backward(
+@@ -176,9 +173,7 @@ macro_rules! impl_map_backward {
+             }
+ 
+             #[verifier::external_body]
+-            #[verifier::when_used_as_spec(map_backward_spec)]
+-            fn map_backward(self, bm: &[BitMapping<$src, Self>]) -> (res: $src)
+-                ensures res == self.map_backward_spec(bm)
++            fn map_backward(self, bm: &[BitMapping<$src, Self>]) -> $src
+             {
+                 bm.iter().fold(0 as $src, |acc, m| {
+                     if self & m.dst == m.dst {
+@@ -203,9 +198,9 @@ pub trait MapInvertBackward<Src>: Sized {
+     spec fn map_invert_backward_spec(self, bm: &[BitMapping<Src, Self>]) -> Src;
+ 
+     #[verifier::when_used_as_spec(map_invert_backward_spec)]
+-    fn map_invert_backward(self, bm: &[BitMapping<Src, Self>]) -> (res: Src)
+-        ensures
+-            res == self.map_invert_backward_spec(bm),
++    fn map_invert_backward(self, bm: &[BitMapping<Src, Self>]) -> Src
++        returns
++            self.map_invert_backward_spec(bm),
+     ;
+ 
+     broadcast proof fn lemma_equal_map_invert_backward(
+@@ -240,9 +235,7 @@ macro_rules! impl_map_invert_backward {
+             }
+ 
+             #[verifier::external_body]
+-            #[verifier::when_used_as_spec(map_invert_backward_spec)]
+-            fn map_invert_backward(self, bm: &[BitMapping<$src, Self>]) -> (res: $src)
+-                ensures res == self.map_invert_backward_spec(bm)
++            fn map_invert_backward(self, bm: &[BitMapping<$src, Self>]) ->  $src
+             {
+                 let inv_src = !self;
+                 bm.iter().fold(0 as $src, |acc, m| {
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index 60c965bcdd3ba604ae05ba7b17ee0f18d868301d..f14774923e2328ff3d48d02202998fd6925b157c 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -201,7 +201,6 @@ pub broadcast proof fn lemma_seq_all_add<T>(s1: Seq<T>, s2: Seq<T>, f: spec_fn(T
+         }
+         if (s1 + s2).all(f) {
+             assert((s1 + s2).drop_last() =~= s1 + s2.drop_last());
+-            //assert(forall_seq_values((s2.drop_last()),f));
+             assert(s2 =~= s2.drop_last().push(s2.last()));
+             assert((s1 + s2).last() == s2.last());
+         }

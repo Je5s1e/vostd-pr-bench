@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-26-2275e7c32b66",
+  "pr_number": 26,
+  "title": "Remove test/rw_version/spec/utils.rs",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/26",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0757ba84f20aec30e66490b26195e1f0267a4646",
+  "head_sha": "2275e7c32b6685b7eb1075c9ce680688239f6f80",
+  "base_method": "historical PR base and second parent of official merge d2bea279ca1b81e937bb29a91425830304a3a4c4; selected read-lock problem commit descends from that merge",
+  "archive_base_sha": "0757ba84f20aec30e66490b26195e1f0267a4646",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "vstd_extra/src/map_extra.rs",
+    "vstd_extra/src/seq_extra.rs"
+  ],
+  "diff_sha256": "83d7d06e18ec5341edd5c263af58a21ab5cedb5f7250f0a7e1fd671e6fb90f5d",
+  "versions": {
+    "before": {
+      "commit": "0757ba84f20aec30e66490b26195e1f0267a4646",
+      "file_count": 3,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "2275e7c32b6685b7eb1075c9ce680688239f6f80",
+      "file_count": 3,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T11:48:38.927347+00:00",
+    "reviewed_at": "2026-11-19T11:34:02Z",
+    "upstream_updated_at": "2025-05-30T06:15:20Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/26"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00026"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected the closest pre-repair read-lock snapshot, where the transition proof still exports its invariant through a final admit.",
+    "adjudication": "Primary and independent review confirmed one read-lock trusted-boundary root. The fixed historical run reports 326/0 on both problem and repair because admit is trusted; the repair removes the assumption with checked map-filter reasoning.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  },
+  "additional_context_paths": []
+}

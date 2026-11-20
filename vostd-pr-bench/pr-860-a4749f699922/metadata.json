@@ -41,7 +41,7 @@
     "verified_libs/vstd_extra/src/rcu_objects/owned_root.rs",
     "verified_libs/vstd_extra/src/rcu_objects/root.rs"
   ],
-  "diff_sha256": "b89f0831144db9811bfdaafbe5e411bbe019471a9f396bda98b77694c029956f",
+  "diff_sha256": "7669f99bbc2f5ba886769ffe308a53c24c9ce2cbb7373d3e7e675e4f2c706c79",
   "versions": {
     "before": {
       "commit": "18aea7a127610ad471325235b85395afe82710da",
@@ -74,5 +74,57 @@
       ]
     }
   },
-  "known_issue_count": 7
+  "known_issue_count": 7,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "a4749f699922e248fea0664211257966404c01f2",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/a4749f699922e248fea0664211257966404c01f2/docs/coding-guidelines/maintainability.md#L219",
+        "rule_id": "group-imports-by-crate",
+        "line": 219,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      },
+      {
+        "commit": "a4749f699922e248fea0664211257966404c01f2",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/a4749f699922e248fea0664211257966404c01f2/docs/coding-guidelines/maintainability.md#L283",
+        "rule_id": "bind-option-payloads",
+        "line": 283,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      },
+      {
+        "commit": "a4749f699922e248fea0664211257966404c01f2",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/a4749f699922e248fea0664211257966404c01f2/docs/coding-guidelines/maintainability.md#L35",
+        "rule_id": "use-returns-for-exact-results",
+        "line": 35,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      },
+      {
+        "commit": "a4749f699922e248fea0664211257966404c01f2",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/a4749f699922e248fea0664211257966404c01f2/docs/coding-guidelines/maintainability.md#L473",
+        "rule_id": "defer-auxiliary-proof-functions",
+        "line": 473,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      },
+      {
+        "commit": "a4749f699922e248fea0664211257966404c01f2",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/a4749f699922e248fea0664211257966404c01f2/docs/coding-guidelines/maintainability.md#L164",
+        "rule_id": "organize-proof-imports",
+        "line": 164,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      },
+      {
+        "commit": "a4749f699922e248fea0664211257966404c01f2",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/a4749f699922e248fea0664211257966404c01f2/docs/coding-guidelines/proof-engineering.md#L197",
+        "rule_id": "reuse-existing-specifications",
+        "line": 197,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

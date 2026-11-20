@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-236-72a385b929f5",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-236-72a385b929f5:commit-fix-bdec3fc53c10ca4ffd05b514c93d56de16acc83e-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The root workspace removes verus_builtin and verus_builtin_macros from workspace.dependencies while demo/Cargo.toml still inherits both with workspace = true, so Cargo cannot load the workspace manifest.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "demo/Cargo.toml",
+          "start_line": 23,
+          "end_line": 26
+        }
+      ],
+      "rationale": "The problem commit removes both workspace dependency declarations and removes their inherited uses from every changed member manifest, but misses the unchanged demo manifest. Cargo must resolve each workspace-inherited dependency while loading the workspace, and the selected snapshot has no declarations to satisfy demo's two entries. The direct child removes both stale entries and updates the lockfile dependency lists.",
+      "source_evidence": "after/Cargo.toml:31-33 contains only vstd under workspace.dependencies, while after/demo/Cargo.toml:23-26 still declares verus_builtin and verus_builtin_macros with workspace = true. A full-tree search found no other remaining inherited uses. An isolated cargo metadata run exits 101 and reports dependency.verus_builtin was not found in workspace.dependencies. repair bdec3fc53c10ca4ffd05b514c93d56de16acc83e removes the two demo entries.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/bdec3fc53c10ca4ffd05b514c93d56de16acc83e",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "bdec3fc53c10ca4ffd05b514c93d56de16acc83e:root-1",
+          "commit_id": "bdec3fc53c10ca4ffd05b514c93d56de16acc83e",
+          "url": "https://github.com/asterinas/vostd/commit/bdec3fc53c10ca4ffd05b514c93d56de16acc83e"
+        }
+      ],
+      "verification": "Isolated cargo metadata on the immutable problem tree reproduced the workspace manifest failure with exit code 101. Historical Verus was not executed because Cargo rejects the workspace before verification."
+    }
+  ]
+}

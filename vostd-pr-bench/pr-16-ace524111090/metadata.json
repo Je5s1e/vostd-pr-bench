@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-16-ace524111090",
+  "pr_number": 16,
+  "title": "Fix bug in update",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/16",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "4ba80f20e2e84211d93c103c34563621f38c7b51",
+  "head_sha": "ace524111090f9c7ee5e032d95c7b9e04ba54860",
+  "base_method": "git merge-base(archived PR base 4ba80f20e2e84211d93c103c34563621f38c7b51, selected problem commit ace524111090f9c7ee5e032d95c7b9e04ba54860) = 4ba80f20e2e84211d93c103c34563621f38c7b51; official parent chain verified",
+  "archive_base_sha": "4ba80f20e2e84211d93c103c34563621f38c7b51",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "xtask/src/main.rs"
+  ],
+  "diff_sha256": "6db1186f2e9cda8999084338782524932ab418d61fbde38f1277ef79fc152c48",
+  "versions": {
+    "before": {
+      "commit": "4ba80f20e2e84211d93c103c34563621f38c7b51",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "ace524111090f9c7ee5e032d95c7b9e04ba54860",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T09:56:58.749896+00:00",
+    "reviewed_at": "2026-11-19T09:53:06Z",
+    "upstream_updated_at": "2025-04-29T10:00:35Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/16",
+      "https://github.com/asterinas/vostd/commit/ace524111090f9c7ee5e032d95c7b9e04ba54860",
+      "https://github.com/asterinas/vostd/commit/be0f7880ff3e6dc60fcb461698b459b421f25056",
+      "https://github.com/asterinas/verus/commit/fe07347f61c7b024db8bf19d40bb2e1b452c3ffe"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00016"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected first official PR commit, where xtask update begins fetching the current Verus branch and exposes the missing loop-decreases obligations; the next official commit repairs them.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Verus 9e262800af8757047b179a36ca655863bc76d005 with Rust 1.82.0 and Z3 4.12.5 reproduced the fvt1 failure at the problem commit and 22 verified, 0 errors at the repair commit. Primary and independent second review approved one fvt1-only semantic issue."
+  },
+  "additional_context_paths": [
+    "fvt1-mem-region-init/src/memory_region.rs"
+  ]
+}

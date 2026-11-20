@@ -14,7 +14,7 @@
   "changed_paths": [
     "ostd/specs/mm/page_table/owners.rs"
   ],
-  "diff_sha256": "8150c1c6cf94432754a0b345de2731ec75ea32d7474aa5758f1e8156023c1d21",
+  "diff_sha256": "396c4b7b9061bc97588e435bd01662f425a1d54ea56243cdbdcb6a90786cb3da",
   "versions": {
     "before": {
       "commit": "97465ca6c44c08d3fef64e13d568344fb967306b",

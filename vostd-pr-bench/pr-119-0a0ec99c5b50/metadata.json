@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-119-0a0ec99c5b50",
+  "pr_number": 119,
+  "title": "Fix replace with none pc",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/119",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "618a49450d5d73ed3a590dd24e918929c14ac32a",
+  "head_sha": "0a0ec99c5b505bd7511d73e9ac4572bd96c22311",
+  "base_method": "fixed parent of the selected problem snapshot from the audited PR 117/119 history",
+  "archive_base_sha": "97ddf373036a33316d442c982db7bbaaaf40bc0e",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "lock-protocol/src/mm/page_table/node/entry.rs"
+  ],
+  "diff_sha256": "ac7630c7ffd70aa500dcfc9747f676438301a039bde992c7ffec07cd0dc4e6d5",
+  "versions": {
+    "before": {
+      "commit": "618a49450d5d73ed3a590dd24e918929c14ac32a",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "0a0ec99c5b505bd7511d73e9ac4572bd96c22311",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T10:13:55.509978+00:00",
+    "reviewed_at": "2026-11-20T10:18:00Z",
+    "upstream_updated_at": "2025-07-25T09:42:39Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/119",
+      "https://github.com/asterinas/vostd/commit/3c55e81c43d179b7179ed5ccde686f6446b49af5"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00119"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected immutable problem snapshot 0a0ec99c5b505bd7511d73e9ac4572bd96c22311 and fixed comparison base 618a49450d5d73ed3a590dd24e918929c14ac32a; PR 117 head and PR 119 base are tree-identical, while PR 119 owns the repair.",
+    "zero_issues_meaning": "Not applicable; this case contains one independently adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary problem diff regenerated. evidence/repair.diff is byte-equal to the fixed Git repair diff.",
+    "tool_result": "Two reviewers approved one semantic root: replace_with_none uses the replacement PTE's post-state address as a frame-condition exception instead of the removed PTE's entry-state address. Historical Rust/Verus was not executed."
+  },
+  "additional_context_paths": [
+    "lock-protocol/src/mm/page_table/cursor/spec_helpers.rs"
+  ],
+  "verification_summary": "Two reviewers approved one semantic root: replace_with_none uses the replacement PTE's post-state address as a frame-condition exception instead of the removed PTE's entry-state address. Historical Rust/Verus was not executed."
+}

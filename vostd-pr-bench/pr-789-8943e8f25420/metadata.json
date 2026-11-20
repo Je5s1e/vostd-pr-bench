@@ -24,7 +24,7 @@
     "verified_libs/vstd_extra/src/external/str.rs",
     "verified_libs/vstd_extra/src/trans_macros.rs"
   ],
-  "diff_sha256": "2a6a12bc51def749ddc96fc6b87dba10b25a1ed60b165d44e447bf436979206f",
+  "diff_sha256": "b2fc68f07a67a17c8a91760e99f7e22587c5be933cac73ff43bfd253a2b2338d",
   "versions": {
     "before": {
       "commit": "d73d234f3d5a5b1b1519ff25e45e3864c6f7353b",

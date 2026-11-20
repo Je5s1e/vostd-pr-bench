@@ -1,0 +1,47 @@
+diff --git a/lock-protocol/src/exec/rcu/cursor/locking.rs b/lock-protocol/src/exec/rcu/cursor/locking.rs
+index 8bfd5e943ea47793c0da63436ec243cace04414d..af08376c25c8ef870b3934ec781b842e13c2edf4 100644
+--- a/lock-protocol/src/exec/rcu/cursor/locking.rs
++++ b/lock-protocol/src/exec/rcu/cursor/locking.rs
+@@ -383,6 +383,10 @@ fn try_traverse_and_lock_subtree_root<'rcu>(
+                 unreached::<()>();
+             }
+             cur_pt_addr = cur_pte.inner.paddr();
++            if cur_node_guard.is_some() {
++                let mut pt_guard = cur_node_guard.take().unwrap();
++                pt_guard.normal_drop(); 
++            }
+             cur_node_guard = None;
+         } else {
+             let cur_node_guard_inner = cur_node_guard.take();
+@@ -416,6 +420,7 @@ fn try_traverse_and_lock_subtree_root<'rcu>(
+                 cur_pt_addr = pt_guard.deref().deref().start_paddr();
+                 cur_node_guard = None;
+             }
++            pt_guard.normal_drop();
+         }
+ 
+         cur_level -= 1;
+diff --git a/lock-protocol/src/exec/rcu/node/entry.rs b/lock-protocol/src/exec/rcu/node/entry.rs
+index 74fbc60146313ae2a1579c15618a5941e41bd32d..bc77f83609d61781adb40e0468c0f4a041bdd91f 100644
+--- a/lock-protocol/src/exec/rcu/node/entry.rs
++++ b/lock-protocol/src/exec/rcu/node/entry.rs
+@@ -132,6 +132,7 @@ impl Entry {
+             node.inst_id() == old(node).inst_id(),
+             node.nid() == old(node).nid(),
+             node.inner.deref().level_spec() == old(node).inner.deref().level_spec(),
++            node.guard->Some_0.in_protocol == old(node).guard->Some_0.in_protocol,
+             !(old(self).is_none() && old(node).inner.deref().level_spec() > 1) <==> res is None,
+             res is Some ==> {
+                 &&& res->Some_0.wf()
+diff --git a/lock-protocol/src/exec/rcu/node/mod.rs b/lock-protocol/src/exec/rcu/node/mod.rs
+index 68f241a2d91700885b707ecb6cfab0eec1acee50..4d946970ed6f2ee4920eacd3fb47b916bec2019d 100644
+--- a/lock-protocol/src/exec/rcu/node/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/mod.rs
+@@ -381,6 +381,7 @@ impl<'rcu> PageTableGuard<'rcu> {
+             self.inner =~= old(self).inner,
+             self.guard->Some_0.perms@.relate_pte(pte, idx as nat),
+             self.guard->Some_0.pte_token =~= old(self).guard->Some_0.pte_token,
++            self.guard->Some_0.in_protocol == old(self).guard->Some_0.in_protocol,
+     {
+         let va = paddr_to_vaddr(self.inner.deref().start_paddr());
+         let ptr: ArrayPtr<Pte, PTE_NUM> = ArrayPtr::from_addr(va);

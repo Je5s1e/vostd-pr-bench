@@ -1,5 +1,5 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 5236f8957..3dc567b7e 100644
+index 5236f895727bb42c9e0cbec42ed32b72b45f77e8..3dc567b7e5c891130ea90ab67db19f62359dac17 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -190,6 +190,15 @@ dependencies = [
@@ -35,7 +35,7 @@ index 5236f8957..3dc567b7e 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 0963ca334..b416fce08 100644
+index 0963ca334a8392810f81677ea200bc8b79cadd2b..b416fce0896c2b1015bdae654a05e083698d850a 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -6,6 +6,7 @@ members = [
@@ -57,7 +57,7 @@ index 0963ca334..b416fce08 100644
 +repository = "https://github.com/asterinas/vostd"
 +license = "MPL-2.0"
 diff --git a/README.md b/README.md
-index a6d3dda32..52e1f12da 100644
+index a6d3dda321189da64ca41b7831d17facd20828e2..52e1f12dacf432c887c63a3da7d1d0eacd80e49b 100644
 --- a/README.md
 +++ b/README.md
 @@ -5,7 +5,7 @@
@@ -70,14 +70,14 @@ index a6d3dda32..52e1f12da 100644
  ## Overview
  
 diff --git a/dv b/dv
-index 6d6502d14..a8834cbb0 160000
+index 6d6502d142b049f691055d9de76709ef47c664d6..a8834cbb0dc227e83d05033a452dc95875d94fd5 160000
 --- a/dv
 +++ b/dv
 @@ -1 +1 @@
 -Subproject commit 6d6502d142b049f691055d9de76709ef47c664d6
 +Subproject commit a8834cbb0dc227e83d05033a452dc95875d94fd5
 diff --git a/ostd/Cargo.toml b/ostd/Cargo.toml
-index bb4340ad5..d92648cf6 100644
+index bb4340ad5fefea0a3dd46c74362f1e532e900865..d92648cf655f4d3f8c3d98496719b59a8a64bf3f 100644
 --- a/ostd/Cargo.toml
 +++ b/ostd/Cargo.toml
 @@ -25,7 +25,7 @@ buddy_system_allocator = { version = "0.10", default-features = false, features
@@ -90,7 +90,7 @@ index bb4340ad5..d92648cf6 100644
  #int-to-c-enum = { path = "../kernel/libs/int-to-c-enum", version = "0.1.0" }
  # intrusive-collections = { version = "0.9.6", features = ["nightly"] }
 diff --git a/ostd/libs/id-alloc/Cargo.toml b/ostd/libs/id-alloc/Cargo.toml
-index 5cdd942e9..6e39c66ad 100644
+index 5cdd942e9a73ac337797a06c74a9e728d6b2203c..6e39c66ad3905266959cbad204cb727351aa7a81 100644
 --- a/ostd/libs/id-alloc/Cargo.toml
 +++ b/ostd/libs/id-alloc/Cargo.toml
 @@ -1,15 +1,27 @@
@@ -126,7 +126,7 @@ index 5cdd942e9..6e39c66ad 100644
  [lints]
  workspace = true
 diff --git a/ostd/libs/id-alloc/src/lib.rs b/ostd/libs/id-alloc/src/lib.rs
-index 85fe26b25..0b760189e 100644
+index 85fe26b256890cfdee36e147aed4f294308a85ff..0b760189ef08e20ec56ee5b6c21aef1345006825 100644
 --- a/ostd/libs/id-alloc/src/lib.rs
 +++ b/ostd/libs/id-alloc/src/lib.rs
 @@ -1,65 +1,349 @@
@@ -812,7 +812,7 @@ index 85fe26b25..0b760189e 100644
 +    }
 +}
 diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
-index 4765b60e1..84f40fd11 100644
+index 4765b60e10d216c62a92be3234b3c8aae592f171..84f40fd11be6364ad18848a9bb8429f5673419d8 100644
 --- a/ostd/specs/mm/embedding/mod.rs
 +++ b/ostd/specs/mm/embedding/mod.rs
 @@ -3882,6 +3882,7 @@ proof fn lemma_step_segment_clone_range<'rcu>(
@@ -875,7 +875,7 @@ index 4765b60e1..84f40fd11 100644
          reveal(VmStore::inv);
      };
 diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
-index 2f02cd467..a4dd253d4 100644
+index 2f02cd4673315ee0f943e4d1d71a1206aa4824a3..a4dd253d478952c7e097e02a241c1b03c352ce99 100644
 --- a/verified_libs/vstd_extra/Cargo.toml
 +++ b/verified_libs/vstd_extra/Cargo.toml
 @@ -15,3 +15,4 @@ std = ["vstd/std"]
@@ -885,7 +885,7 @@ index 2f02cd467..a4dd253d4 100644
 +bitvec.workspace = true
 diff --git a/verified_libs/vstd_extra/src/external/bitvec.rs b/verified_libs/vstd_extra/src/external/bitvec.rs
 new file mode 100644
-index 000000000..27b2ca72e
+index 0000000000000000000000000000000000000000..27b2ca72ef712988abc5bd0c1febd7bd8c8cb017
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/bitvec.rs
 @@ -0,0 +1,319 @@
@@ -1209,7 +1209,7 @@ index 000000000..27b2ca72e
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index f4071583b..e70ca5116 100644
+index f4071583be31c52546ef98873d2e8ab52d9e0d41..e70ca511688932b1fee8b36b6796ae966eb0aa8b 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -2,6 +2,7 @@

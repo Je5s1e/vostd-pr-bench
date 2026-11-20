@@ -14,7 +14,7 @@
   "changed_paths": [
     "ostd/src/mm/page_table/cursor/mod.rs"
   ],
-  "diff_sha256": "819fa4c2ca6354bc745cbe7c1bca81666c71f55058e9025d263f2f59dc3f6ee5",
+  "diff_sha256": "0ab1dddc3a0aa63cfdb174f126db44e1859748c5a1991e01e8f5d7f75aa3a057",
   "versions": {
     "before": {
       "commit": "bc7200b7a8e3d65c33e072f671a2cb1c2fe9bbc8",
@@ -47,5 +47,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "027c97275075e5ff273ef070c7554eeabaeb9c5c",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/027c97275075e5ff273ef070c7554eeabaeb9c5c/docs/coding-guidelines/maintainability.md#L126",
+        "rule_id": "preserve-exec-code",
+        "line": 126,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

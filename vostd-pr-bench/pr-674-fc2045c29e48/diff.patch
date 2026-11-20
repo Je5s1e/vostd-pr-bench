@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
-index 3dd820a62..59cdb27bc 100644
+index 3dd820a6233e376db5dd430d46de5baaab139c06..59cdb27bc50160acbacfb4c4c1a460ac72c8f0ba 100644
 --- a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
 +++ b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
 @@ -1157,8 +1157,7 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorOwner<M> {
@@ -23,7 +23,7 @@ index 3dd820a62..59cdb27bc 100644
              res == Self::ghost_owner(list_own),
      {
 diff --git a/ostd/specs/mm/page_table/node/owners.rs b/ostd/specs/mm/page_table/node/owners.rs
-index 387a61a48..f2292c77f 100644
+index 387a61a488f54c572a61b938fc7a29c047e3d5e7..f2292c77f7142a9b4607275eee92417e54b61d37 100644
 --- a/ostd/specs/mm/page_table/node/owners.rs
 +++ b/ostd/specs/mm/page_table/node/owners.rs
 @@ -236,6 +236,7 @@ impl<C: PageTableConfig> Inv for NodeOwner<C> {
@@ -35,7 +35,7 @@ index 387a61a48..f2292c77f 100644
          &&& self.children_perm.addr() == paddr_to_vaddr(
              meta_to_frame(index_to_meta(self.slot_index)),
 diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
-index 5d2d9bd6b..2fa5045d9 100644
+index 5d2d9bd6b78b936071eef0e3feb6d8f3d1af7506..2fa5045d970ec8c2c755b4f7f74d1e76c5e55c8b 100644
 --- a/ostd/src/mm/frame/linked_list.rs
 +++ b/ostd/src/mm/frame/linked_list.rs
 @@ -315,7 +315,8 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> LinkedList<M> {
@@ -49,7 +49,7 @@ index 5d2d9bd6b..2fa5045d9 100644
  
          #[verus_spec(with Tracked(regions), Tracked(&mut cursor_own), Tracked(frame_own))]
 diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
-index c5d66bd19..27c61684f 100644
+index c5d66bd1934a49f7205af480edde68d93da2f31a..27c61684f21824ff3e308a327cf078bb72ea1afe 100644
 --- a/ostd/src/mm/kspace/kvirt_area.rs
 +++ b/ostd/src/mm/kspace/kvirt_area.rs
 @@ -56,14 +56,13 @@ pub open spec fn frame_as_dynframe<T: AnyFrameMeta + Repr<MetaSlotStorage>>(
@@ -71,7 +71,7 @@ index c5d66bd19..27c61684f 100644
  
  /// Spec function: the entry owner correctly matches the frame and property for mapping.
 diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
-index 2ef84233a..1d97ededd 100644
+index 2ef84233a0c7f7d82926e1df6ed6e4f442966015..1d97ededd47b942a5e0fe822000932b106d7953f 100644
 --- a/ostd/src/mm/page_table/mod.rs
 +++ b/ostd/src/mm/page_table/mod.rs
 @@ -1830,26 +1830,34 @@ pub unsafe fn load_pte<E: PageTableEntryTrait>(
@@ -128,7 +128,7 @@ index 2ef84233a..1d97ededd 100644
  
  } // verus!
 diff --git a/ostd/src/mm/page_table/node/mod.rs b/ostd/src/mm/page_table/node/mod.rs
-index 04e4ed19d..26cdca56e 100644
+index 04e4ed19d8811af9684385e0316f5b60266345df..26cdca56ef96aa52a8dd066699830616e8ee0f04 100644
 --- a/ostd/src/mm/page_table/node/mod.rs
 +++ b/ostd/src/mm/page_table/node/mod.rs
 @@ -896,6 +896,9 @@ impl<'rcu, C: PageTableConfig> PageTableGuard<'rcu, C> {
@@ -142,7 +142,7 @@ index 04e4ed19d..26cdca56e 100644
  
      /// Gets the mutable reference to the number of valid PTEs in the node.
 diff --git a/verified_libs/vstd_extra/src/array_ptr.rs b/verified_libs/vstd_extra/src/array_ptr.rs
-index fd0bfe24b..32cf70558 100644
+index fd0bfe24bf712b4737ab1172d9cb76faf22e8119..32cf705583e86a8a0e6a9847231c01d11d6a379b 100644
 --- a/verified_libs/vstd_extra/src/array_ptr.rs
 +++ b/verified_libs/vstd_extra/src/array_ptr.rs
 @@ -529,6 +529,20 @@ pub exec fn layout_for_array_is_valid<V: Sized, const N: usize>()

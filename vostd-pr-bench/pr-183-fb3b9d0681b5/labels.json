@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-183-fb3b9d0681b5",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-183-fb3b9d0681b5:commit-fix-ae8fa239a56d986bf4964523369cd20884123a64-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The rewritten aligned-PTE-index lemma exposes its complete higher-level alignment theorem through admit.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/mod.rs",
+          "start_line": 829,
+          "end_line": 839
+        }
+      ],
+      "rationale": "The theorem is used by cursor proofs for every level at or above the chosen alignment level. This snapshot accepts the rewritten relationship between align_down, page-size shifts, and pte_index without a derivation. The direct child repair proves it with checked page-size, division, shift-composition, and alignment reasoning.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/mod.rs lines 829-839 contains the admitted rewritten theorem. Official direct repair ae8fa239a56d986bf4964523369cd20884123a64 removes the admit and supplies the full proof.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/ae8fa239a56d986bf4964523369cd20884123a64",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "ae8fa239a56d986bf4964523369cd20884123a64:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/ae8fa239a56d986bf4964523369cd20884123a64",
+          "commit_id": "ae8fa239a56d986bf4964523369cd20884123a64"
+        }
+      ],
+      "verification": "Fixed-source theorem and direct repair-diff analysis. Historical Verus was not executed."
+    },
+    {
+      "id": "pr-183-fb3b9d0681b5:commit-fix-ae3200cfe5460f8451667fa1bfac75e7300b3e75-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The rewritten move_forward proof assumes that adding the current page size preserves every higher-level PTE index after carry propagation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 315,
+          "end_line": 318
+        }
+      ],
+      "rationale": "When move_forward crosses lower-level page-table boundaries, cursor well-formedness requires the higher-level indices through guard_level to remain unchanged once carry terminates. The selected rewritten proof states that quantified property as an assumption. The obligation is older proof debt that previously appeared as two admits; this label is specifically for its modified fb3b9d06 form and does not claim that the underlying debt first originated in fb3b9d06. Later repair ae3200cf removes the assumption and derives the equality using page-size geometry, an alternative PTE-index specification, carry-termination facts, and alignment lemmas.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs lines 315-318 contains the selected quantified carry assumption. It persists through the intervening support commits and is removed by official repair ae3200cfe5460f8451667fa1bfac75e7300b3e75.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/ae3200cfe5460f8451667fa1bfac75e7300b3e75",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "ae3200cfe5460f8451667fa1bfac75e7300b3e75:root-2",
+          "url": "https://github.com/asterinas/vostd/commit/ae3200cfe5460f8451667fa1bfac75e7300b3e75",
+          "commit_id": "ae3200cfe5460f8451667fa1bfac75e7300b3e75"
+        }
+      ],
+      "verification": "Fixed-source invariant analysis and later official repair-diff analysis. Historical Verus was not executed."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "before": {
+    "lock-protocol/src/exec/rcu/common.rs": {
+      "mode": "100644",
+      "git_blob": "e5cd3f1eb83bc5b9dfbc311d1855d78c780e5b69"
+    },
+    "lock-protocol/src/exec/rcu/cursor/locking.rs": {
+      "mode": "100644",
+      "git_blob": "0ffeafd4ed0b80e8da018663e3bd0f434c6bece7"
+    },
+    "lock-protocol/src/exec/rw/common.rs": {
+      "mode": "100644",
+      "git_blob": "6c6d09aa22a3f9f8f300776af0bdd206cd67c65c"
+    },
+    "lock-protocol/src/exec/rw/cursor.rs": {
+      "mode": "100644",
+      "git_blob": "6055b041f08ae1fef1001ff33a73d33a743ef4a4"
+    }
+  },
+  "after": {
+    "lock-protocol/src/exec/rcu/common.rs": {
+      "mode": "100644",
+      "git_blob": "ddc4c1ca3db92938efb222e69ed5f68f41464bb4"
+    },
+    "lock-protocol/src/exec/rcu/cursor/locking.rs": {
+      "mode": "100644",
+      "git_blob": "9962333d9be8bbe54989ea975ecf1f919d469495"
+    },
+    "lock-protocol/src/exec/rw/common.rs": {
+      "mode": "100644",
+      "git_blob": "0418d7df6e7ef2e9bbd2e3405bfca13cdae85ebf"
+    },
+    "lock-protocol/src/exec/rw/cursor.rs": {
+      "mode": "100644",
+      "git_blob": "1cd2d0f95024319c6d1c32d1a4c0b83ed9d1557b"
+    }
+  }
+}

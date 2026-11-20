@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-146-c6ea1a85e164",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-146-c6ea1a85e164:commit-fix-b4c63161c57b3c4551d0839b06f216743a93aed9-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "alloc_if_none trusts the parent entry's address, level, root relationship, and resulting child-guard postconditions instead of deriving them from Entry well-formedness.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "start_line": 427,
+          "end_line": 445
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "start_line": 470,
+          "end_line": 474
+        }
+      ],
+      "rationale": "The selected revision removes external_body from alloc_if_none but immediately assumes every semantic fact needed to insert the child into the SPT model and later assumes the advertised self.wf, frame level, and change-scope guarantees. The then-current Entry::wf does not constrain the tracked VA alignment, node/root relationship, or modeled frame level, so these are not consequences of the public preconditions. Commit b4c63161 strengthens Entry::wf with those relationships, fixes map_va to use the tracked VA, and replaces the assumptions with checked assertions; the later allocation-freshness/SPT invariant work is tracked separately.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/node/entry.rs lines 427-445 constructs an IntermediatePageTableEntryView and assumes its well-formedness plus all parent/root/level facts. Lines 470-474 assume the function's own post-state guarantees. Official repair b4c63161c57b3c4551d0839b06f216743a93aed9 strengthens Entry::wf and changes these statements to assertions.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/b4c63161c57b3c4551d0839b06f216743a93aed9",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "b4c63161c57b3c4551d0839b06f216743a93aed9:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/b4c63161c57b3c4551d0839b06f216743a93aed9",
+          "commit_id": "b4c63161c57b3c4551d0839b06f216743a93aed9"
+        }
+      ],
+      "verification": "Fixed-source contract/precondition analysis and direct official repair diff. Historical Verus was not executed."
+    }
+  ]
+}

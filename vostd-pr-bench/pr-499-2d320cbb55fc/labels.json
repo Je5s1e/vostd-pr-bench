@@ -7,7 +7,7 @@
       "id": "pr-499-2d320cbb55fc:issue-comment-4658920663",
       "original_label_id": null,
       "category": "semantic",
-      "description": "The verification tree replaces the production x86 `PageTableEntry` implementation with a divergent specification-side copy built on unverified bit-mapping helpers, so its proofs do not constrain the executable implementation.",
+      "description": "The selected pre-repair snapshot verifies a divergent specification-side x86 PageTableEntry implementation while the production implementation remains commented out, so the proofs do not establish the production PTE encoding behavior.",
       "locations": [
         {
           "version": "before",

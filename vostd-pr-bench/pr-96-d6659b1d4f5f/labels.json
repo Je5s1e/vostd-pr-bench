@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-96-d6659b1d4f5f:commit-fix-330b824bb639bb0240cdc034b3aeca323bb94752-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The shared tool locator gives environment paths precedence over fixed repository hints, allowing stale external Verus or Z3 binaries to displace the repository toolchain; the selected problem commit broadens, but does not introduce, this behavior.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "xtask/src/main.rs",
+          "start_line": 96,
+          "end_line": 125
+        },
+        {
+          "version": "after",
+          "path": "xtask/src/main.rs",
+          "start_line": 681,
+          "end_line": 699
+        }
+      ],
+      "rationale": "At d6659b1d, locate tries a valid environment candidate before repository hints for both Verus and Z3. When tools/verus is present but VERUS_PATH or VERUS_Z3_PATH names another valid installation, the external candidate wins. The same problem commit derives the Verus source root and root-relative Z3, line-count, and verusdoc locations from the selected Verus binary, expanding the consequence of the pre-existing precedence. Repair 330b824b tries repository hints first, then environment, then PATH, preserving environment variables as fallbacks.",
+      "introduced_by_pr": false,
+      "introduction_provenance": "Environment-first locate already exists at base d67afbc9. The problem snapshot is the immediate in-PR predecessor of the repair and broadens the affected derived-tool surface; it is not claimed as the first introduction.",
+      "source_evidence": "before/xtask/src/main.rs\nlines 94-124\nblob e7497d71173b9a4c0b85e6d2d9b4daba40b5e091\nThe comparison base already calls locate_from_env before locate_from_hints for Verus and Z3.\n\nafter/xtask/src/main.rs\nlines 96-125\nblob 50bd4e0a171b48d8ab9529916a66026171fa08fd\nThe shared env-first order remains and now the Z3 hint is derived from get_verus_root().\n\nafter/xtask/src/main.rs\nlines 681-699\nblob 50bd4e0a171b48d8ab9529916a66026171fa08fd\nget_verus_root derives the source root from whichever Verus binary the env-first locator selected.\n\nrepair/xtask/src/main.rs\nlines 96-125\nblob 30ba3a8edd72f514b1b04f9bb881800ea7aff4dc\ncommit 330b824bb639bb0240cdc034b3aeca323bb94752\nThe repaired locator tries repository hints first, then the optional environment candidate, then PATH.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/330b824bb639bb0240cdc034b3aeca323bb94752",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "330b824bb639bb0240cdc034b3aeca323bb94752:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/330b824bb639bb0240cdc034b3aeca323bb94752",
+          "commit_id": "330b824bb639bb0240cdc034b3aeca323bb94752"
+        }
+      ],
+      "verification": "Source-only deterministic path-selection analysis. Historical Rust/Verus execution was not performed. The failure condition follows from candidate ordering and file existence; the repair is the immediate child commit's three-way reorder."
+    }
+  ],
+  "sample_id": "pr-96-d6659b1d4f5f"
+}

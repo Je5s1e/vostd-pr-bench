@@ -15,7 +15,7 @@
     "ostd/specs/mm/embedding/io.rs",
     "ostd/specs/mm/embedding/mod.rs"
   ],
-  "diff_sha256": "e43570086b4fc0d69f51d46bf09db92a525f92317e54ea1bd88ee9ecbad61fa1",
+  "diff_sha256": "64f30eb15228aa5f9fbdc22628cd330b9b97fea3f55f891eee2fd8f1ebb7fd84",
   "versions": {
     "before": {
       "commit": "41e666060c61eb656c5101b94ca77a753d604af3",

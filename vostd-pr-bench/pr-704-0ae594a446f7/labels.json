@@ -7,7 +7,7 @@
       "id": "pr-704-0ae594a446f7:issue-3810356706",
       "original_label_id": "3810356706",
       "category": "guideline",
-      "description": "Just `final(cursor)@==old(cursor)@` should work, same for `peek_next`.",
+      "description": "The unchanged-cursor branch repeats equality for every CursorMutModel field instead of stating equality of the whole cursor model.",
       "locations": [
         {
           "version": "after",

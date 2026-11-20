@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [{
+    "id": "pr-122-aa2041448069:commit-fix-d45f4d703838e6d916fe1a4b2c50bdbfd0600e16-root-1",
+    "original_label_id": null,
+    "category": "semantic",
+    "description": "try_traverse_and_lock_subtree_root discards PageTableGuard values on two traversal paths without manually releasing their underlying spin locks.",
+    "locations": [
+      {"version": "after", "path": "lock-protocol/src/exec/rcu/cursor/locking.rs", "start_line": 381, "end_line": 386},
+      {"version": "after", "path": "lock-protocol/src/exec/rcu/cursor/locking.rs", "start_line": 388, "end_line": 419}
+    ],
+    "rationale": "PageTableGuard contains an optional SpinGuard but has no active Drop implementation; normal_drop is the path that invokes normal_unlock. The present-PTE branch clears cur_node_guard at line 386, and the absent-PTE branch lets pt_guard leave scope after its non-returning paths, without calling normal_drop. Either path can retain the node lock and block a later acquisition. Repair d45f4d70 explicitly releases both guards and preserves in_protocol across the relevant writes.",
+    "source_evidence": "after/lock-protocol/src/exec/rcu/cursor/locking.rs\nlines 381-419\nblob 8bfd5e943ea47793c0da63436ec243cace04414d\nThe carried guard is cleared at line 386 and the local pt_guard reaches the branch end at line 419 without normal_drop.\n\nevidence/repair.diff\ncommit d45f4d703838e6d916fe1a4b2c50bdbfd0600e16\nThe repair takes and normal-drops the carried guard, normal-drops pt_guard at the end of the other branch, and preserves in_protocol in the write contracts.",
+    "rule_ids": [],
+    "review_url": "https://github.com/asterinas/vostd/commit/d45f4d703838e6d916fe1a4b2c50bdbfd0600e16",
+    "related_comment_ids": [],
+    "sources": [{"kind": "commit_fix", "id": "d45f4d703838e6d916fe1a4b2c50bdbfd0600e16:root-1", "url": "https://github.com/asterinas/vostd/commit/d45f4d703838e6d916fe1a4b2c50bdbfd0600e16", "commit_id": "d45f4d703838e6d916fe1a4b2c50bdbfd0600e16"}],
+    "verification": "Fixed-source guard-lifetime analysis and direct repair-diff adjudication by two reviewers. Historical Rust/Verus was not executed."
+  }],
+  "sample_id": "pr-122-aa2041448069"
+}

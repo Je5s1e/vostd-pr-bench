@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-868-c4d83ca80c61",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The LinkedList pop_front and pop_back contracts consume the tracked list owner by value but return only the removed frame owner, leaving callers without the permissions needed to keep using the remaining list.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "start_line": 294,
+          "end_line": 326
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/linked_list.rs",
+          "start_line": 395,
+          "end_line": 426
+        }
+      ],
+      "rationale": "LinkedListOwner is a tracked struct carrying exclusive representation and metadata permissions. Both pop methods accept it by value, move it into a local CursorOwner, then return only take_current's Option<(UniqueFrame, Tracked<UniqueFrameOwner>)>. take_current updates its borrowed CursorOwner in place, but the enclosing pop method neither returns that owner nor borrows the caller's owner slot. Thus even a successful pop on a multi-element list loses the caller's ownership handle to the remaining elements, preventing a subsequent verified pop/push using the same list resource. The direct child repair changes the argument to &mut LinkedListOwner, explicitly restores cursor.list_own through tracked_restore_list_owner, and exposes the resulting list/region relationship. This is a verification API resource-flow defect, not a claim of runtime corruption. It already exists in the comparison base and is captured here as the PR-internal pre-repair snapshot, not claimed to be introduced by the initial push_front changes.",
+      "source_evidence": "after/ostd/src/mm/frame/linked_list.rs\n294:     #[verus_spec(r =>\n295:         with\n296:             Tracked(regions): Tracked<&mut MetaRegionOwners>,\n297:             Tracked(owner): Tracked<LinkedListOwner<M>>,\n298:             Tracked(frame_own): Tracked<UniqueFrameOwner<Link<M>>>,\n299:         requires\n300:             old(regions).inv(),\n301:             old(self).wf_region(owner, *old(regions)),\n302:             owner.relate_region(*old(regions)),\n303:         ensures\n304:             owner.list.len() == 0 ==> r.is_none(),\n305:             r is Some ==> {\n306:                 &&& (r->0).1@.meta_own@ == owner.list[0]@\n307:                 &&& (r->0).0.frame_link_inv((r->0).1@, *final(regions))\n308:             }\n309:     )]\n310:     pub fn pop_front(&mut self) -> Option<\n311:         (UniqueFrame<Link<M>>, Tracked<UniqueFrameOwner<Link<M>>>),\n312:     > {\n313:         let tracked mut cursor_own = CursorOwner::tracked_front_owner(owner);\n314:         let current = self.front;\n315:         let mut cursor = CursorMut { list: self, current };\n316: \n317:         proof {\n318:             if owner.list.len() > 0 {\n319:                 owner.lemma_relate_region_at_index(*regions, 0);\n320:                 owner.lemma_relate_region_at_facts(*regions, 0);\n321:             }\n322:         }\n323: \n324:         #[verus_spec(with Tracked(regions), Tracked(&mut cursor_own))]\n325:         cursor.take_current()\n326:     }\n\nafter/ostd/src/mm/frame/linked_list.rs\n395:     #[verus_spec(r =>\n396:         with\n397:             Tracked(regions): Tracked<&mut MetaRegionOwners>,\n398:             Tracked(owner): Tracked<LinkedListOwner<M>>,\n399:             Tracked(frame_own): Tracked<UniqueFrameOwner<Link<M>>>,\n400:         requires\n401:             old(regions).inv(),\n402:             old(self).wf_region(owner, *old(regions)),\n403:             owner.relate_region(*old(regions)),\n404:         ensures\n405:             owner.list.len() == 0 ==> r.is_none(),\n406:             r.is_some() ==> (r->0).1@.meta_own@ == owner.list[owner.list.len() - 1]@,\n407:             r.is_some() ==> (r->0).0.frame_link_inv((r->0).1@, *final(regions)),\n408:     )]\n409:     pub fn pop_back(&mut self) -> Option<\n410:         (UniqueFrame<Link<M>>, Tracked<UniqueFrameOwner<Link<M>>>),\n411:     > {\n412:         let current = self.back;\n413:         let tracked mut cursor_own = CursorOwner::tracked_back_owner(owner);\n414:         let mut cursor = CursorMut { list: self, current };\n415: \n416:         proof {\n417:             if owner.list.len() > 0 {\n418:                 owner.lemma_relate_region_at_index(*regions, owner.list.len() - 1);\n419:                 owner.lemma_relate_region_at_facts(*regions, owner.list.len() - 1);\n420:             }\n421:         }\n422: \n423:         #[verus_spec(with Tracked(regions), Tracked(&mut cursor_own))]\n424:         cursor.take_current()\n425:     }\n426: \n\nLinkedListOwner is tracked with repr_perms and metadata_perms at ostd/specs/mm/frame/linked_list/linked_list_owners.rs:235-243. The repair adds tracked_restore_list_owner at lines1107-1123 and borrows/restores the list owner in both pop wrappers.",
+      "verification": "source-only; historical Verus not executed. Read both complete pop wrappers, take_current signature/postconditions/body, tracked owner declaration and constructors, direct repair diff and prior archive audit. Official GitHub PR868 get_commits returned all three commits including problem and direct child repair; archive has no review or issue comments.",
+      "id": "pr-868-c4d83ca80c61:commit-fix-e08b4bebd141ef4532b93bbd38637a06d51a1866-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/e08b4bebd141ef4532b93bbd38637a06d51a1866",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "e08b4bebd141ef4532b93bbd38637a06d51a1866:root-1",
+          "commit_id": "e08b4bebd141ef4532b93bbd38637a06d51a1866",
+          "url": "https://github.com/asterinas/vostd/commit/e08b4bebd141ef4532b93bbd38637a06d51a1866"
+        }
+      ]
+    }
+  ]
+}

@@ -15,7 +15,7 @@
     "verified_libs/vstd_extra/src/lib.rs",
     "verified_libs/vstd_extra/src/rcu_read_lease.rs"
   ],
-  "diff_sha256": "8647a571d7c7dbeaa0cfdd4f0095480cb62bc31a81c52e319d66fdb626c6aeb1",
+  "diff_sha256": "6dd1eee4a9fb8ee0f25662519ef5fd603c290a734ec6f6d037f0d2fa5e0b9c6d",
   "versions": {
     "before": {
       "commit": "9ffe51b669aae6f91e32e4af897de6a25c075d0e",

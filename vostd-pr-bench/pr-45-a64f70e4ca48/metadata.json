@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-45-a64f70e4ca48",
+  "pr_number": 45,
+  "title": "Use vstd error support",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/45",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "bcbe8babcb9ff38102f210e534bfa11afda03b87",
+  "head_sha": "a64f70e4ca481f198031a445f96820fc325be750",
+  "base_method": "Archived official PR base, direct parent-chain base of the three official PR commits.",
+  "archive_base_sha": "bcbe8babcb9ff38102f210e534bfa11afda03b87",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "fvt3-page-acquisition-safety/src/errors.rs",
+    "fvt3-page-acquisition-safety/src/lib.rs",
+    "fvt4-into-from-raw/src/errors.rs",
+    "fvt4-into-from-raw/src/lib.rs",
+    "fvt5-lifecycle-safety/src/errors.rs",
+    "fvt5-lifecycle-safety/src/lib.rs",
+    "fvt6-vmreader-and-vmwriter/src/common.rs",
+    "fvt6-vmreader-and-vmwriter/src/io/fallible.rs",
+    "fvt6-vmreader-and-vmwriter/src/io/specs.rs",
+    "fvt6-vmreader-and-vmwriter/src/io/vmrw.rs",
+    "lock-protocol/src/mm/mod.rs",
+    "lock-protocol/src/spec/utils.rs"
+  ],
+  "diff_sha256": "58f81d40e9280b4544ce681b9566724dfaacaf40ac1bf25db5c11f9769d781c8",
+  "versions": {
+    "before": {
+      "commit": "bcbe8babcb9ff38102f210e534bfa11afda03b87",
+      "file_count": 15,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "a64f70e4ca481f198031a445f96820fc325be750",
+      "file_count": 12,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:58:20.126353+00:00",
+    "reviewed_at": "2026-11-20T08:58:20.126353+00:00",
+    "upstream_updated_at": "2025-06-12T06:20:33Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/45",
+      "https://github.com/asterinas/vostd/commit/bc3de7e840084868dfc0f2f0608582214324b7af"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00045"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": [
+    "fvt6-vmreader-and-vmwriter/src/lib.rs",
+    "fvt6-vmreader-and-vmwriter/src/io/mod.rs",
+    "fvt6-vmreader-and-vmwriter/src/error.rs"
+  ]
+}

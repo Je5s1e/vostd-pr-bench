@@ -1,70 +1,50 @@
 # VOSTD PR Review Bench
 
-基于 [VOSTD](https://github.com/asterinas/vostd) 历史 PR 的代码审查数据集。每个案例包含修改前后的源码、完整 diff 和已确认的问题标签，可用于代码审查工具的评估与改进。
+A code review dataset built from historical pull requests in [VOSTD](https://github.com/asterinas/vostd). Each case includes source code before and after the changes, the complete diff, and confirmed issue labels for evaluating and improving code review tools.
 
-## 数据统计
+## Dataset Statistics
 
-| 指标 | 数量 |
+| Metric | Count |
 |---|---:|
-| PR 快照 | 121 |
-| 已确认问题 | 171 |
-| 规范类问题（`guideline`） | 115 |
-| 语义类问题（`semantic`） | 56 |
+| Unique PRs | 164 |
+| Reviewed head commits | 179 |
+| Issue labels | 244 |
 
-## 历史审查统计
+## Historical Review Statistics
 
-统计范围为 `asterinas/vostd` 在 **2026-08-15 至 2026-11-12** 期间更新过的 PR。这是历史 review 反馈统计，与上述 bench 的快照及已确认问题分别计数。
+A review of **238 PRs** updated between **2026-08-15 and 2026-11-12** collected 877 inline comments, 290 discussion comments, and 663 submitted reviews. After excluding self-reviews, explanations, and repeated feedback, 492 inline feedback items were classified; 56 PRs contained classified feedback across all review sources. These historical feedback counts are separate from the confirmed labels above.
 
-### 统计范围与口径
+## Issue Categories
 
-共检查 **238 个 PR**，收集 877 条行内评论、290 条总体讨论评论及 663 条 review 提交记录。从 532 个行内讨论起点中，排除规范文件自身讨论、自评、解释和重复追问等，归类得到 **492 条行内反馈**；综合行内评论、总体评论和 review 总结，**56 个 PR** 出现了已归类反馈。
+| Category | Issue labels | Examples |
+|---|---:|---|
+| Semantic (`semantic`) | 133 | Runtime behavior changes, incomplete contracts, incorrect models or invariants |
+| Guideline (`guideline`) | 111 | Proof organization, naming, redundant helpers, failure to reuse existing specifications |
 
-同一讨论的回复及总体 review 对行内问题的复述不重复计数；每条行内反馈按主要诉求归入一类，同一 PR 可涉及多个类别。这里统计的是审查提出的问题或修改要求，不等同于 bench 中已确认的问题标签。
-
-## 哪些问题最常出现
-
-当前发布版共有 110 个独立 PR、121 个快照和 171 条问题标签。下表按涉及的独立 PR 数排列前七类。规范类标签按首个规则 ID 归类，语义类标签按描述中的主要问题归类。每条标签只计入一类；同一 PR 的多个快照或多条标签涉及同一类时，PR 数只计一次。
-
-| 问题类别 | 涉及 PR | 问题标签数 | 典型表现 |
-|---|---:|---:|---|
-| 原始源码或执行行为改变 | 31 | 35 | 证明改动重排原代码、移除公开 API，或改变锁和内存映射的行为 |
-| 模型、不变量与可信边界 | 21 | 23 | 不变量遗漏合法状态，权限模型允许重复持有资源，或外部规约放错位置 |
-| Verus 表达方式 | 19 | 22 | 重复标记模式、保留多余的整数转换，或用复杂量词表达简单关系 |
-| API 契约不完整、过强或难以使用 | 16 | 21 | 前置条件排除合法输入，成功分支缺少保证，或调用者无法使用公开谓词 |
-| 证明代码的组织与导入 | 15 | 20 | 私有辅助证明穿插在公开 API 中，或证明依赖的导入分组不当 |
-| 已有规约和 API 未复用 | 12 | 13 | 重复定义已有模型，或在可共用定义的执行函数与规约中重复公式 |
-| 证明辅助函数和步骤冗余 | 11 | 15 | 新增无调用者的 lemma，为单次使用的证明单独定义函数，或重复引入公理 |
-
-前七类共覆盖 149 条标签。其余 22 条涉及命名（10 条）、构建与工具流程（9 条）、API 文档（2 条）和 lint 抑制（1 条）。
-
-## 数据结构
+## Data Structure
 
 ```text
 vostd-pr-bench/
-└── pr-<编号>-<head短SHA>/
-    ├── metadata.json   # PR 标题、链接、base/head 提交及变更路径
-    ├── diff.patch      # base → head 的完整 diff
-    ├── labels.json     # 问题类别、描述、代码位置及判断依据
-    ├── before/         # 修改前的源码
-    └── after/          # 待审查版本的源码
+└── pr-<number>-<short-head-SHA>/
+    ├── metadata.json   # PR title, URL, base/head commits, and changed paths
+    ├── diff.patch      # Complete diff from base to head
+    ├── labels.json     # Issue categories, descriptions, locations, and rationale
+    ├── before/         # Source code before the changes
+    └── after/          # Source code under review
 ```
 
-两侧源码包含完整 `ostd/` 及本次修改涉及的目录外文件，路径与上游仓库一致。`before/` 和 `after/` 分别对应 PR 变更的 base 和 head；`after/` 是选定的历史待审查版本，仍包含标签所指的问题，不代表根据 review 修复后的版本。
+Source trees preserve upstream paths and include `ostd/` where present, changed files, and additional context. `before/` and `after/` correspond to the base and head commits. The code in `after/` still contains the labeled issues.
 
-## 使用方法
+## Usage
 
-本数据集用来检验代码审查工具能否发现历史 PR 中已确认的问题。历史 review 为问题标签提供线索与来源，标签经过源码核实后作为评测参考；工具分析代码时不应看到这些标签或 review 记录。
+**Evaluating a code review tool or model** (see [PR #812](vostd-pr-bench/pr-812-4121eb1c32b0/) for an example):
 
-**评测代码审查工具或模型**（以 [PR #812](vostd-pr-bench/pr-812-4121eb1c32b0/) 为例）：
+1. Provide `diff.patch` and the source context in `before/` and `after/`. Use the PR title, commits, and changed paths from `metadata.json` if needed.
+2. Ask the tool to identify guideline or semantic issues and report each issue's file path, line numbers, description, and rationale.
+3. Save the results, then compare them with `labels.json`. Confirmed labels may not cover every issue; verify additional findings separately.
 
-1. 准备输入：提供 `diff.patch`，以及 `before/`、`after/` 中的源码上下文。需要 PR 背景时，可从 `metadata.json` 提取标题、base/head 提交和 `changed_paths`。
-2. 让工具找出这次 PR 变更中的问题，输出每个问题的文件路径、行号、描述和理由。例如可以要求：“请分析这份 PR diff，结合修改前后的源码，指出变更中的代码规范或语义问题，并说明位置和依据。”这里的任务是发现问题，无需修改源码。
-3. 保存工具的输出后，再打开 `labels.json`，逐项核对工具是否找到了标签描述的问题，以及位置和理由是否吻合。标签是已确认问题的集合，不保证覆盖所有问题；额外发现应另行核实。
+Keep `labels.json`, `known_issue_count`, and historical review records out of the tool's input and reserve them for scoring.
 
-评测时，将 `labels.json`、元数据中的 `known_issue_count` 和历史 review 内容留作评分信息，不作为工具或模型的输入，也不要让被测工具通过 PR 链接读取 review。
+**Exploring cases**: Read `labels.json`, follow its `locations` into the source, and use the descriptions, rationale, and diff to understand each issue. All files can be read locally without installing tools or accessing GitHub.
 
-**阅读案例、了解历史问题**：可以直接打开 `labels.json`，按 `locations` 定位到对应版本的源码，结合 `description`、`rationale` 和 `diff.patch` 理解问题。这种用法适合学习和复盘，不用于衡量工具独立发现问题的能力。
-
-上述文件均可直接在本地阅读，无需安装工具或访问 GitHub。
-
-源码保留上游版权声明与许可文件，详见各快照中的 `LICENSE-MPL` 及文件内声明。
+Source code retains upstream copyright notices and license files. See the licenses and file notices included with each case.

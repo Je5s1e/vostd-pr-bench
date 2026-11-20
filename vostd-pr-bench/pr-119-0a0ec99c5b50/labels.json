@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [{
+    "id": "pr-119-0a0ec99c5b50:commit-fix-3c55e81c43d179b7179ed5ccde686f6446b49af5-root-1",
+    "original_label_id": null,
+    "category": "semantic",
+    "description": "replace_with_none identifies the frame-condition exception with the replacement PTE's post-state address instead of the removed PTE's entry-state address.",
+    "locations": [{"version": "after", "path": "lock-protocol/src/mm/page_table/node/entry.rs", "start_line": 240, "end_line": 299}],
+    "rationale": "The function assigns self.pte = new_child.into_pte() at line 263 before establishing spt_do_not_change_except. The contract and assumed proof fact at lines 246 and 299 therefore read the replacement PTE address. new_absent does not require that address to equal old(self).pte.pte_paddr(), so the contract may exempt an unrelated slot while constraining the actually removed slot as unchanged. Repair 3c55e81c changes both sites to old(self).pte.pte_paddr().",
+    "source_evidence": "after/lock-protocol/src/mm/page_table/node/entry.rs\nlines 240-299\nblob aed9dddd9070e03897178302c8caff75d38eb533\nThe frame exception reads post-state self.pte at lines 246 and 299, after self.pte is replaced at line 263.\n\nevidence/repair.diff\ncommit 3c55e81c43d179b7179ed5ccde686f6446b49af5\nBoth exception-address expressions are changed to old(self).pte.pte_paddr().",
+    "rule_ids": [],
+    "review_url": "https://github.com/asterinas/vostd/commit/3c55e81c43d179b7179ed5ccde686f6446b49af5",
+    "related_comment_ids": [],
+    "sources": [{"kind": "commit_fix", "id": "3c55e81c43d179b7179ed5ccde686f6446b49af5:root-1", "url": "https://github.com/asterinas/vostd/commit/3c55e81c43d179b7179ed5ccde686f6446b49af5", "commit_id": "3c55e81c43d179b7179ed5ccde686f6446b49af5"}],
+    "verification": "Fixed-source state-identity analysis and direct repair-diff adjudication by two reviewers. Historical Rust/Verus was not executed."
+  }],
+  "sample_id": "pr-119-0a0ec99c5b50"
+}

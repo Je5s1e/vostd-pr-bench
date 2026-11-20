@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-26-5474cd472251",
+  "pr_number": 26,
+  "title": "Remove test/rw_version/spec/utils.rs",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/26",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0757ba84f20aec30e66490b26195e1f0267a4646",
+  "head_sha": "5474cd47225154b3b4503acfe04828579ed26ce4",
+  "base_method": "historical PR base and second parent of official merge d2bea279ca1b81e937bb29a91425830304a3a4c4; selected read-unlock problem commit descends from that merge",
+  "archive_base_sha": "0757ba84f20aec30e66490b26195e1f0267a4646",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/spec/utils.rs",
+    "lock-protocol/src/test/rw_version/spec/atomic.rs",
+    "lock-protocol/src/test/rw_version/spec/common.rs",
+    "lock-protocol/src/test/rw_version/spec/mod.rs",
+    "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "lock-protocol/src/test/rw_version/spec/utils.rs",
+    "vstd_extra/src/map_extra.rs",
+    "vstd_extra/src/seq_extra.rs"
+  ],
+  "diff_sha256": "bdd19060c1b5d7c8441e7fe7c42b46455f8ac57740894cde22b82c8c6d06fd00",
+  "versions": {
+    "before": {
+      "commit": "0757ba84f20aec30e66490b26195e1f0267a4646",
+      "file_count": 8,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "5474cd47225154b3b4503acfe04828579ed26ce4",
+      "file_count": 7,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T11:48:39.337967+00:00",
+    "reviewed_at": "2026-11-19T11:34:02Z",
+    "upstream_updated_at": "2025-05-30T06:15:20Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/26"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00026"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected the closest pre-repair read-unlock snapshot, where four related admits still export transition consistency and positivity guarantees.",
+    "adjudication": "Primary and independent review confirmed one read-unlock trusted-boundary root covering four proof sites. The fixed historical run reports 297/0 on both problem and repair because admits are trusted; the repair removes all four assumptions with checked proofs.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  },
+  "additional_context_paths": []
+}

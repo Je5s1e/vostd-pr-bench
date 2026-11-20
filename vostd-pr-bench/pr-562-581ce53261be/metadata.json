@@ -1,11 +1,69 @@
 {
-  "schema_version":1,"dataset_version":2,"sample_id":"pr-562-581ce53261be","pr_number":562,
-  "title":"prove axiom fn axiom_kernel_range_valid","title_source":"github_pr_metadata_at_collection",
-  "url":"https://github.com/asterinas/vostd/pull/562","repository":"https://github.com/asterinas/vostd",
-  "base_sha":"c68e5f905445ec7fd8029e73ad29f7e6c9762707","head_sha":"581ce53261bef68cff1709b0fe30c9f0ae247813",
-  "base_method":"git merge-base of archived GitHub base 8060005e6ec979cd09762c4c3d29cd287755dcd5 and selected review head 581ce53261bef68cff1709b0fe30c9f0ae247813; computed from official Git objects",
-  "changed_paths":["ostd/src/mm/kspace/kvirt_area.rs"],"diff_sha256":"786c5292f702c1c19d43c9939fb595e372c559a35057466312d113d195fee7ae",
-  "versions":{"before":{"commit":"c68e5f905445ec7fd8029e73ad29f7e6c9762707","file_count":319,"submodules":[{"path":"dv","sha":"5de8011be6322698f986be02de2858af8756fc59","included":false}],"license_files":["COPYRIGHT","LICENSE-MPL"]},"after":{"commit":"581ce53261bef68cff1709b0fe30c9f0ae247813","file_count":319,"submodules":[{"path":"dv","sha":"5de8011be6322698f986be02de2858af8756fc59","included":false}],"license_files":["COPYRIGHT","LICENSE-MPL"]}},
-  "known_issue_count":1,
-  "collection":{"collected_at":"2026-11-17T04:40:33.416548+00:00","reviewed_at":"2026-06-26T07:21:34Z","upstream_updated_at":"2026-06-26T11:55:43Z","source_urls":["https://github.com/asterinas/vostd/pull/562","https://github.com/asterinas/vostd/pull/562#discussion_r3479795766"],"guideline_sources":[{"commit":"581ce53261bef68cff1709b0fe30c9f0ae247813","path":"AGENTS.md","url":"https://github.com/asterinas/vostd/blob/581ce53261bef68cff1709b0fe30c9f0ae247813/AGENTS.md#L31"}]}
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-562-581ce53261be",
+  "pr_number": 562,
+  "title": "prove axiom fn axiom_kernel_range_valid",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/562",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "c68e5f905445ec7fd8029e73ad29f7e6c9762707",
+  "head_sha": "581ce53261bef68cff1709b0fe30c9f0ae247813",
+  "base_method": "git merge-base of archived GitHub base 8060005e6ec979cd09762c4c3d29cd287755dcd5 and selected review head 581ce53261bef68cff1709b0fe30c9f0ae247813; computed from official Git objects",
+  "changed_paths": [
+    "ostd/src/mm/kspace/kvirt_area.rs"
+  ],
+  "diff_sha256": "786c5292f702c1c19d43c9939fb595e372c559a35057466312d113d195fee7ae",
+  "versions": {
+    "before": {
+      "commit": "c68e5f905445ec7fd8029e73ad29f7e6c9762707",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    },
+    "after": {
+      "commit": "581ce53261bef68cff1709b0fe30c9f0ae247813",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ]
+    }
+  },
+  "known_issue_count": 1,
+  "collection": {
+    "collected_at": "2026-11-17T04:40:33.416548+00:00",
+    "reviewed_at": "2026-06-26T07:21:34Z",
+    "upstream_updated_at": "2026-06-26T11:55:43Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/562",
+      "https://github.com/asterinas/vostd/pull/562#discussion_r3479795766"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "581ce53261bef68cff1709b0fe30c9f0ae247813",
+        "path": "AGENTS.md",
+        "url": "https://github.com/asterinas/vostd/blob/581ce53261bef68cff1709b0fe30c9f0ae247813/AGENTS.md#L31"
+      }
+    ]
+  },
+  "additional_context_paths": [
+    "AGENTS.md"
+  ]
 }

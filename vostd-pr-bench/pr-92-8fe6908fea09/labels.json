@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-92-8fe6908fea09",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-92-8fe6908fea09:commit-fix-c35d78a437acba1016012c38f2ab3c1ed085615e-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The present-entry unmap branch assumes that the current PTE is absent from the SPT and calls `Entry::replace` under the same impossible precondition, even though `is_present` has just established that the PTE is present.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 785,
+          "end_line": 798
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 860,
+          "end_line": 866
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/mod.rs",
+          "start_line": 219,
+          "end_line": 230
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "start_line": 102,
+          "end_line": 116
+        }
+      ],
+      "rationale": "Control reaches the replacement branch only when `cur_entry.pte.is_present(spt)` returned true. Its trait contract guarantees that a true result implies the SPT PTE map contains the current PTE address. The branch then assumes the negation, and problem-side `Entry::replace` independently requires that negation. Verification therefore proceeds from a direct contradiction instead of proving removal of an actually present entry. Repair c35d78a removes both the false call-site assumption and the impossible callee precondition; the later merge preserves that repair.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs:785-798 continues past the absence check only for a present entry, while lines 860-866 assume the same address is absent immediately before replacement. after/lock-protocol/src/mm/page_table/mod.rs:219-230 specifies that `is_present == true` entails PTE-map membership. after/lock-protocol/src/mm/page_table/node/entry.rs:102-116 requires non-membership. Direct repair c35d78a437acba1016012c38f2ab3c1ed085615e deletes both non-membership premises.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/c35d78a437acba1016012c38f2ab3c1ed085615e",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "c35d78a437acba1016012c38f2ab3c1ed085615e:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/c35d78a437acba1016012c38f2ab3c1ed085615e",
+          "commit_id": "c35d78a437acba1016012c38f2ab3c1ed085615e"
+        }
+      ],
+      "verification": "Primary and independent source reviews confirmed the control-flow/contract contradiction and the direct two-site repair. Historical Verus was not executed; any problem-side pass would rely on the explicit false assumption and would not establish soundness."
+    }
+  ]
+}

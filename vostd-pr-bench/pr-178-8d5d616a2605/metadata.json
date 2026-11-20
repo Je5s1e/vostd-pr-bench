@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-178-8d5d616a2605",
+  "pr_number": 178,
+  "title": "Add warning for parallel verification",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/178",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "e229e872d36f0e37e1279dae293db13427105314",
+  "head_sha": "8d5d616a2605e166fa8fdadb798b4f86bd3d200d",
+  "base_method": "official PR base to selected problem commit; direct repair child verified",
+  "archive_base_sha": "e229e872d36f0e37e1279dae293db13427105314",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "xtask/src/main.rs"
+  ],
+  "diff_sha256": "65f1b0b9a7c754b8486a6d13e998ac1fb339dd0e7798d5b74040e7a7c525d8af",
+  "versions": {
+    "before": {
+      "commit": "e229e872d36f0e37e1279dae293db13427105314",
+      "file_count": 3,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "8d5d616a2605e166fa8fdadb798b4f86bd3d200d",
+      "file_count": 3,
+      "submodules": [],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T09:59:42.407035+00:00",
+    "reviewed_at": "2026-11-20",
+    "upstream_updated_at": "2025-08-06T03:15:02Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/178",
+      "https://github.com/asterinas/vostd/commit/8d5d616a2605e166fa8fdadb798b4f86bd3d200d",
+      "https://github.com/asterinas/vostd/commit/c450c77d6e941eee68da286465b2cd31c8ba9ffe"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00178"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Direct commit introducing an unconditional cross-platform warning with a Windows-only import, compared with the official PR base; its direct child repairs the import scope.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Primary and independent review confirmed one semantic non-Windows build failure and its direct one-line repair; a historical cargo build was not executed."
+  },
+  "additional_context_paths": []
+}

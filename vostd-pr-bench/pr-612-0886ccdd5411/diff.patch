@@ -1,5 +1,5 @@
 diff --git a/ostd/src/mm/kspace/mod.rs b/ostd/src/mm/kspace/mod.rs
-index aac5654fe..a8d064c6a 100644
+index aac5654fe766c875d10485f0cd8e0eaa8dec5aed..a8d064c6a0c17cf42e60516d7cc1df2aebd5e0d2 100644
 --- a/ostd/src/mm/kspace/mod.rs
 +++ b/ostd/src/mm/kspace/mod.rs
 @@ -186,25 +186,9 @@ unsafe impl PageTableConfig for KernelPtConfig {
@@ -108,7 +108,7 @@ index aac5654fe..a8d064c6a 100644
  
      /// For KernelPtConfig (x86_64): HIGHEST_TRANSLATION_LEVEL = 2 < NR_LEVELS = 4.
 diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
-index a18a3eac1..72b5bd4d9 100644
+index a18a3eac185068663d520b26dbe27a56e5bdd164..72b5bd4d9f51c2ccb967205b691f8451802748d7 100644
 --- a/ostd/src/mm/page_table/mod.rs
 +++ b/ostd/src/mm/page_table/mod.rs
 @@ -324,12 +324,11 @@ pub unsafe trait PageTableConfig: Clone + Debug + Send + Sync + 'static {
@@ -129,7 +129,7 @@ index a18a3eac1..72b5bd4d9 100644
  
      /// Proves `item.clone_requires(regions)` from the concrete frame-slot facts
 diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
-index e78c0b753..73a79c0ff 100644
+index e78c0b753d4fcc633e69d0244dafaa577c6e5eb5..73a79c0ff64a89fe7f7ea78536c54c566151e5bd 100644
 --- a/ostd/src/mm/vm_space.rs
 +++ b/ostd/src/mm/vm_space.rs
 @@ -1618,7 +1618,6 @@ unsafe impl PageTableConfig for UserPtConfig {

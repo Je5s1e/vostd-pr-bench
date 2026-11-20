@@ -15,7 +15,7 @@
     "ostd/src/boot/memory_region.rs",
     "ostd/src/boot/mod.rs"
   ],
-  "diff_sha256": "7be2a21858f577433e1a3499b2cea080a9b8cec1f573c68bb5149f671ea307e2",
+  "diff_sha256": "046314a0bc999eb9a16f89f1369f5e361ea251e261edb20edf7dbdec904fd587",
   "versions": {
     "before": {
       "commit": "d7d2ebec6b2d131e5d78ca40a052f67ce5b3a87a",
@@ -48,5 +48,17 @@
       ]
     }
   },
-  "known_issue_count": 5
+  "known_issue_count": 5,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "07c694bbca2a99c2c6800b7fa27bb0cae446621d",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/07c694bbca2a99c2c6800b7fa27bb0cae446621d/docs/coding-guidelines/maintainability.md#L373",
+        "rule_id": "defer-auxiliary-proof-functions",
+        "line": 373,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

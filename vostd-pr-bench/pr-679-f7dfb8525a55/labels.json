@@ -7,7 +7,7 @@
       "id": "pr-679-f7dfb8525a55:issue-3690850716",
       "original_label_id": "3690850716",
       "category": "guideline",
-      "description": "Should we add a lemma prefix? There seem to be several functions missing the prefix in this file.",
+      "description": "The reusable insert_before_slot_distinct proof fact lacks the required lemma_ naming prefix.",
       "locations": [
         {
           "version": "after",

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-100-3439712c4524:commit-fix-a1d0de0d37a48d3c5e4983b4b061baad6ca76553-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The refactored cursor path specification reads a nonexistent pa field from an IntermediatePageTableEntryView instead of its frame_pa field.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 145,
+          "end_line": 176
+        }
+      ],
+      "rationale": "path_wf compares the path guard address with cur_ancestors[i].pa, but IntermediatePageTableEntryView defines frame_pa, in_frame_index, map_to_pa, and level and has no pa field. The specification therefore cannot type-check/verify, blocking cursor contracts that require wf. Repair a1d0de0d changes the access to frame_pa and makes the path membership cases explicit.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 145-176\nblob cf298c47e27dd017664ef709646bbeff495e3bcd\npath_wf reads cur_ancestors[i].pa at line 165.\n\nafter/lock-protocol/src/spec/sub_page_table.rs\nlines 74-88\nblob 4ed35489cc29fc84d7543ad993aa83ad407c367f\nIntermediatePageTableEntryView defines frame_pa, in_frame_index, map_to_pa, and level, but no pa field.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 146-172\nblob eba9340be161c417560d4a208c7ddb99e0ad9335\ncommit a1d0de0d37a48d3c5e4983b4b061baad6ca76553\nThe repaired path_wf compares the guard address with cur_ancestors[i].frame_pa.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/a1d0de0d37a48d3c5e4983b4b061baad6ca76553",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "a1d0de0d37a48d3c5e4983b4b061baad6ca76553:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/a1d0de0d37a48d3c5e4983b4b061baad6ca76553",
+          "commit_id": "a1d0de0d37a48d3c5e4983b4b061baad6ca76553"
+        }
+      ],
+      "verification": "Fixed-source type-definition and direct repair-diff adjudication. Historical Rust/Verus was not executed."
+    },
+    {
+      "id": "pr-100-3439712c4524:commit-fix-a1d0de0d37a48d3c5e4983b4b061baad6ca76553-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "map promises that the cursor level is unchanged even though its descent loop lowers the level until frame.map_level().",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 374,
+          "end_line": 408
+        }
+      ],
+      "rationale": "The postcondition requires self.0.level == old(self).0.level, while the implementation loops whenever the current level exceeds frame.map_level() and each push_level call decreases the level by one. A mapping that starts above its target level therefore ends the descent at the target level, contradicting the unchanged-level promise. Repair a1d0de0d removes the false equality while preserving the unchanged virtual-address and constant-field guarantees.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 374-408\nblob cf298c47e27dd017664ef709646bbeff495e3bcd\nmap promises unchanged level at lines 394-396 and immediately enters a descent loop while level exceeds frame.map_level().\n\nafter/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 277-301\nblob cf298c47e27dd017664ef709646bbeff495e3bcd\npush_level ensures self.level == old(self).level - 1.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 370-400\nblob eba9340be161c417560d4a208c7ddb99e0ad9335\ncommit a1d0de0d37a48d3c5e4983b4b061baad6ca76553\nThe repaired map contract retains unchanged va but no longer promises unchanged level.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/a1d0de0d37a48d3c5e4983b4b061baad6ca76553",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "a1d0de0d37a48d3c5e4983b4b061baad6ca76553:root-2",
+          "url": "https://github.com/asterinas/vostd/commit/a1d0de0d37a48d3c5e4983b4b061baad6ca76553",
+          "commit_id": "a1d0de0d37a48d3c5e4983b4b061baad6ca76553"
+        }
+      ],
+      "verification": "Fixed-source contract/control-flow analysis and direct repair diff. Historical Rust/Verus was not executed."
+    },
+    {
+      "id": "pr-100-3439712c4524:commit-fix-6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The new-child map branch assumes that the allocated page-table child is the child represented by the current parent entry and cursor path before appending it.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 467,
+          "end_line": 488
+        }
+      ],
+      "rationale": "After allocating a page-table child and constructing its guard, the branch assumes path_item_points_to at lines 481-485 before push_level. Without this semantic relationship, the appended guard is not proved to be the child represented by the current parent PTE in the SPT model. Commit 6b2ae965 genuinely replaces this trust boundary with ancestors_match_path, an SPT ancestor-domain invariant, and a strengthened push_level precondition. That repair is temporary: commit 1f48716c reintroduces assume(ancestors_match_path) in the same new-child branch, and the final head retains it. B1 is counted once and is not described as durably repaired through final.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 467-488\nblob cf298c47e27dd017664ef709646bbeff495e3bcd\nThe Child::None branch allocates pt, constructs child_pt, assumes path_item_points_to at lines 481-485, and then calls push_level.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 186-209\nblob d906d728291fb547cbd184540e48be44d4a87d84\ncommit 6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c\nThe repair defines ancestors_match_path from the child frame's modeled ancestor chain.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 452-466\nblob d906d728291fb547cbd184540e48be44d4a87d84\ncommit 6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c\nAt the intermediate repair snapshot the new-child branch constructs child_pt and calls push_level without a relationship assume.\n\nregression/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 459-474\nblob f4777cb5543e3dd39cdda1a1d03a4550667658a9\ncommit 1f48716c9226d3deaf19a355e6e7ffa1b88d5a47\nThe same new-child relationship is trusted again with assume(self.0.ancestors_match_path(spt, child_pt)) at line 473.\n\nfinal/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 465-475\nblob 1a8db4674cd9bb58612ec0c6b354dc97729149a5\ncommit f9dd502538faf73de53bbdc6f2c1f21d42c8e48c\nThe final head still assumes ancestors_match_path in the new-child branch at line 474.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c",
+          "commit_id": "6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c"
+        }
+      ],
+      "verification": "Fixed-source trust-boundary analysis across the original problem, genuine intermediate repair, later same-root regression, and final head. The repair is valid historical evidence but is not durable through final. Historical Rust/Verus was not executed."
+    }
+  ],
+  "sample_id": "pr-100-3439712c4524"
+}

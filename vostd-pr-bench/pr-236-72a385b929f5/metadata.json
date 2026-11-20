@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-236-72a385b929f5",
+  "pr_number": 236,
+  "title": "Remove explicit `verus_builtin` and `verus_builtin_macros` dependency",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/236",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0e826a358beea7bf892e63b9a50290300aa0437c",
+  "head_sha": "72a385b929f527e0014e13b3e93950d5ec4fde20",
+  "base_method": "Direct-parent incremental comparison: 0e826a358beea7bf892e63b9a50290300aa0437c is the sole parent of selected problem commit 72a385b929f527e0014e13b3e93950d5ec4fde20; direct repair bdec3fc53c10ca4ffd05b514c93d56de16acc83e is its sole child.",
+  "archive_base_sha": "0e826a358beea7bf892e63b9a50290300aa0437c",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "Cargo.toml",
+    "aster_common/Cargo.toml",
+    "ostd/Cargo.toml",
+    "specs/ostd/Cargo.toml",
+    "vstd_extra/Cargo.toml",
+    "vstd_extra/src/ptr_extra.rs"
+  ],
+  "diff_sha256": "9b7cdf2e86d18b1d884d567977a5ac12007c25fbdeb2eeea530bc8506a7dd54f",
+  "versions": {
+    "before": {
+      "commit": "0e826a358beea7bf892e63b9a50290300aa0437c",
+      "file_count": 266,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "3180b7c88362dc7aa0d2ed44c20e417afdf5eeb1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "72a385b929f527e0014e13b3e93950d5ec4fde20",
+      "file_count": 266,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "3180b7c88362dc7aa0d2ed44c20e417afdf5eeb1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T12:21:42.446952+00:00",
+    "reviewed_at": "2026-11-20T12:14:10Z",
+    "upstream_updated_at": "2025-11-25T09:26:19Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/236",
+      "https://github.com/asterinas/vostd/commit/bdec3fc53c10ca4ffd05b514c93d56de16acc83e"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00236"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected the direct parent of repair bdec3fc53c10ca4ffd05b514c93d56de16acc83e. The evaluation comparison is the problem commit's sole parent 0e826a358beea7bf892e63b9a50290300aa0437c to problem commit 72a385b929f527e0014e13b3e93950d5ec4fde20.",
+    "zero_issues_meaning": "Not applicable; the case contains one independently adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary problem diff regenerated. demo/Cargo.toml is the sole additional context path and Cargo.lock is not part of changed_paths.",
+    "double_review": "Primary candidate review and independent second review both confirmed one semantic workspace-manifest root.",
+    "cargo_metadata_reproduction": "An isolated cargo metadata --no-deps --format-version 1 run on the problem tree exited 101 while loading demo/Cargo.toml because dependency.verus_builtin was not found in workspace.dependencies."
+  },
+  "additional_context_paths": [
+    "demo/Cargo.toml"
+  ]
+}

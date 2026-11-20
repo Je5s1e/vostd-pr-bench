@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 4,
-  "inline_review_comment_count": 2,
-  "review_count": 3,
-  "core_lesson": "节点逻辑删除后，其物理地址未必已可重新分配",
-  "category": "并发与锁",
-  "all_content_unadjudicated": true
-}

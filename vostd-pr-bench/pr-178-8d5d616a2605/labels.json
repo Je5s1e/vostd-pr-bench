@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-178-8d5d616a2605",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-178-8d5d616a2605:commit-fix-c450c77d6e941eee68da286465b2cd31c8ba9ffe-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The new parallel-verification warning uses `OwoColorize` and `Stream` on every platform while importing them only on Windows.",
+      "locations": [
+        {"version": "after", "path": "xtask/src/main.rs", "start_line": 21, "end_line": 22},
+        {"version": "after", "path": "xtask/src/main.rs", "start_line": 573, "end_line": 577}
+      ],
+      "rationale": "On Linux and macOS, `cfg(target_os = \"windows\")` removes the `owo_colors` import, but `exec_verify` unconditionally compiles `.if_supports_color(Stream::Stderr, ...)` whenever the crate is built. The trait and `Stream` type are therefore out of scope and the xtask fails to compile. Direct child commit c450c77d removes the Windows-only cfg from the import, matching the unconditional warning use. Primary and independent review confirmed the platform condition and one-line repair.",
+      "source_evidence": "after/xtask/src/main.rs\n21: #[cfg(target_os = \"windows\")]\n22: use owo_colors::{OwoColorize, Stream};\n\n573: \"Warning: Running verification in parallel mode, the output may be out of order.\"\n574:     .if_supports_color(Stream::Stderr, |text| text.yellow())\n\nRepair c450c77d removes line 21's cfg attribute.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/c450c77d6e941eee68da286465b2cd31c8ba9ffe",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "c450c77d6e941eee68da286465b2cd31c8ba9ffe:root-1", "url": "https://github.com/asterinas/vostd/commit/c450c77d6e941eee68da286465b2cd31c8ba9ffe", "commit_id": "c450c77d6e941eee68da286465b2cd31c8ba9ffe"}
+      ],
+      "verification": "Primary and independent source review confirmed the non-Windows name-resolution failure and direct repair. A historical cargo build was not executed."
+    }
+  ]
+}

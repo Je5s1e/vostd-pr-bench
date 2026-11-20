@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-64-900e41671221",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-64-900e41671221:commit-fix-7b2e349ad7b7d17f70237d009b6cb938da9fb8bd-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`PageTableEntryPerms::wf` guards every per-entry invariant with `len < 512` while also requiring `len == 512`, making all 512 PTE well-formedness obligations vacuous.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/node/rwlock/mod.rs",
+          "start_line": 316,
+          "end_line": 330
+        }
+      ],
+      "rationale": "The selected predicate requires self.inner.value().len() == 512, but its quantified implication uses 0 <= self.inner.value().len() < 512 rather than bounding the quantified index. The implication antecedent is therefore false for every i, so a fully initialized 512-entry array with a malformed PTE at any valid index can satisfy this clause without Pte::wf or wf_with_node_info. Repair commit 7b2e349ad7b7d17f70237d009b6cb938da9fb8bd changes the antecedent to 0 <= i < 512 and removes external_body from both read_pte paths and write_pte using the restored per-index facts.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/node/rwlock/mod.rs:316-330 simultaneously requires len == 512 and guards each PTE obligation with len < 512. Repair 7b2e349ad7b7d17f70237d009b6cb938da9fb8bd changes lines 320-329 to quantify i: int with 0 <= i < 512, indexes value()[i], and passes i as nat to wf_with_node_info. The same repair removes the three accessor external_body annotations in lock-protocol/src/exec/rw/node/mod.rs and adds proofs using these indexed facts.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/7b2e349ad7b7d17f70237d009b6cb938da9fb8bd",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "7b2e349ad7b7d17f70237d009b6cb938da9fb8bd:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/7b2e349ad7b7d17f70237d009b6cb938da9fb8bd",
+          "commit_id": "7b2e349ad7b7d17f70237d009b6cb938da9fb8bd"
+        }
+      ],
+      "verification": "Historical compatibility verification executed with asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, Rust 1.88.0, and Z3 4.12.5. vstd_extra verified 228/0. Problem lock-protocol verified 491/0, but the implication was vacuous and all three accessors were external bodies. Repair and final lock-protocol verified 494/0 after the invariant correction and exemption removal. The verifier is nine days newer than the PR; the contradictory length guard is tool-independent source logic."
+    }
+  ]
+}

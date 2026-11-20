@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 1,
-  "inline_review_comment_count": 1,
-  "review_count": 1,
-  "core_lesson": "只删除自动强制转换覆盖的 as int，保留真正的类型边界",
-  "category": "算术与位运算",
-  "all_content_unadjudicated": true
-}

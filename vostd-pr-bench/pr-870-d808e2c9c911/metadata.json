@@ -15,7 +15,7 @@
     "ostd/src/arch/x86/mod.rs",
     "ostd/src/arch/x86/task/mod.rs"
   ],
-  "diff_sha256": "9c8e0ef689b2885b3322d2d7b9206585dd8efa6386e3702f1ef10b4a5b92d55e",
+  "diff_sha256": "1c68675945881c0888f0f9198d1b13bd29ddbf728f3e66f016a3636a0711f3f3",
   "versions": {
     "before": {
       "commit": "a22d96b40dddb85a4df2896113fb9e7170b86a42",
@@ -48,5 +48,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "d808e2c9c91131a328364d76701218ca0bff356b",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/d808e2c9c91131a328364d76701218ca0bff356b/docs/coding-guidelines/maintainability.md#L757",
+        "rule_id": "pair-exec-helpers-with-spec-models",
+        "line": 757,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

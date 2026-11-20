@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-23-56d930eb5a67",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-23-56d930eb5a67:commit-fix-11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The Windows bootstrap and update paths invoke PowerShell 7 (`pwsh`) unconditionally, so they fail with program-not-found on systems that only have the Windows-bundled `powershell.exe`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "xtask/src/main.rs",
+          "start_line": 848,
+          "end_line": 848
+        },
+        {
+          "version": "after",
+          "path": "xtask/src/main.rs",
+          "start_line": 879,
+          "end_line": 879
+        },
+        {
+          "version": "after",
+          "path": "xtask/src/main.rs",
+          "start_line": 937,
+          "end_line": 937
+        }
+      ],
+      "rationale": "At the selected head, `install_verusfmt`, `compile_verus`, and the Windows Z3 download path all construct `Command::new(\"pwsh\")` without probing availability. A normal Windows installation may provide only `powershell.exe`; in that environment the child process cannot be spawned and bootstrap/update stops before the required script runs. PR #127's title and body report this exact `program not found` failure and state that both shells were tested. Repair commit 11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0 adds `get_powershell_command`, tries `pwsh`, and falls back to `powershell`. The PR #23 head entered mainline as patch-equivalent commit 2faf9a1ecefa763fcd9d17aecbeb951ee2996fdd, which is an ancestor of the repair.",
+      "source_evidence": "after/xtask/src/main.rs\n848:             let mut cmd = Command::new(\"pwsh\");\n879:         let cmd = &mut Command::new(\"pwsh\");\n937:             Command::new(\"pwsh\")\n\nRepair commit 11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0 introduces a Windows-only `get_powershell_command` that probes `pwsh`, then probes and returns `powershell` when PowerShell 7 is absent, and replaces these active invocations with that selector.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0",
+          "commit_id": "11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0"
+        }
+      ],
+      "verification": "source-only; historical Windows bootstrap and historical Verus were not executed. Primary and independent second reviewers inspected the complete four-commit PR history, fixed final diff, active call paths, patch-equivalent mainline ancestry, PR #127 author report, and repair commit."
+    }
+  ]
+}

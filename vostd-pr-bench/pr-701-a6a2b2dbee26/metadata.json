@@ -19,7 +19,7 @@
   "versions": {
     "before": {
       "commit": "2c3feef7322b1e6dfad1dbb5a45858b58cd9e43a",
-      "file_count": 350,
+      "file_count": 351,
       "submodules": [
         {
           "path": "dv",
@@ -35,7 +35,7 @@
     },
     "after": {
       "commit": "a6a2b2dbee26f548964b067123753eda43053779",
-      "file_count": 350,
+      "file_count": 351,
       "submodules": [
         {
           "path": "dv",
@@ -73,5 +73,8 @@
     "snapshot_selection": "Historical head a6a2b2dbee26f548964b067123753eda43053779 was recovered from the first GitHub Actions run for PR #701; it was current when issue comment 5238480335 requested refreshing Cargo.lock and was replaced by force-pushed head 97345daa8e4b683b7bce40a7fede866ba714ef6c.",
     "zero_issues_meaning": "Not applicable; this adjudicated historical snapshot contains one known issue.",
     "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
-  }
+  },
+  "additional_context_paths": [
+    "Cargo.lock"
+  ]
 }

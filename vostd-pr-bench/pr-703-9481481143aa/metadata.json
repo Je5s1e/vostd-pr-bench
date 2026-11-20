@@ -67,17 +67,23 @@
       {
         "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
         "path": "docs/coding-guidelines/maintainability.md",
-        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#avoid-redundant-mode-markers"
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#avoid-redundant-mode-markers",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
       },
       {
         "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
         "path": "docs/coding-guidelines/maintainability.md",
-        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#document-real-proof-debt"
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#document-real-proof-debt",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
       },
       {
         "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
         "path": "docs/coding-guidelines/proof-engineering.md",
-        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/proof-engineering.md#canonical-spec-models"
+        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/proof-engineering.md#canonical-spec-models",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
       }
     ],
     "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",

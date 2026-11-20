@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/embedding/kvirt_store.rs b/ostd/specs/mm/embedding/kvirt_store.rs
-index d8bc95206..bab66ea38 100644
+index d8bc9520610aa09b310e7638cf838922e817ba15..bab66ea384f2ae7c1b128723f5566cb98b3d2453 100644
 --- a/ostd/specs/mm/embedding/kvirt_store.rs
 +++ b/ostd/specs/mm/embedding/kvirt_store.rs
 @@ -125,6 +125,7 @@ pub axiom fn query_embedded<'rcu>(
@@ -19,7 +19,7 @@ index d8bc95206..bab66ea38 100644
              final(self).inv(),
              final(self).kvirt_areas == old(self).kvirt_areas,
 diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
-index 96945b5b1..167a9de44 100644
+index 96945b5b1afae0c52c3794c602d57f686c3af778..167a9de4408bd9cc8fdd860802ee0bb64903bcc2 100644
 --- a/ostd/src/mm/kspace/kvirt_area.rs
 +++ b/ostd/src/mm/kspace/kvirt_area.rs
 @@ -199,11 +199,14 @@ fn collect_largest_pages(va: Vaddr, pa: Paddr, len: usize) -> alloc::vec::Vec<(P
@@ -106,7 +106,7 @@ index 96945b5b1..167a9de44 100644
              };
              let preempt_guard = disable_preempt::<A>();
 diff --git a/ostd/src/mm/page_table/cursor/locking.rs b/ostd/src/mm/page_table/cursor/locking.rs
-index 055e542c0..c6f4edb50 100644
+index 055e542c09a9d3e351683f5dfd91ad1412e7a88b..c6f4edb50e073ac202f2018f8980858f18200d56 100644
 --- a/ostd/src/mm/page_table/cursor/locking.rs
 +++ b/ostd/src/mm/page_table/cursor/locking.rs
 @@ -6,7 +6,10 @@ use vstd::prelude::*;
@@ -271,7 +271,7 @@ index 055e542c0..c6f4edb50 100644
                  .entry_own.node().meta_addr_self()),
          // regions invariant preserved
 diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
-index c8710a643..dca497912 100644
+index c8710a643ba85afec79060f2045606e120183bf2..dca49791295c99dc0f9aef15cf46ff341664f133 100644
 --- a/ostd/src/mm/page_table/cursor/mod.rs
 +++ b/ostd/src/mm/page_table/cursor/mod.rs
 @@ -272,7 +272,8 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {
@@ -295,7 +295,7 @@ index c8710a643..dca497912 100644
              0 < va.end <= C::LOCKED_END_BOUND_spec(),
          ensures
 diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
-index b9aa9f35f..44cf83d35 100644
+index b9aa9f35f7ff0e270b38af4be8d6004b1d3e1d82..44cf83d35ceb721d835f4296f1c72b649637b55f 100644
 --- a/ostd/src/mm/page_table/mod.rs
 +++ b/ostd/src/mm/page_table/mod.rs
 @@ -1218,6 +1218,17 @@ impl PageTable<KernelPtConfig> {
@@ -337,7 +337,7 @@ index b9aa9f35f..44cf83d35 100644
              0 < va.end <= C::LOCKED_END_BOUND_spec(),
          ensures
 diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
-index a33d40207..415290d16 100644
+index a33d402077cd5cbd1bd0d2b84e5d9f70abbc304c..415290d1673ae12f88b29ef96480ffa3c166d849 100644
 --- a/ostd/src/mm/vm_space.rs
 +++ b/ostd/src/mm/vm_space.rs
 @@ -220,11 +220,13 @@ impl<'a> VmSpace<'a> {

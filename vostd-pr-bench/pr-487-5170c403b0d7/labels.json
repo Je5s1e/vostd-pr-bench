@@ -7,7 +7,7 @@
       "id": "pr-487-5170c403b0d7:issue-3636252007",
       "original_label_id": "3636252007",
       "category": "semantic",
-      "description": "`Task::current()` currently always returns `Some(CurrentTask { })`, which contradicts its own documentation (bootstrap should return `None`) and removes the prior linkage to the runtime notion of “current task”. This will break callers that rely on `None` in bootstrap/interrupt contexts and makes `CurrentTask` unusable for accessing per-task state.\n\nThis issue also appears on line 103 of the same file.",
+      "description": "The re-enabled Task::current API always returns Some(CurrentTask {}), contradicting its documented None result in bootstrap context; the original task lookup remains commented out.",
       "locations": [
         {
           "version": "after",

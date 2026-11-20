@@ -7,7 +7,7 @@
       "id": "pr-763-027c97275075:issue-4001922460",
       "original_label_id": "4001922460",
       "category": "guideline",
-      "description": "Source code.",
+      "description": "The cursor proof migration deletes preserved original Rust debug assertions and path-update expressions, losing the source context for the adapted executable code.",
       "locations": [
         {
           "version": "before",

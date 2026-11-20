@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-71-ddd2e78f5931",
+  "pr_number": 71,
+  "title": "Simplify map and prove cur_entry's pte and node relation",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/71",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "ca8ef69001b0c4edb4090677c6fa0d2f7286396a",
+  "head_sha": "ddd2e78f5931d106a5e77f46d8fd3b824d1ed817",
+  "base_method": "git merge-base(archived live target tip 4fcc240d0ce542defa1587bfaeb1603e1284c5ee, selected problem merge ddd2e78f5931d106a5e77f46d8fd3b824d1ed817) = ca8ef69001b0c4edb4090677c6fa0d2f7286396a; also selected merge second parent",
+  "archive_base_sha": "4fcc240d0ce542defa1587bfaeb1603e1284c5ee",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "lock-protocol/src/mm/page_table/cursor/mod.rs"
+  ],
+  "diff_sha256": "04db80f84c9c0287ae349920363918aed34227c09c8e12bb3c12acc5e9600a09",
+  "versions": {
+    "before": {
+      "commit": "ca8ef69001b0c4edb4090677c6fa0d2f7286396a",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "ddd2e78f5931d106a5e77f46d8fd3b824d1ed817",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T13:29:18.691548+00:00",
+    "reviewed_at": "2026-11-19T12:58:05Z",
+    "upstream_updated_at": "2025-07-11T06:44:38Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/71",
+      "https://github.com/asterinas/vostd/commit/15b5ddbb625c562138b416f4f73b8c39c8b09172"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00071"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected merge ddd2e78f5931d106a5e77f46d8fd3b824d1ed817, the closest snapshot containing the failing assertion before contract repair 15b5ddbb625c562138b416f4f73b8c39c8b09172. Compared against fixed merge-base/second parent ca8ef69001b0c4edb4090677c6fa0d2f7286396a; included node/entry.rs as additional contract context.",
+    "zero_issues_meaning": "Not applicable; the case contains one source- and verifier-adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes must be checked; regenerate the full-index binary diff for ca8ef69001b0c4edb4090677c6fa0d2f7286396a..ddd2e78f5931d106a5e77f46d8fd3b824d1ed817 and export node/entry.rs in both versions as additional context.",
+    "tool_result": "With asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, both dependencies report 228/0; problem lock-protocol reports 496 verified, 1 assertion error at cursor/mod.rs:566, and direct repair reports 497/0. The verifier is two days after repair because the project used a floating branch."
+  },
+  "additional_context_paths": [
+    "lock-protocol/src/mm/page_table/node/entry.rs"
+  ]
+}

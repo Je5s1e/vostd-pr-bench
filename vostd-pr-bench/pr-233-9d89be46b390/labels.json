@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-233-9d89be46b390",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-233-9d89be46b390:commit-fix-aa2547b7ff107ddfdfb3ac756740473faeb3e093-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Deleting vstd_extra's public injective_on definition removes the name formerly re-exported through vstd_extra::prelude, but lock-protocol-rcu's unchanged proof still calls injective_on without importing vstd::relations::injective_on.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol-rcu/src/spec/utils.rs",
+          "start_line": 1161,
+          "end_line": 1164
+        }
+      ],
+      "rationale": "At the problem snapshot, vstd_extra/src/function_properties.rs imports vstd::relations privately for its own uses but no longer defines a public injective_on item. vstd_extra/src/prelude.rs therefore cannot re-export that deleted name. The caller imports vstd_extra::prelude and several vstd modules but not vstd::relations::injective_on, so the unqualified ensures expression cannot resolve. The direct child repair adds exactly that import while leaving the proof call unchanged.",
+      "source_evidence": "after/vstd_extra/src/function_properties.rs no longer contains the public injective_on definition; after/vstd_extra/src/prelude.rs:11 still glob re-exports function_properties; after/lock-protocol-rcu/src/spec/utils.rs:1-10 lacks the relations import while lines 1161-1164 use injective_on. repair aa2547b7ff107ddfdfb3ac756740473faeb3e093 adds use vstd::relations::injective_on at line 10.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/aa2547b7ff107ddfdfb3ac756740473faeb3e093",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "aa2547b7ff107ddfdfb3ac756740473faeb3e093:root-1",
+          "commit_id": "aa2547b7ff107ddfdfb3ac756740473faeb3e093",
+          "url": "https://github.com/asterinas/vostd/commit/aa2547b7ff107ddfdfb3ac756740473faeb3e093"
+        }
+      ],
+      "verification": "The immutable source history and direct repair establish a Rust/Verus name-resolution failure. Historical Verus was not executed; the direct child changes only the missing import."
+    }
+  ]
+}

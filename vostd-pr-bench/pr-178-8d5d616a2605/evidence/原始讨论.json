@@ -1,0 +1,116 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/178",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 178,
+    "title": "Add warning for parallel verification",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/178",
+    "state": "MERGED",
+    "createdAt": "2025-08-06T02:47:07Z",
+    "updatedAt": "2025-08-06T03:15:02Z",
+    "closedAt": "2025-08-06T03:14:58Z",
+    "mergedAt": "2025-08-06T03:14:58Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "e229e872d36f0e37e1279dae293db13427105314",
+    "headRefName": "CLI-warning",
+    "headRefOid": "c450c77d6e941eee68da286465b2cd31c8ba9ffe",
+    "changedFiles": 1,
+    "additions": 5,
+    "deletions": 1,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MQ"
+      },
+      "nodes": [
+        {
+          "path": "xtask/src/main.rs",
+          "additions": 5,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

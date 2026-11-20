@@ -1,6 +1,6 @@
 diff --git a/ostd/specs/cpu.rs b/ostd/specs/cpu.rs
 new file mode 100644
-index 000000000..8dd681d11
+index 0000000000000000000000000000000000000000..8dd681d11dbd554d0ef59425026f5100ca7d1cfc
 --- /dev/null
 +++ b/ostd/specs/cpu.rs
 @@ -0,0 +1,22 @@
@@ -27,7 +27,7 @@ index 000000000..8dd681d11
 +
 +} // verus!
 diff --git a/ostd/specs/mod.rs b/ostd/specs/mod.rs
-index f316bf901..4d6572bbc 100644
+index f316bf9016a296f4653b694d63df1da5afcc105c..4d6572bbcf2e802a1cd78f1b8c2fef0d40d88dee 100644
 --- a/ostd/specs/mod.rs
 +++ b/ostd/specs/mod.rs
 @@ -4,6 +4,7 @@
@@ -39,7 +39,7 @@ index f316bf901..4d6572bbc 100644
  #[allow(unused_braces)]
  #[allow(rustdoc::invalid_rust_codeblocks)]
 diff --git a/ostd/src/arch/x86/cpu/context/mod.rs b/ostd/src/arch/x86/cpu/context/mod.rs
-index 7d5e523da..35c498608 100644
+index 7d5e523da7d62bd5e70a1b1c18f91b078d8225d3..35c498608eb5d2b763d4fc5caebdfae9b682f37f 100644
 --- a/ostd/src/arch/x86/cpu/context/mod.rs
 +++ b/ostd/src/arch/x86/cpu/context/mod.rs
 @@ -1,9 +1,24 @@
@@ -453,7 +453,7 @@ index 7d5e523da..35c498608 100644
  }
 +*/
 diff --git a/ostd/src/arch/x86/cpu/mod.rs b/ostd/src/arch/x86/cpu/mod.rs
-index 090a7e36a..f64289cba 100644
+index 090a7e36a651d7c8be5191534e9f319091f3dfaf..f64289cba0811c563e4ae6c9ee8de938b38baeaf 100644
 --- a/ostd/src/arch/x86/cpu/mod.rs
 +++ b/ostd/src/arch/x86/cpu/mod.rs
 @@ -1,4 +1,6 @@
@@ -465,7 +465,7 @@ index 090a7e36a..f64289cba 100644
 + * Origin Rust: pub mod local;
 + */
 diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
-index d2412ae5c..3476bbe93 100644
+index d2412ae5c2bbdd1feb0f48202a185b2c7e5d08a3..3476bbe935543acf9c4864ee9dd99c9d0b3847c0 100644
 --- a/ostd/src/arch/x86/mod.rs
 +++ b/ostd/src/arch/x86/mod.rs
 @@ -1,8 +1,8 @@
@@ -489,7 +489,7 @@ index d2412ae5c..3476bbe93 100644
  /*use io::construct_io_mem_allocator_builder;
  use spin::Once;
 diff --git a/ostd/src/arch/x86/trap/mod.rs b/ostd/src/arch/x86/trap/mod.rs
-index 595859af4..d44ef098f 100644
+index 595859af47bdf9b625082848ea8e9df63a0c9883..d44ef098f3a6286129973067a4a30ce2bb155d18 100644
 --- a/ostd/src/arch/x86/trap/mod.rs
 +++ b/ostd/src/arch/x86/trap/mod.rs
 @@ -14,6 +14,17 @@
@@ -562,7 +562,7 @@ index 595859af4..d44ef098f 100644
  }
 +*/
 diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
-index 1e9f2c780..8674210c0 100644
+index 1e9f2c780776bf3cb6b7625709fa9b1bf3491a42..8674210c0c9a30a436c05ea9143e8e4c880cb18d 100644
 --- a/ostd/src/cpu/mod.rs
 +++ b/ostd/src/cpu/mod.rs
 @@ -5,12 +5,15 @@ use vstd::{
@@ -605,7 +605,7 @@ index 1e9f2c780..8674210c0 100644
      /// A CPU id is always in the range of CPUs present in the system.
      #[verifier::type_invariant]
 diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
-index 0f5c041c3..33e55397f 100644
+index 0f5c041c3ee5cdb877a044ea1260a2c34096cd65..33e55397f59eb2462da3204620532f5aba4927a8 100644
 --- a/ostd/src/lib.rs
 +++ b/ostd/src/lib.rs
 @@ -51,13 +51,13 @@ pub mod mm;
@@ -626,7 +626,7 @@ index 0f5c041c3..33e55397f 100644
  
  /*use core::sync::atomic::{AtomicBool, Ordering};
 diff --git a/ostd/src/user.rs b/ostd/src/user.rs
-index f34b5c3d2..e87e605dc 100644
+index f34b5c3d2188f46a01a7dfbb47d46f317563bf77..e87e605dcbbcb41aabb55627e9936838c468c1b2 100644
 --- a/ostd/src/user.rs
 +++ b/ostd/src/user.rs
 @@ -1,5 +1,9 @@

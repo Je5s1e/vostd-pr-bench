@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-16-ace524111090",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-16-ace524111090:commit-fix-be0f7880ff3e6dc60fcb461698b459b421f25056-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "After the update command starts fetching the current Verus branch, four finite memory-region loops fail the newly enabled execution termination check because they have no decreases clauses.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "fvt1-mem-region-init/src/memory_region.rs",
+          "start_line": 281,
+          "end_line": 281
+        },
+        {
+          "version": "after",
+          "path": "fvt1-mem-region-init/src/memory_region.rs",
+          "start_line": 390,
+          "end_line": 390
+        },
+        {
+          "version": "after",
+          "path": "fvt1-mem-region-init/src/memory_region.rs",
+          "start_line": 409,
+          "end_line": 409
+        },
+        {
+          "version": "after",
+          "path": "fvt1-mem-region-init/src/memory_region.rs",
+          "start_line": 435,
+          "end_line": 435
+        }
+      ],
+      "rationale": "The selected commit changes `xtask update` to fetch the requested Verus branch before resetting, making the branch's new execution-termination policy effective in the repository workflow. With official Verus 9e262800af8757047b179a36ca655863bc76d005 (which contains trigger commit fe07347f61c7b024db8bf19d40bb2e1b452c3ffe), the problem snapshot reports `loop must have a decreases clause` at the first loop. Repair commit be0f7880ff3e6dc60fcb461698b459b421f25056 adds decreasing remaining-work measures to all four finite loops, after which the identical fvt1 target reports 22 verified and 0 errors.",
+      "source_evidence": "after/fvt1-mem-region-init/src/memory_region.rs\n281:     while i < regions.len()\n390:     while _i < regions_unusable.len()\n409:         while _j < regions_src.len()\n435:             while res_vec.len() > 0\n\nPinned problem run: `loop must have a decreases clause` at line 281. Repair commit be0f7880ff3e6dc60fcb461698b459b421f25056 adds `regions.len() - i`, `regions_unusable.len() - _i`, `regions_src.len() - _j`, and `res_vec.len()` decreases measures; the repaired target reports `22 verified, 0 errors`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/be0f7880ff3e6dc60fcb461698b459b421f25056",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "be0f7880ff3e6dc60fcb461698b459b421f25056:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/be0f7880ff3e6dc60fcb461698b459b421f25056",
+          "commit_id": "be0f7880ff3e6dc60fcb461698b459b421f25056"
+        }
+      ],
+      "verification": "Reproduced with official Verus 9e262800af8757047b179a36ca655863bc76d005, Rust 1.82.0-aarch64-apple-darwin, and Z3 4.12.5: the problem snapshot reports a missing decreases clause at memory_region.rs:281; the repair snapshot reports 22 verified, 0 errors. The related fvt5 repair locations are not labeled because an unrelated pre-existing aster_common attribute incompatibility prevented the fixed run from reaching them."
+    }
+  ]
+}

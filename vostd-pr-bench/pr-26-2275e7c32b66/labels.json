@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-26-2275e7c32b66",
+  "status": "incremental_source_adjudicated",
+  "issues": [{
+    "id": "pr-26-2275e7c32b66:commit-fix-789cc0d7beddf1eb3629a7596429896f4aeb3072-root-1",
+    "original_label_id": null,
+    "category": "semantic",
+    "description": "The read-lock induction proof exports cursor/reader-count consistency while its final quantified equality is still discharged with `admit()`.",
+    "locations": [{"version": "after", "path": "lock-protocol/src/test/rw_version/spec/tree.rs", "start_line": 336, "end_line": 336}],
+    "rationale": "`read_lock_inductive` must preserve `rc_cursors_relation`, equating each reader count with the number of filtered cursors holding the lock. After reasoning about the changed CPU and map filter, the selected snapshot still closes the quantified obligation with `admit()`, so downstream state-machine proofs may trust an unchecked invariant. Repair commit 789cc0d7 adds the missing different-length map-filter reasoning and removes the assumption.",
+    "source_evidence": "after/lock-protocol/src/test/rw_version/spec/tree.rs\n318:                 else{\n319:                     assert(pre.reader_counts[nid]==value_filter(\n...\n328:                     lemma_remove_value_filter_false(\n...\n331:                     lemma_insert_value_filter_true(\n...\n334:                     axiom_set_insert_len(pre.cursors.dom(),cpu);\n335:                 }\n336:                 admit();\n\nRepair 789cc0d7 replaces this final trust step with checked map-filter length reasoning.",
+    "rule_ids": [],
+    "review_url": "https://github.com/asterinas/vostd/commit/789cc0d7beddf1eb3629a7596429896f4aeb3072",
+    "related_comment_ids": [],
+    "sources": [{"kind": "commit_fix", "id": "789cc0d7beddf1eb3629a7596429896f4aeb3072:root-1", "url": "https://github.com/asterinas/vostd/commit/789cc0d7beddf1eb3629a7596429896f4aeb3072", "commit_id": "789cc0d7beddf1eb3629a7596429896f4aeb3072"}],
+    "verification": "With Verus 377ef530f468edb31d764be2f45602bf6fecc708, Rust 1.82.0 and Z3 4.12.5, both problem and repair report lock-protocol 326 verified, 0 errors. The problem succeeds because admit() is trusted; fixed-source and independent review confirm the repair removes the unchecked obligation."
+  }]
+}

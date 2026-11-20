@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-890-5b1e96c2ec18",
+  "pr_number": 890,
+  "title": "fix: strengthen some API postconditions",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/890",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "291a24c8dd122cc8d6f58f5662e01a471b79c5e8",
+  "head_sha": "5b1e96c2ec1861d1db1f9a9cea0acfebae8443cc",
+  "base_method": "merge-base(archived comparison base 291a24c8dd122cc8d6f58f5662e01a471b79c5e8, selected first PR commit 5b1e96c2ec1861d1db1f9a9cea0acfebae8443cc)",
+  "archive_base_sha": "291a24c8dd122cc8d6f58f5662e01a471b79c5e8",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/task/scheduler/info.rs",
+    "ostd/src/util/ops.rs"
+  ],
+  "diff_sha256": "ed9bf2565402c35bb163c6e0ebd6999023abe731d604619414f7e2a6cc956956",
+  "versions": {
+    "before": {
+      "commit": "291a24c8dd122cc8d6f58f5662e01a471b79c5e8",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "5b1e96c2ec1861d1db1f9a9cea0acfebae8443cc",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "c41c1d344f6d082b9a7f9739ca51515fee4d3b53",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:51:41.585818+00:00",
+    "reviewed_at": "2026-11-20T08:51:41.585818+00:00",
+    "upstream_updated_at": "2026-11-03T12:39:28Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/890",
+      "https://github.com/asterinas/vostd/commit/f44c2f5fbecd9bdd16858a5dbf87e37a736dbf7d"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00890"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": []
+}

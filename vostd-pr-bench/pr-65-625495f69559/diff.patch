@@ -1,0 +1,371 @@
+diff --git a/lock-protocol/src/exec/rw/cursor.rs b/lock-protocol/src/exec/rw/cursor.rs
+index 332e25b803d61c0c9d9bc58a0c5e016266a29395..7fcbd4d70beb7cb14e5f0fcba140daf9e316defd 100644
+--- a/lock-protocol/src/exec/rw/cursor.rs
++++ b/lock-protocol/src/exec/rw/cursor.rs
+@@ -425,14 +425,15 @@ pub fn lock_range(
+                         //     level - 1,
+                         //     new_pt_is_tracked,
+                         // );
+-                        let pt = allocate_pt(level - 1, mem);
++                        let pt = allocate_pt(
++                            level - 1,
++                            mem,
++                            Tracked(pt.inst.borrow().clone()),
++                            Ghost(nxt_nid),
++                        );
+                         let tracked pt_inst = pt.inst.borrow().clone();
+                         cur_pt_paddr = pt.start_paddr(mem);
+-                        let new_child = Child::PageTable(
+-                            pt,
+-                            Tracked(pt_inst),
+-                            Ghost(NodeHelper::get_child(cur_nid, start_idx as nat)),
+-                        );
++                        let new_child = Child::PageTable(pt, Tracked(pt_inst), Ghost(nxt_nid));
+                         assert(new_child.wf(mem)) by {
+                             NodeHelper::lemma_get_child_sound(cur_nid, start_idx as nat);
+                         };
+diff --git a/lock-protocol/src/exec/rw/frame/mod.rs b/lock-protocol/src/exec/rw/frame/mod.rs
+index 87538fbc54df65a5ec5aea9f849f5004fd0301f9..3f5971c35b5c7ecf805844e08dcdd9d1cc75eed6 100644
+--- a/lock-protocol/src/exec/rw/frame/mod.rs
++++ b/lock-protocol/src/exec/rw/frame/mod.rs
+@@ -16,13 +16,21 @@ use super::node::PageTableNode;
+ verus! {
+ 
+ #[verifier::external_body]  // TODO
+-pub fn allocate_pt(level: PagingLevel, mem: &MemContent) -> (res: PageTableNode)
++pub fn allocate_pt(
++    level: PagingLevel,
++    mem: &MemContent,
++    inst: Tracked<SpecInstance>,
++    nid: Ghost<NodeId>,
++) -> (res: PageTableNode)
+     requires
+ // Root of the page table can not be allocated.
+ 
+         1 <= level < 4,
+     ensures
+         res.wf(mem),
++        res.inst@.cpu_num() == GLOBAL_CPU_NUM,
++        res.inst@.id() == inst@.id(),
++        res.nid@ == nid@,
+ {
+     unimplemented!()
+ }
+diff --git a/lock-protocol/src/exec/rw/node/child.rs b/lock-protocol/src/exec/rw/node/child.rs
+index 32abade6245a3fb886d90a46bee43dedf00d04db..18885be30154f63f434cf0cc7e2d36f1f2c26193 100644
+--- a/lock-protocol/src/exec/rw/node/child.rs
++++ b/lock-protocol/src/exec/rw/node/child.rs
+@@ -7,7 +7,7 @@ use vstd::vpanic;
+ use crate::spec::{common::*, utils::*};
+ use super::super::{common::*, types::*, mem_content::*};
+ use super::super::pte::{Pte, page_prop::PageProperty, page_table_entry_trait::*};
+-use super::PageTableNode;
++use super::{PageTableNode, PageTableWriteLock};
+ 
+ verus! {
+ 
+@@ -39,11 +39,17 @@ impl Child {
+         match *self {
+             Self::PageTable(pt, inst, nid) => {
+                 &&& pt.wf(mem)
++                &&& pt.inst@.id() == inst@.id()
++                &&& pt.nid@ == nid@
+                 &&& inst@.cpu_num() == GLOBAL_CPU_NUM
+                 &&& NodeHelper::valid_nid(nid@)
+             },
+             Self::PageTableRef(pa, inst, nid) => {
+-                &&& valid_paddr(pa)
++                &&& valid_paddr(
++                    pa,
++                )
++                // &&& PageTableNode::from_raw_spec(pa).inst@.id() == inst@.id()
++                // &&& PageTableNode::from_raw_spec(pa).nid@ == nid@
+                 &&& inst@.cpu_num() == GLOBAL_CPU_NUM
+                 &&& NodeHelper::valid_nid(nid@)
+             },
+@@ -56,13 +62,44 @@ impl Child {
+         }
+     }
+ 
++    pub open spec fn wf_with_node(&self, idx: nat, node: PageTableWriteLock) -> bool {
++        match *self {
++            Child::PageTable(pt, inst, nid) => {
++                &&& node.level_spec() == (pt.level_spec() + 1) as PagingLevel
++                &&& node.inst_id() == inst@.id()
++                &&& NodeHelper::get_child(node.nid(), idx) == nid@
++            },
++            Child::PageTableRef(paddr, inst, nid) => {
++                &&& node.inst_id() == inst@.id()
++                &&& NodeHelper::get_child(node.nid(), idx) == nid@
++            },
++            Child::Frame(paddr, level, prop) => { &&& node.level_spec() == level },
++            Child::None => true,
++            Child::Unimplemented => true,
++        }
++    }
++
+     pub open spec fn wf_into_pte(&self, pte: Pte) -> bool {
+         match *self {
+-            Child::PageTable(pt, inst, nid) => pte.wf_new_pt(pt.start_paddr_spec(), inst@, nid@),
++            Child::PageTable(pt, inst, nid) => {
++                &&& pte.wf_new_pt(pt.start_paddr_spec(), inst@, nid@)
++                &&& pte.inner.is_present()
++                &&& !pte.inner.is_last((pt.level_spec() + 1) as PagingLevel)
++            },
+             Child::PageTableRef(_, _, _) => true,
+-            Child::Frame(paddr, level, prop) => pte.wf_new_page(paddr, level, prop),
+-            Child::None => pte.wf_new_absent(),
+-            Child::Unimplemented => pte.wf_new_absent(),
++            Child::Frame(paddr, level, prop) => {
++                &&& pte.wf_new_page(paddr, level, prop)
++                &&& pte.inner.is_present()
++                &&& pte.inner.is_last(level)
++            },
++            Child::None => {
++                &&& pte.wf_new_absent()
++                &&& !pte.inner.is_present()
++            },
++            Child::Unimplemented => {
++                &&& pte.wf_new_absent()
++                &&& !pte.inner.is_present()
++            },
+         }
+     }
+ 
+@@ -81,6 +118,7 @@ impl Child {
+             !(self is PageTableRef),
+         ensures
+             self.wf_into_pte(res),
++            res.wf(),
+     {
+         match self {
+             Child::PageTable(pt, inst, nid) => {
+diff --git a/lock-protocol/src/exec/rw/node/entry.rs b/lock-protocol/src/exec/rw/node/entry.rs
+index 2c9c73f3c89c9f1b18fa5d8456e74affff95c64a..bbe55359ebff2b11dd8eb92b1df6b56f0cfa7b54 100644
+--- a/lock-protocol/src/exec/rw/node/entry.rs
++++ b/lock-protocol/src/exec/rw/node/entry.rs
+@@ -40,7 +40,6 @@ impl Entry {
+         let _node = node.frame->Some_0;
+ 
+         self.pte.wf_with_node_info(
+-            _node.start_paddr_spec(),
+             _node.level_spec(),
+             _node.inst@.id(),
+             _node.nid@,
+@@ -78,12 +77,13 @@ impl Entry {
+     ///
+     /// The method panics if the given child is not compatible with the node.
+     /// The compatibility is specified by the [`Child::is_compatible`].
+-    #[verifier::external_body]  // TODO
+     pub fn replace(self, new_child: Child, node: &mut PageTableWriteLock, mem: &MemContent)
+         requires
+             self.wf(),
+             self.wf_with_node(*old(node)),
+             new_child.wf(mem),
++            !(new_child is PageTableRef),
++            new_child.wf_with_node(self.idx as nat, *old(node)),
+             old(node).wf(mem),
+         ensures
+             node.wf(mem),
+@@ -124,6 +124,7 @@ impl Entry {
+         ensures
+             res.wf(),
+             res.wf_with_node(*node),
++            res.idx == idx,
+     {
+         // SAFETY: The index is within the bound.
+         // let pte = unsafe { node.read_pte(idx) };
+diff --git a/lock-protocol/src/exec/rw/node/mod.rs b/lock-protocol/src/exec/rw/node/mod.rs
+index 38fadf3ad561237a2fa668af1a1f515866c7b1d8..76bea30157569a31d91f3f98236e3bc8faf12a52 100644
+--- a/lock-protocol/src/exec/rw/node/mod.rs
++++ b/lock-protocol/src/exec/rw/node/mod.rs
+@@ -274,7 +274,6 @@ impl PageTableReadLock {
+         (frame, Tracked(m))
+     }
+ 
+-    #[verifier::external_body]  // TODO
+     pub fn read_pte(&self, idx: usize, mem: &MemContent) -> (res: Pte)
+         requires
+             self.wf(mem),
+@@ -282,7 +281,6 @@ impl PageTableReadLock {
+         ensures
+             res.wf(),
+             res.wf_with_node_info(
+-                self.frame->Some_0.start_paddr_spec(),
+                 self.frame->Some_0.level_spec(),
+                 self.frame->Some_0.inst@.id(),
+                 self.frame->Some_0.nid@,
+@@ -294,6 +292,7 @@ impl PageTableReadLock {
+         let guard: &RwReadGuard = self.guard.as_ref().unwrap();
+         let res = guard.borrow_perms(&self.meta(mem).lock);
+         let tracked perms = res.get();
++        assert(perms.inner.value()[idx as int].wf());
+         let pte: Pte = ptr.get(Tracked(&perms.inner), idx);
+         pte
+     }
+@@ -358,6 +357,7 @@ impl PageTableWriteLock {
+             self.wf(mem),
+             res.wf(),
+             res.wf_with_node(*self),
++            res.idx == idx,
+     {
+         Entry::new_at(idx, self, mem)
+     }
+@@ -418,7 +418,6 @@ impl PageTableWriteLock {
+         (frame, Tracked(m))
+     }
+ 
+-    #[verifier::external_body]  // TODO
+     pub fn read_pte(&self, idx: usize, mem: &MemContent) -> (res: Pte)
+         requires
+             self.wf(mem),
+@@ -426,7 +425,6 @@ impl PageTableWriteLock {
+         ensures
+             res.wf(),
+             res.wf_with_node_info(
+-                self.frame->Some_0.start_paddr_spec(),
+                 self.frame->Some_0.level_spec(),
+                 self.frame->Some_0.inst@.id(),
+                 self.frame->Some_0.nid@,
+@@ -437,18 +435,17 @@ impl PageTableWriteLock {
+         let ptr: ArrayPtr<Pte, PTE_NUM> = ArrayPtr::from_addr(va);
+         let guard: &RwWriteGuard = self.guard.as_ref().unwrap();
+         let tracked perms = guard.perms.borrow();
++        assert(perms.inner.value()[idx as int].wf());
+         let pte: Pte = ptr.get(Tracked(&perms.inner), idx);
+         pte
+     }
+ 
+-    #[verifier::external_body]  // TODO
+     pub fn write_pte(&mut self, idx: usize, pte: Pte, mem: &MemContent)
+         requires
+             old(self).wf(mem),
+             0 <= idx < 512,
+             pte.wf(),
+             pte.wf_with_node_info(
+-                old(self).frame->Some_0.start_paddr_spec(),
+                 old(self).frame->Some_0.level_spec(),
+                 old(self).frame->Some_0.inst@.id(),
+                 old(self).frame->Some_0.nid@,
+@@ -456,10 +453,31 @@ impl PageTableWriteLock {
+             ),
+         ensures
+             self.wf(mem),
++            self.inst_id() == old(self).inst_id(),
++            self.nid() == old(self).nid(),
+     {
+         let va = paddr_to_vaddr(self.paddr(mem));
+         let ptr: ArrayPtr<Pte, PTE_NUM> = ArrayPtr::from_addr(va);
+         let mut guard = self.guard.take().unwrap();
++        assert forall|i: int|
++            #![trigger guard.perms@.inner.opt_value()[i]]
++            0 <= i < 512 && i != idx implies {
++            &&& guard.perms@.inner.opt_value()[i]->Init_0.wf()
++            &&& guard.perms@.inner.opt_value()[i]->Init_0.wf_with_node_info(
++                self.meta_spec().lock.level@,
++                self.meta_spec().lock.pt_inst@.id(),
++                self.meta_spec().lock.nid@,
++                i as nat,
++            )
++        } by {
++            assert(guard.perms@.inner.value()[i].wf());
++            assert(guard.perms@.inner.value()[i].wf_with_node_info(
++                self.meta_spec().lock.level@,
++                self.meta_spec().lock.pt_inst@.id(),
++                self.meta_spec().lock.nid@,
++                i as nat,
++            ));
++        };
+         ptr.overwrite(Tracked(&mut guard.perms.borrow_mut().inner), idx, pte);
+         self.guard = Some(guard);
+     }
+diff --git a/lock-protocol/src/exec/rw/node/rwlock/mod.rs b/lock-protocol/src/exec/rw/node/rwlock/mod.rs
+index 23fba36b5b271cf19d1b0efbba569405b31837f0..ca40e0076edb5cb93c1b22fc7ebd65a75c590b52 100644
+--- a/lock-protocol/src/exec/rw/node/rwlock/mod.rs
++++ b/lock-protocol/src/exec/rw/node/rwlock/mod.rs
+@@ -317,17 +317,11 @@ impl PageTableEntryPerms {
+         &&& self.inner.is_init_all()
+         &&& self.inner.value().len() == 512
+         // Page table well-formed.
+-        &&& forall|i: nat|
+-            #![auto]
+-            0 <= self.inner.value().len() < 512 ==> {
+-                &&& self.inner.value()[i as int].wf()
+-                &&& self.inner.value()[i as int].wf_with_node_info(
+-                    paddr,
+-                    level,
+-                    instance_id,
+-                    nid,
+-                    i,
+-                )
++        &&& forall|i: int|
++            #![trigger self.inner.value()[i]]
++            0 <= i < 512 ==> {
++                &&& self.inner.value()[i].wf()
++                &&& self.inner.value()[i].wf_with_node_info(level, instance_id, nid, i as nat)
+             }
+     }
+ 
+diff --git a/lock-protocol/src/exec/rw/pte/mod.rs b/lock-protocol/src/exec/rw/pte/mod.rs
+index e32bc78c11bdb3a8f619b68cf27731725f4bb1f5..798c8a1b8bf6a794d16fec2b8b2e170fd55249c6 100644
+--- a/lock-protocol/src/exec/rw/pte/mod.rs
++++ b/lock-protocol/src/exec/rw/pte/mod.rs
+@@ -56,14 +56,12 @@ impl Pte {
+ 
+     pub open spec fn wf_with_node_info(
+         &self,
+-        paddr: Paddr,
+         level: PagingLevel,
+         inst_id: InstanceId,
+         nid: NodeId,
+         offset: nat,
+     ) -> bool {
+         self.inner.is_present() ==> {
+-            &&& self.inner.paddr() == paddr
+             &&& self.inner.is_last(level) ==> {
+                 &&& self.nid@ is None
+                 &&& self.inst@ is None
+@@ -111,6 +109,7 @@ impl Pte {
+         ensures
+             res.wf(),
+             res.wf_new_absent(),
++            !res.inner.is_present(),
+     {
+         Self { inner: PageTableEntry::new_absent(), nid: Ghost(None), inst: Tracked(None) }
+     }
+@@ -133,6 +132,9 @@ impl Pte {
+         ensures
+             res.wf(),
+             res.wf_new_page(paddr, level, prop),
++            res.inner.is_present(),
++            valid_paddr(res.inner.paddr_spec()),
++            res.inner.is_last_spec(level),
+     {
+         Self {
+             inner: PageTableEntry::new_page(paddr, level, prop),
+@@ -157,6 +159,8 @@ impl Pte {
+         ensures
+             res.wf(),
+             res.wf_new_pt(paddr, inst@, nid@),
++            res.inner.is_present(),
++            valid_paddr(res.inner.paddr_spec()),
+     {
+         Self {
+             inner: PageTableEntry::new_pt(paddr),
+diff --git a/lock-protocol/src/exec/rw/pte/page_table_entry_trait.rs b/lock-protocol/src/exec/rw/pte/page_table_entry_trait.rs
+index 5438d5e2de5571ef0307bdce1187874ab28a1808..9c9e7a835c07142d7b8ffc31a7df2ec39603c900 100644
+--- a/lock-protocol/src/exec/rw/pte/page_table_entry_trait.rs
++++ b/lock-protocol/src/exec/rw/pte/page_table_entry_trait.rs
+@@ -81,8 +81,10 @@ pub trait PageTableEntryTrait: Copy + Debug + Sized + Sync + PartialEq {
+         ensures
+             res.is_present(),
+             valid_paddr(res.paddr()),
+-            res.paddr_spec() == paddr & PHYS_ADDR_MASK(),
+-            !res.is_last_spec(PageTableNode::from_raw_spec(paddr).level_spec()),
++            res.paddr_spec() == paddr
++                & PHYS_ADDR_MASK(),
++    // !res.is_last_spec(PageTableNode::from_raw_spec(paddr).level_spec()),
++
+         returns
+             Self::new_pt_spec(paddr),
+     ;

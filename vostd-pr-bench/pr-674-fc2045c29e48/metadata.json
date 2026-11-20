@@ -20,7 +20,7 @@
     "ostd/src/mm/page_table/node/mod.rs",
     "verified_libs/vstd_extra/src/array_ptr.rs"
   ],
-  "diff_sha256": "6188787ac81c7391060050b9155a79a295f2d43e5e8b9a686109dc0e5286672f",
+  "diff_sha256": "42f01973a1dea1be0a71ea708a5afc5b33cc43ce73ed8eb165938f64e16deb9b",
   "versions": {
     "before": {
       "commit": "d54378ad684ff897cdecfecb8770f70c5aa3cd7c",

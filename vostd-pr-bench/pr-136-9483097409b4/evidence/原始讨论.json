@@ -1,0 +1,134 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/136",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 136,
+    "title": "Prove remaining admits in rw",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/136",
+    "state": "MERGED",
+    "createdAt": "2025-07-28T07:45:59Z",
+    "updatedAt": "2025-07-28T08:19:00Z",
+    "closedAt": "2025-07-28T08:18:54Z",
+    "mergedAt": "2025-07-28T08:18:54Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "a9baa185700f3059fae49218ba547551af9cf044",
+    "headRefName": "lock-range",
+    "headRefOid": "3319ef543031d4ee017c3e445255051949139e26",
+    "changedFiles": 4,
+    "additions": 74,
+    "deletions": 171,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 4,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "NA"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/exec/rcu/common.rs",
+          "additions": 17,
+          "deletions": 74,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+          "additions": 0,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rw/common.rs",
+          "additions": 36,
+          "deletions": 65,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "additions": 21,
+          "deletions": 31,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

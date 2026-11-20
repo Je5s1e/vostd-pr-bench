@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-64-900e41671221",
+  "pr_number": 64,
+  "title": "Remove some external_bodys",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/64",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "98f4c70fdf036869aae74c0a476fdd684070ea90",
+  "head_sha": "900e416712218c782eb32df3ad50312c91094182",
+  "base_method": "selected problem head 900e416712218c782eb32df3ad50312c91094182 is the first official PR commit and has direct parent 98f4c70fdf036869aae74c0a476fdd684070ea90, which equals the archived target-branch base; confirmed from immutable official Git objects",
+  "archive_base_sha": "98f4c70fdf036869aae74c0a476fdd684070ea90",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/rw/cursor.rs",
+    "lock-protocol/src/exec/rw/frame/mod.rs",
+    "lock-protocol/src/exec/rw/node/child.rs",
+    "lock-protocol/src/exec/rw/node/entry.rs",
+    "lock-protocol/src/exec/rw/node/mod.rs",
+    "lock-protocol/src/exec/rw/node/rwlock/mod.rs",
+    "lock-protocol/src/exec/rw/pte/mod.rs",
+    "lock-protocol/src/exec/rw/pte/page_table_entry_trait.rs"
+  ],
+  "additional_context_paths": [],
+  "diff_sha256": "faa828e406da4261276b75164ba4d9314d9a913db4476abc80a247f6b5e03da7",
+  "versions": {
+    "before": {
+      "commit": "98f4c70fdf036869aae74c0a476fdd684070ea90",
+      "file_count": 8,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "900e416712218c782eb32df3ad50312c91094182",
+      "file_count": 8,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T13:11:48Z",
+    "reviewed_at": "2026-11-19T13:02:43Z",
+    "upstream_updated_at": "2025-08-09T02:50:00Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/64",
+      "https://github.com/asterinas/vostd/commit/7b2e349ad7b7d17f70237d009b6cb938da9fb8bd"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00064"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected first PR commit 900e416712218c782eb32df3ad50312c91094182 as the problem snapshot; used its direct parent and archived base 98f4c70fdf036869aae74c0a476fdd684070ea90 as the comparison base and compared the problem with repair 7b2e349ad7b7d17f70237d009b6cb938da9fb8bd.",
+    "zero_issues_meaning": "Not applicable; the case contains one source-adjudicated semantic issue.",
+    "source_export": "Fixed Git objects checked and full-index binary diff regenerated; the exporter must verify exported bytes and blob hashes before publication.",
+    "toolchain": "Compatibility verification used asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, Rust 1.88.0, and Z3 4.12.5. vstd_extra verified 228/0. Problem lock-protocol verified 491/0; repair and final verified 494/0. The verifier revision postdates the PR by nine days; the vacuous implication is direct source logic."
+  }
+}

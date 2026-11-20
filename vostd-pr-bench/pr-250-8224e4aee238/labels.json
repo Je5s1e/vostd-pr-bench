@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-250-8224e4aee238",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The new proof of entails_not_temp_reverse silently assumes that spec has a satisfying execution, although callers are not required to establish this premise.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/temporal_logic/rules.rs",
+          "start_line": 843,
+          "end_line": 854
+        }
+      ],
+      "rationale": "This PR replaces the previously admitted proof with a body containing assume(exists|ex| spec.satisfied_by(ex)). The false statement already existed as an admitted baseline contract; the new defect is presenting a proof that relies on an undeclared satisfiability assumption. For spec = TempPred::new(|ex| false), spec.entails(not(p)) and spec.entails(p) are both true by the definitions of implication and universal validity, so the promised !spec.entails(p) is false. The direct child repair moves the assumption into requires. This labels the unsupported assumption in the added proof, not a claim that this PR introduced the original false statement.",
+      "source_evidence": "843: pub broadcast proof fn entails_not_temp_reverse<T>(spec: TempPred<T>, p: TempPred<T>)\n844:     requires\n845:         #[trigger] spec.entails(not(p)),\n846:     ensures\n847:         !spec.entails(p),\n848: {\n849:     assume(exists|ex| spec.satisfied_by(ex));\n850:     let ex = choose|ex| spec.satisfied_by(ex);\n851:     assert(spec.satisfied_by(ex));\n852:     assert(spec.implies(not(p)).satisfied_by(ex));\n853:     assert(!p.satisfied_by(ex));\n854:     assert(!spec.implies(p).satisfied_by(ex));",
+      "verification": "source-only; historical Verus not executed. Checked definitions, direct parent/repair diff and explicit counterexample. Official GitHub PR commit list fetched completely and both SHA memberships confirmed.",
+      "id": "pr-250-8224e4aee238:commit-fix-609148d97d199f431416d3b8b71f9e2294f64b32-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/609148d97d199f431416d3b8b71f9e2294f64b32",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "609148d97d199f431416d3b8b71f9e2294f64b32:root-1",
+          "commit_id": "609148d97d199f431416d3b8b71f9e2294f64b32",
+          "url": "https://github.com/asterinas/vostd/commit/609148d97d199f431416d3b8b71f9e2294f64b32"
+        }
+      ]
+    }
+  ]
+}

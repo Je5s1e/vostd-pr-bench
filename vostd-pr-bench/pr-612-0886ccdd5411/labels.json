@@ -7,7 +7,7 @@
       "id": "pr-612-0886ccdd5411:issue-3529784300",
       "original_label_id": "3529784300",
       "category": "semantic",
-      "description": "Read safety documentation105-110, exec contracts208-215 and244-247, complete trait and new roundtrip326-331. Only into_raw(from_raw(raw))=raw is promised, under has_safe_slot. This does not imply from_raw(into_raw(item))=item without injectivity of into_raw, which no trait clause provides. Raw projection may discard an item tag while from_raw chooses canonical tag. Thus documented recovery of exact consumed item is not available to generic proof clients. No Verus execution claimed.",
+      "description": "The page-table item contract guarantees raw-value recovery after converting a raw value to an item, but does not guarantee recovery of the original item after converting it to raw form, despite the documented round-trip requirement.",
       "locations": [
         {
           "version": "after",

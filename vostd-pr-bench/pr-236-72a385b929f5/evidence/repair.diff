@@ -1,0 +1,62 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index bd02bb56d47df15ef70d2cddb5c122cf6772a500..6a929ba9a3cda9083039c218ccb957c38d41ed70 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -17,8 +17,6 @@ dependencies = [
+ name = "aster_common"
+ version = "0.1.0"
+ dependencies = [
+- "verus_builtin",
+- "verus_builtin_macros",
+  "vstd",
+  "vstd_extra",
+ ]
+@@ -126,8 +124,6 @@ name = "demo"
+ version = "0.0.1"
+ dependencies = [
+  "aster_common",
+- "verus_builtin",
+- "verus_builtin_macros",
+  "vstd",
+  "vstd_extra",
+ ]
+@@ -304,8 +300,6 @@ dependencies = [
+  "spin",
+  "tdx-guest",
+  "unwinding",
+- "verus_builtin",
+- "verus_builtin_macros",
+  "volatile 0.6.1",
+  "vstd",
+  "vstd_extra",
+@@ -318,8 +312,6 @@ name = "ostd_specs"
+ version = "0.1.0"
+ dependencies = [
+  "aster_common",
+- "verus_builtin",
+- "verus_builtin_macros",
+  "vstd",
+  "vstd_extra",
+ ]
+@@ -641,8 +633,6 @@ dependencies = [
+ name = "vstd_extra"
+ version = "0.1.0"
+ dependencies = [
+- "verus_builtin",
+- "verus_builtin_macros",
+  "vstd",
+ ]
+ 
+diff --git a/demo/Cargo.toml b/demo/Cargo.toml
+index 5b0013db5c0000aef52663a76fcf5cb4ab7679fe..13419fdc0afcbaf0d69adc37cca2d6a3665f385c 100644
+--- a/demo/Cargo.toml
++++ b/demo/Cargo.toml
+@@ -22,8 +22,5 @@ default = ["verify", "alloc"]
+ 
+ [dependencies]
+ vstd = { workspace = true }
+-verus_builtin = { workspace = true }
+-verus_builtin_macros = { workspace = true }
+-
+ vstd_extra = { path = "../vstd_extra" }
+ aster_common = { path = "../aster_common" }

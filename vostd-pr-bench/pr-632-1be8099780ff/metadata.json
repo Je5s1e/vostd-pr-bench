@@ -18,7 +18,7 @@
     "ostd/specs/mm/page_table/cursor/owners.rs",
     "verified_libs/vstd_extra/src/ghost_tree.rs"
   ],
-  "diff_sha256": "abcba8f7188b2f5866be2f36c81f717f37941783176b40c5b02932a9b4ac59d1",
+  "diff_sha256": "4be9ed34c5f582edb80708252f8ca4796172dac06a3dd96ba49c96c91d88bbed",
   "versions": {
     "before": {
       "commit": "d958c3f510e674eac47771b8a58e98f0f52db055",

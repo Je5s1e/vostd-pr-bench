@@ -16,7 +16,7 @@
     "ostd/specs/mm/page_table/node/entry_owners.rs",
     "ostd/src/mm/kspace/kvirt_area.rs"
   ],
-  "diff_sha256": "ceadb7df320add1b3aa3b00fca0b4abb38ae546b58adcd8f46db573099fd4afa",
+  "diff_sha256": "336bd16f3433f3273a92e467e806d2cbceeb6bfccc9e3156ff5991b192449a5b",
   "versions": {
     "before": {
       "commit": "d88962beabc466ff41033efefdb96c4a481b2ae5",

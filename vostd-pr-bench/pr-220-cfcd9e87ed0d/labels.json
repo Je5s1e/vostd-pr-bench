@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-220-cfcd9e87ed0d",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-220-cfcd9e87ed0d:commit-fix-503ca46c41ce3d491323bc992721da0ffcb66ef1-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "Both phaseII bootstrap commands suppress failure with || true.",
+      "locations": [
+        {"version": "after", "path": ".github/workflows/verus-update-test.yml", "start_line": 49, "end_line": 50}
+      ],
+      "rationale": "A failed restart or test-branch upgrade is converted to success, allowing verification to continue with a missing or stale verifier environment. The direct child removes both suppressions.",
+      "source_evidence": "The fixed after workflow shows || true on both bootstrap commands at lines 49-50. Repair 503ca46c removes those suffixes and preserves the surrounding workflow.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/503ca46c41ce3d491323bc992721da0ffcb66ef1",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "503ca46c41ce3d491323bc992721da0ffcb66ef1:root-1", "commit_id": "503ca46c41ce3d491323bc992721da0ffcb66ef1", "url": "https://github.com/asterinas/vostd/commit/503ca46c41ce3d491323bc992721da0ffcb66ef1"}
+      ],
+      "verification": "Fixed workflow and direct repair-diff analysis. Historical workflow execution was not performed."
+    }
+  ]
+}

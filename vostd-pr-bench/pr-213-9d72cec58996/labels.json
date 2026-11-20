@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-213-9d72cec58996",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The abstract-lock invariant equates a held lock with a thread at cs, omitting the reachable unlock program-counter state in which the lock is still held.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "specs/ostd/src/sync/abstract_lock.rs",
+          "start_line": 209,
+          "end_line": 211
+        }
+      ],
+      "rationale": "For one process, the allowed execution init -> start -> acquire_lock -> cs reaches pc[0]=unlock with locked=true: cs() changes the PC and stack but preserves locked; only the subsequent release_lock resets it. The set filtered by pc==cs is then empty, so both equivalences in not_locked_iff_no_cs are false. lemma_not_locked_iff_not_in_cs nevertheless promises this invariant always holds under init/next. The direct child repair counts both cs and unlock. This is a false abstract-state invariant, not a claim that executable mutual exclusion itself is broken. The file is introduced in this PR and absent from the archived comparison base.",
+      "source_evidence": "209:     pub open spec fn not_locked_iff_no_cs(self) -> bool {\n210:         (!self.locked <==> self.ProcSet.filter(|tid: Tid| self.pc[tid] == Label::cs).is_empty()) &&\n211:         (self.locked <==> self.ProcSet.filter(|tid: Tid| self.pc[tid] == Label::cs).is_singleton())",
+      "verification": "source-only; historical Verus not executed. Checked definitions, direct parent/repair diff and explicit counterexample. Official GitHub PR commit list fetched completely and both SHA memberships confirmed.",
+      "id": "pr-213-9d72cec58996:commit-fix-e9b354ef3bc27f5c87e87f7182715756e09341d1-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/e9b354ef3bc27f5c87e87f7182715756e09341d1",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "e9b354ef3bc27f5c87e87f7182715756e09341d1:root-1",
+          "commit_id": "e9b354ef3bc27f5c87e87f7182715756e09341d1",
+          "url": "https://github.com/asterinas/vostd/commit/e9b354ef3bc27f5c87e87f7182715756e09341d1"
+        }
+      ]
+    }
+  ]
+}

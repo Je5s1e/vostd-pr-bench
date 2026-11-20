@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 5,
-  "inline_review_comment_count": 1,
-  "review_count": 1,
-  "core_lesson": "读取链表归属之前就需要权限，不能让验证前提排除合法成员",
-  "category": "所有权与生命周期",
-  "all_content_unadjudicated": true
-}

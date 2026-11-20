@@ -14,7 +14,7 @@
   "changed_paths": [
     "ostd/specs/mm/embedding/list_store.rs"
   ],
-  "diff_sha256": "5b355ba1618bc5d8902ce393dcf9d20c5dbe3e4ce41a3f5126ff8a5f0dac0783",
+  "diff_sha256": "074d70d2d5e46d9b0f04e5df2c6bacbd1177477bca0113968e0e6325a4e3af11",
   "versions": {
     "before": {
       "commit": "55470b50087681b07f4dc546fcec4d3b0848b858",

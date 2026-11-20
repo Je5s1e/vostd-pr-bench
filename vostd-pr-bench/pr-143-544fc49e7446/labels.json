@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-143-544fc49e7446",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-143-544fc49e7446:commit-fix-f486ec9ac7695f3ca8b82c611386341c44d3c381-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "A trusted lemma derives a newly allocated child's non-stray state from structural node IDs alone, without tying either guard to the same page-table instance or to the parent's live PTE token.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rcu/node/stray.rs",
+          "start_line": 86,
+          "end_line": 103
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rcu/node/entry.rs",
+          "start_line": 196,
+          "end_line": 211
+        }
+      ],
+      "rationale": "The lemma accepts any two individually well-formed guards whose numeric node IDs have a parent/child shape. Its preconditions do not require equal instance IDs, do not connect the child physical address to the parent's PTE-array token, and do not consume evidence that the parent entry is alive. The external body can therefore assert a false non-stray value for an unrelated child guard. Commit f486ec9a removes the lemma and adds normal_lock_new_allocated_node, whose preconditions require the same state-machine instance, the exact parent key and offset, a live parent entry, and the child's physical address before returning a non-stray guard.",
+      "source_evidence": "after/lock-protocol/src/exec/rcu/node/stray.rs lines 86-103 defines the external-body lemma with only guard well-formedness and structural NodeHelper::is_child. after/lock-protocol/src/exec/rcu/node/entry.rs lines 196-211 uses it to establish the new child's false stray flag. Official repair f486ec9ac7695f3ca8b82c611386341c44d3c381 deletes the lemma and routes allocation locking through tracked PteArrayToken evidence for the exact parent entry and child address.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/f486ec9ac7695f3ca8b82c611386341c44d3c381",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "f486ec9ac7695f3ca8b82c611386341c44d3c381:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/f486ec9ac7695f3ca8b82c611386341c44d3c381",
+          "commit_id": "f486ec9ac7695f3ca8b82c611386341c44d3c381"
+        }
+      ],
+      "verification": "Fixed-source precondition analysis and direct official repair diff. Historical Verus was not executed."
+    }
+  ]
+}

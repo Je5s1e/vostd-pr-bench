@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/frame/meta_specs.rs b/ostd/specs/mm/frame/meta_specs.rs
-index aef12e790..591d9d38c 100644
+index aef12e790807ef5b55653fa47913668c145cd172..591d9d38cb4a415167c45d2786d75a995d96e332 100644
 --- a/ostd/specs/mm/frame/meta_specs.rs
 +++ b/ostd/specs/mm/frame/meta_specs.rs
 @@ -46,6 +46,7 @@ impl MetaSlot {
@@ -11,7 +11,7 @@ index aef12e790..591d9d38c 100644
          broadcast use VERUS_layout_of_MetaSlot;
  
 diff --git a/ostd/src/mm/frame/frame_ref.rs b/ostd/src/mm/frame/frame_ref.rs
-index e89395324..2552093a5 100644
+index e893953243fa44e39f5179f85490c136dadc2c62..2552093a5f7908846692d0d69c293b7203a2c319 100644
 --- a/ostd/src/mm/frame/frame_ref.rs
 +++ b/ostd/src/mm/frame/frame_ref.rs
 @@ -9,7 +9,7 @@ use vstd_extra::{
@@ -303,7 +303,7 @@ index e89395324..2552093a5 100644
  }
  
 diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
-index 705d11e4c..f14a8cda5 100644
+index 705d11e4c57797473b3c0ccd11ff813ff2ed63a8..f14a8cda5917c1dcdee9d134833ae00deeda3985 100644
 --- a/ostd/src/sync/rcu/mod.rs
 +++ b/ostd/src/sync/rcu/mod.rs
 @@ -30,7 +30,7 @@ use core::{
@@ -468,7 +468,7 @@ index 705d11e4c..f14a8cda5 100644
              },
              None => self.obj_ptr.is_null(),
 diff --git a/ostd/src/sync/rcu/non_null/either.rs b/ostd/src/sync/rcu/non_null/either.rs
-index a4cea908c..f5f8f807b 100644
+index a4cea908cced195db4200cf459356b93d48947c5..f5f8f807b8e11ba80321ae6c1d434c9ff6599665 100644
 --- a/ostd/src/sync/rcu/non_null/either.rs
 +++ b/ostd/src/sync/rcu/non_null/either.rs
 @@ -7,7 +7,7 @@ use vstd::{
@@ -593,7 +593,7 @@ index a4cea908c..f5f8f807b 100644
                      requires
                          tagged_addr == ptr_addr | tag,
 diff --git a/ostd/src/sync/rcu/non_null/mod.rs b/ostd/src/sync/rcu/non_null/mod.rs
-index dfa616779..53eb4e6b6 100644
+index dfa61677986c9bff77392d43af4f411e38b917e2..53eb4e6b66e2f3479c6a8b53a91ec5ae8e3d1466 100644
 --- a/ostd/src/sync/rcu/non_null/mod.rs
 +++ b/ostd/src/sync/rcu/non_null/mod.rs
 @@ -37,18 +37,20 @@ pub unsafe trait NonNullPtr: Sized + 'static {

@@ -1,0 +1,182 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/143",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 143,
+    "title": "Fix some holes",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/143",
+    "state": "MERGED",
+    "createdAt": "2025-07-29T14:16:33Z",
+    "updatedAt": "2025-10-05T11:20:57Z",
+    "closedAt": "2025-07-29T16:26:15Z",
+    "mergedAt": "2025-07-29T16:26:15Z",
+    "author": {
+      "login": "Xungan2"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "326c9c81a40062de68f1c51ee78c6cc1b56ef81d",
+    "headRefName": "fix2",
+    "headRefOid": "4315899fe63f0d3ae33d22ef7b2f71b06f2706b4",
+    "changedFiles": 12,
+    "additions": 1247,
+    "deletions": 239,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 12,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MTI"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+          "additions": 40,
+          "deletions": 41,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/node/child.rs",
+          "additions": 2,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/node/entry.rs",
+          "additions": 34,
+          "deletions": 44,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/node/mod.rs",
+          "additions": 109,
+          "deletions": 26,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/node/spinlock/mod.rs",
+          "additions": 462,
+          "deletions": 38,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/node/stray.rs",
+          "additions": 66,
+          "deletions": 45,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/exec/rcu/types.rs",
+          "additions": 3,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/atomic.rs",
+          "additions": 171,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/mod.rs",
+          "additions": 2,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "additions": 196,
+          "deletions": 38,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+          "additions": 138,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/types.rs",
+          "additions": 24,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

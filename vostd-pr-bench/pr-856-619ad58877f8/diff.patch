@@ -1,5 +1,5 @@
 diff --git a/ostd/src/mm/dma/dma_coherent.rs b/ostd/src/mm/dma/dma_coherent.rs
-index 93fd577c7..afbb308c0 100644
+index 93fd577c7c2a8ade8bcec43657cc7cb6cfa05c74..afbb308c00bca6dad13b9fe8d243fac105383b49 100644
 --- a/ostd/src/mm/dma/dma_coherent.rs
 +++ b/ostd/src/mm/dma/dma_coherent.rs
 @@ -1,4 +1,5 @@

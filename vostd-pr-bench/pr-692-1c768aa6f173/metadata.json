@@ -20,7 +20,7 @@
     "verified_libs/vstd_extra/src/external/mod.rs",
     "verified_libs/vstd_extra/src/external/time.rs"
   ],
-  "diff_sha256": "3b45b28127c4c3da9e29a543598b46ed44bba2050a50e4eccc6ac432c088cfba",
+  "diff_sha256": "ed357202907d2f0af133386720676f9850ff9899cd0e332f8e70fd01bed1b366",
   "versions": {
     "before": {
       "commit": "ed66ac71690ef3ba7f6a29a7316bbf91a8e1cf33",

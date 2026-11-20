@@ -1,0 +1,808 @@
+diff --git a/lock-protocol/src/exec/mod.rs b/lock-protocol/src/exec/mod.rs
+index 603b1da9fea131c8f9c0b771caf7f1d2c822cd6b..326aec787fd4449378ca58421c797abef29d90de 100644
+--- a/lock-protocol/src/exec/mod.rs
++++ b/lock-protocol/src/exec/mod.rs
+@@ -20,8 +20,8 @@ use crate::{
+     mm::{
+         cursor::{Cursor, CursorMut},
+         meta::{AnyFrameMeta, MetaSlot},
+-        page_prop, Frame, PageTableEntryTrait, PageTableLockTrait, PageTablePageMeta, PagingConsts,
+-        PagingConstsTrait, Vaddr, MAX_USERSPACE_VADDR, NR_LEVELS, PAGE_SIZE,
++        page_prop, Frame, PageTableEntryTrait, PageTablePageMeta, PagingConsts, PagingConstsTrait,
++        Vaddr, MAX_USERSPACE_VADDR, NR_LEVELS, PAGE_SIZE,
+         frame::allocator::{alloc_page_table, AllocatorModel},
+     },
+     spec::sub_page_table,
+@@ -229,156 +229,6 @@ impl PageTableEntryTrait for MockPageTableEntry {
+     }
+ }
+ 
+-pub struct SimpleFrameMeta {}
+-
+-impl AnyFrameMeta for SimpleFrameMeta {
+-
+-}
+-
+-// TODO: This FakePageTableLock will ignore Entry and MetaSlot.
+-// TODO: We possibly need to use PageTableNode later.
+-pub struct FakePageTableLock<C: PageTableConfig> {
+-    pub paddr: Paddr,
+-    pub phantom: std::marker::PhantomData<(C)>,
+-}
+-
+-impl<C: PageTableConfig> PageTableLockTrait<C> for FakePageTableLock<C> {
+-    // #[verifier::external_body]
+-    // fn entry(&self, idx: usize) -> crate::mm::entry::Entry<'_, C, Self> {
+-    //     Entry::new_at(self, idx)
+-    // }
+-    fn paddr(&self) -> crate::mm::Paddr {
+-        self.paddr
+-    }
+-
+-    fn alloc(
+-        level: crate::mm::PagingLevel,
+-        is_tracked: crate::mm::MapTrackingStatus,
+-        Tracked(alloc_model): Tracked<&mut AllocatorModel>,
+-    ) -> (res: Self) where Self: Sized {
+-        broadcast use vstd::std_specs::hash::group_hash_axioms;
+-        broadcast use vstd::hash_map::group_hash_map_axioms;
+-
+-        let (p, Tracked(pt)) = alloc_page_table(Tracked(alloc_model));
+-        let f = create_new_frame(p.addr(), level);
+-        p.write(Tracked(&mut pt), f);
+-
+-        let frame_address = p.addr();
+-        let frame_num = frame_addr_to_index(frame_address);
+-
+-        assert(0 <= frame_num < MAX_FRAME_NUM as usize);
+-
+-        print_msg("alloc frame", frame_address);
+-
+-        FakePageTableLock { paddr: frame_address as Paddr, phantom: std::marker::PhantomData }
+-    }
+-
+-    #[verifier::external_body]
+-    fn unlock(&mut self) -> PageTableNode {
+-        todo!()
+-    }
+-
+-    fn into_raw_paddr(self: Self) -> crate::mm::Paddr where Self: Sized {
+-        self.paddr
+-    }
+-
+-    #[verifier::external_body]
+-    fn from_raw_paddr(paddr: crate::mm::Paddr) -> Self where Self: Sized {
+-        FakePageTableLock { paddr, phantom: std::marker::PhantomData }
+-    }
+-
+-    #[verifier::external_body]
+-    fn nr_children(&self) -> u16 {
+-        todo!()
+-    }
+-
+-    fn read_pte(&self, idx: usize, spt: &exec::SubPageTable) -> (res: C::E)
+-        ensures
+-            spt.wf(),
+-            res.frame_paddr() == get_pte_from_addr_spec(
+-                (self.paddr + idx * SIZEOF_PAGETABLEENTRY) as usize,
+-                spt,
+-            ).frame_pa,
+-            res.pte_paddr() == (self.paddr + idx * SIZEOF_PAGETABLEENTRY) as usize,
+-            res.frame_paddr() == 0 ==> !spt.ptes@.value().contains_key(
+-                self.paddr + idx * SIZEOF_PAGETABLEENTRY as int,
+-            ),
+-            res.frame_paddr() != 0 ==> {
+-                &&& spt.ptes@.value().contains_key(res.pte_paddr() as int)
+-                &&& spt.ptes@.value()[res.pte_paddr() as int].frame_pa == res.frame_paddr() as int
+-                &&& spt.frames@.value().contains_key(res.frame_paddr() as int)
+-            },
+-    {
+-        assert(self.paddr + idx * SIZEOF_PAGETABLEENTRY < usize::MAX) by {
+-            admit();
+-        }  // TODO
+-        C::E::from_usize(self.paddr + idx * SIZEOF_PAGETABLEENTRY, spt)
+-    }
+-
+-    fn write_pte(
+-        &self,
+-        idx: usize,
+-        pte: C::E,
+-        level: crate::mm::PagingLevel,
+-        spt: &mut SubPageTable,
+-        Tracked(alloc_model): Tracked<&mut AllocatorModel>,
+-    ) {
+-        assume(self.paddr < PHYSICAL_BASE_ADDRESS_SPEC() + SIZEOF_FRAME * MAX_FRAME_NUM);
+-        let frame_idx = frame_addr_to_index(self.paddr);
+-
+-        assume(frame_idx < MAX_FRAME_NUM as usize);  // TODO: P0
+-        assume(spt.perms@[frame_idx].1@.mem_contents().is_init());  // TODO: P0
+-
+-        assume(spt.perms@.contains_key(frame_idx));
+-        let (p, Tracked(points_to)) = spt.perms.remove(&frame_idx).unwrap();
+-
+-        assume(points_to.pptr() == p);
+-        let mut frame = p.read(Tracked(&points_to));
+-        assume(idx < frame.ptes.len());
+-        frame.ptes[idx] = MockPageTableEntry {
+-            pte_addr: pte.pte_paddr() as u64,
+-            frame_pa: pte.frame_paddr() as u64,
+-            level: level as u8,
+-            prop: pte.prop(),
+-        };
+-        // TODO: P0 currently, the last level frame will cause the inconsistency
+-        // between spt.perms and spt.frames
+-        p.write(Tracked(&mut points_to), frame);
+-
+-        spt.perms.insert(frame_idx, (p, Tracked(points_to)));
+-
+-        assume(spt.wf());  // TODO: P0
+-        assume(spec_helpers::frame_keys_do_not_change(spt, old(spt)));  // TODO: P0
+-    }
+-
+-    #[verifier::external_body]
+-    fn meta(&self) -> &PageTablePageMeta<C> {
+-        unimplemented!("meta")
+-    }
+-
+-    // #[verifier::external_body]
+-    // fn nr_children_mut(&mut self) -> &mut u16 {
+-    //     todo!()
+-    // }
+-    fn change_children(&self, delta: i16) {
+-        // TODO: implement this function
+-    }
+-
+-    fn is_tracked(&self) -> crate::mm::MapTrackingStatus {
+-        crate::mm::MapTrackingStatus::Tracked
+-    }
+-
+-    open spec fn paddr_spec(&self) -> Paddr {
+-        self.paddr as Paddr
+-    }
+-
+-    #[verifier::external_body]
+-    fn level(&self) -> crate::mm::PagingLevel {
+-        // TODO: currently we cannot get level from the page table lock because the meta data is not modeled
+-        unimplemented!("PageTableLock::level")
+-    }
+-}
+-
+ struct_with_invariants!{
+     /// A sub-tree in a page table.
+     pub struct SubPageTable {
+diff --git a/lock-protocol/src/exec/test_map.rs b/lock-protocol/src/exec/test_map.rs
+index 630b0da64898de680d284165f2421b9a01635177..a4b0ed1dd6c716610b043c1acf2dfb075a103eec 100644
+--- a/lock-protocol/src/exec/test_map.rs
++++ b/lock-protocol/src/exec/test_map.rs
+@@ -8,14 +8,13 @@ use crate::mm::entry::Entry;
+ use crate::mm::page_prop::{PageFlags, PageProperty, PrivilegedPageFlags};
+ use crate::mm::page_table::PageTableNode;
+ 
+-use crate::mm::{pte_index, Paddr, NR_ENTRIES};
++use crate::mm::{pte_index, Paddr, PageTableGuard, NR_ENTRIES};
+ use crate::{
+     mm::{
+         cursor::{Cursor, CursorMut},
+         meta::{AnyFrameMeta, MetaSlot},
+-        page_prop, Frame, PageTableEntryTrait, PageTableLockTrait, PageTablePageMeta, PagingConsts,
+-        PagingConstsTrait, Vaddr, MAX_USERSPACE_VADDR, NR_LEVELS, PAGE_SIZE, PageTableConfig,
+-        PagingLevel,
++        page_prop, Frame, PageTableEntryTrait, PageTablePageMeta, PagingConsts, PagingConstsTrait,
++        Vaddr, MAX_USERSPACE_VADDR, NR_LEVELS, PAGE_SIZE, PageTableConfig, PagingLevel,
+         frame::allocator::{alloc_page_table, AllocatorModel},
+     },
+     spec::sub_page_table,
+@@ -114,8 +113,8 @@ requires
+ 
+     // TODO: use Cursor::new
+     let mut cursor =
+-    CursorMut::<TestPtConfig, FakePageTableLock<TestPtConfig>> {
+-        0: Cursor::<TestPtConfig, FakePageTableLock<TestPtConfig>> {
++    CursorMut::<TestPtConfig> {
++        0: Cursor::<TestPtConfig> {
+             path: Vec::new(),
+             level: 3,
+             guard_level: NR_LEVELS as u8,
+@@ -130,8 +129,9 @@ requires
+     cursor.0.path.push(None);
+     cursor.0.path.push(None);
+     cursor.0.path.push(Some(
+-        FakePageTableLock {
++        PageTableGuard::<TestPtConfig> {
+             phantom: std::marker::PhantomData,
++            level: 3,
+             paddr: p.addr(),
+         }
+     )); // root
+diff --git a/lock-protocol/src/mm/page_table/cursor/locking.rs b/lock-protocol/src/mm/page_table/cursor/locking.rs
+index 3afb8606b254bcfa167137a4688cd1e5e0e5f9fc..e037e1ea36237e0cd9e8892878ccc142364d93b9 100644
+--- a/lock-protocol/src/mm/page_table/cursor/locking.rs
++++ b/lock-protocol/src/mm/page_table/cursor/locking.rs
+@@ -1,8 +1,8 @@
+ use vstd::prelude::verus;
+ 
+ use crate::mm::{
+-    meta::AnyFrameMeta, MapTrackingStatus, PageTable, PageTableEntryTrait, PageTableLockTrait,
+-    PageTableConfig, PagingConstsTrait, Vaddr,
++    meta::AnyFrameMeta, MapTrackingStatus, PageTable, PageTableConfig, PageTableEntryTrait,
++    PageTableGuard, PagingConstsTrait, Vaddr,
+ };
+ use std::ops::Range;
+ 
+@@ -11,16 +11,14 @@ use super::Cursor;
+ verus! {
+ 
+ #[verifier::external_body]
+-pub fn lock_range<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>>(
+-    pt: &PageTable<C>,
+-    va: &Range<Vaddr>,
+-) -> Cursor<'a, C, PTL> {
++pub fn lock_range<'a, C: PageTableConfig>(pt: &PageTable<C>, va: &Range<Vaddr>) -> Cursor<'a, C> {
+     // Placeholder implementation
+     unimplemented!()
+ }
+ 
+-pub fn dfs_mark_astray<C: PageTableConfig, PTL: PageTableLockTrait<C>>(mut sub_tree: PTL) -> (res:
+-    PTL)
++pub fn dfs_mark_astray<C: PageTableConfig>(mut sub_tree: PageTableGuard<C>) -> (res: PageTableGuard<
++    C,
++>)
+     ensures
+         res == sub_tree,
+ {
+diff --git a/lock-protocol/src/mm/page_table/cursor/mod.rs b/lock-protocol/src/mm/page_table/cursor/mod.rs
+index 2b52c2b27efd25ae8c80a3c780e92219fc69322a..6f077d35363714351306bdf17e63ca1005666ba6 100644
+--- a/lock-protocol/src/mm/page_table/cursor/mod.rs
++++ b/lock-protocol/src/mm/page_table/cursor/mod.rs
+@@ -29,7 +29,7 @@ use crate::{
+         page_prop::PageProperty,
+         page_size,
+         vm_space::Token,
+-        Frame, MapTrackingStatus, Paddr, PageTableLockTrait, Vaddr, MAX_USERSPACE_VADDR, PAGE_SIZE,
++        Frame, MapTrackingStatus, Paddr, PageTableGuard, Vaddr, MAX_USERSPACE_VADDR, PAGE_SIZE,
+     },
+     task::DisabledPreemptGuard,
+     x86_64::VMALLOC_VADDR_RANGE,
+@@ -55,13 +55,13 @@ verus! {
+ /// A cursor is able to move to the next slot, to read page properties,
+ /// and even to jump to a virtual address directly.
+ // #[derive(Debug)] // TODO: Implement `Debug` for `Cursor`.
+-pub struct Cursor<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> {
++pub struct Cursor<'a, C: PageTableConfig> {
+     /// The current path of the cursor.
+     ///
+     /// The level 1 page table lock guard is at index 0, and the level N page
+     /// table lock guard is at index N - 1.
+     // path: [Option<PageTableLock<C, T>>; MAX_NR_LEVELS],
+-    pub path: Vec<Option<PTL>>,
++    pub path: Vec<Option<PageTableGuard<C>>>,
+     /// The level of the page table that the cursor currently points to.
+     pub level: PagingLevel,
+     /// The top-most level that the cursor is allowed to access.
+@@ -100,7 +100,7 @@ pub enum PageTableItem {
+     },
+ }
+ 
+-impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
++impl<'a, C: PageTableConfig> Cursor<'a, C> {
+     pub open spec fn sub_page_table_valid_before_map(
+         &self,
+         sub_page_table: &exec::SubPageTable,
+@@ -204,8 +204,8 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
+         &self,
+         level: u8,
+         spt: &exec::SubPageTable,
+-        a: PTL,
+-        b: PTL,
++        a: PageTableGuard<C>,
++        b: PageTableGuard<C>,
+     ) -> bool {
+         &&& 1 <= self.level <= PagingConsts::NR_LEVELS_SPEC() as u8
+         &&& 1 <= level <= PagingConsts::NR_LEVELS_SPEC() as u8
+@@ -223,8 +223,10 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
+         &&& self.path.len() == PagingConsts::NR_LEVELS_SPEC()
+         &&& forall|i: int| 0 <= i < self.level - 1 ==> self.path[i].is_none()
+         &&& forall|i: int|
+-            self.level - 1 <= i < PagingConsts::NR_LEVELS_SPEC() ==> (
+-            #[trigger] self.path[i]).is_some()
++            self.level - 1 <= i < PagingConsts::NR_LEVELS_SPEC() ==> {
++                &&& (#[trigger] self.path[i]).is_some()
++                &&& self.path[i].unwrap().wf()
++            }
+         &&& forall|i: int, j: int|
+             0 <= i < j < self.path.len() && self.path[i].is_some() && i + 1 == j
+                 ==> self.path_item_points_to(
+@@ -325,7 +327,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
+     /// Goes down a level to a child page table.
+     fn push_level(
+         &mut self,
+-        child_pt: PTL,
++        child_pt: PageTableGuard<C>,
+         old_level: Tracked<PagingLevel>,
+         // ghost
+         spt: &exec::SubPageTable,
+@@ -364,7 +366,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
+     }
+ 
+     // fn cur_entry(&mut self) -> Entry<'_, C> {
+-    fn cur_entry(&self, spt: &exec::SubPageTable) -> (res: Entry<'_, C, PTL>)
++    fn cur_entry(&self, spt: &exec::SubPageTable) -> (res: Entry<'_, C>)
+         requires
+             self.level > 0,
+             self.level <= PagingConsts::NR_LEVELS_SPEC() as usize,
+@@ -373,6 +375,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
+             spt.wf(),
+             self.path_wf(spt),
+         ensures
++            res.node.wf(),
+             res.pte.pte_paddr() == self.path[self.level as usize - 1].unwrap().paddr() as usize
+                 + pte_index::<C>(self.va, self.level) * exec::SIZEOF_PAGETABLEENTRY,
+             res.pte.pte_paddr() == exec::get_pte_from_addr(res.pte.pte_paddr(), spt).pte_addr,
+@@ -405,9 +408,9 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Cursor<'a, C, PTL> {
+ /// in a page table can only be accessed by one cursor, regardless of the
+ /// mutability of the cursor.
+ // #[derive(Debug)] // TODO: Implement `Debug` for `CursorMut`.
+-pub struct CursorMut<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>>(pub Cursor<'a, C, PTL>);
++pub struct CursorMut<'a, C: PageTableConfig>(pub Cursor<'a, C>);
+ 
+-impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
++impl<'a, C: PageTableConfig> CursorMut<'a, C> {
+     /// Creates a cursor claiming exclusive access over the given range.
+     ///
+     /// The cursor created will only be able to map, query or jump within the given
+@@ -422,7 +425,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
+         self.0.virt_addr()
+     }
+ 
+-    pub open spec fn path_valid_after_map(&self, old: &CursorMut<'a, C, PTL>) -> bool {
++    pub open spec fn path_valid_after_map(&self, old: &CursorMut<'a, C>) -> bool {
+         &&& self.0.path.len() == old.0.path.len()
+         &&& self.0.path.len() == PagingConsts::NR_LEVELS_SPEC()
+         &&& self.0.path[0].is_some()  // frame.map_level?
+@@ -430,7 +433,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
+         &&& forall|i: int| 1 < i <= old.0.level ==> #[trigger] self.0.path[i - 1].is_some()
+     }
+ 
+-    pub open spec fn va_valid(&self, old: Option<&CursorMut<'a, C, PTL>>) -> bool {
++    pub open spec fn va_valid(&self, old: Option<&CursorMut<'a, C>>) -> bool {
+         &&& self.0.va < MAX_USERSPACE_VADDR
+         &&& self.0.va >= self.0.barrier_va.start
+         &&& self.0.va + PAGE_SIZE() <= self.0.barrier_va.end
+@@ -548,14 +551,10 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
+                 Child::PageTableRef(pt) => {
+                     reveal_with_fuel(Cursor::sub_page_table_valid_before_map_level, 4);
+                     reveal_with_fuel(Cursor::path_matchs_page_table, 4);
++                    let child_pt = PageTableGuard::<C>::from_raw_paddr(pt, cur_level);
+                     // SAFETY: `pt` points to a PT that is attached to a node
+                     // in the locked sub-tree, so that it is locked and alive.
+-                    self.0.push_level(
+-                        PTL::from_raw_paddr(pt),
+-                        root_level,
+-                        // ghost
+-                        spt,
+-                    );
++                    self.0.push_level(child_pt, root_level, spt);
+                 },
+                 Child::PageTable(_) => {
+                     // unreachable!();
+@@ -573,7 +572,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
+ 
+                     assert(spt.frames@.value().contains_key(pt as int));
+ 
+-                    let child_pt = PTL::from_raw_paddr(pt);
++                    let child_pt = PageTableGuard::<C>::from_raw_paddr(pt, cur_level);
+ 
+                     assume(self.0.path_item_points_to(
+                         self.0.level,
+@@ -773,7 +772,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
+                     Child::PageTableRef(pt) => {
+                         // SAFETY: `pt` points to a PT that is attached to a node
+                         // in the locked sub-tree, so that it is locked and alive.
+-                        let pt = PTL::from_raw_paddr(pt);
++                        let pt = PageTableGuard::<C>::from_raw_paddr(pt, cur_level);
+                         // If there's no mapped PTEs in the next level, we can
+                         // skip to save time.
+                         if pt.nr_children() != 0 {
+@@ -843,7 +842,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> CursorMut<'a, C, PTL> {
+                 Child::PageTable(pt) => {
+                     let paddr = pt.into_raw();
+                     // SAFETY: We must have locked this node.
+-                    let locked_pt = PTL::from_raw_paddr(paddr);
++                    let locked_pt = PageTableGuard::<C>::from_raw_paddr(paddr, cur_level);
+                     // assert!(
+                     //     !(TypeId::of::<M>() == TypeId::of::<KernelMode>()
+                     //         && self.0.level == C::NR_LEVELS()),
+diff --git a/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs b/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs
+index 4f8c15dddc80b7d9f0c06ee7b6921c84dbef44aa..556fdb7d06fbcf9a9159f6487c227dbe15642818 100644
+--- a/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs
++++ b/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs
+@@ -24,8 +24,7 @@ use crate::{
+         page_prop::PageProperty,
+         page_size,
+         vm_space::Token,
+-        Frame, MapTrackingStatus, Paddr, PageTableLockTrait, Vaddr, MAX_USERSPACE_VADDR,
+-        NR_ENTRIES, PAGE_SIZE,
++        Frame, MapTrackingStatus, Paddr, Vaddr, MAX_USERSPACE_VADDR, NR_ENTRIES, PAGE_SIZE,
+     },
+     task::DisabledPreemptGuard,
+     x86_64::VMALLOC_VADDR_RANGE,
+diff --git a/lock-protocol/src/mm/page_table/node/child.rs b/lock-protocol/src/mm/page_table/node/child.rs
+index b7c7f88bf5437123ddfc447229cb8a67f5e21cf7..b5192e95f99e4fea7c9edff8fe9dd26f1ca40488 100644
+--- a/lock-protocol/src/mm/page_table/node/child.rs
++++ b/lock-protocol/src/mm/page_table/node/child.rs
+@@ -102,12 +102,7 @@ impl<C: PageTableConfig> Child<C> {
+     /// been converted from a child using the [`Child::into_pte`] method.
+     // TODO: Implement the conversion from PTE.
+     #[verifier::external_body]
+-    pub(super) fn from_pte(
+-        pte: C::E,
+-        // level: PagingLevel,
+-        is_tracked: MapTrackingStatus,
+-        spt: &exec::SubPageTable,
+-    ) -> Self {
++    pub(super) fn from_pte(pte: C::E, level: PagingLevel, spt: &exec::SubPageTable) -> Self {
+         if !pte.is_present(spt) {
+             // let paddr = pte.paddr();
+             // if paddr == 0 {
+@@ -171,8 +166,7 @@ impl<C: PageTableConfig> Child<C> {
+     // #[verifier::external_body]
+     pub(super) fn ref_from_pte(
+         pte: &C::E,
+-        // level: PagingLevel, // TODO: node.level is not supported for now
+-        is_tracked: MapTrackingStatus,
++        level: PagingLevel,
+         clone_raw: bool,
+         spt: &exec::SubPageTable,
+     ) -> (res: Self)
+diff --git a/lock-protocol/src/mm/page_table/node/entry.rs b/lock-protocol/src/mm/page_table/node/entry.rs
+index 81a7c75fd35b42878263301bae19e2194ab84bad..1030dc2fc3c43f6067c8e2e35caec31c664df171 100644
+--- a/lock-protocol/src/mm/page_table/node/entry.rs
++++ b/lock-protocol/src/mm/page_table/node/entry.rs
+@@ -11,11 +11,11 @@ use crate::mm::{
+     frame::allocator::AllocatorModel,
+ };
+ 
+-use super::{Child, MapTrackingStatus, PageTableLockTrait, PageTableNode};
++use super::{Child, MapTrackingStatus, PageTableGuard, PageTableNode};
+ 
+ use crate::exec;
+ 
+-use crate::spec::sub_page_table;
++use crate::spec::sub_page_table::{self, index_to_paddr};
+ 
+ verus! {
+ 
+@@ -26,7 +26,7 @@ verus! {
+ /// This is a static reference to an entry in a node that does not account for
+ /// a dynamic reference count to the child. It can be used to create a owned
+ /// handle, which is a [`Child`].
+-pub struct Entry<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> {
++pub struct Entry<'a, C: PageTableConfig> {
+     /// The page table entry.
+     ///
+     /// We store the page table entry here to optimize the number of reads from
+@@ -38,12 +38,11 @@ pub struct Entry<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> {
+     /// The index of the entry in the node.
+     pub idx: usize,
+     /// The node that contains the entry.
+-    // node: &'a mut PageTableLock<C>,
+-    pub node: &'a PTL,
++    pub node: &'a PageTableGuard<C>,
+     pub phantom: std::marker::PhantomData<(C)>,
+ }
+ 
+-impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
++impl<'a, C: PageTableConfig> Entry<'a, C> {
+     /// Gets a reference to the child.
+     pub(in crate::mm) fn to_ref(&self, spt: &exec::SubPageTable) -> (res: Child<C>)
+         requires
+@@ -67,13 +66,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
+         // SAFETY: The entry structure represents an existent entry with the
+         // right node information.
+         // unsafe { Child::ref_from_pte(&self.pte, self.node.level(), self.node.is_tracked(), false) }
+-        let c = Child::ref_from_pte(
+-            &self.pte,
+-            // self.node.level(),
+-            self.node.is_tracked(),
+-            false,
+-            spt,
+-        );
++        let c = Child::ref_from_pte(&self.pte, self.node.level(), false, spt);
+         c
+     }
+ 
+@@ -106,6 +99,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
+         Tracked(alloc_model): Tracked<&mut AllocatorModel>,
+     ) -> (res: Child<C>)
+         requires
++            self.node.wf(),
+             old(spt).wf(),
+             old(alloc_model).invariants(),
+             self.idx < nr_subpage_per_huge::<C>(),
+@@ -128,12 +122,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
+         // so that it is not used anymore.
+         let old_child =
+             // unsafe { Child::from_pte(self.pte, self.node.level(), self.node.is_tracked()) };
+-        Child::from_pte(
+-            self.pte,
+-            // self.node.level(),
+-            self.node.is_tracked(),
+-            spt,
+-        );
++        Child::from_pte(self.pte, self.node.level(), spt);
+ 
+         if old_child.is_none() && !new_child.is_none() {
+             // *self.node.nr_children_mut() += 1;
+@@ -147,6 +136,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
+         //  2. The new PTE is compatible with the page table node, as asserted above.
+         // unsafe { self.node.write_pte(self.idx, new_child.into_pte()) };
+ 
++        assume(spt.perms@.contains_key(exec::frame_addr_to_index_spec(self.node.paddr())));  // FIXME: Add this to entry well-formedness
+         self.node.write_pte(self.idx, new_child.into_pte(), level, spt, Tracked(alloc_model));
+ 
+         // TODO: P0
+@@ -188,7 +178,7 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
+             // The entry is already present.
+             return None;
+         }
+-        let pt = PTL::alloc(level - 1, MapTrackingStatus::Tracked, Tracked(alloc_model));
++        let pt = PageTableGuard::<C>::alloc(level - 1, Tracked(alloc_model));
+         let paddr = pt.into_raw_paddr();
+ 
+         self.node.write_pte(
+@@ -208,12 +198,12 @@ impl<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> Entry<'a, C, PTL> {
+     ///
+     /// The caller must ensure that the index is within the bounds of the node.
+     // pub(super) unsafe fn new_at(node: &'a mut PageTableLock<C>, idx: usize) -> Self {
+-    pub fn new_at(node: &'a PTL, idx: usize, spt: &exec::SubPageTable) -> (res: Self)
++    pub fn new_at(node: &'a PageTableGuard<C>, idx: usize, spt: &exec::SubPageTable) -> (res: Self)
+         requires
+             idx < nr_subpage_per_huge::<C>(),
+             spt.wf(),
+         ensures
+-            res.pte.pte_paddr() == node.paddr() as usize + idx * exec::SIZEOF_PAGETABLEENTRY,
++            res.pte.pte_paddr() == index_to_paddr(node.paddr() as int, idx as int),
+             res.pte.pte_paddr() == exec::get_pte_from_addr_spec(res.pte.pte_paddr(), spt).pte_addr,
+             res.pte.frame_paddr() == exec::get_pte_from_addr_spec(
+                 res.pte.pte_paddr(),
+diff --git a/lock-protocol/src/mm/page_table/node/mod.rs b/lock-protocol/src/mm/page_table/node/mod.rs
+index 5aadf649ff2f85992061e97a7f82dac952404017..0e8df9bb9a9256eb0b3940052e2414944429efc4 100644
+--- a/lock-protocol/src/mm/page_table/node/mod.rs
++++ b/lock-protocol/src/mm/page_table/node/mod.rs
+@@ -13,6 +13,7 @@ use vstd::prelude::*;
+ #[allow(unused_imports)]
+ use child::*;
+ use vstd::simple_pptr::MemContents;
++use crate::mm::allocator::alloc_page_table;
+ use crate::mm::meta::AnyFrameMeta;
+ use crate::mm::nr_subpage_per_huge;
+ use crate::mm::Paddr;
+@@ -27,8 +28,11 @@ use crate::sync::spin;
+ // TODO: Use a generic style?
+ use crate::x86_64::paddr_to_vaddr;
+ 
+-use crate::exec::{self, SubPageTable};
+-use crate::spec::sub_page_table;
++use crate::exec::{
++    self, SubPageTable, create_new_frame, MAX_FRAME_NUM, get_pte_from_addr_spec,
++    SIZEOF_PAGETABLEENTRY, frame_addr_to_index, frame_addr_to_index_spec, MockPageTableEntry,
++};
++use crate::spec::sub_page_table::{pa_is_valid_pt_address, level_is_in_range, index_to_paddr};
+ 
+ use crate::mm::NR_ENTRIES;
+ 
+@@ -40,59 +44,81 @@ verus! {
+ // #[derive(Debug)] // TODO: Debug for PageTableNode
+ pub type PageTableNode = Frame;
+ 
+-// We add PageTableLockTrait to make the verification easier.
+-// Originally, it is just a struct that holds a frame.
+-// TODO: Can we also change the source code?
+-pub trait PageTableLockTrait<C: PageTableConfig>: Sized {
+-    #[verifier::inline]
+-    open spec fn wf(&self) -> bool {
+-        &&& self.paddr() < exec::PHYSICAL_BASE_ADDRESS_SPEC() + exec::SIZEOF_FRAME
+-            * exec::MAX_FRAME_NUM
+-    }
++pub struct PageTableGuard<C: PageTableConfig> {
++    pub paddr: Paddr,
++    pub level: PagingLevel,
++    pub phantom: core::marker::PhantomData<C>,
++}
+ 
+-    // fn entry(&self, idx: usize) -> Entry<'_, E, C, Self>
+-    // requires
+-    //     idx < nr_subpage_per_huge();
+-    spec fn paddr_spec(&self) -> Paddr;
++impl<C: PageTableConfig> PageTableGuard<C> {
++    pub open spec fn wf(&self) -> bool {
++        &&& pa_is_valid_pt_address(self.paddr as int)
++        &&& level_is_in_range(self.level as int)
++    }
+ 
+     #[verifier::when_used_as_spec(paddr_spec)]
+-    /// Gets the physical address of the page table node.
+-    fn paddr(&self) -> (res: Paddr)
+-        ensures
+-            res == self.paddr_spec(),
+-    ;
++    pub fn paddr(&self) -> Paddr
++        returns
++            self.paddr_spec(),
++    {
++        self.paddr
++    }
+ 
+-    /// Gets the level of the page table node.
+-    fn level(&self) -> PagingLevel;
++    pub open spec fn paddr_spec(&self) -> Paddr {
++        self.paddr
++    }
+ 
+-    /// Gets the tracking status of the page table node.
+-    fn is_tracked(&self) -> MapTrackingStatus;
++    #[verifier::when_used_as_spec(level_spec)]
++    pub fn level(&self) -> PagingLevel
++        returns
++            self.level_spec(),
++    {
++        self.level
++    }
+ 
+-    fn alloc(
+-        level: PagingLevel,
+-        is_tracked: MapTrackingStatus,
+-        Tracked(alloc_model): Tracked<&mut AllocatorModel>,
+-    ) -> (res: Self) where Self: Sized
++    pub open spec fn level_spec(&self) -> PagingLevel {
++        self.level
++    }
++
++    pub fn alloc(level: PagingLevel, Tracked(alloc_model): Tracked<&mut AllocatorModel>) -> (res:
++        Self) where Self: Sized
+         requires
+             old(alloc_model).invariants(),
++            level_is_in_range(level as int),
+         ensures
+             alloc_model.invariants(),
+-    ;
++            res.wf(),
++    {
++        broadcast use vstd::std_specs::hash::group_hash_axioms;
++        broadcast use vstd::hash_map::group_hash_map_axioms;
+ 
+-    fn unlock(&mut self) -> PageTableNode;
++        let (p, Tracked(pt)) = alloc_page_table(Tracked(alloc_model));
++        let f = create_new_frame(p.addr(), level);
++        p.write(Tracked(&mut pt), f);
+ 
+-    fn into_raw_paddr(self: Self) -> (res: Paddr) where Self: Sized
+-        ensures
+-            res == self.paddr(),
+-    ;
++        let frame_address = p.addr();
++
++        Self { paddr: frame_address as Paddr, level, phantom: std::marker::PhantomData }
++    }
+ 
+-    fn from_raw_paddr(paddr: Paddr) -> (res: Self) where Self: Sized
++    #[verifier::external_body]
++    fn unlock(&mut self) -> PageTableNode {
++        todo!()
++    }
++
++    pub fn into_raw_paddr(self: Self) -> Paddr where Self: Sized {
++        self.paddr
++    }
++
++    #[verifier::external_body]
++    pub fn from_raw_paddr(paddr: Paddr, level: PagingLevel) -> (res: Self) where Self: Sized
+         ensures
+-            res.paddr() == paddr,
+             res.wf(),
+-    ;
+-
+-    fn nr_children(&self) -> u16;
++            res.paddr_spec() == paddr,
++            res.level_spec() == level,
++    {
++        Self { paddr, level, phantom: std::marker::PhantomData }
++    }
+ 
+     fn read_pte(&self, idx: usize, spt: &exec::SubPageTable) -> (res: C::E)
+         requires
+@@ -100,16 +126,25 @@ pub trait PageTableLockTrait<C: PageTableConfig>: Sized {
+             spt.wf(),
+         ensures
+             spt.wf(),
+-            res.pte_paddr() == self.paddr() + idx * exec::SIZEOF_PAGETABLEENTRY,
+-            res.pte_paddr() == exec::get_pte_from_addr_spec(res.pte_paddr(), spt).pte_addr,
+-            res.frame_paddr() == exec::get_pte_from_addr_spec(res.pte_paddr(), spt).frame_pa,
+-            res.frame_paddr() == 0 ==> !spt.ptes@.value().contains_key(res.pte_paddr() as int),
++            res.frame_paddr() == get_pte_from_addr_spec(
++                index_to_paddr(self.paddr as int, idx as int) as usize,
++                spt,
++            ).frame_pa,
++            res.pte_paddr() == index_to_paddr(self.paddr as int, idx as int),
++            res.frame_paddr() == 0 ==> !spt.ptes@.value().contains_key(
++                index_to_paddr(self.paddr as int, idx as int),
++            ),
+             res.frame_paddr() != 0 ==> {
+                 &&& spt.ptes@.value().contains_key(res.pte_paddr() as int)
+                 &&& spt.ptes@.value()[res.pte_paddr() as int].frame_pa == res.frame_paddr() as int
+                 &&& spt.frames@.value().contains_key(res.frame_paddr() as int)
+             },
+-    ;
++    {
++        assert(self.paddr + idx * SIZEOF_PAGETABLEENTRY < usize::MAX) by {
++            admit();
++        }  // TODO
++        C::E::from_usize(self.paddr + idx * SIZEOF_PAGETABLEENTRY, spt)
++    }
+ 
+     fn write_pte(
+         &self,
+@@ -123,18 +158,59 @@ pub trait PageTableLockTrait<C: PageTableConfig>: Sized {
+             idx < nr_subpage_per_huge::<C>(),
+             old(spt).wf(),
+             old(alloc_model).invariants(),
++            old(spt).perms@.contains_key(frame_addr_to_index_spec(self.paddr)),
++            self.wf(),
+         ensures
+             spt.wf(),
+             alloc_model.invariants(),
+             spt.ptes@.instance_id() == old(spt).ptes@.instance_id(),
+             spt.frames@.instance_id() == old(spt).frames@.instance_id(),
+             spec_helpers::frame_keys_do_not_change(spt, old(spt)),
+-    ;
++    {
++        let frame_idx = frame_addr_to_index(self.paddr);
++
++        assert(frame_idx < MAX_FRAME_NUM as usize);
++        assume(spt.perms@[frame_idx].1@.mem_contents().is_init());
++
++        let (p, Tracked(points_to)) = spt.perms.remove(&frame_idx).unwrap();
+ 
+-    // fn nr_children_mut(&mut self) -> &mut u16;
+-    fn change_children(&self, delta: i16);
++        assume(points_to.pptr() == p);
++        let mut frame = p.read(Tracked(&points_to));
++        assume(idx < frame.ptes.len());
++        frame.ptes[idx] = MockPageTableEntry {
++            pte_addr: pte.pte_paddr() as u64,
++            frame_pa: pte.frame_paddr() as u64,
++            level: level as u8,
++            prop: pte.prop(),
++        };
++        // TODO: P0 currently, the last level frame will cause the inconsistency
++        // between spt.perms and spt.frames
++        p.write(Tracked(&mut points_to), frame);
+ 
+-    fn meta(&self) -> &PageTablePageMeta<C>;
++        spt.perms.insert(frame_idx, (p, Tracked(points_to)));
++
++        assume(spt.wf());  // TODO: P0
++        assume(spec_helpers::frame_keys_do_not_change(spt, old(spt)));  // TODO: P0
++    }
++
++    #[verifier::external_body]
++    pub fn meta(&self) -> &PageTablePageMeta<C> {
++        unimplemented!("meta")
++    }
++
++    // Note: mutable types not supported.
++    // #[verifier::external_body]
++    // pub fn nr_children_mut(&mut self) -> &mut u16 {
++    //     unimplemented!("nr_children_mut")
++    // }
++    #[verifier::external_body]
++    pub fn nr_children(&self) -> u16 {
++        unimplemented!("nr_children")
++    }
++
++    pub fn change_children(&self, delta: i16) {
++        // TODO: implement this function
++    }
+ }
+ 
+ /// The metadata of any kinds of page table pages.

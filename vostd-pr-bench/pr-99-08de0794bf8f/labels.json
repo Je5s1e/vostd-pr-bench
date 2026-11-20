@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-99-08de0794bf8f:commit-fix-bc92f16a61bb069bba8254c9b2cf79aeac6e9cab-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "SubPageTable initialization creates a root frame but leaves its executable permission resource absent and relies on an invariant that inconsistently treats the same key as both a frame index and a physical address.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/mod.rs",
+          "start_line": 232,
+          "end_line": 277
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/test_map.rs",
+          "start_line": 92,
+          "end_line": 112
+        }
+      ],
+      "rationale": "The initialized state-machine frames map contains the root at p.addr(), but the executable SubPageTable uses HashMap::new() for perms. Its written invariant requires every frame key to have a permission entry, while also interpreting the quantified key as an index in PHYSICAL_BASE + i * SIZEOF_FRAME and frame_index_to_addr(i), so the empty and mis-keyed representation cannot establish wf without the explicit assume. Repair bc92f16a consistently uses physical-address keys, inserts p.addr() -> (p, Tracked(pt)), and changes assume(wf) to assert(wf). The allocator postcondition supplies the normalized address-validity fact needed by this same repair; it is not an independent defect.",
+      "source_evidence": "after/lock-protocol/src/exec/mod.rs\nlines 232-277\nblob 326aec787fd4449378ca58421c797abef29d90de\nThe invariant requires bidirectional frames/perms membership but computes a permission pointer from PHYSICAL_BASE + i * SIZEOF_FRAME and separately looks up frame_index_to_addr(i).\n\nafter/lock-protocol/src/exec/test_map.rs\nlines 92-112\nblob a4b0ed1dd6c716610b043c1acf2dfb075a103eec\nThe state machine is initialized with root pa p.addr(), the executable perms map is empty, and sub_page_table.wf() is assumed.\n\nrepair/lock-protocol/src/exec/mod.rs\nlines 233-277\nblob b7779b0ad700da30bef37038cf9696aea32db4a7\ncommit bc92f16a61bb069bba8254c9b2cf79aeac6e9cab\nThe repaired invariant names Paddr keys and uses the same key for perms, frames, pointer address equality, and page-table-address validity.\n\nrepair/lock-protocol/src/exec/test_map.rs\nlines 92-113\nblob 133873fbe7ee192da050aad78a41caf677e4cd30\ncommit bc92f16a61bb069bba8254c9b2cf79aeac6e9cab\nThe initializer inserts p.addr() -> (p, Tracked(pt)) into perms and asserts sub_page_table.wf().\n\nrepair/lock-protocol/src/mm/frame/allocator.rs\nlines 41-57\ncommit bc92f16a61bb069bba8254c9b2cf79aeac6e9cab\nThe allocator postcondition supplies pa_is_valid_kernel_address for the returned page-table pointer, supporting the normalized initialization invariant.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/bc92f16a61bb069bba8254c9b2cf79aeac6e9cab",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "bc92f16a61bb069bba8254c9b2cf79aeac6e9cab:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/bc92f16a61bb069bba8254c9b2cf79aeac6e9cab",
+          "commit_id": "bc92f16a61bb069bba8254c9b2cf79aeac6e9cab"
+        }
+      ],
+      "verification": "Immutable source and direct repair-diff adjudication by two reviewers. The empty permission map contradicts written frame/permission membership, and the repair removes the exact initialization trust boundary. Historical Rust/Verus was not executed."
+    }
+  ],
+  "sample_id": "pr-99-08de0794bf8f"
+}

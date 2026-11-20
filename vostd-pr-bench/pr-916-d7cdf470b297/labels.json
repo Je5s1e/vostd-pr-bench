@@ -38,8 +38,8 @@
     {
       "id": "pr-916-d7cdf470b297:review-comment-4561916242",
       "original_label_id": null,
-      "category": "guideline",
-      "description": "The public PE-header contract requires closed specification predicates whose definitions callers cannot unfold to establish the precondition or use the returned byte model.",
+      "category": "semantic",
+      "description": "The crate-visible PE-header API exposes closed precondition and result models without caller-visible characterization, preventing callers outside the defining module from establishing the input obligation or interpreting the returned bytes.",
       "locations": [
         {
           "version": "after",
@@ -54,7 +54,7 @@
           "end_line": 768
         }
       ],
-      "rationale": "make_pe_coff_header exposes valid_setup_elf as its caller obligation and pe_coff_bytes_spec as its result model, but both are closed in this snapshot and their supporting predicates are also private and closed. External callers therefore cannot unfold the advertised relations for concrete inputs. Review comment 4561916242 identifies this usability failure. The accepted follow-up commit 12a489a1c6fa8d055f74a28b17302d0627d46468 makes the caller-facing predicates pub(crate) open and separates the packed internal representation behind a closed helper.",
+      "rationale": "make_pe_coff_header is pub(crate), requires valid_setup_elf, and ensures a result characterized by pe_coff_bytes_spec (lines 283-288). Both models are pub(crate) closed at this snapshot, with no exported characterization lemma, so callers in other modules cannot derive the input obligation from its documented ELF conditions or unfold the result model. This is a modular contract-usability defect rather than only a preference for open declarations; private representation models need not all be opened. The fixed follow-up commit 12a489a1c6fa8d055f74a28b17302d0627d46468 makes the caller-facing models open while retaining packed representations behind a closed helper. The category is semantic, consistently with the API-contract findings in PR #797. This does not claim an executable runtime defect.",
       "source_evidence": "after/ostd/libs/linux-bzimage/builder/src/pe_header.rs\n669: /// Successful, readable setup ELF input whose computed optional-header fields\n670: /// fit their PE widths. Malformed-input panic paths remain executable.\n671: pub(crate) closed spec fn valid_setup_elf(input: &[u8]) -> bool {\n672:     &&& elf_parse_no_unwind(input)\n673:     &&& elf_parse_result(input) matches Ok(elf) && {\n674:         let headers = all_pe_section_headers_spec(elf_program_headers(&elf));\n675:         &&& elf_program_headers_readable(&elf)\n676:         &&& valid_pe_segments(elf_program_headers(&elf))\n677:         &&& headers.base <= header_entry_point(&elf.header.pt2) <= headers.base + u32::MAX\n678:         &&& headers.rodata.raw_data_size + headers.data.raw_data_size <= u32::MAX\n679:         &&& headers.data.virtual_address + headers.data.virtual_size <= u32::MAX\n680:     }\n\n759: /// The complete DOS prefix, PE/COFF header, optional header, and three sections.\n760: /// Packed object representations remain the audited bytemuck boundary.\n761: pub(crate) closed spec fn pe_coff_bytes_spec(elf: &xmas_elf::ElfFile<'_>) -> Seq<u8> {\n762:     let headers = all_pe_section_headers_spec(elf_program_headers(elf));\n763:     spec_u16_to_le_bytes(MZ_MAGIC) + Seq::new(58, |i: int| 0u8) + spec_u32_to_le_bytes(64)\n764:         + object_bytes(pe_header_spec()) + object_bytes(pe_optional_header_spec(elf, headers))",
       "rule_ids": [
         "api-preconditions",

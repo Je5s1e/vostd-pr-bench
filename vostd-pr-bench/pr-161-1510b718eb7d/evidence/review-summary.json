@@ -1,0 +1,8 @@
+{
+  "issue_comment_count": 0,
+  "inline_review_comment_count": 0,
+  "review_count": 0,
+  "core_lesson": "分配新节点要证明父槽位唯一，并排除同位置的旧记录",
+  "category": "并发与锁",
+  "all_content_unadjudicated": true
+}

@@ -7,7 +7,7 @@
       "id": "pr-706-3d7ea1276689:issue-4396249644",
       "original_label_id": "4396249644",
       "category": "guideline",
-      "description": "use chaining operatoe may save some lines",
+      "description": "The allocator proof splits the lower and upper bounds on the same index into separate comparisons instead of a chained comparison.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
       "id": "pr-706-3d7ea1276689:issue-4396256683",
       "original_label_id": "4396256683",
       "category": "guideline",
-      "description": "import `MAX_IO_PORT`",
+      "description": "New ghost contracts repeatedly use the fully qualified crate::arch::io::MAX_IO_PORT constant instead of importing it.",
       "locations": [
         {
           "version": "after",

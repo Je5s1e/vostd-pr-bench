@@ -30,7 +30,7 @@
     "verified_libs/vstd_extra/src/lib.rs",
     "verified_libs/vstd_extra/src/raw_callback.rs"
   ],
-  "diff_sha256": "54ff0f5c9e7b3f8e0a73ab1b5385974db6a0f1e186a9997e17f15164899cbfc4",
+  "diff_sha256": "6a54b3574b00d474471c77f1904f16185685d07c6332660ec093a27ead060599",
   "versions": {
     "before": {
       "commit": "40e9af00cf3962be53c9b37563591311a86fe0fc",

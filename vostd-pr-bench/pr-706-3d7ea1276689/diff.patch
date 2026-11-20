@@ -1,5 +1,5 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 878f67f7c..197a5720b 100644
+index 878f67f7c1094c53574a7239c899beee63e53019..197a5720be16f24accb7b1892a9d5730d295692e 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -682,6 +682,7 @@ dependencies = [
@@ -11,7 +11,7 @@ index 878f67f7c..197a5720b 100644
  
  [[package]]
 diff --git a/README.md b/README.md
-index 5f20d88b1..591967735 100644
+index 5f20d88b1ffbb416d79ca19807184267c1babdce..5919677359dccf533a78bf1aefd1b2f9576e3b53 100644
 --- a/README.md
 +++ b/README.md
 @@ -5,7 +5,7 @@
@@ -24,7 +24,7 @@ index 5f20d88b1..591967735 100644
  ## Overview
  
 diff --git a/ostd/src/arch/riscv/mod.rs b/ostd/src/arch/riscv/mod.rs
-index 3d0c430d2..88582b273 100644
+index 3d0c430d26d31e1cf9c36f7bd2be2bd4eaeb7246..88582b2732890ba290d1a1729132cce374393611 100644
 --- a/ostd/src/arch/riscv/mod.rs
 +++ b/ostd/src/arch/riscv/mod.rs
 @@ -6,8 +6,8 @@ pub mod device;
@@ -39,7 +39,7 @@ index 3d0c430d2..88582b273 100644
  pub(crate) mod task; */
  pub mod timer;
 diff --git a/ostd/src/arch/riscv/pci.rs b/ostd/src/arch/riscv/pci.rs
-index 0fac683de..a9b9ed7da 100644
+index 0fac683ded2ec538e243a544c39f4a385df3044f..a9b9ed7dac0f424f855f01fa878fa1701718cb71 100644
 --- a/ostd/src/arch/riscv/pci.rs
 +++ b/ostd/src/arch/riscv/pci.rs
 @@ -1,13 +1,23 @@
@@ -98,7 +98,7 @@ index 0fac683de..a9b9ed7da 100644
      ((location.bus as u32) << 16)
          | ((location.device as u32) << 11)
 diff --git a/ostd/src/arch/x86/device/io_port.rs b/ostd/src/arch/x86/device/io_port.rs
-index 74f7bbadf..c2d0399b6 100644
+index 74f7bbadf3f9f07b4c622f23a06205d78581ffbb..c2d0399b6fcd5e37c84bb7637e9999fd439bc2ac 100644
 --- a/ostd/src/arch/x86/device/io_port.rs
 +++ b/ostd/src/arch/x86/device/io_port.rs
 @@ -1,5 +1,7 @@
@@ -110,7 +110,7 @@ index 74f7bbadf..c2d0399b6 100644
      instructions::port::{
          PortReadAccess as IoPortReadAccess, PortWriteAccess as IoPortWriteAccess, ReadOnlyAccess,
 diff --git a/ostd/src/arch/x86/device/mod.rs b/ostd/src/arch/x86/device/mod.rs
-index 5d3b7fe3c..5e260d494 100644
+index 5d3b7fe3c5acb11740c5951b702f73f968774fb1..5e260d4943ab0133db6c748253d0a87e2e17390e 100644
 --- a/ostd/src/arch/x86/device/mod.rs
 +++ b/ostd/src/arch/x86/device/mod.rs
 @@ -1,6 +1,6 @@
@@ -123,7 +123,7 @@ index 5d3b7fe3c..5e260d494 100644
 -pub mod serial;
 +/*pub mod serial;*/
 diff --git a/ostd/src/arch/x86/io.rs b/ostd/src/arch/x86/io.rs
-index b78d04f26..36fe128a4 100644
+index b78d04f268b0c806c4b7748d0d9e7916165bb4cc..36fe128a4ebd200edfa7fdaac692b0f018cc984f 100644
 --- a/ostd/src/arch/x86/io.rs
 +++ b/ostd/src/arch/x86/io.rs
 @@ -1,4 +1,6 @@
@@ -142,7 +142,7 @@ index b78d04f26..36fe128a4 100644
 +#[verus_verify]
  pub const MAX_IO_PORT: u16 = u16::MAX;
 diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
-index 30ddccb5e..24f078615 100644
+index 30ddccb5e8224e2363ed8fb5b9b39d7fb8056bd3..24f078615c0ff47a034642897b9cf6628f34e7cb 100644
 --- a/ostd/src/arch/x86/mod.rs
 +++ b/ostd/src/arch/x86/mod.rs
 @@ -1,16 +1,16 @@
@@ -182,7 +182,7 @@ index 30ddccb5e..24f078615 100644
  pub use if_tdx_enabled;
 -*/
 diff --git a/ostd/src/arch/x86/pci.rs b/ostd/src/arch/x86/pci.rs
-index e212be1f7..dab1e27fb 100644
+index e212be1f7e4f5d94c360e17b13bc72e4d2cc4eb9..dab1e27fb0fa494d331eb38e987361abf29702b2 100644
 --- a/ostd/src/arch/x86/pci.rs
 +++ b/ostd/src/arch/x86/pci.rs
 @@ -1,30 +1,54 @@
@@ -252,7 +252,7 @@ index e212be1f7..dab1e27fb 100644
      // 1 << 31: Configuration enable
      (1 << 31)
 diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
-index 56e900316..595a97efd 100644
+index 56e900316de29facfd546b5e0ebecab5f7b15801..595a97efddfff9b387286bd33e0910b0d7d8bf1d 100644
 --- a/ostd/src/boot/memory_region.rs
 +++ b/ostd/src/boot/memory_region.rs
 @@ -272,6 +272,7 @@ impl<const LEN: usize> Default for MemoryRegionArray<LEN> {
@@ -264,7 +264,7 @@ index 56e900316..595a97efd 100644
  impl<const LEN: usize> Deref for MemoryRegionArray<LEN> {
      type Target = [MemoryRegion];
 diff --git a/ostd/src/bus/mod.rs b/ostd/src/bus/mod.rs
-index 7b81924ce..b8898deb6 100644
+index 7b81924ce6f6c506eb732b00d82eef5eace520c6..b8898deb6b48a2871024afc4d1aa9040826cf3a6 100644
 --- a/ostd/src/bus/mod.rs
 +++ b/ostd/src/bus/mod.rs
 @@ -11,7 +11,7 @@ pub enum BusProbeError {
@@ -278,7 +278,7 @@ index 7b81924ce..b8898deb6 100644
 -}
 +}*/
 diff --git a/ostd/src/bus/pci/device_info.rs b/ostd/src/bus/pci/device_info.rs
-index 3d415c987..3bcc6c1a0 100644
+index 3d415c987238e306d8a480a6d3d1555af1f0e74c..3bcc6c1a055cb95841525fe5a4ac80de6f8770d9 100644
 --- a/ostd/src/bus/pci/device_info.rs
 +++ b/ostd/src/bus/pci/device_info.rs
 @@ -1,9 +1,12 @@
@@ -307,7 +307,7 @@ index 3d415c987..3bcc6c1a0 100644
  pub struct PciDeviceLocation {
      /// Bus number
 diff --git a/ostd/src/bus/pci/mod.rs b/ostd/src/bus/pci/mod.rs
-index 0de48b517..261ab6202 100644
+index 0de48b517717553bb5efb6943c8cff085fb31efc..261ab62021de1589a17baa426a0e831bfdf31de8 100644
 --- a/ostd/src/bus/pci/mod.rs
 +++ b/ostd/src/bus/pci/mod.rs
 @@ -48,14 +48,15 @@
@@ -336,7 +336,7 @@ index 0de48b517..261ab6202 100644
 -}
 +}*/
 diff --git a/ostd/src/io/io_mem/allocator.rs b/ostd/src/io/io_mem/allocator.rs
-index 0cd42a4e9..9e6003537 100644
+index 0cd42a4e9f5c4e6f8e055cb9c432a92c707af785..9e60035371210ac5583a9666f250372d05cd4f44 100644
 --- a/ostd/src/io/io_mem/allocator.rs
 +++ b/ostd/src/io/io_mem/allocator.rs
 @@ -1,10 +1,33 @@
@@ -827,7 +827,7 @@ index 0cd42a4e9..9e6003537 100644
      None
  }
 diff --git a/ostd/src/io/io_mem/mod.rs b/ostd/src/io/io_mem/mod.rs
-index 3afa2d077..7b3032882 100644
+index 3afa2d077451bc3b7735591e9e82b0a164e86b1d..7b30328821f4b41394db0fe550f966373a43de08 100644
 --- a/ostd/src/io/io_mem/mod.rs
 +++ b/ostd/src/io/io_mem/mod.rs
 @@ -1,5 +1,13 @@
@@ -1166,7 +1166,7 @@ index 3afa2d077..7b3032882 100644
      fn drop(&mut self) {
          // TODO: Multiple `IoMem` instances should not overlap, we should refactor the driver code and
 diff --git a/ostd/src/io/io_port/allocator.rs b/ostd/src/io/io_port/allocator.rs
-index 0e5b85e9a..a4043ed0c 100644
+index 0e5b85e9a04b1c579421e3cb810b3e1af36d126a..a4043ed0c0324b6bcaaab264cc8746b457c6355c 100644
 --- a/ostd/src/io/io_port/allocator.rs
 +++ b/ostd/src/io/io_port/allocator.rs
 @@ -1,5 +1,17 @@
@@ -1810,7 +1810,7 @@ index 0e5b85e9a..a4043ed0c 100644
 +
 +} // verus!
 diff --git a/ostd/src/io/io_port/mod.rs b/ostd/src/io/io_port/mod.rs
-index 731ed3571..abbff6451 100644
+index 731ed357170863c7d5b83944e036540e2deefd36..abbff64516696a61489713f6e60fc5ed380916f7 100644
 --- a/ostd/src/io/io_port/mod.rs
 +++ b/ostd/src/io/io_port/mod.rs
 @@ -1,13 +1,22 @@
@@ -2175,7 +2175,7 @@ index 731ed3571..abbff6451 100644
      pub(crate) begin: u16,
      pub(crate) end: u16,
 diff --git a/ostd/src/io/mod.rs b/ostd/src/io/mod.rs
-index a87940453..8ac37ffd0 100644
+index a87940453618bdf8e180a71c65021d0d5bde4cec..8ac37ffd0de5fa2a8ad22c51d1567ec44eddd437 100644
 --- a/ostd/src/io/mod.rs
 +++ b/ostd/src/io/mod.rs
 @@ -5,7 +5,9 @@
@@ -2225,7 +2225,7 @@ index a87940453..8ac37ffd0 100644
      };
  }
 diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
-index 0f5c041c3..8bf12b025 100644
+index 0f5c041c3ee5cdb877a044ea1260a2c34096cd65..8bf12b0250164c50ecbb39e4a6d7afccfb558485 100644
 --- a/ostd/src/lib.rs
 +++ b/ostd/src/lib.rs
 @@ -41,16 +41,16 @@ pub mod arch;
@@ -2264,7 +2264,7 @@ index 0f5c041c3..8bf12b025 100644
  ///
  /// This function represents the first phase booting up the system. It makes
 diff --git a/ostd/src/prelude.rs b/ostd/src/prelude.rs
-index f9ab829ef..bb1eeaf17 100644
+index f9ab829ef428c69fdc9460f077050efcd781bdf3..bb1eeaf172ad2a0da5c397db598bc4addc82fe37 100644
 --- a/ostd/src/prelude.rs
 +++ b/ostd/src/prelude.rs
 @@ -6,7 +6,7 @@
@@ -2283,7 +2283,7 @@ index f9ab829ef..bb1eeaf17 100644
 -};
 +}; */
 diff --git a/ostd/src/util/range_alloc.rs b/ostd/src/util/range_alloc.rs
-index d9a269a43..a98b0767f 100644
+index d9a269a4344c8636246e0c9f7f1fcce0b348ee17..a98b0767f224f6f1511cd2998fe9718688df1ec0 100644
 --- a/ostd/src/util/range_alloc.rs
 +++ b/ostd/src/util/range_alloc.rs
 @@ -3,10 +3,10 @@
@@ -3240,7 +3240,7 @@ index d9a269a43..a98b0767f 100644
                  } else {
                      assert(new_freelist.contains_key(old_key));
 diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
-index f56a9a62b..d16e0f340 100644
+index f56a9a62b4f0b7850d6314a81fd90269d1f064c2..d16e0f340ed8cc4bda3ccdfee000847072753805 100644
 --- a/verified_libs/vstd_extra/Cargo.toml
 +++ b/verified_libs/vstd_extra/Cargo.toml
 @@ -18,3 +18,8 @@ vstd = { workspace = true }
@@ -3253,7 +3253,7 @@ index f56a9a62b..d16e0f340 100644
 +
 +
 diff --git a/verified_libs/vstd_extra/src/external/int_specs.rs b/verified_libs/vstd_extra/src/external/int_specs.rs
-index a73b3c24d..2c367b44d 100644
+index a73b3c24d5988d24f223b165e99e1e5cda4db6a0..2c367b44de505f6b5fc5554a6d549149574437ab 100644
 --- a/verified_libs/vstd_extra/src/external/int_specs.rs
 +++ b/verified_libs/vstd_extra/src/external/int_specs.rs
 @@ -27,6 +27,15 @@ pub assume_specification[ u32::is_power_of_two ](self_: u32) -> (r: bool)
@@ -3274,7 +3274,7 @@ index a73b3c24d..2c367b44d 100644
          is_pow2(self_ as int),
 diff --git a/verified_libs/vstd_extra/src/external/io_port.rs b/verified_libs/vstd_extra/src/external/io_port.rs
 new file mode 100644
-index 000000000..d4ce66be8
+index 0000000000000000000000000000000000000000..d4ce66be8464c33a3ff2f5275bcffb51fab1505f
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/io_port.rs
 @@ -0,0 +1,78 @@
@@ -3357,7 +3357,7 @@ index 000000000..d4ce66be8
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 34fb8f96d..c9688d2ae 100644
+index 34fb8f96defe3fcfcd0340bed79e151a942ab2e1..c9688d2ae3bdfc1714ec1778b9ca8b919893474f 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -10,6 +10,8 @@ pub mod convert;
@@ -3379,7 +3379,7 @@ index 34fb8f96d..c9688d2ae 100644
  pub use nonnull::*;
  pub use ptr::*;
 diff --git a/verified_libs/vstd_extra/src/trans_macros.rs b/verified_libs/vstd_extra/src/trans_macros.rs
-index ebf7e4dd2..cb369c9b0 100644
+index ebf7e4dd2e3543f3b1d089ff9ed093c251ae3d5f..cb369c9b0e89bc50542aa313631783313677988a 100644
 --- a/verified_libs/vstd_extra/src/trans_macros.rs
 +++ b/verified_libs/vstd_extra/src/trans_macros.rs
 @@ -2,6 +2,24 @@ use vstd::prelude::*;

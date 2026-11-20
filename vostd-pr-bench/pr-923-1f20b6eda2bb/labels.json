@@ -46,11 +46,9 @@
           "end_line": 323
         }
       ],
-      "rationale": "The selected archived head places executable methods, their Verus contracts, tracked destructuring, and proof statements together inside `verus!` using legacy return-signature syntax. The maintainer requested `#[verus_spec]` macros for the PR as a whole. The immediate next remote commit converts the same APIs to ordinary Rust signatures under `#[verus_verify]`, moves contracts to `#[verus_spec(...)]`, and isolates erased declarations/expressions with `proof_decl!`, `proof!`, and `verus_exec_expr!`. This exactly implements the same-head `separate-verus-modes` rule requiring executable code, specifications, and proofs to remain visually distinct. The issue is organization/convention rather than a semantic failure.",
+      "rationale": "The maintainer explicitly requested #[verus_spec] macros in historical comment 6863347639. The immediate successor 38f3177997b09129271cbdebbce9c6243c551542 converts these executable heap APIs to ordinary Rust signatures with attribute contracts and proof-mode wrappers. This supports the specific migration convention requested for this PR. The same-head separate-verus-modes guideline only requires visually distinct groups and permits adjacent verified items in one verus! block; it does not by itself mandate attribute syntax or prohibit verus! for proof/spec code.",
       "source_evidence": "after/ostd/src/mm/heap/slot.rs\n64-72: `SlotInfo::size` uses a Verus `returns` clause directly in its executable signature.\n99-105: `into_memory` mixes an executable return with tracked destructuring in the same body.\n117-139: `HeapSlot::new` embeds requires/ensures and tracked binding in the executable declaration.\n197-233: the public getters likewise use legacy inline contracts.\n\nafter/ostd/src/mm/heap/slot_list.rs\n55-63: `Default::default` embeds its ensures clause.\n110-177: `new` and `push` mix contracts and proof declarations with executable code.\n252-323: `pop` does the same.\n\nafter/AGENTS.md\n30-33: Follow the VOSTD Verus Coding Guidelines for coding, specification, proof, naming, and review conventions.\n\nFixed rule at the same commit, docs/coding-guidelines/maintainability.md:3-9: keep executable code, specifications, and proofs in visually distinct groups.",
-      "rule_ids": [
-        "separate-verus-modes"
-      ],
+      "rule_ids": [],
       "review_url": "https://github.com/asterinas/vostd/pull/923#issuecomment-6863347639",
       "related_comment_ids": [
         "6863347639"
@@ -63,7 +61,12 @@
           "commit_id": null
         }
       ],
-      "verification": "source-only; historical Verus was not executed. Independently compared the selected archived Git object with immediate remote successor 38f3177997b09129271cbdebbce9c6243c551542, confirmed the systematic `#[verus_spec]` conversion, and checked the same-head separate-modes rule."
+      "verification": "source-only; historical Verus was not executed. Independently compared the selected archived Git object with immediate remote successor 38f3177997b09129271cbdebbce9c6243c551542, confirmed the systematic `#[verus_spec]` conversion, and checked the same-head separate-modes rule.",
+      "applicability": {
+        "basis": "historical_reviewer_request_and_observed_fix",
+        "scope": "Executable heap APIs migrated by this PR",
+        "rule_mapping": "No universal attribute-only rule inferred from separate-verus-modes."
+      }
     }
   ]
 }

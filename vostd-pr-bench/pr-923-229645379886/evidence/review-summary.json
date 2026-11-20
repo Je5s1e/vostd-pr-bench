@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 4,
-  "inline_review_comment_count": 1,
-  "review_count": 1,
-  "core_lesson": "侵入式空闲链表应把每个节点的字节范围与指针来源一起拥有",
-  "category": "所有权与生命周期",
-  "all_content_unadjudicated": true
-}

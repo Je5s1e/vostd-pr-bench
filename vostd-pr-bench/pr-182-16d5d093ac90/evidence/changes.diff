@@ -1,0 +1,1637 @@
+diff --git a/lock-protocol/src/exec/rcu/cursor/locking.rs b/lock-protocol/src/exec/rcu/cursor/locking.rs
+index d31df1aaf..f353b21ab 100644
+--- a/lock-protocol/src/exec/rcu/cursor/locking.rs
++++ b/lock-protocol/src/exec/rcu/cursor/locking.rs
+@@ -657,7 +657,6 @@ fn dfs_acquire_lock(
+             }
+             assert(m.node_is_locked(cur_node.nid())) by {
+                 assert(m.cur_node() == NodeHelper::get_child(cur_node.nid(), (i + 1) as nat));
+-                NodeHelper::lemma_is_child_nid_increasing(cur_node.nid(), m.cur_node());
+             }
+         } else {
+             assert(m.cur_node() == NodeHelper::next_outside_subtree(cur_node.nid())) by {
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 065b4de30..0784f0c4c 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -473,7 +473,6 @@ fn initialize_inductive(post: Self, cpu_num: CpuId, paddrs: Set<Paddr>) {
+     implies {
+         post.strays_count_false(nid) == 0
+     } by {
+-        assert(post.strays_filter(nid).is_empty());
+         assert(value_filter(post.strays_filter(nid), |stray:bool| stray == false).is_empty());
+     }
+ }
+@@ -490,7 +489,6 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+ 
+     let root = pre.cursors[cpu].root();
+     // Specify what's changed in the transition
+-    assert(!pre.nodes.contains_key(nid));
+     assert(post.cursors == pre.cursors.insert(cpu, CursorState::Locking(root, NodeHelper::next_outside_subtree(nid))));
+ 
+     assert forall |node_id: NodeId|
+@@ -508,14 +506,8 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+         } by {
+             if cpu_id == cpu {
+                 let rt = pre.cursors[cpu_id]->Locking_0;
+-                let _nid = pre.cursors[cpu_id]->Locking_1;
+-                // Need to show: rt <= next_outside_subtree(nid) <= next_outside_subtree(rt)
+-                if rt == nid {
+-                } else {
+-                    // rt < nid, so need to show next_outside_subtree(nid) <= next_outside_subtree(rt)
+-                    // This follows from the fact that nid is in the subtree range of rt
++                if rt != nid {
+                     NodeHelper::lemma_in_subtree_bounded(rt, nid);
+-                    assert(NodeHelper::next_outside_subtree(nid) <= NodeHelper::next_outside_subtree(rt));
+                 }
+             }
+         }
+@@ -548,8 +540,6 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+                         };
+                         if pre.cursors[cpu2].locked_range().contains(node_id) {
+                             let root2 = pre.cursors[cpu2].root();
+-                            assert(NodeHelper::in_subtree(root2, node_id));
+-                            assert(NodeHelper::in_subtree(root2,nid) && root2 != nid);
+                             assert(NodeHelper::in_subtree_range(root2, pa)) by {
+                                 NodeHelper::lemma_child_in_subtree_implies_in_subtree(root2, pa, nid);
+                             };
+@@ -570,8 +560,6 @@ fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+                         };
+                         if pre.cursors[cpu1].locked_range().contains(node_id) {
+                             let root1 = pre.cursors[cpu1].root();
+-                            assert(NodeHelper::in_subtree(root1, node_id));
+-                            assert(NodeHelper::in_subtree(root1,nid) && root1 != nid);
+                             assert(NodeHelper::in_subtree_range(root1, pa)) by {
+                                 NodeHelper::lemma_child_in_subtree_implies_in_subtree(root1, pa, nid);
+                             };
+@@ -648,47 +636,7 @@ fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, p
+     };
+ 
+     assert(post.inv_pte_is_alive_implies_stray_has_false()) by {
+-        assert forall |node_id: NodeId|
+-            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
+-                let pa_node = NodeHelper::get_parent(node_id);
+-                let offset_node = NodeHelper::get_offset(node_id);
+-                (post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node)) ==>
+-                exists |pair: (NodeId, Paddr)|
+-                    #![trigger post.strays.contains_key(pair)]
+-                    {
+-                        &&& pair.0 == node_id
+-                        &&& pair.1 == post.pte_arrays[pa_node].get_paddr(offset_node)
+-                        &&& post.strays.contains_key(pair)
+-                        &&& post.strays[pair] == false
+-                    }
+-            } by {
+-            let pa_node = NodeHelper::get_parent(node_id);
+-            let offset_node = NodeHelper::get_offset(node_id);
+-
+-            if post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node) {
+-                if node_id == nid {
+-                    assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr);
+-                    assert(post.strays.contains_key((nid, paddr)));
+-                    assert(post.strays[(nid, paddr)] == false);
+-                } else {
+-                    if pa_node == pa && offset_node != offset {
+-                        let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
+-                        assert(post.pte_arrays[pa_node] == pte_array.update(offset, PteState::Alive(paddr)));
+-                        assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr_other);
+-
+-                        assert(post.strays.contains_key((node_id, paddr_other)));
+-                        assert(post.strays[(node_id, paddr_other)] == false);
+-                    } else if pa_node != pa {
+-                        let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
+-                        assert(post.pte_arrays[pa_node] == pre.pte_arrays[pa_node]);
+-                        assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr_other);
+-
+-                        assert(post.strays.contains_key((node_id, paddr_other)));
+-                        assert(post.strays[(node_id, paddr_other)] == false);
+-                    }
+-                }
+-            }
+-        }
++        Self::lemma_allocate_keep_inv_pte_is_alive_implies_stray_has_false(pre, post, nid, paddr);
+     };
+     assert(post.inv_not_allocated_subtree()) by {
+         assert forall |rt: NodeId, node_id: NodeId|
+@@ -697,7 +645,6 @@ fn protocol_allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId, p
+             #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
+             !post.nodes.contains_key(node_id) by {
+                 if node_id == nid && post.nodes.contains_key(nid) {
+-                    assert(NodeHelper::is_child(pa,nid));
+                     assert(NodeHelper::in_subtree(rt, pa)) by {
+                         NodeHelper::lemma_child_in_subtree_implies_in_subtree(rt, pa, nid);
+                     };
+@@ -742,35 +689,7 @@ fn protocol_deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId)
+         }
+     };
+     assert(post.inv_not_allocated_subtree()) by {
+-        assert forall |rt: NodeId, node_id: NodeId|
+-            !#[trigger] post.nodes.contains_key(rt) &&
+-            NodeHelper::valid_nid(node_id) &&
+-            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
+-            !post.nodes.contains_key(node_id) by {
+-                if node_id != nid && NodeHelper::in_subtree(nid,node_id) {
+-                    assert (!pre.nodes.contains_key(node_id)) by {
+-                        if pre.nodes.contains_key(node_id) {
+-                            let nid_trace = NodeHelper::nid_to_trace(nid);
+-                            let node_id_trace = NodeHelper::nid_to_trace(node_id);
+-                            assert(nid_trace != node_id_trace && nid_trace.is_prefix_of(node_id_trace));
+-                            assert(nid_trace.len() < node_id_trace.len()) by {
+-                                if nid_trace.len() == node_id_trace.len() {
+-                                    assert(nid_trace == node_id_trace);
+-                                    assert(nid == NodeHelper::trace_to_nid(nid_trace));
+-                                    assert(node_id == NodeHelper::trace_to_nid(node_id_trace));
+-                                }
+-                            }
+-                            let conflict_trace = node_id_trace.subrange(0, (nid_trace.len() + 1) as int);
+-                            assert(conflict_trace.is_prefix_of(node_id_trace));
+-                            let conflict_nid = NodeHelper::trace_to_nid(conflict_trace);
+-                            assert(NodeHelper::in_subtree_range(conflict_nid, node_id));
+-                            assert(pre.nodes.contains_key(conflict_nid));
+-                            assert(nid_trace.is_prefix_of(conflict_trace));
+-                            assert(NodeHelper::get_parent(conflict_nid) == nid);
+-                        }
+-                    };
+-                }
+-            };
++        Self::lemma_deallocate_keep_inv_not_allocated_subtree(pre,post,nid);
+     };
+     assert(post.inv_cursor_root_in_nodes()) by {
+         assert forall |cpu_id: CpuId| #[trigger] post.cursors.contains_key(cpu_id) &&
+@@ -848,47 +767,7 @@ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) {
+         }
+     }
+     assert(post.inv_pte_is_alive_implies_stray_has_false()) by {
+-        assert forall |node_id: NodeId|
+-            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
+-                let pa_node = NodeHelper::get_parent(node_id);
+-                let offset_node = NodeHelper::get_offset(node_id);
+-                (post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node)) ==>
+-                exists |pair: (NodeId, Paddr)|
+-                    #![trigger post.strays.contains_key(pair)]
+-                    {
+-                        &&& pair.0 == node_id
+-                        &&& pair.1 == post.pte_arrays[pa_node].get_paddr(offset_node)
+-                        &&& post.strays.contains_key(pair)
+-                        &&& post.strays[pair] == false
+-                    }
+-            } by {
+-            let pa_node = NodeHelper::get_parent(node_id);
+-            let offset_node = NodeHelper::get_offset(node_id);
+-
+-            if post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node) {
+-                if node_id == nid {
+-                    assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr);
+-                    assert(post.strays.contains_key((nid, paddr)));
+-                    assert(post.strays[(nid, paddr)] == false);
+-                } else {
+-                    if pa_node == pa && offset_node != offset {
+-                        let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
+-                        assert(post.pte_arrays[pa_node] == pte_array.update(offset, PteState::Alive(paddr)));
+-                        assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr_other);
+-
+-                        assert(post.strays.contains_key((node_id, paddr_other)));
+-                        assert(post.strays[(node_id, paddr_other)] == false);
+-                    } else if pa_node != pa {
+-                        let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
+-                        assert(post.pte_arrays[pa_node] == pre.pte_arrays[pa_node]);
+-                        assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr_other);
+-
+-                        assert(post.strays.contains_key((node_id, paddr_other)));
+-                        assert(post.strays[(node_id, paddr_other)] == false);
+-                    }
+-                }
+-            }
+-        }
++        Self::lemma_allocate_keep_inv_pte_is_alive_implies_stray_has_false(pre, post, nid, paddr);
+     }
+     assert(post.inv_locked_node_state()) by {
+         assert forall |cpu: CpuId| #[trigger]
+@@ -959,35 +838,7 @@ fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {
+         }
+     };
+     assert(post.inv_not_allocated_subtree()) by {
+-        assert forall |rt: NodeId, node_id: NodeId|
+-            !#[trigger] post.nodes.contains_key(rt) &&
+-            NodeHelper::valid_nid(node_id) &&
+-            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
+-            !post.nodes.contains_key(node_id) by {
+-                if node_id != nid && NodeHelper::in_subtree(nid,node_id) {
+-                    assert (!pre.nodes.contains_key(node_id)) by {
+-                        if pre.nodes.contains_key(node_id) {
+-                            let nid_trace = NodeHelper::nid_to_trace(nid);
+-                            let node_id_trace = NodeHelper::nid_to_trace(node_id);
+-                            assert(nid_trace != node_id_trace && nid_trace.is_prefix_of(node_id_trace));
+-                            assert(nid_trace.len() < node_id_trace.len()) by {
+-                                if nid_trace.len() == node_id_trace.len() {
+-                                    assert(nid_trace == node_id_trace);
+-                                    assert(nid == NodeHelper::trace_to_nid(nid_trace));
+-                                    assert(node_id == NodeHelper::trace_to_nid(node_id_trace));
+-                                }
+-                            }
+-                            let conflict_trace = node_id_trace.subrange(0, (nid_trace.len() + 1) as int);
+-                            assert(conflict_trace.is_prefix_of(node_id_trace));
+-                            let conflict_nid = NodeHelper::trace_to_nid(conflict_trace);
+-                            assert(NodeHelper::in_subtree_range(conflict_nid, node_id));
+-                            assert(pre.nodes.contains_key(conflict_nid));
+-                            assert(nid_trace.is_prefix_of(conflict_trace));
+-                            assert(NodeHelper::get_parent(conflict_nid) == nid);
+-                        }
+-                    };
+-                }
+-            };
++        Self::lemma_deallocate_keep_inv_not_allocated_subtree(pre,post,nid);
+     };
+ }
+ 
+@@ -1019,7 +870,6 @@ requires
+ ensures
+     value_filter(project_first_key(self.strays.insert((nid, paddr),true), nid), |stray: bool| stray == false).len() == 0,
+ {
+-    broadcast use group_value_filter_lemmas;
+     assert(project_first_key(self.strays.insert((nid, paddr), true), nid) == project_first_key(self.strays, nid).insert(paddr, true));
+     lemma_project_first_key_finite(self.strays, nid);
+     lemma_insert_value_filter_different_len_contains(
+@@ -1029,6 +879,101 @@ ensures
+         true,
+     );
+ }
++
++proof fn lemma_deallocate_keep_inv_not_allocated_subtree(pre: Self, post: Self, nid: NodeId)
++requires
++    pre.inv_not_allocated_subtree(),
++    pre.inv_pte_is_void_implies_no_node(),
++    pre.inv_pt_node_pte_array_relationship(),
++    pre.nodes.contains_key(nid),
++    pre.pte_arrays[nid] == PteArrayState::empty(),
++    post.nodes == pre.nodes.remove(nid),
++ensures
++    post.inv_not_allocated_subtree(),
++    {
++        broadcast use group_node_helper_lemmas;
++        assert forall |rt: NodeId, node_id: NodeId|
++            !#[trigger] post.nodes.contains_key(rt) &&
++            NodeHelper::valid_nid(node_id) &&
++            #[trigger] NodeHelper::in_subtree_range(rt, node_id) implies
++            !post.nodes.contains_key(node_id) by {
++                if node_id != nid && NodeHelper::in_subtree(nid,node_id) {
++                    assert (!pre.nodes.contains_key(node_id)) by {
++                        if pre.nodes.contains_key(node_id) {
++                            let nid_trace = NodeHelper::nid_to_trace(nid);
++                            let node_id_trace = NodeHelper::nid_to_trace(node_id);
++                            assert(nid_trace.len() < node_id_trace.len()) by {
++                                if nid_trace.len() == node_id_trace.len() {
++                                    assert(nid_trace == node_id_trace);
++                                    assert(nid == NodeHelper::trace_to_nid(nid_trace));
++                                    assert(node_id == NodeHelper::trace_to_nid(node_id_trace));
++                                }
++                            }
++                            let conflict_trace = node_id_trace.subrange(0, (nid_trace.len() + 1) as int);
++                            let conflict_nid = NodeHelper::trace_to_nid(conflict_trace);
++                            assert(NodeHelper::in_subtree_range(conflict_nid, node_id));
++                            assert(nid_trace.is_prefix_of(conflict_trace));
++                        }
++                    };
++                }
++            };
++    }
++
++
++proof fn lemma_allocate_keep_inv_pte_is_alive_implies_stray_has_false(pre: Self, post: Self, nid: NodeId, paddr: Paddr)
++requires
++    NodeHelper::valid_nid(nid),
++    nid != NodeHelper::root_id(),
++    pre.wf_pte_arrays(),
++    pre.inv_pte_is_void_implies_no_node(),
++    pre.inv_pte_is_alive_implies_stray_has_false(),
++    pre.nodes.contains_key(NodeHelper::get_parent(nid)),
++    pre.pte_arrays.contains_key(NodeHelper::get_parent(nid)),
++    pre.pte_arrays[NodeHelper::get_parent(nid)].is_void(NodeHelper::get_offset(nid)),
++    post.pte_arrays =~= pre.pte_arrays.insert(NodeHelper::get_parent(nid), pre.pte_arrays[NodeHelper::get_parent(nid)].update(NodeHelper::get_offset(nid), PteState::Alive(paddr))).insert(nid,PteArrayState::empty()),
++    post.nodes.dom() == pre.nodes.dom().insert(nid),
++    post.strays == pre.strays.insert((nid, paddr), false),
++    post.inv_pt_node_pte_relationship(),
++ensures
++    post.inv_pte_is_alive_implies_stray_has_false(),
++{
++    broadcast use group_node_helper_lemmas;
++    let pa = NodeHelper::get_parent(nid);
++    let offset = NodeHelper::get_offset(nid);
++    let pte_array = pre.pte_arrays[pa];
++
++    assert forall |node_id: NodeId|
++            (#[trigger] NodeHelper::valid_nid(node_id) && node_id != NodeHelper::root_id()) implies {
++                let pa_node = NodeHelper::get_parent(node_id);
++                let offset_node = NodeHelper::get_offset(node_id);
++                (post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node)) ==>
++                exists |pair: (NodeId, Paddr)|
++                    #![trigger post.strays.contains_key(pair)]
++                    {
++                        &&& pair.0 == node_id
++                        &&& pair.1 == post.pte_arrays[pa_node].get_paddr(offset_node)
++                        &&& post.strays.contains_key(pair)
++                        &&& post.strays[pair] == false
++                    }
++            } by {
++            let pa_node = NodeHelper::get_parent(node_id);
++            let offset_node = NodeHelper::get_offset(node_id);
++            if post.pte_arrays.contains_key(pa_node) && post.pte_arrays[pa_node].is_alive(offset_node) {
++                if node_id == nid {
++                    assert(post.pte_arrays[pa_node].get_paddr(offset_node) == paddr);
++                    assert(post.strays.contains_key((nid, paddr)));
++                } else {
++                    let paddr_other = pre.pte_arrays[pa_node].get_paddr(offset_node);
++                    assert(post.strays.contains_key((node_id, paddr_other)));
++                    if pa_node == pa && offset_node != offset {
++                        assert(post.pte_arrays[pa_node] == pte_array.update(offset, PteState::Alive(paddr)));
++                    } else if pa_node != pa {
++                        assert(post.pte_arrays[pa_node] == pre.pte_arrays[pa_node]);
++                    }
++                }
++            }
++        }
+ }
+ 
+ }
++}
+diff --git a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+index 6fed275f4..624bb2d1b 100644
+--- a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
++++ b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+@@ -41,7 +41,7 @@ pub proof fn init_refines_init(post: StateC) {
+                 |cpu: CpuId| valid_cpu(post.cpu_num, cpu),
+                 |cpu: CpuId| AtomicCursorState::Void,
+             );
+-            assert(interp(post).cursors =~= cursors);
++            assert(interp(post).cursors == cursors);
+             AtomicSpec::show::initialize(interp(post), cpu_num);
+         }
+     }}
+@@ -75,59 +75,25 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+         }
+ 
+         protocol_lock_end(cpu) => {
+-            let ghost rt = post.cursors[cpu]->Locked_0;
+-
+-            // In protocol_lock_end, we transition from Locking(rt, nid) to Locked(rt)
+-            // where nid == NodeHelper::next_outside_subtree(rt)
+-            let ghost pre_cursor = pre.cursors[cpu];
+-            assert(pre_cursor is Locking);
+-            let ghost (pre_rt, pre_nid) = (pre_cursor->Locking_0, pre_cursor->Locking_1);
+-            assert(pre_rt == rt);
+-            assert(pre_nid == NodeHelper::next_outside_subtree(rt));
+-
+-            // Show that the interpretation satisfies AtomicSpec::lock preconditions
+-            // 1. In the interpreted pre-state, the cursor is Void (Locking maps to Void)
+-            assert(interp_cursor_state(pre_cursor) == AtomicCursorState::Void);
+-            assert(interp(pre).cursors[cpu] is Void);
+-
+-            // 2. In the interpreted post-state, the cursor is Locked(rt)
+-            assert(interp_cursor_state(post.cursors[cpu]) == AtomicCursorState::Locked(rt));
+-            assert(interp(post).cursors[cpu] is Locked);
+-
+-            // 3. Need to show that rt is valid
++            let rt = post.cursors[cpu]->Locked_0;
++
+             assert(NodeHelper::valid_nid(rt)) by {
+-                // rt is valid because post.cursors[cpu] is Locked(rt) and well-formed
+                 assert(post.cursors[cpu].wf());
+             };
+ 
+-            // 4. Need to show all_non_overlapping(rt) in the interpreted pre-state
+             assert(interp(pre).all_non_overlapping(rt)) by {
+-                // This follows from the TreeSpec invariant inv_non_overlapping
+                 broadcast use group_node_helper_lemmas;
+-                assert forall |cpu_id: CpuId| #[trigger]
++                assert (forall |cpu_id: CpuId| #[trigger]
+                     interp(pre).cursors.contains_key(cpu_id) &&
+-                    interp(pre).cursors[cpu_id] is Locked implies
++                    interp(pre).cursors[cpu_id] is Locked ==>
+                     {
+                         let nid = interp(pre).cursors[cpu_id]->Locked_0;
+                         !NodeHelper::in_subtree(nid, rt) && !NodeHelper::in_subtree(rt, nid)
+-                    } by {
+-                        let nid = pre.cursors[cpu_id]->Locked_0;
+-                        assert(nid == interp(pre).cursors[cpu_id]->Locked_0);
+-                        assert(pre.cursors[cpu_id] is Locked);
+-                        assert(pre.cursors.contains_key(cpu_id));
+-                        assert(pre.cursors[cpu] is Locking);
+-                        NodeHelper::lemma_sub_tree_size_lowerbound(rt);
+-                        NodeHelper::lemma_sub_tree_size_lowerbound(nid);
+-                        assert(pre.cursors[cpu_id].locked_range().disjoint(pre.cursors[cpu].locked_range()));
+-                        assert(pre.cursors[cpu].locked_range().contains(rt));
+-                        assert(!NodeHelper::in_subtree_range(nid, rt));
+-                        assert(!NodeHelper::in_subtree_range(rt, nid));
+-                    }
++                    });
+             };
+ 
+-            // 5. Show that the cursors map updates correctly
+             assert(
+-                interp(post).cursors =~=
++                interp(post).cursors ==
+                 interp(pre).cursors.insert(
+                     cpu,
+                     AtomicCursorState::Locked(rt),
+@@ -143,7 +109,7 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+ 
+             // Prove that the interpreted cursors map is updated correctly
+             assert(
+-                interp(post).cursors =~=
++                interp(post).cursors ==
+                 interp(pre).cursors.insert(
+                     cpu,
+                     AtomicCursorState::Void,
+@@ -172,7 +138,7 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+             // The protocol_allocate transition only modifies nodes, pte_arrays, and strays
+             // The cursors and cpu_num fields remain unchanged
+             // assert(interp(pre).cpu_num == interp(post).cpu_num);
+-            assert(interp(pre).cursors =~= interp(post).cursors) by {
++            assert(interp(pre).cursors == interp(post).cursors) by {
+                 // Both interpreted cursor maps are constructed using Map::new with:
+                 // - Same domain function: |cpu| valid_cpu(s.cpu_num, cpu)
+                 // - Same value function: |cpu| interp_cursor_state(s.cursors[cpu])
+@@ -180,14 +146,14 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+ 
+                 assert(forall |cpu: CpuId|
+                     #![auto]
+-                    interp(pre).cursors.dom().contains(cpu) <==>
+-                    interp(post).cursors.dom().contains(cpu)) by {
++                    interp(pre).cursors.contains_key(cpu) <==>
++                    interp(post).cursors.contains_key(cpu)) by {
+                     // Both use valid_cpu(cpu_num, cpu) with same cpu_num
+                 };
+ 
+                 assert(forall |cpu: CpuId|
+                     #![auto]
+-                    interp(pre).cursors.dom().contains(cpu) ==>
++                    interp(pre).cursors.contains_key(cpu) ==>
+                     interp(pre).cursors[cpu] == interp(post).cursors[cpu]);
+             };
+             AtomicSpec::show::no_op(interp(pre), interp(post));
+@@ -212,7 +178,7 @@ pub proof fn next_refines_next(pre: StateC, post: StateC) {
+             // The normal_allocate transition only modifies nodes, pte_arrays, and strays
+             // The cursors and cpu_num fields remain unchanged
+             assert(pre.cpu_num == post.cpu_num);
+-            assert(pre.cursors =~= post.cursors);
++            assert(pre.cursors == post.cursors);
+             assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
+             AtomicSpec::show::no_op(interp(pre), interp(post));
+         }
+diff --git a/lock-protocol/src/spec/rw/atomic.rs b/lock-protocol/src/spec/rw/atomic.rs
+index e13a3cedc..98c25aed0 100644
+--- a/lock-protocol/src/spec/rw/atomic.rs
++++ b/lock-protocol/src/spec/rw/atomic.rs
+@@ -19,10 +19,10 @@ fields {
+ #[invariant]
+ pub fn inv_cursors(&self) -> bool {
+     &&& forall |cpu: CpuId| #![auto]
+-        self.cursors.dom().contains(cpu) <==> valid_cpu(self.cpu_num, cpu)
++        self.cursors.contains_key(cpu) <==> valid_cpu(self.cpu_num, cpu)
+ 
+     &&& forall |cpu: CpuId| #![auto]
+-        self.cursors.dom().contains(cpu) &&
++        self.cursors.contains_key(cpu) &&
+         self.cursors[cpu] is Locked ==>
+             NodeHelper::valid_nid(self.cursors[cpu]->Locked_0)
+ }
+@@ -31,9 +31,9 @@ pub fn inv_cursors(&self) -> bool {
+ pub fn inv_non_overlapping(&self) -> bool {
+     forall |cpu1: CpuId, cpu2: CpuId| #![auto]
+         cpu1 != cpu2 &&
+-        self.cursors.dom().contains(cpu1) &&
++        self.cursors.contains_key(cpu1) &&
+         self.cursors[cpu1] is Locked &&
+-        self.cursors.dom().contains(cpu2) &&
++        self.cursors.contains_key(cpu2) &&
+         self.cursors[cpu2] is Locked ==> {
+             let nid1 = self.cursors[cpu1]->Locked_0;
+             let nid2 = self.cursors[cpu2]->Locked_0;
+@@ -48,7 +48,7 @@ pub open spec fn all_non_overlapping(&self, nid: NodeId) -> bool
+         NodeHelper::valid_nid(nid),
+ {
+     forall |cpu: CpuId| #![auto]
+-        self.cursors.dom().contains(cpu) &&
++        self.cursors.contains_key(cpu) &&
+         self.cursors[cpu] is Locked ==> {
+             let _nid = self.cursors[cpu]->Locked_0;
+ 
+diff --git a/lock-protocol/src/spec/rw/tree.rs b/lock-protocol/src/spec/rw/tree.rs
+index 6ac1675eb..8e851ebf5 100644
+--- a/lock-protocol/src/spec/rw/tree.rs
++++ b/lock-protocol/src/spec/rw/tree.rs
+@@ -415,21 +415,13 @@ transition!{
+ fn initialize_inductive(post: Self, cpu_num: CpuId) {
+     broadcast use crate::spec::utils::group_node_helper_lemmas;
+     assert(post.inv_nodes()) by {
+-        assert(post.nodes.dom() =~= Set::empty().insert(NodeHelper::root_id()));
++        assert(post.nodes.dom() == Set::empty().insert(NodeHelper::root_id()));
+         assert(NodeHelper::valid_nid(NodeHelper::root_id())) by {
+             NodeHelper::lemma_root_id();
+         };
+     }
+     assert(post.inv_cursors()) by {
+-        assert(post.cursors.dom().finite()) by {
+-            assert(post.cursors.dom()=~=Set::new(
+-                |cpu| valid_cpu(post.cpu_num, cpu),
+-            ));
+-            assert(Set::new(|cpu:CpuId| valid_cpu(post.cpu_num, cpu)).finite()) by
+-            {
+-                Self::lemma_valid_cpu_set_finite(post.cpu_num);
+-            }
+-        }
++            Self::lemma_valid_cpu_set_finite(post.cpu_num);
+     };
+ 
+     assert(post.inv_reader_counts_cursors_relation()) by {
+@@ -524,9 +516,7 @@ fn read_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                 if path.len() == 0 {
+                     // If the path is empty, it means we locked the root node, therefore
+                     // there are no writelocked cursors in the previous state.
+-                    assert(nid == NodeHelper::root_id());
+                     pre.lemma_write_lock_root_id_state(cpu0);
+-                    assert(pre.reader_counts[NodeHelper::root_id()] > 0);
+                 }
+                 else
+                 {
+@@ -571,9 +561,7 @@ fn read_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+         };
+     };
+     assert(pre.reader_counts[nid] > 0) by {
+-        broadcast use {
+-            vstd_extra::seq_extra::group_forall_seq_lemmas,
+-        };
++        broadcast use vstd_extra::seq_extra::group_forall_seq_lemmas;
+         pre.lemma_inv_implies_inv_rc_positive()
+     };
+ }
+@@ -615,7 +603,6 @@ fn write_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                 let locked_node = post.cursors[cpu0].get_write_lock_node();
+                 assert(NodeHelper::valid_nid(locked_node));
+                 if path.len() == 0 {
+-                    assert(nid == NodeHelper::root_id());
+                     assert(pre.reader_counts[NodeHelper::root_id()] == 0);
+                     if cpu != cpu0 {
+                         //No write lock cursor is possible in the previous state.
+@@ -628,15 +615,13 @@ fn write_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                     if cpu != cpu0 {
+                         assert(!NodeHelper::in_subtree_range(locked_node,nid)) by {
+                             assert(NodeHelper::is_child(read_node,nid));
+-                            assert(pre.reader_counts[read_node]>0) by {
++                            assert(pre.reader_counts[read_node] > 0) by {
+                                 pre.lemma_inv_implies_inv_rc_positive();
+                             };
+                             NodeHelper::lemma_not_in_subtree_range_implies_child_not_in_subtree_range(locked_node,read_node,nid);
+                         };
+                     } else
+                     {
+-                        // nid is naturally subtree_locked
+-                        NodeHelper::lemma_in_subtree_self(nid);
+                         pre.lemma_read_counter_zero_implies_subtree_locked(nid,nid);
+                     }
+                 }
+@@ -674,28 +659,7 @@ fn in_protocol_write_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: No
+ #[inductive(allocate)]
+ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     broadcast use group_node_helper_lemmas;
+-    assert(post.inv_pte_arrays()) by {
+-        let pa = NodeHelper::get_parent(nid);
+-        let offset = NodeHelper::get_offset(nid);
+-        assert forall |id|
+-            #[trigger] post.pte_arrays.contains_key(id)
+-        implies post.pte_arrays[id].wf()
+-        by {
+-            if id == pa {
+-                assert(post.pte_arrays[id] =~=
+-                    pre.pte_arrays[id].update(offset, PteState::Alive)
+-                );
+-                assert(post.pte_arrays[id].wf());
+-            } else if id != nid {
+-                assert(pre.pte_arrays.contains_key(id));
+-                assert(post.pte_arrays[id] =~= pre.pte_arrays[id]);
+-                assert(pre.pte_arrays[id].wf());
+-            } else {
+-                assert(post.pte_arrays[id] =~= PteArrayState::empty());
+-                assert(post.pte_arrays[id].wf());
+-            }
+-        };
+-    };
++
+     assert(post.inv_cursor_path_node_relation()) by {
+         assert forall |cpu|
+             post.cursors.contains_key(cpu)
+@@ -704,17 +668,8 @@ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+             path.all(|nid| post.nodes.contains_key(nid))
+         } by {
+             let path = post.cursors[cpu].get_path();
+-            assert(post.cursors[cpu] =~= pre.cursors[cpu]);
+-            assert(path =~= pre.cursors[cpu].get_path());
++            assert(path == pre.cursors[cpu].get_path());
+             assert(path.all(|nid| post.nodes.contains_key(nid))) by {
+-                assert(pre.inv_cursor_path_node_relation());
+-                assert(pre.cursors.contains_key(cpu));
+-                assert(path.all(|nid| pre.nodes.contains_key(nid)));
+-                assert(post.nodes.dom() =~= pre.nodes.dom().insert(nid));
+-                assert(forall |id: NodeId|
+-                    #[trigger] pre.nodes.contains_key(id) ==>
+-                        post.nodes.contains_key(id)
+-                );
+                 assert forall |i|
+                     0 <= i < path.len()
+                 implies post.nodes.contains_key(#[trigger] path[i])
+@@ -742,36 +697,20 @@ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+         } by {
+             let pa = NodeHelper::get_parent(id);
+             let offset = NodeHelper::get_offset(id);
+-            if id == nid {
+-                assert(!pre.nodes.contains_key(id));
+-                assert(post.nodes.contains_key(id));
+-                assert(post.pte_arrays[pa] =~=
+-                    pre.pte_arrays[pa].update(offset, PteState::Alive)
+-                );
+-            } else if pa == nid {}
++            if id == nid {} else if pa == nid {}
+             else {
+-                assert(pre.nodes.contains_key(id) <==> {
+-                    pre.pte_arrays.contains_key(pa) &&
+-                    pre.pte_arrays[pa].is_alive(offset)
+-                });
+-                assert(post.nodes.contains_key(id) <==>
+-                    pre.nodes.contains_key(id)
+-                );
+-                assert(post.pte_arrays.contains_key(pa) <==>
+-                    pre.pte_arrays.contains_key(pa)
+-                );
+                 if post.pte_arrays.contains_key(pa) {
+                     if pa == NodeHelper::get_parent(nid) {
+                         assert(offset != NodeHelper::get_offset(nid)) by {
+                             NodeHelper::lemma_brothers_have_different_offset(id, nid);
+                         };
+-                        assert(post.pte_arrays[pa] =~=
++                        assert(post.pte_arrays[pa] ==
+                             pre.pte_arrays[pa].update(
+                                 NodeHelper::get_offset(nid),
+                                 PteState::Alive,
+                             )
+                         );
+-                        assert(post.pte_arrays[pa].inner[offset as int] =~=
++                        assert(post.pte_arrays[pa].inner[offset as int] ==
+                             pre.pte_arrays[pa].inner[offset as int]
+                         ) by {
+                             axiom_seq_update_different(
+@@ -781,12 +720,7 @@ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                                 PteState::Alive,
+                             );
+                         };
+-                    } else {
+-                        assert(post.pte_arrays[pa] =~= pre.pte_arrays[pa]);
+                     }
+-                    assert(post.pte_arrays[pa].is_alive(offset) <==>
+-                        pre.pte_arrays[pa].is_alive(offset)
+-                    );
+                 }
+             }
+         };
+@@ -800,15 +734,12 @@ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                 #[trigger] post.cursors.contains_key(cpu)
+             implies !post.cursors[cpu].hold_read_lock(nid)
+             by {
+-                assert(pre.cursors[cpu] =~= post.cursors[cpu]);
+                 assert(!pre.cursors[cpu].hold_read_lock(nid)) by {
+                     assert(!pre.nodes.contains_key(nid));
+                     if pre.cursors[cpu].hold_read_lock(nid) {
+                         let path = pre.cursors[cpu].get_path();
+-                        assert(path.contains(nid));
+                         let idx = choose |idx|
+                             0 <= idx < path.len() && path[idx] == nid;
+-                        assert(path[idx] == nid);
+                         assert(pre.nodes.contains_key(nid)) by {
+                             lemma_seq_all_index(
+                                 path,
+@@ -864,27 +795,7 @@ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+ #[inductive(deallocate)]
+ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     broadcast use group_node_helper_lemmas;
+-    assert(post.inv_pte_arrays()) by {
+-        let pa = NodeHelper::get_parent(nid);
+-        let offset = NodeHelper::get_offset(nid);
+-        assert forall |id|
+-            #[trigger] post.pte_arrays.contains_key(id)
+-        implies post.pte_arrays[id].wf()
+-        by {
+-            if id == pa {
+-                assert(post.pte_arrays[id] =~=
+-                    pre.pte_arrays[id].update(offset, PteState::None)
+-                );
+-                assert(post.pte_arrays[id].wf());
+-            } else if id != nid {
+-                assert(pre.pte_arrays.contains_key(id));
+-                assert(post.pte_arrays[id] =~= pre.pte_arrays[id]);
+-                assert(pre.pte_arrays[id].wf());
+-            } else {
+-                assert(post.pte_arrays.contains_key(id));
+-            }
+-        };
+-    }
++
+     assert(post.inv_cursor_path_node_relation()) by {
+         assert forall |cpu|
+             post.cursors.contains_key(cpu)
+@@ -893,17 +804,7 @@ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+             path.all(|nid| post.nodes.contains_key(nid))
+         } by {
+             let path = post.cursors[cpu].get_path();
+-            assert(post.cursors[cpu] =~= pre.cursors[cpu]);
+-            assert(path =~= pre.cursors[cpu].get_path());
+             assert(path.all(|nid| post.nodes.contains_key(nid))) by {
+-                assert(pre.inv_cursor_path_node_relation());
+-                assert(pre.cursors.contains_key(cpu));
+-                assert(path.all(|nid| pre.nodes.contains_key(nid)));
+-                assert(post.nodes.dom() =~= pre.nodes.dom().remove(nid));
+-                assert(forall |id: NodeId|
+-                    #[trigger] pre.nodes.contains_key(id) && id != nid ==>
+-                        post.nodes.contains_key(id)
+-                );
+                 assert forall |i|
+                     0 <= i < path.len()
+                 implies post.nodes.contains_key(#[trigger] path[i])
+@@ -912,9 +813,6 @@ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                         lemma_seq_all_index(path, |nid| pre.nodes.contains_key(nid), i);
+                     };
+                     if path[i] == nid {
+-                        assert(pre.nodes.contains_key(nid));
+-                        assert(pre.nodes[nid] !is WriteLocked);
+-                        assert(pre.reader_counts[nid] == 0);
+                         assert(pre.nodes[nid] is WriteUnLocked || pre.nodes[nid] is WriteLocked) by {
+                             if pre.cursors[cpu] is WriteLocked && i == path.len() - 1 {
+                                 assert(pre.nodes[nid] is WriteLocked);
+@@ -923,9 +821,6 @@ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                                     assert(pre.reader_counts[nid] > 0) by {
+                                         pre.lemma_inv_implies_inv_rc_positive();
+                                         let read_path = pre.cursors[cpu].get_read_lock_path();
+-                                        assert(pre.rc_positive(read_path));
+-                                        assert(0 <= i < read_path.len());
+-                                        assert(read_path[i] == nid);
+                                         lemma_seq_all_index(
+                                             read_path,
+                                             |nid| pre.reader_counts[nid] > 0,
+@@ -935,9 +830,6 @@ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                                 };
+                             }
+                         };
+-                        assert(pre.nodes[nid] is WriteUnLocked ==>
+-                            pre.reader_counts[nid] > 0
+-                        );
+                     }
+                 };
+             };
+@@ -959,36 +851,20 @@ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+         } by {
+             let pa = NodeHelper::get_parent(id);
+             let offset = NodeHelper::get_offset(id);
+-            if id == nid {
+-                assert(pre.nodes.contains_key(id));
+-                assert(!post.nodes.contains_key(id));
+-                assert(post.pte_arrays[pa] =~=
+-                    pre.pte_arrays[pa].update(offset, PteState::None)
+-                );
+-            } else if pa == nid {}
++            if id == nid {} else if pa == nid {}
+             else {
+-                assert(pre.nodes.contains_key(id) <==> {
+-                    pre.pte_arrays.contains_key(pa) &&
+-                    pre.pte_arrays[pa].is_alive(offset)
+-                });
+-                assert(post.nodes.contains_key(id) <==>
+-                    pre.nodes.contains_key(id)
+-                );
+-                assert(post.pte_arrays.contains_key(pa) <==>
+-                    pre.pte_arrays.contains_key(pa)
+-                );
+                 if post.pte_arrays.contains_key(pa) {
+                     if pa == NodeHelper::get_parent(nid) {
+                         assert(offset != NodeHelper::get_offset(nid)) by {
+                             NodeHelper::lemma_brothers_have_different_offset(id, nid);
+                         };
+-                        assert(post.pte_arrays[pa] =~=
++                        assert(post.pte_arrays[pa] ==
+                             pre.pte_arrays[pa].update(
+                                 NodeHelper::get_offset(nid),
+                                 PteState::None,
+                             )
+                         );
+-                        assert(post.pte_arrays[pa].inner[offset as int] =~=
++                        assert(post.pte_arrays[pa].inner[offset as int] ==
+                             pre.pte_arrays[pa].inner[offset as int]
+                         ) by {
+                             axiom_seq_update_different(
+@@ -998,12 +874,7 @@ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                                 PteState::None,
+                             );
+                         };
+-                    } else {
+-                        assert(post.pte_arrays[pa] =~= pre.pte_arrays[pa]);
+                     }
+-                    assert(post.pte_arrays[pa].is_alive(offset) <==>
+-                        pre.pte_arrays[pa].is_alive(offset)
+-                    );
+                 }
+             }
+         };
+@@ -1015,7 +886,7 @@ ensures
+     Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)).finite(),
+     Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)).len() == cpu_num,
+ {
+-    assert(Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)) =~= Set::new(
++    assert(Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)) == Set::new(
+         |cpu: CpuId| 0<=cpu<cpu_num,
+     ));
+     lemma_nat_range_finite(0, cpu_num);
+@@ -1046,8 +917,6 @@ ensures
+                             self.cursors,
+                             f,
+                         );
+-                        assert(NodeHelper::valid_nid(path[i]));
+-                        assert(self.cursors[cpu].hold_read_lock(path[i]));
+                         lemma_value_filter_finite(self.cursors, f);
+                         axiom_set_contains_len(
+                             filtered_cursors.dom(),
+@@ -1065,8 +934,6 @@ ensures
+                             self.cursors,
+                             f,
+                         );
+-                        assert(NodeHelper::valid_nid(path[i]));
+-                        assert(self.cursors[cpu].hold_read_lock(path[i]));
+                         lemma_value_filter_finite(self.cursors, f);
+                         axiom_set_contains_len(
+                             filtered_cursors.dom(),
+@@ -1102,16 +969,10 @@ ensures
+     } by {
+         let nid1 = self.cursors[cpu1].get_write_lock_node();
+         let nid2 = self.cursors[cpu2].get_write_lock_node();
+-        assert(self.nodes.contains_key(nid1)) by {
+-            let path = self.cursors[cpu1].get_path();
+-            assert(path.len() > 0);
+-            lemma_seq_all_index(path, |nid| self.nodes.contains_key(nid), path.len() - 1);
+-        };
+-        assert(self.nodes.contains_key(nid2)) by {
+-            let path = self.cursors[cpu2].get_path();
+-            assert(path.len() > 0);
+-            lemma_seq_all_index(path, |nid| self.nodes.contains_key(nid), path.len() - 1);
+-        };
++        let path1 = self.cursors[cpu1].get_path();
++        let path2 = self.cursors[cpu2].get_path();
++        lemma_seq_all_index(path1, |nid| self.nodes.contains_key(nid), path1.len() - 1);
++        lemma_seq_all_index(path2, |nid| self.nodes.contains_key(nid), path2.len() - 1);
+     };
+ }
+ 
+@@ -1164,16 +1025,12 @@ ensures
+     broadcast use {
+                 vstd_extra::seq_extra::group_forall_seq_lemmas,
+                 crate::spec::utils::group_node_helper_lemmas,
++                vstd_extra::map_extra::group_value_filter_lemmas,
+             };
+     let f = |cursor: CursorState| cursor.hold_read_lock(child);
+     if nid == child {}
+     else
+     {
+-        broadcast use {
+-            vstd_extra::map_extra::group_forall_map_lemmas,
+-            vstd_extra::map_extra::group_value_filter_lemmas,
+-            crate::spec::utils::group_node_helper_lemmas,
+-        };
+         if child == NodeHelper::root_id() {}
+         else
+         {
+@@ -1181,8 +1038,6 @@ ensures
+                 // If the child has positive reader count, then there must be a cursor holding a read lock on it,
+                 // then the cursor must also hold nid.
+                 let cursor_cpu = choose |cpu| value_filter(self.cursors, f).contains_key(cpu);
+-                assert(value_filter(self.cursors,f).dom().finite());
+-                assert(value_filter(self.cursors,f).len() != 0);
+                 lemma_value_filter_choose(self.cursors, f);
+                 assert(self.cursors.contains_key(cursor_cpu)) by
+                 {
+@@ -1201,7 +1056,6 @@ ensures
+             if self.nodes[child] is WriteLocked {
+                 // If the child is WriteLocked, then there must be a cursor holding a write lock on it,
+                 // then the cursor must also hold nid.
+-                assert (self.nodes.contains_key(child));
+                 let cursor_cpu = choose |cpu| #[trigger] self.cursors.contains_key(cpu) &&
+                     self.cursors[cpu].hold_write_lock() &&
+                     self.cursors[cpu].get_write_lock_node() == child;
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index 0eb5ebe7a..a58fa0bc7 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -27,6 +27,7 @@ pub broadcast group group_node_helper_lemmas {
+     NodeHelper::lemma_get_parent_sound,
+     NodeHelper::lemma_get_offset_sound,
+     NodeHelper::lemma_get_child_sound,
++    NodeHelper::lemma_next_outside_subtree_bounded,
+ }
+ 
+ impl NodeHelper {
+@@ -510,18 +511,13 @@ impl NodeHelper {
+             let new_trace = trace.subrange(1, trace.len() as int);
+             let new_rt = root + trace[0] * Self::tree_size_spec(level - 1) + 1;
+             assert(new_rt + Self::tree_size_spec(level - 1) <= root + Self::tree_size_spec(level))
+-                by {
+-                lemma_mul_is_distributive_add_other_way(
+-                    Self::tree_size_spec(level - 1) as int,
+-                    trace[0] as int,
+-                    1,
+-                );
+-                lemma_mul_inequality(
+-                    (trace[0] + 1) as int,
+-                    512,
+-                    Self::tree_size_spec(level - 1) as int,
+-                );
+-            };
++                by (nonlinear_arith)
++                requires
++                    trace[0] < 512,
++                    Self::tree_size_spec(level - 1) >= 0,
++                    Self::tree_size_spec(level) == Self::tree_size_spec(level - 1) * 512 + 1,
++                    new_rt == root + trace[0] * Self::tree_size_spec(level - 1) + 1,
++            ;
+             Self::lemma_trace_to_nid_rec_upper_bound(new_trace, new_rt, level - 1);
+         }
+     }
+@@ -615,7 +611,7 @@ impl NodeHelper {
+                 (nid + offset * sz + 1, cur_level - 1)
+             };
+ 
+-        assert(trace.push(offset).drop_last() =~= trace);
++        assert(trace.push(offset).drop_last() == trace);
+         assert(func(trace.fold_left_alt((0, 3), func), offset) == trace.push(offset).fold_left_alt(
+             (0, 3),
+             func,
+@@ -650,13 +646,13 @@ impl NodeHelper {
+     {
+         reveal(NodeHelper::trace_to_nid_rec);
+         if trace2.len() == 0 {
+-            assert(trace1.add(trace2) =~= trace1);
++            assert(trace1.add(trace2) == trace1);
+         } else {
+             // Induction step: use `lemma_child_nid_from_trace_offset_sound` to move the first element
+             // of `trace2` to the end of `trace1` and then use the inductive hypothesis on the rest of `trace2`.
+             let new_trace1 = trace1.push(trace2[0]);
+             let new_trace2 = trace2.subrange(1, trace2.len() as int);
+-            assert(new_trace1.add(new_trace2) =~= trace1.add(trace2));
++            assert(new_trace1.add(new_trace2) == trace1.add(trace2));
+             let new_rt = cur_rt + trace2[0] * Self::tree_size_spec(cur_level - 1) + 1;
+             assert(new_rt == Self::trace_to_nid(new_trace1)) by {
+                 Self::lemma_child_nid_from_trace_offset_sound(trace1, trace2[0]);
+@@ -711,7 +707,7 @@ impl NodeHelper {
+                 let trace = seq![offset].add(_trace);
+                 assert(Self::trace_to_nid_rec(trace, cur_rt, cur_level as int) == nid) by {
+                     Self::lemma_trace_to_nid_rec_inductive(trace, cur_rt, cur_level as int);
+-                    assert(_trace =~= trace.subrange(1, trace.len() as int));
++                    assert(_trace == trace.subrange(1, trace.len() as int));
+                 };
+             }
+         }
+@@ -763,7 +759,7 @@ impl NodeHelper {
+             cur_rt <= Self::trace_to_nid_rec(trace, cur_rt, cur_level) < cur_rt
+                 + Self::tree_size_spec(cur_level),
+             Self::trace_to_nid_rec(trace, cur_rt, cur_level) == cur_rt <==> trace.len() == 0,
+-            trace.len() != 0 ==> trace =~= Self::nid_to_trace_rec(
++            trace.len() != 0 ==> trace == Self::nid_to_trace_rec(
+                 Self::trace_to_nid_rec(trace, cur_rt, cur_level),
+                 cur_level as nat,
+                 cur_rt,
+@@ -773,13 +769,8 @@ impl NodeHelper {
+         reveal(NodeHelper::trace_to_nid_rec);
+         if trace.len() == 0 {
+         } else {
+-            let new_trace = trace.subrange(1, trace.len() as int);
+-
+             let new_rt = cur_rt + trace[0] * Self::tree_size_spec(cur_level - 1) + 1;
+-            assert({
+-                &&& Self::valid_nid(new_rt)
+-                &&& new_rt + Self::tree_size_spec(cur_level - 1) <= Self::total_size()
+-            }) by {
++            assert(new_rt + Self::tree_size_spec(cur_level - 1) <= Self::total_size()) by {
+                 lemma_mul_is_distributive_sub_other_way(
+                     Self::tree_size_spec(cur_level - 1) as int,
+                     512,
+@@ -790,7 +781,7 @@ impl NodeHelper {
+ 
+             let new_level = cur_level - 1;
+ 
+-            Self::lemma_trace_to_nid_rec_sound(new_trace, new_rt, new_level);
++            Self::lemma_trace_to_nid_rec_sound(trace.drop_first(), new_rt, new_level);
+             let nid = Self::trace_to_nid_rec(trace, cur_rt, cur_level);
+ 
+             let sz = Self::tree_size_spec(cur_level - 1);
+@@ -933,7 +924,7 @@ impl NodeHelper {
+     }
+ 
+     /// A valid node's subtree size is at least 1.
+-    pub proof fn lemma_sub_tree_size_lowerbound(nid: NodeId)
++    pub proof fn lemma_sub_tree_size_lower_bound(nid: NodeId)
+         requires
+             Self::valid_nid(nid),
+         ensures
+@@ -943,13 +934,14 @@ impl NodeHelper {
+     }
+ 
+     /// A valid node plus its subtree size is less than or equal to the total size.
+-    pub proof fn lemma_next_outside_subtree_bounded(nid: NodeId)
++    pub broadcast proof fn lemma_next_outside_subtree_bounded(nid: NodeId)
+         requires
+             Self::valid_nid(nid),
+         ensures
+-            Self::next_outside_subtree(nid) <= Self::total_size(),
++            nid < #[trigger] Self::next_outside_subtree(nid) <= Self::total_size(),
+     {
+         Self::lemma_valid_level_to_node(nid);
++        Self::lemma_sub_tree_size_lower_bound(nid);
+     }
+ 
+     /// A node is in its own subtree.
+@@ -983,18 +975,13 @@ impl NodeHelper {
+         broadcast use {NodeHelper::lemma_nid_to_trace_sound, NodeHelper::lemma_trace_to_nid_sound};
+ 
+         let dep_pa = Self::nid_to_dep(pa);
+-        let dep_ch = Self::nid_to_dep(ch);
+         let sz_pa = Self::sub_tree_size(pa);
+         let sz_ch = Self::sub_tree_size(ch);
+         let trace_pa = Self::nid_to_trace(pa);
+         let trace_ch = Self::nid_to_trace(ch);
+         Self::lemma_is_child_implies_in_subtree(pa, ch);
+ 
+-        // Verify subtree containment.
+         assert((ch as int) + (sz_ch as int) <= (pa as int) + (sz_pa as int)) by {
+-            // Break down into two cases:
+-            // 1. If ch == pa, then ch + sz_ch == pa + sz_ch < pa + sz_pa, because sz_ch < sz_pa
+-            // 2. If ch > pa, we need more detailed analysis
+             if ch == pa {
+             } else {
+                 let offset = trace_ch.last();
+@@ -1002,9 +989,9 @@ impl NodeHelper {
+                 let sz = Self::tree_size_spec(pa_level - 2);
+                 Self::lemma_child_nid_from_trace_offset_sound(trace_pa, offset);
+                 assert(ch == pa + offset * sz + 1) by {
+-                    assert(trace_ch.drop_last() =~= trace_pa);
++                    assert(trace_ch.drop_last() == trace_pa);
+                     assert(trace_ch.last() == offset) by {
+-                        assert(trace_ch =~= trace_pa.push(offset));
++                        assert(trace_ch == trace_pa.push(offset));
+                         assert(Self::trace_to_nid(trace_ch) == Self::trace_to_nid(
+                             trace_pa.push(offset),
+                         ));
+@@ -1040,7 +1027,6 @@ impl NodeHelper {
+             assert(Self::nid_to_trace(rt).len() < Self::nid_to_trace(nd).len()) by {
+                 if Self::nid_to_trace(rt).len() == Self::nid_to_trace(nd).len() {
+                     assert(Self::nid_to_trace(rt) == Self::nid_to_trace(nd));
+-
+                     assert(rt == nd);
+                 }
+             }
+@@ -1100,11 +1086,8 @@ impl NodeHelper {
+                 trace2.drop_last(),
+             ));
+ 
+-            assert(trace1 =~= trace2) by {
+-                let common_prefix = trace1.drop_last();
+-                let common_last = trace1.last();
+-                assert(trace1 =~= common_prefix.push(common_last));
+-                assert(trace2 =~= common_prefix.push(common_last));
++            assert(trace1 == trace2) by {
++                assert(trace2 == trace1.drop_last().push(trace1.last()));
+             };
+ 
+             // But since nid_to_trace is bijective (left inverse to trace_to_nid)
+@@ -1129,7 +1112,7 @@ impl NodeHelper {
+     {
+         Self::lemma_nid_to_trace_sound(nid);
+         Self::lemma_trace_to_nid_sound(Self::nid_to_trace(nid).push(offset));
+-        assert(Self::nid_to_trace(nid).push(offset).drop_last() =~= Self::nid_to_trace(nid));
++        assert(Self::nid_to_trace(nid).push(offset).drop_last() == Self::nid_to_trace(nid));
+     }
+ 
+     /// The valid nid set's cardinality is `total_size`.
+@@ -1138,7 +1121,7 @@ impl NodeHelper {
+             Self::valid_nid_set().finite(),
+             Self::valid_nid_set().len() == Self::total_size(),
+     {
+-        assert(Self::valid_nid_set() =~= Set::new(|nid| 0 <= nid < Self::total_size()));
++        assert(Self::valid_nid_set() == Set::new(|nid: nat| 0 <= nid < Self::total_size()));
+         lemma_nat_range_finite(0, Self::total_size());
+     }
+ 
+@@ -1188,8 +1171,6 @@ impl NodeHelper {
+                 && Self::get_subtree_traces(x) == Self::get_subtree_traces(y) implies x == y by {
+             Self::lemma_get_subtree_traces_contains_self(x);
+             Self::lemma_get_subtree_traces_contains_self(y);
+-            let z = choose|z| Self::get_subtree_traces(x).contains(z);
+-            lemma_prefix_of_common_sequence(x, y, z);
+         }
+ 
+     }
+@@ -1207,7 +1188,7 @@ impl NodeHelper {
+         Self::lemma_valid_trace_set_cardinality();
+         if trace.len() == 3 {
+             assert(forall|subtree_trace| #[trigger]
+-                subtree_trace_set.contains(subtree_trace) ==> subtree_trace =~= trace);
++                subtree_trace_set.contains(subtree_trace) ==> subtree_trace == trace);
+             assert(subtree_trace_set.is_singleton()) by {
+                 assert(forall|x, y|
+                     #![trigger subtree_trace_set.contains(x),subtree_trace_set.contains(y)]
+@@ -1227,8 +1208,8 @@ impl NodeHelper {
+                     #![trigger trace_singleton_set.contains(x), trace_singleton_set.contains(y)]
+                     trace_singleton_set.contains(x) && trace_singleton_set.contains(y) implies x
+                     == y by {
+-                    assert(x =~= trace);
+-                    assert(y =~= trace);
++                    assert(x == trace);
++                    assert(y == trace);
+                 }
+             }
+             assert(subtree_trace_set.len() == child_trace_set.len() + 1) by {
+@@ -1283,7 +1264,7 @@ impl NodeHelper {
+             // Show that the child traces are disjoint
+             assert(pairwise_disjoint(child_subtree_trace_set));
+             // Show that the flatten of the child_subtree_trace_set is equal to the child_trace_set
+-            assert(child_trace_set =~= child_subtree_trace_set.flatten()) by {
++            assert(child_trace_set == child_subtree_trace_set.flatten()) by {
+                 assert forall|child_trace: Seq<nat>| #[trigger]
+                     child_trace_set.contains(child_trace)
+                         == child_subtree_trace_set.flatten().contains(child_trace) by {
+@@ -1291,7 +1272,7 @@ impl NodeHelper {
+                         assert(trace.is_prefix_of(child_trace));
+                         let trace_child = child_trace.subrange(0, (trace.len() + 1) as int);
+                         let offset = child_trace[trace.len() as int];
+-                        assert(trace_child =~= trace.push(offset));
++                        assert(trace_child == trace.push(offset));
+                         assert(offset_set.contains(offset));
+                         // Definition of flatten
+                         assert(child_traces.contains(trace_child));
+@@ -1307,7 +1288,6 @@ impl NodeHelper {
+                                 == child_subtree_trace;
+                         assert(trace.is_prefix_of(trace_child));
+                         assert(trace_child.is_prefix_of(child_trace));
+-                        assert(trace.is_prefix_of(child_trace));
+                     }
+                 }
+             }
+@@ -1329,6 +1309,8 @@ impl NodeHelper {
+             Self::valid_nid_set().filter(|id| Self::in_subtree(nid, id)).len()
+                 == Self::sub_tree_size(nid),
+     {
++        broadcast use NodeHelper::lemma_trace_to_nid_sound;
++
+         let nid_trace = Self::nid_to_trace(nid);
+         let subtree_traces = Self::get_subtree_traces(nid_trace);
+         let subtree_ids = Self::valid_nid_set().filter(|id| Self::in_subtree(nid, id));
+@@ -1340,21 +1322,17 @@ impl NodeHelper {
+         }
+         assert(bijective_on(|id| Self::nid_to_trace(id), subtree_ids, subtree_traces)) by {
+             Self::lemma_nid_to_trace_bijective();
+-            // Prove subtree_traces =~= subtree_ids.map(nid_to_trace)
++            // Prove subtree_traces == subtree_ids.map(nid_to_trace)
+             assert forall|trace| #[trigger]
+                 subtree_traces.contains(trace) == subtree_ids.map(
+                     |id| Self::nid_to_trace(id),
+                 ).contains(trace) by {
+                 if subtree_traces.contains(trace) {
+                     let trace_id = Self::trace_to_nid(trace);
+-                    assert(subtree_ids.contains(trace_id) && Self::nid_to_trace(trace_id) == trace)
+-                        by {
+-                        Self::lemma_trace_to_nid_sound(trace);
+-                    }
++                    assert(subtree_ids.contains(trace_id) && Self::nid_to_trace(trace_id) == trace);
+                 }
+             }
+-            assert(subtree_traces =~= subtree_ids.map(|id| Self::nid_to_trace(id)));
+-
++            assert(subtree_traces == subtree_ids.map(|id| Self::nid_to_trace(id)));
+         }
+         lemma_bijective_cardinality(|id| Self::nid_to_trace(id), subtree_ids, subtree_traces);
+     }
+@@ -1374,7 +1352,7 @@ impl NodeHelper {
+                 Self::lemma_in_subtree_bounded(rt, nd);
+             };
+             assert(nd < Self::next_outside_subtree(nd)) by {
+-                Self::lemma_sub_tree_size_lowerbound(nd);
++                Self::lemma_sub_tree_size_lower_bound(nd);
+             };
+             assert(rt <= nd) by {
+                 let rt_trace = Self::nid_to_trace(rt);
+@@ -1412,31 +1390,25 @@ impl NodeHelper {
+                         }
+ 
+                         assert(nd == Self::trace_to_nid_rec(suffix, rt, cur_level)) by {
+-                            assert(rt_trace.add(suffix) =~= nd_trace) by {
++                            assert(rt_trace.add(suffix) == nd_trace) by {
+                                 assert(rt_trace.is_prefix_of(nd_trace));
+-                                assert(rt_trace =~= nd_trace.subrange(0, rt_trace.len() as int));
++                                assert(rt_trace == nd_trace.subrange(0, rt_trace.len() as int));
+                             }
+ 
+-                            assert(Self::nid_to_trace(nd) =~= rt_trace.add(suffix)) by {
+-                                assert(Self::nid_to_trace(nd) =~= nd_trace);
+-                                assert(nd_trace =~= rt_trace.add(suffix));
++                            assert(Self::nid_to_trace(nd) == rt_trace.add(suffix)) by {
++                                assert(Self::nid_to_trace(nd) == nd_trace);
++                                assert(nd_trace == rt_trace.add(suffix));
+                             }
+                             Self::lemma_nid_to_trace_bijective();
+ 
+                             assert(Self::trace_to_nid(Self::nid_to_trace(nd)) == Self::trace_to_nid(
+                                 rt_trace.add(suffix),
+                             )) by {
+-                                let t1 = Self::nid_to_trace(nd);
+-                                let t2 = rt_trace.add(suffix);
+                                 Self::lemma_nid_to_trace_right_inverse();
+                             }
+                             assert(nd == Self::trace_to_nid(rt_trace.add(suffix)));
+ 
+                             Self::lemma_trace_to_nid_split(rt_trace, suffix, rt, cur_level);
+-
+-                            // By the ensures clause of lemma_trace_to_nid_split, we have:
+-                            // trace_to_nid(rt_trace.add(suffix)) == trace_to_nid_rec(suffix, rt, cur_level)
+-                            // Therefore, nd == trace_to_nid_rec(suffix, rt, cur_level)
+                         }
+                         assert(rt <= Self::trace_to_nid_rec(suffix, rt, cur_level)) by {
+                             Self::lemma_trace_to_nid_rec_sound(suffix, rt, cur_level);
+@@ -1463,12 +1435,12 @@ impl NodeHelper {
+         assert(nid_set.len() == Self::sub_tree_size(rt) && nid_set.finite()) by {
+             lemma_nat_range_finite(rt, Self::next_outside_subtree(rt));
+         }
+-        assert(nid_set =~= nid_set.filter(|id| Self::valid_nid(id))) by {
++        assert(nid_set == nid_set.filter(|id| Self::valid_nid(id))) by {
+             assert forall|id| #[trigger] nid_set.contains(id) implies Self::valid_nid(id) by {
+                 Self::lemma_next_outside_subtree_bounded(rt);
+             }
+         }
+-        assert(nid_set =~= Self::valid_nid_set().filter(
++        assert(nid_set == Self::valid_nid_set().filter(
+             |id| rt <= id < Self::next_outside_subtree(rt),
+         ));
+ 
+@@ -1478,14 +1450,14 @@ impl NodeHelper {
+             Self::lemma_in_subtree_cardinality(rt);
+         };
+         // Every node id in the subtree falls in the range
+-        assert(child_set =~= child_set.filter(|id| rt <= id < Self::next_outside_subtree(rt))) by {
++        assert(child_set == child_set.filter(|id| rt <= id < Self::next_outside_subtree(rt))) by {
+             assert forall|id| #[trigger] child_set.contains(id) implies rt <= id
+                 < Self::next_outside_subtree(rt) by {
+                 Self::lemma_in_subtree_implies_in_subtree_range(rt, id);
+             }
+         }
+         // So we can find exactly `sub_tree_size(rt)` node ids in the range that are in the subtree
+-        assert(child_set =~= nid_set.filter(|id| Self::in_subtree(rt, id)));
++        assert(child_set == nid_set.filter(|id| Self::in_subtree(rt, id)));
+         assert(nid_set.len() == nid_set.filter(|id| Self::in_subtree(rt, id)).len());
+         // Therefore, every node id in the range is in the subtree
+         assert(nid_set == nid_set.filter(|id| Self::in_subtree(rt, id))) by {
+@@ -1527,30 +1499,10 @@ impl NodeHelper {
+         broadcast use {NodeHelper::lemma_nid_to_trace_sound, NodeHelper::lemma_trace_to_nid_sound};
+ 
+         if (Self::nid_to_trace(ch).len() == Self::nid_to_trace(rt).len()) {
+-            assert(Self::nid_to_trace(ch) =~= Self::nid_to_trace(rt));
++            assert(Self::nid_to_trace(ch) == Self::nid_to_trace(rt));
+         }
+     }
+ 
+-    /// The `in_subtree_range` version of `lemma_child_in_subtree_implies_in_subtree`.
+-    pub proof fn lemma_child_in_subtree_range_implies_in_subtree_range(
+-        rt: NodeId,
+-        pa: NodeId,
+-        ch: NodeId,
+-    )
+-        requires
+-            Self::valid_nid(rt),
+-            Self::valid_nid(pa),
+-            Self::in_subtree_range(rt, ch),
+-            Self::is_child(pa, ch),
+-            rt != ch,
+-        ensures
+-            Self::in_subtree_range(rt, pa),
+-    {
+-        Self::lemma_in_subtree_iff_in_subtree_range(rt, ch);
+-        Self::lemma_in_subtree_iff_in_subtree_range(rt, pa);
+-        Self::lemma_child_in_subtree_implies_in_subtree(rt, pa, ch);
+-    }
+-
+     /// If `pa` is not in the subtree of `rt`, `ch` is a child of `pa`, and `rt` is not equal to `ch`,
+     /// then `ch` is not in the subtree of `rt`.
+     pub proof fn lemma_not_in_subtree_range_implies_child_not_in_subtree_range(
+@@ -1567,9 +1519,11 @@ impl NodeHelper {
+         ensures
+             !Self::in_subtree_range(rt, ch),
+     {
++        broadcast use NodeHelper::lemma_in_subtree_iff_in_subtree_range;
++
+         if Self::in_subtree_range(rt, ch) {
+             Self::lemma_next_outside_subtree_bounded(rt);
+-            Self::lemma_child_in_subtree_range_implies_in_subtree_range(rt, pa, ch);
++            Self::lemma_child_in_subtree_implies_in_subtree(rt, pa, ch);
+         }
+     }
+ 
+@@ -1585,11 +1539,11 @@ impl NodeHelper {
+     }
+ 
+     /// If `pa` is the parent of `ch`, then `pa` is less than `ch`.
+-    pub proof fn lemma_is_child_nid_increasing(pa: NodeId, ch: NodeId)
++    pub broadcast proof fn lemma_is_child_nid_increasing(pa: NodeId, ch: NodeId)
+         requires
+             Self::valid_nid(pa),
+             Self::valid_nid(ch),
+-            Self::is_child(pa, ch),
++            #[trigger] Self::is_child(pa, ch),
+         ensures
+             pa < ch,
+     {
+@@ -1709,17 +1663,32 @@ impl NodeHelper {
+         Self::lemma_get_child_sound(nid, 511);
+     }
+ 
++    pub proof fn lemma_get_parent_get_offset_sound(nid: NodeId)
++        requires
++            Self::valid_nid(nid),
++            nid != Self::root_id(),
++        ensures
++            Self::get_child(Self::get_parent(nid), Self::get_offset(nid)) == nid,
++    {
++        broadcast use {NodeHelper::lemma_nid_to_trace_sound, NodeHelper::lemma_trace_to_nid_sound};
++
++        let trace = Self::nid_to_trace(nid);
++        assert(trace.drop_last().push(trace.last()) == trace);
++    }
++
+     pub proof fn lemma_brothers_have_different_offset(nid1: NodeId, nid2: NodeId)
+         requires
+             Self::valid_nid(nid1),
+             nid1 != Self::root_id(),
+             Self::valid_nid(nid2),
+             nid2 != Self::root_id(),
++            nid1 != nid2,
+             Self::get_parent(nid1) == Self::get_parent(nid2),
+         ensures
+             Self::get_offset(nid1) != Self::get_offset(nid2),
+     {
+-        admit();
++        Self::lemma_get_parent_get_offset_sound(nid1);
++        Self::lemma_get_parent_get_offset_sound(nid2);
+     }
+ }
+ 
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index c9a406f26..fcf5b1843 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -59,7 +59,7 @@ pub broadcast proof fn lemma_value_filter_finite<K, V>(m: Map<K, V>, f: spec_fn(
+     ensures
+         #[trigger] value_filter(m, f).dom().finite(),
+ {
+-    assert(value_filter(m, f).dom() =~= m.dom().filter(|s| f(m[s])));
++    assert(value_filter(m, f).dom() == m.dom().filter(|s| f(m[s])));
+     m.dom().lemma_len_filter(|s| f(m[s]));
+ }
+ 
+@@ -317,9 +317,9 @@ pub broadcast proof fn lemma_forall_map_insert<K, V>(
+ {
+     assert(m.insert(k, v).contains_key(k));
+     if m.contains_key(k) {
+-        assert(m.insert(k, v) =~= m.remove(k).insert(k, v));
++        assert(m.insert(k, v) == m.remove(k).insert(k, v));
+     } else {
+-        assert(m.insert(k, v) =~= m.insert(k, v));
++        assert(m.insert(k, v) == m.insert(k, v));
+     }
+     if forall_map(m.insert(k, v), f) {
+         if m.contains_key(k) {
+@@ -346,9 +346,9 @@ pub broadcast proof fn lemma_forall_map_values_insert<K, V>(
+ {
+     assert(m.insert(k, v).contains_key(k));
+     if m.contains_key(k) {
+-        assert(m.insert(k, v) =~= m.remove(k).insert(k, v));
++        assert(m.insert(k, v) == m.remove(k).insert(k, v));
+     } else {
+-        assert(m.insert(k, v) =~= m.insert(k, v));
++        assert(m.insert(k, v) == m.insert(k, v));
+     }
+     if forall_map_values(m.insert(k, v), f) {
+         if m.contains_key(k) {
+@@ -368,9 +368,9 @@ pub broadcast proof fn lemma_forall_map_remove<K, V>(m: Map<K, V>, f: spec_fn(K,
+         )),
+ {
+     if m.contains_key(k) {
+-        assert(m =~= m.remove(k).insert(k, m[k]));
++        assert(m == m.remove(k).insert(k, m[k]));
+     } else {
+-        assert(m =~= m.remove(k));
++        assert(m == m.remove(k));
+     }
+ }
+ 
+@@ -386,9 +386,9 @@ pub broadcast proof fn lemma_forall_map_values_remove<K, V>(
+         m.contains_key(k) ==> f(m[k])),
+ {
+     if m.contains_key(k) {
+-        assert(m =~= m.remove(k).insert(k, m[k]));
++        assert(m == m.remove(k).insert(k, m[k]));
+     } else {
+-        assert(m =~= m.remove(k));
++        assert(m == m.remove(k));
+     }
+ 
+ }
+@@ -444,12 +444,23 @@ pub proof fn lemma_project_first_key_value_filter_empty<K1, K2, V>(
+     f: spec_fn(V) -> bool,
+ )
+     requires
++        m.dom().finite(),
+         value_filter(project_first_key(m, k1), f).len() == 0,
+     ensures
+         forall|k2: K2| #[trigger]
+             project_first_key(m, k1).contains_key(k2) ==> !f(project_first_key(m, k1)[k2]),
+ {
+-    admit();
++    assert forall|k2: K2| #[trigger] project_first_key(m, k1).contains_key(k2) implies !f(
++        project_first_key(m, k1)[k2],
++    ) by {
++        if f(project_first_key(m, k1)[k2]) {
++            assert(value_filter(project_first_key(m, k1), f).dom().contains(k2));
++            lemma_project_first_key_finite(m, k1);
++            lemma_value_filter_finite(project_first_key(m, k1), f);
++            Set::lemma_len0_is_empty(value_filter(project_first_key(m, k1), f).dom());
++            assert(false);
++        }
++    }
+ }
+ 
+ /// If the original map is finite, then the projected map is also finite.
+@@ -458,8 +469,22 @@ pub proof fn lemma_project_first_key_finite<K1, K2, V>(m: Map<(K1, K2), V>, k1:
+         m.dom().finite(),
+     ensures
+         project_first_key(m, k1).dom().finite(),
++    decreases m.dom().len(),
+ {
+-    admit();
++    if m.dom().len() == 0 {
++        assert(project_first_key(m, k1).dom() == Set::<K2>::empty());
++    } else {
++        let pair = m.dom().choose();
++        lemma_project_first_key_finite(m.remove(pair), k1);
++        if pair.0 != k1 {
++            assert(project_first_key(m, k1) == project_first_key(m.remove(pair), k1));
++        } else {
++            assert(project_first_key(m, k1).dom() == project_first_key(
++                m.remove(pair),
++                k1,
++            ).dom().insert(pair.1));
++        }
++    }
+ }
+ 
+ } // verus!
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index f14774923..4a8f2d3ba 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -171,7 +171,7 @@ pub broadcast proof fn lemma_forall_seq_drop_last<T>(s: Seq<T>, f: spec_fn(int,
+             s.last(),
+         ),
+ {
+-    assert(s =~= s.drop_last().push(s.last()));
++    assert(s == s.drop_last().push(s.last()));
+ }
+ 
+ /// `s.all(f)` is equivalent to `s.drop_last().all(f)` and `f(s.last())`.
+@@ -181,7 +181,7 @@ pub broadcast proof fn lemma_seq_all_drop_last<T>(s: Seq<T>, f: spec_fn(T) -> bo
+     ensures
+         s.all(f) <==> #[trigger] s.drop_last().all(f) && f(s.last()),
+ {
+-    assert(s =~= s.drop_last().push(s.last()));
++    assert(s == s.drop_last().push(s.last()));
+ }
+ 
+ pub broadcast proof fn lemma_seq_all_add<T>(s1: Seq<T>, s2: Seq<T>, f: spec_fn(T) -> bool)
+@@ -192,16 +192,16 @@ pub broadcast proof fn lemma_seq_all_add<T>(s1: Seq<T>, s2: Seq<T>, f: spec_fn(T
+ 
+ {
+     if s2.len() == 0 {
+-        assert(s1 + s2 =~= s1);
++        assert(s1 + s2 == s1);
+     } else {
+-        // Induction step: assume the lemma holds for s2.drop_last() and show that s2=~=s2.drop_last().push(s2.last()).
++        // Induction step: assume the lemma holds for s2.drop_last() and show that s2==s2.drop_last().push(s2.last()).
+         lemma_seq_all_add(s1, s2.drop_last(), f);
+         if s1.all(f) && s2.all(f) {
+             assert((s1 + s2).all(f));
+         }
+         if (s1 + s2).all(f) {
+-            assert((s1 + s2).drop_last() =~= s1 + s2.drop_last());
+-            assert(s2 =~= s2.drop_last().push(s2.last()));
++            assert((s1 + s2).drop_last() == s1 + s2.drop_last());
++            assert(s2 == s2.drop_last().push(s2.last()));
+             assert((s1 + s2).last() == s2.last());
+         }
+     }
+diff --git a/vstd_extra/src/set_extra.rs b/vstd_extra/src/set_extra.rs
+index fa91eb8c6..e9f224d33 100644
+--- a/vstd_extra/src/set_extra.rs
++++ b/vstd_extra/src/set_extra.rs
+@@ -57,10 +57,12 @@ pub proof fn lemma_nat_range_finite(l: nat, r: nat)
+     decreases r - l,
+ {
+     if l == r {
+-        assert(Set::new(|p: nat| l <= p < r) =~= Set::empty());
++        assert(Set::new(|p: nat| l <= p < r) == Set::<nat>::empty());
+     } else {
+         lemma_nat_range_finite(l, (r - 1) as nat);
+-        assert(Set::new(|p| l <= p < r - 1).insert((r - 1) as nat) =~= Set::new(|p| l <= p < r));
++        assert(Set::new(|p| l <= p < r - 1).insert((r - 1) as nat) == Set::new(
++            |p: nat| l <= p < r,
++        ));
+     }
+ }
+ 
+@@ -76,17 +78,17 @@ pub proof fn lemma_set_separation<T>(s: Set<T>, f: spec_fn(T) -> bool)
+     decreases s.len(),
+ {
+     if s.is_empty() {
+-        assert(s.filter(f) =~= Set::empty());
+-        assert(s.filter(|x| !f(x)) =~= Set::empty());
++        assert(s.filter(f) == Set::<T>::empty());
++        assert(s.filter(|x| !f(x)) == Set::<T>::empty());
+     } else {
+         let x = s.choose();
+         lemma_set_separation(s.remove(x), f);
+         if f(x) {
+-            assert(s.filter(f) =~= s.remove(x).filter(f).insert(x));
+-            assert(s.filter(|x| !f(x)) =~= s.remove(x).filter(|x| !f(x)));
++            assert(s.filter(f) == s.remove(x).filter(f).insert(x));
++            assert(s.filter(|x| !f(x)) == s.remove(x).filter(|x| !f(x)));
+         } else {
+-            assert(s.filter(f) =~= s.remove(x).filter(f));
+-            assert(s.filter(|x| !f(x)) =~= s.remove(x).filter(|x| !f(x)).insert(x));
++            assert(s.filter(f) == s.remove(x).filter(f));
++            assert(s.filter(|x| !f(x)) == s.remove(x).filter(|x| !f(x)).insert(x));
+         }
+     }
+ }
+@@ -150,7 +152,7 @@ pub open spec fn is_partition<A>(s: Set<A>, parts: Set<Set<A>>) -> bool {
+         // Parts are pairwise disjoint
+         pairwise_disjoint(parts) &&
+         // Union of parts is s
+-        s =~= parts.flatten()
++        s == parts.flatten()
+ }
+ 
+ /// If `parts` is a finite set of finite, pairwise-disjoint sets,
+@@ -166,25 +168,19 @@ pub proof fn lemma_flatten_cardinality_under_disjointness<A>(parts: Set<Set<A>>)
+     decreases parts.len(),
+ {
+     if parts.is_empty() {
+-        assert(parts.flatten() =~= Set::empty());
++        assert(parts.flatten() == Set::<A>::empty());
+         lemma_fold_empty(0nat, |acc: nat, p: Set<A>| acc + p.len());
+     } else {
+         let p = parts.choose();
+         let rest = parts.remove(p);
+-        assert(parts =~= rest.insert(p));
++        assert(parts == rest.insert(p));
+         lemma_flatten_cardinality_under_disjointness(rest);
+         assert(rest.flatten().len() == rest.fold(0nat, |acc: nat, p: Set<A>| acc + p.len()));
+-        assert(parts.flatten() =~= rest.flatten().union(p));
++        assert(parts.flatten() == rest.flatten().union(p));
+         assert(parts.flatten().len() == rest.flatten().len() + p.len()) by {
+             lemma_set_disjoint_lens(rest.flatten(), p);
+         }
+-
+-        assert(parts.fold(0nat, |acc: nat, p: Set<A>| acc + p.len()) == rest.fold(
+-            0nat,
+-            |acc: nat, p: Set<A>| acc + p.len(),
+-        ) + p.len()) by {
+-            lemma_fold_insert(rest, 0nat, |acc: nat, p: Set<A>| acc + p.len(), p);
+-        }
++        lemma_fold_insert(rest, 0nat, |acc: nat, p: Set<A>| acc + p.len(), p);
+     }
+ }
+ 
+@@ -201,13 +197,13 @@ pub proof fn lemma_flatten_cardinality_under_disjointness_same_length<A>(parts:
+     decreases parts.len(),
+ {
+     if parts.is_empty() {
+-        assert(parts.flatten() =~= Set::empty());
++        assert(parts.flatten() == Set::<A>::empty());
+     } else {
+         let p = parts.choose();
+         let rest = parts.remove(p);
+-        assert(parts =~= rest.insert(p));
++        assert(parts == rest.insert(p));
+         lemma_flatten_cardinality_under_disjointness_same_length(rest, c);
+-        assert(parts.flatten() =~= rest.flatten().union(p));
++        assert(parts.flatten() == rest.flatten().union(p));
+         assert(parts.flatten().len() == rest.flatten().len() + p.len()) by {
+             lemma_set_disjoint_lens(rest.flatten(), p);
+         }

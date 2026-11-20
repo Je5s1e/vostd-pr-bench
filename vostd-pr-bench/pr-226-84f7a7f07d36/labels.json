@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-226-84f7a7f07d36",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-226-84f7a7f07d36:commit-fix-20fc76d3c11ec5d3be276833fcbb665a254e5af3-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "MemoryRegion::view_preserves_inv exposes interval and type-tag validity through admit.",
+      "locations": [
+        {"version": "after", "path": "ostd/src/boot/memory_region.rs", "start_line": 74, "end_line": 83}
+      ],
+      "rationale": "Every InvView caller relies on the concrete bounded region producing a valid model. The admitted method could accept an overflowing endpoint or invalid type tag; the repair proves the endpoint bounds and exhaustively covers the tag range.",
+      "source_evidence": "The shared problem snapshot contains admit at line 82. Repair 20fc76d3 removes it and supplies the checked proof.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/20fc76d3c11ec5d3be276833fcbb665a254e5af3",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "20fc76d3c11ec5d3be276833fcbb665a254e5af3:root-1", "commit_id": "20fc76d3c11ec5d3be276833fcbb665a254e5af3", "url": "https://github.com/asterinas/vostd/commit/20fc76d3c11ec5d3be276833fcbb665a254e5af3"}
+      ],
+      "verification": "Fixed-source trust-boundary and repair-diff analysis. Historical Verus was not executed."
+    },
+    {
+      "id": "pr-226-84f7a7f07d36:commit-fix-bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "MemoryRegionArray::new is external_body while promising an invariant-valid empty model.",
+      "locations": [
+        {"version": "after", "path": "ostd/src/boot/memory_region.rs", "start_line": 277, "end_line": 293}
+      ],
+      "rationale": "The constructor's count and initialized prefix must represent an empty model. The problem snapshot trusts that relationship; an intermediate proof still assumes the quantified range, while bffe6ae is the first descendant with a fully checked construction.",
+      "source_evidence": "The shared problem snapshot marks new external_body at line 280. The cumulative repair removes external_body and the intermediate quantified assume.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58:root-2", "commit_id": "bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58", "url": "https://github.com/asterinas/vostd/commit/bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58"}
+      ],
+      "verification": "Fixed-source trust-boundary and cumulative repair analysis. Historical Verus was not executed."
+    },
+    {
+      "id": "pr-226-84f7a7f07d36:commit-fix-8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375-root-3",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "MemoryRegionArray::push is external_body while promising invariant preservation and success when capacity is available.",
+      "locations": [
+        {"version": "after", "path": "ostd/src/boot/memory_region.rs", "start_line": 295, "end_line": 316}
+      ],
+      "rationale": "A wrong slot write or count update could violate the initialized-prefix invariant while the proof obligation is bypassed. The repair checks the prefix update, append equality internally, and the resulting invariant.",
+      "source_evidence": "The shared problem snapshot marks push external_body at line 298. Repair 8dc6d41b removes the attribute and supplies the checked prefix proof.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375:root-3", "commit_id": "8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375", "url": "https://github.com/asterinas/vostd/commit/8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375"}
+      ],
+      "verification": "Fixed-source trust-boundary and repair-diff analysis. Historical Verus was not executed."
+    }
+  ]
+}

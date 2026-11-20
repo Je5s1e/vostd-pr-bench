@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-22-97523065e4c0",
+  "pr_number": 22,
+  "title": "Prove lemma_get_child",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/22",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "d2cab36fbe6608ebcdcc34ebaf25ccf70645f5c5",
+  "head_sha": "97523065e4c0ec82ba5e2d28b784cfd27179125e",
+  "base_method": "git merge-base(archived PR base d2cab36fbe6608ebcdcc34ebaf25ccf70645f5c5, selected problem commit 97523065e4c0ec82ba5e2d28b784cfd27179125e) = d2cab36fbe6608ebcdcc34ebaf25ccf70645f5c5; official parent chain verified",
+  "archive_base_sha": "d2cab36fbe6608ebcdcc34ebaf25ccf70645f5c5",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/spec/utils.rs"
+  ],
+  "diff_sha256": "f57f423169773da4316f505b00b8a79d165313397e895b6c575249119f4ed171",
+  "versions": {
+    "before": {
+      "commit": "d2cab36fbe6608ebcdcc34ebaf25ccf70645f5c5",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "97523065e4c0ec82ba5e2d28b784cfd27179125e",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T10:04:23.065167+00:00",
+    "reviewed_at": "2026-11-19T10:13:53Z",
+    "upstream_updated_at": "2025-08-01T10:26:20Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/22",
+      "https://github.com/asterinas/vostd/commit/97523065e4c0ec82ba5e2d28b784cfd27179125e",
+      "https://github.com/asterinas/vostd/commit/bf2e519c92602e2737797ddc115f676ef673f948",
+      "https://github.com/asterinas/vostd/commit/74b5c2077720a0da4374fb1fe75afba6423d8de4"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00022"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Immutable immediate pre-repair PR snapshot. The reproduced quotient-bound failure is already present in the PR base; the selected commit does not introduce it, and the next official commit directly repairs it.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Primary and independent second review reproduced 349 verified, 1 errors at the base and selected snapshot, then 350 verified, 0 errors at the immediate repair and final cleanup using fixed Verus 4c942d781827ba17f2a7060b64ce22300e2f81a2."
+  },
+  "additional_context_paths": []
+}

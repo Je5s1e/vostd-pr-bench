@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-546-269c2b583824",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-546-269c2b583824:commit-fix-a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The segment clone and slice contracts require `rc + 1 < REF_COUNT_MAX`, rejecting the valid boundary `rc = REF_COUNT_MAX - 1` even though the execution saturation guard permits the increment to `REF_COUNT_MAX`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/mod.rs",
+          "start_line": 1127,
+          "end_line": 1144
+        },
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/embedding/segment.rs",
+          "start_line": 378,
+          "end_line": 387
+        }
+      ],
+      "rationale": "At `rc = REF_COUNT_MAX - 1`, the execution-side `MetaSlot::inc_ref_count` guard `last_ref_cnt >= REF_COUNT_MAX` is false, so incrementing to exactly `REF_COUNT_MAX` is permitted. The selected embedding instead requires `rc + 1 < REF_COUNT_MAX`, which is false at that boundary and makes `Op::SegmentClone`, `Op::SegmentSlice`, their step proofs, and the embedded clone axiom strictly stronger than the execution behavior. Repair commit a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe changes each affected inequality to `<=` and explicitly documents that it matches the execution saturation guard.",
+      "source_evidence": "after/ostd/specs/mm/embedding/mod.rs:1127-1144 requires both SegmentClone and SegmentSlice frames to satisfy `ref_count.value() + 1 < REF_COUNT_MAX`. after/ostd/specs/mm/embedding/segment.rs:378-387 repeats the strict inequality in `segment_clone_embedded`. In the same selected snapshot, after/ostd/src/mm/frame/meta.rs:744-764 specifies and implements `MetaSlot::inc_ref_count`: it permits old counts below REF_COUNT_MAX and panics only when `last_ref_cnt >= REF_COUNT_MAX`. Repair commit a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe changes all clone/slice inequalities from `<` to `<=` and notes that this is equivalent to `rc < REF_COUNT_MAX`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe",
+          "commit_id": "a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Confirmed the official 21-commit PR list and parent chain, selected the immediate pre-fix commit, regenerated the fixed-object PR snapshot, compared the repair diff, and checked the execution guard and its specification in the same problem snapshot."
+    }
+  ]
+}

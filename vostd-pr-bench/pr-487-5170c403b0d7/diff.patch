@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/cpu.rs b/ostd/specs/mm/cpu.rs
-index 0072227e5..ac5c0634c 100644
+index 0072227e5f3669f5ac43ab055d63ae7b5c6566cb..ac5c0634c2eab63791b147238069df8ebb077af1 100644
 --- a/ostd/specs/mm/cpu.rs
 +++ b/ostd/specs/mm/cpu.rs
 @@ -1,16 +1,179 @@
@@ -202,7 +202,7 @@ index 0072227e5..ac5c0634c 100644
          unimplemented!()
      }
 diff --git a/ostd/specs/mod.rs b/ostd/specs/mod.rs
-index bc8234611..ef9e3ee9e 100644
+index bc8234611705d9df8b21b511aa13dc8af7b0cbff..ef9e3ee9eb1a0adee994ac2ec2d1be1f4126716a 100644
 --- a/ostd/specs/mod.rs
 +++ b/ostd/specs/mod.rs
 @@ -12,7 +12,7 @@ pub mod arch;
@@ -215,7 +215,7 @@ index bc8234611..ef9e3ee9e 100644
  #[allow(unused_braces)]
  pub mod task;
 diff --git a/ostd/specs/sync/mod.rs b/ostd/specs/sync/mod.rs
-index e5784b635..9a433356c 100644
+index e5784b635388061aa6c882a83def6ccf1cab9ce0..9a433356ca578cde48aad1afcf95a39ccf3965bf 100644
 --- a/ostd/specs/sync/mod.rs
 +++ b/ostd/specs/sync/mod.rs
 @@ -2,3 +2,6 @@
@@ -227,7 +227,7 @@ index e5784b635..9a433356c 100644
 +pub mod weak_memory;
 diff --git a/ostd/specs/sync/rcu.rs b/ostd/specs/sync/rcu.rs
 new file mode 100644
-index 000000000..c1ecac57e
+index 0000000000000000000000000000000000000000..c1ecac57e08495ad203a5b56de3d03c392f31068
 --- /dev/null
 +++ b/ostd/specs/sync/rcu.rs
 @@ -0,0 +1,2786 @@
@@ -3019,7 +3019,7 @@ index 000000000..c1ecac57e
 +} // verus!
 diff --git a/ostd/specs/sync/sc_model.rs b/ostd/specs/sync/sc_model.rs
 new file mode 100644
-index 000000000..bf926e364
+index 0000000000000000000000000000000000000000..bf926e364ab5b607fc98eaee186622c10bf96025
 --- /dev/null
 +++ b/ostd/specs/sync/sc_model.rs
 @@ -0,0 +1,11 @@
@@ -3036,7 +3036,7 @@ index 000000000..bf926e364
 +} // verus!
 diff --git a/ostd/specs/sync/weak_memory.rs b/ostd/specs/sync/weak_memory.rs
 new file mode 100644
-index 000000000..67efa3566
+index 0000000000000000000000000000000000000000..67efa356607539cfe1f7a81f34dfe0fd0b10b922
 --- /dev/null
 +++ b/ostd/specs/sync/weak_memory.rs
 @@ -0,0 +1,2804 @@
@@ -5845,7 +5845,7 @@ index 000000000..67efa3566
 +// }
 +} // verus!
 diff --git a/ostd/src/mm/frame/segment.rs b/ostd/src/mm/frame/segment.rs
-index 3d467c9f7..350c1bf71 100644
+index 3d467c9f7f9be6e2c4d25d3f25c63ed84102ef96..350c1bf7147629131fbcf6e3555c673c7849b6d9 100644
 --- a/ostd/src/mm/frame/segment.rs
 +++ b/ostd/src/mm/frame/segment.rs
 @@ -1121,7 +1121,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> SegmentIterator<'a,
@@ -5858,7 +5858,7 @@ index 3d467c9f7..350c1bf71 100644
                  assert(remaining.seq() == old_remaining.drop_first());
                  assert(item == old_remaining[0]);
 diff --git a/ostd/src/sync/mod.rs b/ostd/src/sync/mod.rs
-index 4908e75f4..0e84af234 100644
+index 4908e75f4f16d473ed3b49563e1b6c1b3527cf92..0e84af23416490d68b55e459aaea36b018558284 100644
 --- a/ostd/src/sync/mod.rs
 +++ b/ostd/src/sync/mod.rs
 @@ -10,20 +10,20 @@ mod rwlock;
@@ -5888,7 +5888,7 @@ index 4908e75f4..0e84af234 100644
 +}
 diff --git a/ostd/src/sync/rcu/__mod.rs b/ostd/src/sync/rcu/__mod.rs
 new file mode 100644
-index 000000000..e5b454780
+index 0000000000000000000000000000000000000000..e5b45478080916137255ef4e8151a5e26f1acdbb
 --- /dev/null
 +++ b/ostd/src/sync/rcu/__mod.rs
 @@ -0,0 +1,1128 @@
@@ -7021,7 +7021,7 @@ index 000000000..e5b454780
 +
 +} // verus!
 diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
-index 5ed9974c5..989aeb18b 100644
+index 5ed9974c5ffd83a0ce8f5547a7d006cc749e5f56..989aeb18b51b3366f86d836e98835e7ca16a37a6 100644
 --- a/ostd/src/sync/rcu/mod.rs
 +++ b/ostd/src/sync/rcu/mod.rs
 @@ -1,736 +1,760 @@
@@ -8953,7 +8953,7 @@ index 5ed9974c5..989aeb18b 100644
      }
  }
 diff --git a/ostd/src/sync/rcu/monitor.rs b/ostd/src/sync/rcu/monitor.rs
-index c44c97ab4..643f7be45 100644
+index c44c97ab4270a52279d6a73d38888755d7a4f35b..643f7be45afbbb269d108a68b02f678ea2bb5ca3 100644
 --- a/ostd/src/sync/rcu/monitor.rs
 +++ b/ostd/src/sync/rcu/monitor.rs
 @@ -1,286 +1,1561 @@
@@ -10702,7 +10702,7 @@ index c44c97ab4..643f7be45 100644
 +// }
 +// */
 diff --git a/ostd/src/task/mod.rs b/ostd/src/task/mod.rs
-index 1bf2f5a5e..dbc8c1047 100644
+index 1bf2f5a5e409a1242d59cbf45ec6adfa8e3e073b..dbc8c1047f5f76ac521c869fa4515b902c16cbb9 100644
 --- a/ostd/src/task/mod.rs
 +++ b/ostd/src/task/mod.rs
 @@ -1,6 +1,7 @@
@@ -10802,7 +10802,7 @@ index 1bf2f5a5e..dbc8c1047 100644
  // The intern `NonNull<Task>` contained by `CurrentTask` implies that `CurrentTask` is `!Send` and
  // `!Sync`. But it is still good to do this explicitly because these properties are key for
 diff --git a/ostd/src/task/preempt/guard.rs b/ostd/src/task/preempt/guard.rs
-index 8e44ce12b..e766443a8 100644
+index 8e44ce12bc6d677a5f7c55b81652b0e06edb17bb..e766443a8ed0a1ea4583b1a887cb6ef203d5fb57 100644
 --- a/ostd/src/task/preempt/guard.rs
 +++ b/ostd/src/task/preempt/guard.rs
 @@ -1,16 +1,624 @@
@@ -11630,7 +11630,7 @@ index 8e44ce12b..e766443a8 100644
 +
 +} // verus!
 diff --git a/ostd/src/task/preempt/mod.rs b/ostd/src/task/preempt/mod.rs
-index 101aac5c3..9ff63decc 100644
+index 101aac5c308fb436531e80ac68a61368fab2b6cb..9ff63deccc04baf9d32e14383a7b9fbd8c6b39ea 100644
 --- a/ostd/src/task/preempt/mod.rs
 +++ b/ostd/src/task/preempt/mod.rs
 @@ -2,7 +2,11 @@
@@ -11647,7 +11647,7 @@ index 101aac5c3..9ff63decc 100644
  /// Halts the CPU until interrupts if no preemption is required.
  ///
 diff --git a/ostd/src/task/scheduler/mod.rs b/ostd/src/task/scheduler/mod.rs
-index 0f31b0af1..e7529bb6f 100644
+index 0f31b0af121c15d647f6c795076fd99fcab28ee4..e7529bb6ffd3585ee0ee65f9864c8aedd7d4ab49 100644
 --- a/ostd/src/task/scheduler/mod.rs
 +++ b/ostd/src/task/scheduler/mod.rs
 @@ -63,6 +63,1067 @@
@@ -12782,7 +12782,7 @@ index 0f31b0af1..e7529bb6f 100644
 +
 +*/
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index fa427fe3b..99752d854 100644
+index fa427fe3b81742d358afb6c8819d75b2c0696ad7..99752d8549ed8539c364d87aa126c8dbc2242a81 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -31,6 +31,7 @@ pub mod trans_macros;
@@ -12795,7 +12795,7 @@ index fa427fe3b..99752d854 100644
  pub mod set_extra;
 diff --git a/verified_libs/vstd_extra/src/raw_callback.rs b/verified_libs/vstd_extra/src/raw_callback.rs
 new file mode 100644
-index 000000000..034659e91
+index 0000000000000000000000000000000000000000..034659e91053c5b7c65ec146e5767051fa5c6115
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/raw_callback.rs
 @@ -0,0 +1,112 @@

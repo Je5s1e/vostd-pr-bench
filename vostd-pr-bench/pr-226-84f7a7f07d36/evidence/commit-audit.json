@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "pr_number": 226,
+  "sample_id": "pr-226-84f7a7f07d36",
+  "comparison_base_sha": "24bb2dfe8076ab5a4b37f0c3324fe566a24dfe17",
+  "problem_commit_sha": "84f7a7f07d36f015a588bb8a5d1910e06384b11c",
+  "repair_commit_shas": [
+    "20fc76d3c11ec5d3be276833fcbb665a254e5af3",
+    "bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58",
+    "8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375"
+  ],
+  "primary_reviewer": "/root/audit_pr_126_142",
+  "second_reviewer": "/root/audit_pr_117_122",
+  "second_review_verdict": "approved_three_root_complete_snapshot",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "The shared problem snapshot contains exactly the three reviewed trust boundaries in memory_region.rs: an admitted invariant view, an external-body empty constructor, and an external-body push. Later checked descendants repair each root; final reviewed implementation contains no assume, admit, or external_body.",
+  "repair_diff": "repair.diff"
+}

@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 12,
-  "inline_review_comment_count": 14,
-  "review_count": 5,
-  "core_lesson": "元数据内部权限应有唯一持有处，避免随容器复制",
-  "category": "所有权与生命周期",
-  "all_content_unadjudicated": true
-}

@@ -1,0 +1,12 @@
+diff --git a/lock-protocol-rcu/src/spec/utils.rs b/lock-protocol-rcu/src/spec/utils.rs
+index 303da65084e3b77d7d9ad9fb20b8b6d0ac6d667d..304abb428d3b2b3c87fabfdc9854d4047c6beaad 100644
+--- a/lock-protocol-rcu/src/spec/utils.rs
++++ b/lock-protocol-rcu/src/spec/utils.rs
+@@ -7,6 +7,7 @@ use vstd::arithmetic::power::*;
+ use vstd::arithmetic::div_mod::*;
+ use vstd::arithmetic::mul::*;
+ use vstd::set::*;
++use vstd::relations::injective_on;
+ use vstd_extra::prelude::*;
+ 
+ use crate::spec::common::NodeId;

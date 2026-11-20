@@ -31,7 +31,7 @@
       "id": "pr-865-f93f960594be:issue-4385152022",
       "original_label_id": "4385152022",
       "category": "guideline",
-      "description": "**Type:** avoid-unused-spec-helpers, organize-proof-imports\n**Problem:** Dead import binders: `vaddr_range_proofs` here (:12) is never called in the file (this arch's user/kernel lemmas discharge the managed-bounds/leading-bits facts via direct asserts, unlike riscv :121 and x86 :150 which call `lemma_leading_bits_properties`); and `page_table::PageTableEntryTrait` is imported but unreferenced here (:22) as well as in ostd/specs/arch/riscv/mod.rs:22 and ostd/specs/arch/x86/mod.rs:32 (both sibling imports added by this PR too). Fix: drop `vaddr_range_proofs` from this list and remove the three `PageTableEntryTrait` spec-file imports (or keep only where used).",
+      "description": "The newly added vaddr_range_proofs module import is never referenced in the LoongArch specification module.",
       "locations": [
         {
           "version": "after",
@@ -64,7 +64,7 @@
           "end_line": 97
         }
       ],
-      "rationale": "Direct source confirms lemma2_to64 imported once at line2, used bare at81, and needlessly fully qualified at97/111. This is historical import consistency feedback; organize-proof-imports specifically discusses broadcast/reveal and is not the precise rule for this spelling.",
+      "rationale": "The selected-head maintainability.md organize-proof-imports rule explicitly says to import proof symbols rather than repeat long paths in contracts, lemma calls, reveal, and broadcast use, retaining qualified paths only for ambiguity or one-off references. Here lemma2_to64 is already imported at line 2 and called unqualified at line 81, but the same module repeats its fully qualified path at lines 97 and 111. The selected-head rule therefore directly supports the import-consistency finding; the prior rationale incorrectly characterized the rule as limited to broadcast/reveal.",
       "source_evidence": "90:         leading_bits_spec::<UserPtConfig>() == 0,\n91:         page_table_managed_start_spec::<UserPtConfig>() == 0,\n92:         page_table_managed_end_spec::<UserPtConfig>() == 0x0000_8000_0000_0000int,\n93:         vaddr_range_spec::<UserPtConfig>().start == 0,\n94:         vaddr_range_spec::<UserPtConfig>().end == 0x0000_7FFF_FFFF_FFFF,\n95: {\n96:     lemma_arch_specific_consts_properties::<PagingConsts>();\n97:     vstd::arithmetic::power2::lemma2_to64();\n98: \n99: }\n100: \n101: /// Checks the paged kernel range; the direct-mapping window is separate.\n102: pub(crate) proof fn lemma_vaddr_range_spec_kernel()\n103:     ensures\n104:         leading_bits_spec::<KernelPtConfig>() == 0xffff,\n105:         page_table_managed_start_spec::<KernelPtConfig>() == 0xFFFF_8000_0000_0000,",
       "rule_ids": [
         "organize-proof-imports"
@@ -79,7 +79,7 @@
       "id": "pr-865-f93f960594be:issue-4385152037",
       "original_label_id": "4385152037",
       "category": "guideline",
-      "description": "**Type:** defer-auxiliary-proof-functions\n**Problem:** The trailing `verus! {` block opens at :663 with no section banner, yet its first items are the two pub cross-module API lemmas `lemma_nr_subpage_per_huge_eq_nr_entries` (:665) and `lemma_layout` (:672), sitting above ~300 lines of private bit_vector helpers; they are called from ostd/src/mm/page_table/cursor/locking.rs:832, cursor/mod.rs:1194,2616 and ostd/src/mm/vm_space.rs:1844. Fix: hoist the two pub lemmas above the private helpers (riscv shape) or add the x86-style banner comment `// Auxiliary definitions and lemmas about bit properties of page table entries and flags.` above the block.",
+      "description": "Two public cross-module paging lemmas are placed in an unlabeled trailing proof block with private helpers instead of separating the public proof API from auxiliary scaffolding.",
       "locations": [
         {
           "version": "after",

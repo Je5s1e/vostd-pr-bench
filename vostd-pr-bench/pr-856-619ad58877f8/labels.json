@@ -7,7 +7,7 @@
       "id": "pr-856-619ad58877f8:issue-4367306309",
       "original_label_id": "4367306309",
       "category": "guideline",
-      "description": "use \n```rust\nvstd::{arithmetic::mul::lemma_mul_inequality, prelude::*}\n```\naccording to the guideline",
+      "description": "The unconditional vstd arithmetic and prelude imports are split into separate declarations instead of one grouped import.",
       "locations": [
         {
           "version": "after",

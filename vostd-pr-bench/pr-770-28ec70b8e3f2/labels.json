@@ -7,7 +7,7 @@
       "id": "pr-770-28ec70b8e3f2:issue-4042976752",
       "original_label_id": "4042976752",
       "category": "guideline",
-      "description": "Independent source and rule inspection confirms: Bounded forall checks every sequence element equal zero; Seq::all expresses same predicate without exposing indices.",
+      "description": "The zero-initialized CpuSet contract spells out an indexed universal instead of the equivalent Seq::all predicate.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
       "id": "pr-770-28ec70b8e3f2:issue-4042969977",
       "original_label_id": "4042969977",
       "category": "guideline",
-      "description": "Independent source and rule inspection confirms: Private lemma_cpucount_fits and related representation/bounds helpers interrupt the public CpuSet model and APIs; move auxiliary section to trailing block.",
+      "description": "Private CpuSet representation and bounds lemmas interrupt the public model and API section instead of residing in the trailing auxiliary section.",
       "locations": [
         {
           "version": "after",

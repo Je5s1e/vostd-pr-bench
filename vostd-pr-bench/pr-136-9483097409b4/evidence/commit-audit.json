@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "pr_number": 136,
+  "sample_id": "pr-136-9483097409b4",
+  "comparison_base_sha": "f04ac380bee92fc378c2a60bec5460b3aa774ceb",
+  "problem_commit_sha": "9483097409b406ee7d84677094ae3dab93fd3709",
+  "repair_commit_sha": "3319ef543031d4ee017c3e445255051949139e26",
+  "primary_reviewer": "/root/audit_pr_126_142",
+  "second_reviewer": "/root",
+  "second_review_verdict": "approved_with_wording_correction",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "Four explicit admit sites trust the same VA-to-lock-model path correspondence; the direct child commit establishes an exact VA-derived path invariant and removes all four sites.",
+  "claim_scope": "proof_trust_boundary",
+  "repair_diff": "repair.diff"
+}

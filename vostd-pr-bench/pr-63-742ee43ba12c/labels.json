@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-63-742ee43ba12c",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-63-742ee43ba12c:commit-fix-94e83a0ab6ac11b1d400463ad34c0b2e2655a593-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`PHYS_ADDR_MASK` includes the x86 NO_EXECUTE flag bit, so extracting the physical address from an NX page-table entry returns bit 63 as address data.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+          "start_line": 21,
+          "end_line": 25
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+          "start_line": 347,
+          "end_line": 355
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/pte/page_table_flags.rs",
+          "start_line": 168,
+          "end_line": 178
+        }
+      ],
+      "rationale": "At the selected problem snapshot, PHYS_ADDR_MASK is 0xffff_ffff_ffff_f000 while NO_EXECUTE is 1usize << 63 and paddr() returns self.0 & PHYS_ADDR_MASK. Therefore PageTableEntry(1usize << 63).paddr() returns 1usize << 63 although an entry containing only NX has physical address zero. The normal new_page path also ORs NX into non-executable entries, so extraction pollutes an otherwise bit-63-clear address. Repair commit 94e83a0ab6ac11b1d400463ad34c0b2e2655a593 clears bit 63 from the mask, proves property and huge-page flags are disjoint from it, and removes external_body from new_page.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/pte/page_table_entry.rs:21-25 defines PHYS_ADDR_MASK as 0xffff_ffff_ffff_f000; lines 347-355 define paddr_spec and paddr as self.0 & PHYS_ADDR_MASK(). after/lock-protocol/src/exec/rw/pte/page_table_flags.rs:168-178 defines NO_EXECUTE as 1usize << 63. In repair 94e83a0ab6ac11b1d400463ad34c0b2e2655a593, the mask becomes 0x7fff_ffff_ffff_f000 and page_table_entry.rs:128-158 and 335-355 prove flag/mask separation while checking new_page without external_body.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/94e83a0ab6ac11b1d400463ad34c0b2e2655a593",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "94e83a0ab6ac11b1d400463ad34c0b2e2655a593:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/94e83a0ab6ac11b1d400463ad34c0b2e2655a593",
+          "commit_id": "94e83a0ab6ac11b1d400463ad34c0b2e2655a593"
+        }
+      ],
+      "verification": "Historical compatibility verification executed with asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, Rust 1.88.0, and Z3 4.12.5. The problem snapshot verified vstd_extra 228/0 and lock-protocol 484/0, but new_page was external_body, so that pass assumes the false address guarantee. The repair verified vstd_extra 228/0 and lock-protocol 490/0 after removing the exemption. The verifier is nine days newer than the PR; the distinguishing bit-63 calculation is tool-independent."
+    }
+  ]
+}

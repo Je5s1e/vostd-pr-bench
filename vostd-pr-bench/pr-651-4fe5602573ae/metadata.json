@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-651-4fe5602573ae",
+  "pr_number": 651,
+  "title": "Prove page table owner construction and segment drop",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/651",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "7f94050780c69e280a329c3325dc88a6bb5d541b",
+  "head_sha": "4fe5602573ae08b1db6863e56763f9f75a61f4fd",
+  "base_method": "git merge-base(archived target-branch tip 7f94050780c69e280a329c3325dc88a6bb5d541b, selected review/problem merge 4fe5602573ae08b1db6863e56763f9f75a61f4fd) = 7f94050780c69e280a329c3325dc88a6bb5d541b; fixed Git objects and merge parents verified",
+  "archive_base_sha": "7f94050780c69e280a329c3325dc88a6bb5d541b",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs"
+  ],
+  "diff_sha256": "8f3921c3310debee9cc3121c45f4616d73b9d6513f138015fe622cd787d63673",
+  "versions": {
+    "before": {
+      "commit": "7f94050780c69e280a329c3325dc88a6bb5d541b",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "4fe5602573ae08b1db6863e56763f9f75a61f4fd",
+      "file_count": 317,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T09:08:09.052936+00:00",
+    "reviewed_at": "2026-11-19T09:01:33Z",
+    "upstream_updated_at": "2026-07-20T05:09:47Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/651",
+      "https://github.com/asterinas/vostd/pull/651#discussion_r3602168651",
+      "https://github.com/asterinas/vostd/commit/a9ab447cd350b7e3d886e21859bdda9f6100538c"
+    ],
+    "guideline_sources": [
+      {
+        "commit": "6449bf6b5832792ba861a893878bd27627ca7a83",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/6449bf6b5832792ba861a893878bd27627ca7a83/docs/coding-guidelines/maintainability.md",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
+      }
+    ],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00651"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected merge/review snapshot 4fe5602573ae08b1db6863e56763f9f75a61f4fd immediately before accepted repair a9ab447cd350b7e3d886e21859bdda9f6100538c.",
+    "zero_issues_meaning": "Not applicable; the case contains one source-adjudicated guideline issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

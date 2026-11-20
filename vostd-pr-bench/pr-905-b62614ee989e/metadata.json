@@ -16,7 +16,7 @@
     "ostd/src/arch/x86/kernel/tsc.rs",
     "verified_libs/vstd_extra/src/external/x86.rs"
   ],
-  "diff_sha256": "2b03d51cd63457dd7f7395b61f3df86eaef8d8bc30e29a6b19a4b472b74e49dc",
+  "diff_sha256": "0fc38d8acb1fc8c1886060e09cb58b3a2b9fff28c399ef62b919d75657641d79",
   "versions": {
     "before": {
       "commit": "29f0517ec33a6a7423316b08de78664a83305d5d",
@@ -49,5 +49,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "b62614ee989e85dbc57248f01cf5970641c6642e",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/b62614ee989e85dbc57248f01cf5970641c6642e/docs/coding-guidelines/maintainability.md#L346",
+        "rule_id": "preserve-exec-code",
+        "line": 346,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

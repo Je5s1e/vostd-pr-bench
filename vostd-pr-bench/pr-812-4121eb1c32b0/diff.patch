@@ -1,5 +1,5 @@
 diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
-index cc1a139f5..504c402b3 100644
+index cc1a139f530390f96a24a23a19bc0e326f37122e..504c402b3ba845cad399fa5e11d152becde22da8 100644
 --- a/ostd/src/cpu/mod.rs
 +++ b/ostd/src/cpu/mod.rs
 @@ -1,6 +1,6 @@
@@ -93,7 +93,7 @@ index cc1a139f5..504c402b3 100644
  /* cpu_local_cell! {
      /// The current CPU ID.
 diff --git a/ostd/src/task/scheduler/info.rs b/ostd/src/task/scheduler/info.rs
-index 2296e4432..6743499a7 100644
+index 2296e44327874ebb4708e21a75837665508e1908..6743499a7f39853eb0e30a71a657692c1c9c4230 100644
 --- a/ostd/src/task/scheduler/info.rs
 +++ b/ostd/src/task/scheduler/info.rs
 @@ -1,8 +1,15 @@
@@ -305,7 +305,7 @@ index 2296e4432..6743499a7 100644
  /// Trait for fetching common scheduling information.
  pub trait CommonSchedInfo {
 diff --git a/ostd/src/task/scheduler/mod.rs b/ostd/src/task/scheduler/mod.rs
-index 924dcba3e..0ab58d3de 100644
+index 924dcba3e7ebd85bee780db84f87db084010964a..0ab58d3de7ba60b0b120cb9adc66799875855534 100644
 --- a/ostd/src/task/scheduler/mod.rs
 +++ b/ostd/src/task/scheduler/mod.rs
 @@ -64,9 +64,9 @@

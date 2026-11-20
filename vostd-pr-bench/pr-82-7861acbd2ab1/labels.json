@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-82-7861acbd2ab1",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-82-7861acbd2ab1:commit-fix-9797a63e697a4f901a0a2e14c586729beed79a00-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The external specification for unsigned `ilog2` accepts zero even though every unsigned primitive `0.ilog2()` panics, so the public wrapper contract omits the operation's required nonzero domain.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/extra_num.rs",
+          "start_line": 422,
+          "end_line": 429
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/extra_num.rs",
+          "start_line": 503,
+          "end_line": 556
+        }
+      ],
+      "rationale": "At the selected problem snapshot, the macro-generated ex_uN_ilog2 wrapper has no requires clause and calls x.ilog2() directly. Therefore x = 0 is accepted by its contract for u8, u16, u32, usize, and u64 but panics before producing the promised log result. Repair commit 9797a63e697a4f901a0a2e14c586729beed79a00 replaces the wrapper with an assume_specification for the actual primitive, requires x != 0, and states no_unwind on that domain. Commit b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c rewrites the condition as x > 0, which is equivalent for unsigned values. The defect predates the PR and is not claimed to have been introduced by the selected feature comparison.",
+      "source_evidence": "after/vstd_extra/src/extra_num.rs:422-429 declares external_fn_specification ex_uN_ilog2 without requires and executes x.ilog2(). Lines 503-556 instantiate the macro for u8, u16, u32, usize, and u64. Repair 9797a63e697a4f901a0a2e14c586729beed79a00 changes lines 422-429 to assume_specification[$uN::ilog2] with requires x != 0 and no_unwind. Follow-up b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c changes only x != 0 to equivalent unsigned x > 0.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/9797a63e697a4f901a0a2e14c586729beed79a00",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "9797a63e697a4f901a0a2e14c586729beed79a00:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/9797a63e697a4f901a0a2e14c586729beed79a00",
+          "commit_id": "9797a63e697a4f901a0a2e14c586729beed79a00"
+        },
+        {
+          "kind": "commit_fix_followup",
+          "id": "b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c",
+          "commit_id": "b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c"
+        }
+      ],
+      "verification": "Historical compatibility verification used asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, Rust 1.88.0, and Z3 4.12.5. Both problem and repair report vstd_extra 236 verified/0 errors. The problem pass does not validate zero: external_fn_specification trusts the contract, and the old wrapper promises neither normal termination nor no_unwind. Rust unsigned ilog2 panics on zero; the repair adds exactly the missing nonzero domain. The verifier predates the PR and is compatibility evidence, while the source/domain distinction is tool-independent."
+    }
+  ]
+}

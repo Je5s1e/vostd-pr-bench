@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-136-9483097409b4",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-136-9483097409b4:commit-fix-3319ef543031d4ee017c3e445255051949139e26-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`lock_range` uses four `admit()` branches to trust that its lock-model path still corresponds to the requested virtual-address path.",
+      "locations": [
+        {"version": "after", "path": "lock-protocol/src/exec/rw/cursor.rs", "start_line": 506, "end_line": 508},
+        {"version": "after", "path": "lock-protocol/src/exec/rw/cursor.rs", "start_line": 549, "end_line": 551},
+        {"version": "after", "path": "lock-protocol/src/exec/rw/cursor.rs", "start_line": 589, "end_line": 591},
+        {"version": "after", "path": "lock-protocol/src/exec/rw/cursor.rs", "start_line": 625, "end_line": 627}
+      ],
+      "rationale": "The returned cursor and its guards are sound only when every acquired child is the next node derived from `va.start`. At the problem snapshot each alternate descent or final lock branch imports the required prefix fact through `admit`, so a mismatch between the protocol path and the VA-derived path would cross a trusted boundary. Direct child commit 3319ef543031 replaces the recursive trace representation with a level-indexed VA path, strengthens the loop invariant to exact sequence equality, proves node validity, and removes all four admits. Primary and independent review group the four sites as one path-correspondence root; this is a proof trust-boundary finding and does not claim a reproduced runtime divergence.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/cursor.rs\n506: assert(m.path().is_prefix_of(va_range_get_tree_path(*va))) by {\n507:     admit();\n508: };\n\nThe same trusted assertion occurs at lines 549-551, 589-591, and 625-627. Repair 3319ef543031 removes all four after establishing an exact VA-derived path sequence invariant.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/3319ef543031d4ee017c3e445255051949139e26",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "3319ef543031d4ee017c3e445255051949139e26:root-1", "url": "https://github.com/asterinas/vostd/commit/3319ef543031d4ee017c3e445255051949139e26", "commit_id": "3319ef543031d4ee017c3e445255051949139e26"}
+      ],
+      "verification": "Fixed Git objects and the direct problem-to-repair diff were independently reviewed. Historical Verus was not executed; the evidence is the explicit four-site trust boundary and its checked source repair."
+    }
+  ]
+}

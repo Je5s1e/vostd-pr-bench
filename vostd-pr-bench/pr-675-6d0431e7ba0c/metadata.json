@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-675-6d0431e7ba0c",
+  "pr_number": 675,
+  "title": "refactor: use fractional permissions and remove `frame_obligations`",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/675",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "808022dd91577e17d9d1a25762beb921f9a3976d",
+  "head_sha": "6d0431e7ba0cf634adb80737239551f9b8fbd92f",
+  "base_method": "git merge-base(existing archived comparison base 79d1d8a44c5a70afa7dc7ad084284ce1c1bdf95a, selected problem merge commit 6d0431e7ba0cf634adb80737239551f9b8fbd92f)",
+  "archive_base_sha": "79d1d8a44c5a70afa7dc7ad084284ce1c1bdf95a",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/frame.rs",
+    "ostd/specs/mm/embedding/io.rs",
+    "ostd/specs/mm/embedding/list_store.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/embedding/unique.rs",
+    "ostd/specs/mm/frame/frame_specs.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/segment.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/io.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/node/child.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/obligation_demo.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "f9e8498bc20d76b2a0063dbaf6db154a8b30c904e67f40886efe889719c10aa5",
+  "versions": {
+    "before": {
+      "commit": "808022dd91577e17d9d1a25762beb921f9a3976d",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "6d0431e7ba0cf634adb80737239551f9b8fbd92f",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "cde503877551598ea0d1a17f68ee5610861de383",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:46:57.099100+00:00",
+    "reviewed_at": "2026-11-20T08:46:57.099100+00:00",
+    "upstream_updated_at": "2026-10-21T06:34:08Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/675",
+      "https://github.com/asterinas/vostd/commit/39db0735a8d0c1c049a9e8e607976240038edba2"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00675"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": []
+}

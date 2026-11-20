@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-69-931cc78db2e3:commit-fix-20ba976dc4dc0943c3eda62b0d96cb8a37e41320-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The PTE physical-address mask retains bits 52 through 62, so reserved or software bits above the x86-64 physical-address field are returned as address bits.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+          "start_line": 21,
+          "end_line": 25
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+          "start_line": 374,
+          "end_line": 382
+        }
+      ],
+      "rationale": "The problem mask 0x7fff_ffff_ffff_f000 covers bits 12-62, while the maximum-width x86-64 PTE physical-address field occupies bits 12-51. PageTableEntry(1usize << 52).paddr() therefore returns 1 << 52 instead of zero. Repair 20ba976d narrows the mask to 0x000f_ffff_ffff_f000 (bits 12-51) and consistently applies it to construction, extraction, property masking, and proofs.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/pte/page_table_entry.rs:21-25\nPHYS_ADDR_MASK is declared as 0x7fff_ffff_ffff_f000, retaining bit 52 and all bits through 62.\n\nafter/lock-protocol/src/exec/rw/pte/page_table_entry.rs:374-382\npaddr_spec and paddr both return self.0 & PHYS_ADDR_MASK(), so any retained high bit is exposed as address data.\n\nrepair/lock-protocol/src/exec/rw/pte/page_table_entry.rs:30-37 @ 20ba976dc4dc0943c3eda62b0d96cb8a37e41320\nPHYS_ADDR_MASK becomes 0xF_FFFF_FFFF_F000, equivalent to 0x000f_ffff_ffff_f000 and covering only bits 12-51.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/20ba976dc4dc0943c3eda62b0d96cb8a37e41320",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "20ba976dc4dc0943c3eda62b0d96cb8a37e41320:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/20ba976dc4dc0943c3eda62b0d96cb8a37e41320",
+          "commit_id": "20ba976dc4dc0943c3eda62b0d96cb8a37e41320"
+        }
+      ],
+      "verification": "Direct fixed-width witness: (1 << 52) & 0x7fff_ffff_ffff_f000 = 1 << 52, while (1 << 52) & 0x000f_ffff_ffff_f000 = 0. With Verus 0b6f3cbb/Rust 1.88/Z3 4.12.5, vstd_extra verifies 228/0 at both sides, problem lock-protocol verifies 501/0, and repaired/final verifies 497/0. Passing both is expected because x86 field width is an architectural source requirement, not a built-in verifier rule; the verifier revision postdates the PR."
+    }
+  ],
+  "sample_id": "pr-69-931cc78db2e3"
+}

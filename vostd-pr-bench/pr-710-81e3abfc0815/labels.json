@@ -7,7 +7,7 @@
       "id": "pr-710-81e3abfc0815:review-comment-4239980266",
       "original_label_id": null,
       "category": "semantic",
-      "description": "The new architecture-selection module unconditionally selects and re-exports x86, so it cannot compile as a generic multi-architecture interface on a non-x86 target.",
+      "description": "The build-selected architecture interface unconditionally exports the x86 model and aliases CurrentArch to X86Arch without target_arch guards, so it does not select the model according to the target architecture.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
           "commit_id": "81e3abfc0815bcff0ba233492689480371f45b9f"
         }
       ],
-      "verification": "source-only; historical Verus not executed. Compared the fixed 81e3abfc0815 snapshot, the complete archived and current remote thread, and the accepted final-head cfg fix."
+      "verification": "source-only; historical Verus not executed. Compared the fixed 81e3abfc0815 snapshot, the complete archived and current remote thread, and the accepted final-head cfg fix. Follow-up source review: unconditional selection is directly confirmed; non-x86 compilation was not executed and a universal compilation-failure claim is not retained."
     },
     {
       "id": "pr-710-81e3abfc0815:review-comment-4239971131",

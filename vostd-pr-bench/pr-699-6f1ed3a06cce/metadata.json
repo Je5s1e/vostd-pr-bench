@@ -15,7 +15,7 @@
     "ostd/src/util/range_alloc.rs",
     "verified_libs/vstd_extra/src/trans_macros.rs"
   ],
-  "diff_sha256": "2706cbea4faaabd59287c5c3ae554d74017604211dc5d29d367c655296fee3f8",
+  "diff_sha256": "3bc45be46846c02cf8fbd6e33f73430e87f50ab2b92b298ccb92e3e2d1079794",
   "versions": {
     "before": {
       "commit": "d0289e7fcc3b199996685f5b454b3355e999b327",

@@ -1,0 +1,116 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/220",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 220,
+    "title": "Fix verus-update-test workflow",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/220",
+    "state": "MERGED",
+    "createdAt": "2025-10-28T08:08:09Z",
+    "updatedAt": "2025-10-28T08:10:45Z",
+    "closedAt": "2025-10-28T08:10:41Z",
+    "mergedAt": "2025-10-28T08:10:41Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "1c5f850814d95ccfdddf217d9def5f5a67e595e1",
+    "headRefName": "rikosellic-patch-1",
+    "headRefOid": "503ca46c41ce3d491323bc992721da0ffcb66ef1",
+    "changedFiles": 1,
+    "additions": 4,
+    "deletions": 1,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 1,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MQ"
+      },
+      "nodes": [
+        {
+          "path": ".github/workflows/verus-update-test.yml",
+          "additions": 4,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

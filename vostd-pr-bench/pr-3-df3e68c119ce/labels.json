@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-3-df3e68c119ce",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-3-df3e68c119ce:commit-fix-6772140e630958cdf11c69b063fdd9efad49e8c6-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The Rust 1.82 port marks two failing project-local bodies as `external_body`, making their contracts trusted assumptions even though the verifier cannot prove either implementation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "aster_common/src/page_table/page_table_mode.rs",
+          "start_line": 33,
+          "end_line": 37
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 969,
+          "end_line": 981
+        }
+      ],
+      "rationale": "Both functions are project-local derived logic rather than intentional FFI/hardware boundaries. `PageTableMode::covers` exposes a public `when_used_as_spec` contract, while `lemma_recursive_visit_induction` is a broadcast proof available through `group_ghost_tree`. The PR body says both failures are temporarily skipped. Under fixed Verus 9b8b5567ffffadd8223ffec889a86f2a5424b038, removing only the relevant `external_body` makes `covers` fail its line-34 postcondition and the ghost lemma fail its line-977 postcondition, confirming that the annotations expand the trusted boundary. Official descendant 6772140e630958cdf11c69b063fdd9efad49e8c6 later removes the ghost annotation while retaining a checked proof (`230 verified, 0 errors` under its fixed toolchain). No checked `covers` repair was found; a134cdfe1b8724b437d49c6a74518834c5de25a3 resolves that boundary by deleting the entire crate, not by proving the body.",
+      "source_evidence": "after/aster_common/src/page_table/page_table_mode.rs\n33:     #[verifier::external_body]\n34:     fn covers(r: &Range<Vaddr>) -> (res: bool)\n35:         ensures res == Self::covers_spec(r)\n\nafter/vstd_extra/src/ghost_tree.rs\n969:     #[verifier::external_body]\n970:     pub broadcast proof fn lemma_recursive_visit_induction(self, path: TreePath<N>)\n977:         ensures\n978:             #[trigger] self.recursive_visit(path) == ...\n\nControlled fixed-toolchain runs that remove only one annotation report one postcondition failure at page_table_mode.rs:34 and ghost_tree.rs:977 respectively. The exported snapshot remains the immutable official problem commit; the diagnostic copies are not benchmark inputs.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/6772140e630958cdf11c69b063fdd9efad49e8c6",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "6772140e630958cdf11c69b063fdd9efad49e8c6:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/6772140e630958cdf11c69b063fdd9efad49e8c6",
+          "commit_id": "6772140e630958cdf11c69b063fdd9efad49e8c6"
+        },
+        {
+          "kind": "later_resolution",
+          "id": "a134cdfe1b8724b437d49c6a74518834c5de25a3:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/a134cdfe1b8724b437d49c6a74518834c5de25a3",
+          "commit_id": "a134cdfe1b8724b437d49c6a74518834c5de25a3"
+        }
+      ],
+      "verification": "At the immutable problem snapshot, Verus 9b8b5567ffffadd8223ffec889a86f2a5424b038, Rust 1.82.0, and Z3 4.12.5 report 178/0 for vstd_extra and 214/0 for aster_common with the trusted boundaries. Separate diagnostic copies removing only one annotation reproduce 178 verified, 1 postcondition error at ghost_tree.rs:977 and 214 verified, 1 postcondition error at page_table_mode.rs:34. Official ghost repair 6772140e was verified as 230/0 with Verus 0b6f3cbb, Rust 1.88.0, and Z3 4.12.5."
+    }
+  ]
+}

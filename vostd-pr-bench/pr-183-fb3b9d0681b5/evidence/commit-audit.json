@@ -1,0 +1,39 @@
+{
+  "repair_commits": [
+    {
+      "root": 1,
+      "sha": "ae8fa239a56d986bf4964523369cd20884123a64",
+      "relationship": "direct child of problem snapshot"
+    },
+    {
+      "root": 2,
+      "sha": "ae3200cfe5460f8451667fa1bfac75e7300b3e75",
+      "relationship": "later descendant; immediate parent is 672c40efd9b7fb88a46ac2d6398ffb56507e9bc7"
+    }
+  ],
+  "root_separation": "Root 1 proves alignment-down preserves higher-level indices; root 2 proves page-size addition preserves indices above the terminating carry. They are separate obligations and repairs.",
+  "provenance_note_root_2": "The underlying carry-proof debt predates fb3b9d06 as two admits. fb3b9d06 materially rewrites the changed proof region into the selected quantified assumption; no first-origin claim is made.",
+  "excluded_candidates": [
+    {
+      "candidate": "page-size product assume introduced by 12559b9 and repaired by e816110",
+      "disposition": "deferred_overlapping_snapshot",
+      "reason": "That snapshot still contains root 2. Labeling only the page-size assume would be incomplete; repeating root 2 would duplicate one root across snapshots."
+    }
+  ],
+  "schema_version": 1,
+  "pr_number": 183,
+  "sample_id": "pr-183-fb3b9d0681b5",
+  "problem_snapshot": "fb3b9d0681b5c5fa47b4b45b486808d49a754031",
+  "comparison_base": "6ec4fad859378280cecfeb872c99d6eba9cb0ff0",
+  "primary_review": {
+    "reviewer": "/root/audit_pr_126_142",
+    "conclusion": "Confirmed two independently repaired roots in the shared fb3b9d06 snapshot and deferred the overlapping page-size-assume snapshot."
+  },
+  "second_review": {
+    "reviewer": "/root/audit_pr_117_122",
+    "reviewed_at": "2026-11-20T10:12:52Z",
+    "conclusion": "Approved both roots, their separate repair attribution, the root-2 provenance qualification, and the overlapping-snapshot deferral."
+  },
+  "historical_verus_executed": false,
+  "exported_at": "2026-11-20T10:22:07.701477+00:00"
+}

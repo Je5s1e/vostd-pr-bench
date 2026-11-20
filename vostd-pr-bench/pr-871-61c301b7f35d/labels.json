@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-871-61c301b7f35d",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The verification-statistics CI job disables Verus bootstrap but then builds line_count from the untracked tools/verus source tree, so a clean runner has no Cargo manifest to build.",
+      "locations": [
+        {
+          "version": "after",
+          "path": ".github/workflows/ci.yml",
+          "start_line": 296,
+          "end_line": 311
+        }
+      ],
+      "rationale": "On a fresh checkout tools/verus is gitignored and absent. The setup action conditions both cache restore and bootstrap on inputs.verus == true; the job passes false. The separate line_count cache restores only source/target, not source/Cargo.toml. cargo build --manifest-path tools/verus/source/Cargo.toml therefore fails before producing stats. The next commit changes the job to verus:true, enabling source restoration/bootstrap. This is a PR-internal direct parent/child repair, not inferred from commit title alone.",
+      "source_evidence": ".github/workflows/ci.yml\n296:       - name: Set up toolchain and caches\n297:         uses: ./.github/actions/setup-verus\n298:         with:\n299:           verus: 'false'\n300:           dv-cache: 'restore'\n301: \n302:       - name: Cache line_count build\n303:         uses: actions/cache@v6\n304:         with:\n305:           path: tools/verus/source/target\n306:           key: ${{ runner.os }}-line-count-${{ hashFiles('tools/verus/source/Cargo.lock', 'tools/verus/source/tools/line_count/**') }}\n307:           restore-keys: |\n308:             ${{ runner.os }}-line-count-\n309: \n310:       - name: Build line_count\n311:         run: cargo build --release -p line_count --manifest-path tools/verus/source/Cargo.toml",
+      "verification": "source-only; historical CI and Verus not executed. Checked complete job and composite-action branches, gitignored and absent tools/verus tree, exact parent/child patch, archived PR patch membership; issue_comments and review_comments arrays are empty.",
+      "id": "pr-871-61c301b7f35d:commit-fix-97fedbf3133226d16f3e62b8bfcddfb5d35a525a-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/97fedbf3133226d16f3e62b8bfcddfb5d35a525a",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "97fedbf3133226d16f3e62b8bfcddfb5d35a525a:root-1",
+          "commit_id": "97fedbf3133226d16f3e62b8bfcddfb5d35a525a",
+          "url": "https://github.com/asterinas/vostd/commit/97fedbf3133226d16f3e62b8bfcddfb5d35a525a"
+        }
+      ]
+    }
+  ]
+}

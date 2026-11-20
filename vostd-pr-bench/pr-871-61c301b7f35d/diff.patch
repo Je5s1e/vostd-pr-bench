@@ -1,0 +1,1518 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 7903262e1f673d8aff36cedc9bccd4940a79826a..7fb57a39a0cf0db83e8bf87c4524f0532df4a9ad 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -3,8 +3,13 @@ name: Format and Verify VOSTD (Main)
+ # One verification run feeds everything: verify legs (one per os/target, incl.
+ # riscv64imac) run with --time-expanded and upload logs, `perf` parses the
+ # ubuntu x86_64 leg's log (never re-verifies), `doc` builds the docs in
+-# parallel, and `doc-deploy` merges those docs with the gh-pages benchmark
+-# before deploying. `format` delegates to `cargo verus fmt`.
++# parallel, and `doc-deploy` deploys the site at the repo root. The site root
++# is the verification dashboard (from tools/site/): stats/snapshot.json holds
++# the per-module line_count snapshot the `stats` job takes against the
++# phaseII/mainline baseline, stats/history.json the totals per commit that
++# `perf-history` appends on gh-pages, and dev/bench is the verify-perf chart
++# published by the same job. The verusdoc tree is served under /verusdoc/
++# and `format` delegates to `cargo verus fmt`.
+ 
+ on:
+   push:
+@@ -271,15 +276,86 @@ jobs:
+             perf-baseline.json
+           if-no-files-found: ignore
+ 
++  stats:
++    # Per-module verification snapshot: line_count over ostd/src + ostd/libs,
++    # with each file's counts clamped to the phaseII/mainline exec-LoC budget.
++    # PRs exercise the pipeline; pushes publish via perf-history + doc-deploy.
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++    timeout-minutes: 30
++    steps:
++      - name: Checkout repository
++        uses: actions/checkout@v7
++        with:
++          # Provides the dv submodule the setup action resolves and the
++          # tools/verus tree (in-repo) the line_count build reads.
++          ref: ${{ github.sha }}
++          submodules: recursive
++
++      - name: Set up toolchain and caches
++        uses: ./.github/actions/setup-verus
++        with:
++          verus: 'false'
++          dv-cache: 'restore'
++
++      - name: Cache line_count build
++        uses: actions/cache@v6
++        with:
++          path: tools/verus/source/target
++          key: ${{ runner.os }}-line-count-${{ hashFiles('tools/verus/source/Cargo.lock', 'tools/verus/source/tools/line_count/**') }}
++          restore-keys: |
++            ${{ runner.os }}-line-count-
++
++      - name: Build line_count
++        run: cargo build --release -p line_count --manifest-path tools/verus/source/Cargo.toml
++
++      - name: Fetch mainline baseline
++        run: |
++          git fetch --depth=1 origin phaseII/mainline
++          git worktree add --detach "$PWD/mainline" FETCH_HEAD
++          echo "MAINLINE_SHA=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_ENV"
++
++      - name: Take verification snapshot
++        run: |
++          python3 tools/verus_stats.py snapshot \
++            --line-count tools/verus/source/target/release/line_count \
++            --mainline-source src=mainline/ostd/src \
++            --mainline-source libs=mainline/ostd/libs \
++            --mainline-sha "$MAINLINE_SHA" \
++            --sha "$GITHUB_SHA" \
++            --date "$(git show -s --format=%cI "$GITHUB_SHA")" \
++            -o stats-snapshot.json
++
++      - name: Upload stats artifact
++        if: always()
++        uses: actions/upload-artifact@v7
++        with:
++          name: stats-snapshot
++          path: stats-snapshot.json
++          retention-days: 7
++          if-no-files-found: error
++
++      - name: Publish summary
++        if: always()
++        run: |
++          {
++            echo "# Stats Summary"
++            echo "- Verification snapshot: ${{ job.status == 'success' && '✅ recorded' || '❌ failed' }}"
++          } >> "$GITHUB_STEP_SUMMARY"
++
+   perf-history:
+     # Only trusted main runs may publish history and save the next baseline.
+-    # PR metrics are processed by the read-only `perf` job above.
+-    needs: [verify, perf]
++    # PR metrics are processed by the read-only `perf` job above. This job owns
++    # every gh-pages data push: the verify-perf benchmark (auto-pushed by the
++    # action) and then the verification stats point + snapshot.
++    needs: [verify, perf, stats]
+     if: >
+       github.event_name != 'pull_request' &&
+       github.ref == 'refs/heads/main' &&
+       needs.verify.result == 'success' &&
+-      needs.perf.result == 'success'
++      needs.perf.result == 'success' &&
++      needs.stats.result == 'success'
+     runs-on: ubuntu-latest
+     permissions:
+       contents: write
+@@ -295,6 +371,11 @@ jobs:
+         with:
+           name: verify-perf-report
+ 
++      - name: Download stats snapshot
++        uses: actions/download-artifact@v8
++        with:
++          name: stats-snapshot
++
+       - name: Record benchmark on gh-pages
+         uses: benchmark-action/github-action-benchmark@v1
+         with:
+@@ -307,6 +388,31 @@ jobs:
+           benchmark-data-dir-path: dev/bench
+           comment-on-alert: false
+ 
++      - name: Record verification stats on gh-pages
++        run: |
++          set -e
++          if git fetch --depth=1 origin gh-pages 2>/dev/null; then
++            git worktree add "$PWD/gh-pages" FETCH_HEAD
++          else
++            git worktree add --orphan -b gh-pages "$PWD/gh-pages"
++          fi
++          cd gh-pages
++          mkdir -p stats
++          python3 ../tools/verus_stats.py record \
++            --snapshot ../stats-snapshot.json \
++            --history stats/history.json
++          cp ../stats-snapshot.json stats/snapshot.json
++          git add stats
++          git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
++            commit -m "chore: record verification stats for ${GITHUB_SHA}"
++          if ! git push origin HEAD:gh-pages; then
++            echo "push rejected; rebasing once and retrying"
++            git fetch origin gh-pages
++            git rebase FETCH_HEAD
++            git push origin HEAD:gh-pages
++          fi
++          echo "recorded stats point for ${GITHUB_SHA}"
++
+       - name: Save measurement as the next baseline
+         # Cache entries are immutable; reruns of the same SHA reuse its entry.
+         if: needs.perf.outputs.baseline-cache-hit != 'true'
+@@ -382,10 +488,11 @@ jobs:
+           } >> "$GITHUB_STEP_SUMMARY"
+ 
+   doc-deploy:
+-    # Pushes only: merge the doc artifact with the gh-pages benchmark chart
+-    # (pushed by `perf-history`) and deploy. Needs verify so a failed
+-    # verification can't deploy docs.
+-    needs: [doc, perf, perf-history, verify]
++    # Pushes only: assemble the site — dashboard (tools/site) at the root,
++    # verusdoc under /verusdoc/, the gh-pages benchmark chart under
++    # /dev/bench/ and the stats snapshot/history under /stats/ — and deploy.
++    # Needs verify so a failed verification can't deploy docs.
++    needs: [doc, perf, perf-history, verify, stats]
+     if: >
+       always() &&
+       !cancelled() &&
+@@ -393,7 +500,8 @@ jobs:
+       needs.verify.result == 'success' &&
+       needs.doc.result == 'success' &&
+       (needs.perf.result == 'success' || needs.perf.result == 'skipped') &&
+-      (needs.perf-history.result == 'success' || needs.perf-history.result == 'skipped')
++      (needs.perf-history.result == 'success' || needs.perf-history.result == 'skipped') &&
++      (needs.stats.result == 'success' || needs.stats.result == 'skipped')
+     runs-on: ubuntu-latest
+     permissions:
+       contents: read
+@@ -402,34 +510,69 @@ jobs:
+     timeout-minutes: 15
+     steps:
+       - name: Checkout repository
+-        # Provides the git dir for the gh-pages fetch below.
++        # Provides the git dir for the gh-pages fetch below and tools/site/.
+         uses: actions/checkout@v7
+ 
+       - name: Download doc artifact
+         uses: actions/download-artifact@v8
+         with:
+           name: doc-site
+-          path: doc
++          path: site/verusdoc
+ 
+-      # Serve the benchmark chart at <site>/dev/bench/.
+-      - name: Embed verify-perf benchmark into the doc artifact
++      - name: Download stats snapshot
++        if: needs.stats.result == 'success'
++        uses: actions/download-artifact@v8
++        with:
++          name: stats-snapshot
++          path: site/stats
++
++      - name: Assemble site root
++        run: |
++          set -e
++          cp -r tools/site/. site/
++          # Rename for the site's dashboards: stats-snapshot.json -> snapshot.json.
++          if [[ -f site/stats/stats-snapshot.json ]]; then
++            mv site/stats/stats-snapshot.json site/stats/snapshot.json
++          else
++            mkdir -p site/stats
++            echo "no stats artifact; the dashboard will fall back to the last published snapshot"
++          fi
++          echo "site root:"
++          ls site
++
++      # Serve the benchmark chart at <site>/dev/bench/ and the stats history
++      # (appended by `perf-history`) at <site>/stats/history.json.
++      - name: Embed gh-pages data into the site
+         run: |
+           set -e
+           if ! git fetch --depth=1 origin gh-pages 2>/dev/null; then
+-            echo "no gh-pages branch yet; benchmark not embedded"
++            echo "no gh-pages branch yet; benchmark and history not embedded"
+             exit 0
+           fi
+-          git checkout FETCH_HEAD -- dev/bench || { echo "no dev/bench on gh-pages; skipping"; exit 0; }
+-          mkdir -p doc/dev
+-          mv dev/bench doc/dev/bench
+-          rmdir dev 2>/dev/null || true
+-          echo "embedded dev/bench into the doc artifact:"
+-          ls doc/dev/bench
++          if git checkout FETCH_HEAD -- dev/bench 2>/dev/null; then
++            mkdir -p site/dev
++            mv dev/bench site/dev/bench
++            rmdir dev 2>/dev/null || true
++            echo "embedded dev/bench"
++          else
++            echo "no dev/bench on gh-pages; skipping"
++          fi
++          if git checkout FETCH_HEAD -- stats 2>/dev/null; then
++            # Prefer the fresh artifact snapshot over the pushed one.
++            if [[ ! -f site/stats/snapshot.json ]]; then
++              mv stats/snapshot.json site/stats/snapshot.json 2>/dev/null || true
++            fi
++            mkdir -p site/stats
++            mv stats/history.json site/stats/history.json 2>/dev/null || true
++            echo "embedded stats/history.json"
++          else
++            echo "no stats on gh-pages yet; history will start from this run"
++          fi
+ 
+       - name: Upload pages artifact
+         uses: actions/upload-pages-artifact@v5
+         with:
+-          path: doc
++          path: site
+ 
+       - name: Deploy to GitHub Pages
+         id: deployment
+diff --git a/tools/site/app.js b/tools/site/app.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..6df4e0c1288fcfa3152dbad3aa174ee7e0dc2177
+--- /dev/null
++++ b/tools/site/app.js
+@@ -0,0 +1,423 @@
++/* VOSTD verification dashboard.
++ *
++ * Renders stats/snapshot.json (current per-module verification status) and
++ * stats/history.json (totals per recorded commit) as charts + tables. Chart
++ * colors resolve from CSS custom properties so the whole page follows the
++ * media-query palette; charts re-init on color-scheme change.
++ * Names from JSON enter DOM via textContent or an escaper, never innerHTML. */
++
++"use strict";
++
++const SERIES = [
++  { key: "verified_exec", name: "Verified", cssVar: "--series-verified" },
++  { key: "trusted", name: "Trusted boundary", cssVar: "--series-trusted" },
++  { key: "spec", name: "Spec", cssVar: "--series-spec" },
++  { key: "proof", name: "Proof", cssVar: "--series-proof" },
++];
++
++const TM_STATUS = [
++  { key: "verified_exec", name: "Verified", cssVar: "--tm-verified", darkText: true },
++  { key: "trusted", name: "Trusted", cssVar: "--tm-trusted", darkText: true },
++  { key: "unverified", name: "Unverified", cssVar: "--tm-unverified", darkText: false },
++];
++
++const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
++const esc = (s) =>
++  String(s).replace(/[&<>"']/g, (c) =>
++    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]),
++  );
++const fmt = (n) => new Intl.NumberFormat("en", { notation: "compact" }).format(n);
++const fmtFull = (n) => new Intl.NumberFormat("en").format(n);
++const PCT = (n) => `${(100 * n).toFixed(1)}%`;
++
++function baseText() {
++  return {
++    ink: css("--ink"),
++    ink2: css("--ink-2"),
++    ink3: css("--ink-3"),
++    grid: css("--grid"),
++    baseline: css("--baseline"),
++    surface: css("--surface-1"),
++    good: css("--good-text"),
++    bad: css("--bad-text"),
++  };
++}
++
++/* ---------------------------------------------------------------- tiles */
++
++function renderTiles(snapshot, historyPoints) {
++  const totals = snapshot.totals;
++  const current = historyPoints.length ? historyPoints[historyPoints.length - 1] : null;
++  const previous =
++    historyPoints.length > 1 ? historyPoints[historyPoints.length - 2] : null;
++
++  const specs = [
++    { label: "Total executable LoC", value: totals.total, deltaKey: null },
++    {
++      label: "Verified",
++      value: totals.verified_exec,
++      deltaKey: "verified_exec",
++      upIsGood: true,
++    },
++    {
++      label: "Trusted boundary",
++      value: totals.trusted,
++      deltaKey: "trusted",
++      upIsGood: false,
++    },
++    { label: "Unverified", value: totals.unverified, deltaKey: "unverified", upIsGood: false },
++  ];
++
++  const host = document.getElementById("tiles");
++  host.replaceChildren();
++  for (const spec of specs) {
++    const tile = document.createElement("div");
++    tile.className = "tile";
++    const label = document.createElement("div");
++    label.className = "tile-label";
++    label.textContent = spec.label;
++    const value = document.createElement("div");
++    value.className = "tile-value";
++    value.textContent = fmt(spec.value);
++    tile.append(label, value);
++
++    if (spec.deltaKey && previous && current && current[spec.deltaKey] != null) {
++      const delta = current[spec.deltaKey] - previous[spec.deltaKey];
++      const deltaEl = document.createElement("div");
++      deltaEl.className = "tile-delta";
++      if (delta !== 0) deltaEl.classList.add(delta > 0 ? "up" : "down");
++      if (spec.upIsGood === false && delta !== 0) {
++        deltaEl.classList.toggle("up", delta < 0);
++        deltaEl.classList.toggle("down", delta > 0);
++      }
++      const sign = delta > 0 ? "+" : "";
++      deltaEl.textContent = `${sign}${fmtFull(delta)} lines vs previous commit`;
++      tile.append(deltaEl);
++    }
++    host.append(tile);
++  }
++}
++
++/* ------------------------------------------------------------ line chart */
++
++function renderHistoryChart(points) {
++  const host = document.getElementById("history-chart");
++  if (!window.echarts) {
++    host.innerHTML = "";
++    host.append(placeholder("Charts are unavailable (ECharts failed to load)."));
++    return;
++  }
++  if (!points.length) {
++    host.innerHTML = "";
++    host.append(
++      placeholder("No history yet — a data point is recorded on every verified push to main."),
++    );
++    return;
++  }
++
++  const text = baseText();
++  const chart = echarts.init(host, null, { renderer: "canvas" });
++  const series = SERIES.map((s) => ({
++    name: s.name,
++    type: "line",
++    showSymbol: points.length <= 24,
++    symbol: "circle",
++    symbolSize: 8,
++    itemStyle: { color: css(s.cssVar), borderColor: text.surface, borderWidth: 2 },
++    lineStyle: { width: 2, color: css(s.cssVar) },
++    emphasis: { focus: "series" },
++    dimension: 0,
++    data: points.map((p) => [p.date, p[s.key] ?? 0]),
++  }));
++
++  chart.setOption({
++    animationDuration: 200,
++    textStyle: { fontFamily: "system-ui, -apple-system, sans-serif" },
++    color: SERIES.map((s) => css(s.cssVar)),
++    legend: {
++      top: 0,
++      icon: "roundRect",
++      itemWidth: 12,
++      itemHeight: 4,
++      textStyle: { color: text.ink2 },
++    },
++    grid: { left: 56, right: 20, top: 34, bottom: 44 },
++    tooltip: {
++      trigger: "axis",
++      axisPointer: { type: "line", lineStyle: { color: text.baseline, width: 1 } },
++      backgroundColor: text.surface,
++      borderColor: "transparent",
++      textStyle: { color: text.ink },
++      formatter: (params) => {
++        const [date] = params[0].value;
++        const head = esc(new Date(date).toISOString().slice(0, 10));
++        const rows = params
++          .slice()
++          .sort((a, b) => b.value[1] - a.value[1])
++          .map(
++            (p) =>
++              `<div><span style="display:inline-block;width:10px;height:3px;` +
++              `background:${p.color};border-radius:1px;margin-right:5px"></span>` +
++              `<span class="tt-label">${esc(p.seriesName)}</span>` +
++              ` <span class="tt-value">${fmtFull(p.value[1])}</span></div>`,
++          )
++          .join("");
++        return `<div class="echarts-tooltip">${head}${rows}</div>`;
++      },
++    },
++    xAxis: {
++      type: "time",
++      axisLine: { lineStyle: { color: text.baseline } },
++      axisLabel: { color: text.ink3, hideOverlap: true },
++      splitLine: { show: false },
++    },
++    yAxis: {
++      type: "value",
++      axisLine: { show: false },
++      axisTick: { show: false },
++      axisLabel: {
++        color: text.ink3,
++        formatter: (v) => fmt(v),
++      },
++      splitLine: { lineStyle: { color: text.grid, width: 1 } },
++    },
++    series,
++  });
++  registerChart(chart, host);
++}
++
++/* --------------------------------------------------------------- treemap */
++
++function renderTreemapChart(snapshot) {
++  const host = document.getElementById("treemap-chart");
++  if (!window.echarts) {
++    host.innerHTML = "";
++    host.append(placeholder("Charts are unavailable (ECharts failed to load)."));
++    return;
++  }
++
++  const text = baseText();
++  const byGroup = new Map();
++  for (const module of snapshot.modules) {
++    const key = `${module.group}/${module.child}`;
++    const node = {
++      name: module.child,
++      meta: module,
++      children: TM_STATUS.map((st) => ({
++        name: st.name,
++        value: module[st.key],
++        itemStyle: { color: css(st.cssVar) },
++      })),
++    };
++    if (!byGroup.has(module.group)) byGroup.set(module.group, []);
++    byGroup.get(module.group).push(node);
++  }
++
++  const data = [...byGroup.entries()].map(([group, children]) => ({ name: group, children }));
++
++  const chart = echarts.init(host);
++  chart.setOption({
++    animationDuration: 200,
++    textStyle: { fontFamily: "system-ui, -apple-system, sans-serif" },
++    tooltip: {
++      backgroundColor: text.surface,
++      borderColor: "transparent",
++      textStyle: { color: text.ink },
++      confine: true,
++      formatter: (info) => {
++        const module = info.data.meta;
++        if (!module) return "";
++        const matched = module.files_with_mainline === module.files;
++        const rows = TM_STATUS.map(
++          (st) =>
++            `<div><span style="display:inline-block;width:10px;height:10px;` +
++            `background:${css(st.cssVar)};border-radius:2px;margin-right:6px"></span>` +
++            `<span class="tt-label">${st.name}</span> <span class="tt-value">${fmtFull(
++              module[st.key],
++            )}</span></div>`,
++        ).join("");
++        const shaft = `<div class="tt-label" style="margin-top:4px">` +
++          `spec ${fmtFull(module.spec)} · proof ${fmtFull(module.proof)} · vostd rust-mode ` +
++          `${fmtFull(module.rust_mode)}${matched ? "" : " · not in mainline"}</div>`;
++        return `<div class="echarts-tooltip"><div class="tt-value">${esc(
++          module.group,
++        )}/${esc(module.child)}</div>${rows}${shaft}</div>`;
++      },
++    },
++    series: [
++      {
++        type: "treemap",
++        roam: false,
++        nodeClick: "zoomToNode",
++        breadcrumb: {
++          show: true,
++          bottom: 0,
++          itemStyle: { color: text.surface, borderColor: text.baseline, textStyle: { color: text.ink2 } },
++        },
++        label: { show: true, formatter: "{b}", fontSize: 11, color: text.ink },
++        upperLabel: {
++          show: true,
++          height: 20,
++          fontSize: 11,
++          color: text.ink2,
++          fontWeight: 600,
++        },
++        itemStyle: { borderColor: text.surface, borderWidth: 2, gapWidth: 2 },
++        levels: [
++          { itemStyle: { borderColor: text.surface, borderWidth: 0, gapWidth: 3 } },
++          {
++            itemStyle: {
++              borderColor: text.surface,
++              borderWidth: 2,
++              gapWidth: 2,
++              color: text.grid,
++            },
++          },
++          { colorSaturation: [0, 0], itemStyle: { borderWidth: 1, gapWidth: 1, borderColor: text.surface } },
++        ],
++        data,
++      },
++    ],
++  });
++  registerChart(chart, host);
++}
++
++/* ---------------------------------------------------------------- tables */
++
++function table(rows, headers) {
++  const t = document.createElement("table");
++  t.className = "grid";
++  const thead = t.createTHead();
++  const headRow = thead.insertRow();
++  for (const h of headers) {
++    const th = document.createElement("th");
++    th.textContent = h;
++    headRow.append(th);
++  }
++  const tbody = t.createTBody();
++  for (const row of rows) {
++    const tr = tbody.insertRow();
++    for (const cell of row) {
++      const td = tr.insertCell();
++      td.textContent = cell;
++    }
++  }
++  return t;
++}
++
++function renderTreemapTable(snapshot) {
++  const host = document.getElementById("treemap-table");
++  host.replaceChildren(
++    table(
++      snapshot.modules
++        .slice()
++        .sort((a, b) => b.total - a.total)
++        .map((m) => [
++          `${m.group}/${m.child}`,
++          fmtFull(m.total),
++          fmtFull(m.verified_exec),
++          fmtFull(m.trusted),
++          fmtFull(m.unverified),
++          PCT(m.total ? m.verified_exec / m.total : 0),
++        ]),
++      ["Module", "Exec LoC", "Verified", "Trusted", "Unverified", "Verified share"],
++    ),
++  );
++}
++
++function renderHistoryTable(points) {
++  const host = document.getElementById("history-table");
++  host.replaceChildren(
++    table(
++      points
++        .slice()
++        .reverse()
++        .map((p) => [
++          (p.date || "").slice(0, 10),
++          String(p.sha || "").slice(0, 8),
++          fmtFull(p.verified_exec ?? 0),
++          fmtFull(p.trusted ?? 0),
++          fmtFull(p.spec ?? 0),
++          fmtFull(p.proof ?? 0),
++        ]),
++      ["Date", "Commit", "Verified", "Trusted", "Spec", "Proof"],
++    ),
++  );
++}
++
++/* ------------------------------------------------------------- plumbing */
++
++function placeholder(message) {
++  const el = document.createElement("p");
++  el.className = "chart-placeholder";
++  el.textContent = message;
++  return el;
++}
++
++const liveCharts = [];
++const liveData = {};
++
++function registerChart(chart, host) {
++  liveCharts.push([chart, host]);
++}
++
++function rerender() {
++  liveCharts.length = 0; // disposed below
++  renderHistoryChart(liveData.points || []);
++  renderTreemapChart(liveData.snapshot);
++}
++
++function disposeCharts() {
++  for (const [chart] of liveCharts) chart.dispose();
++  liveCharts.length = 0;
++}
++
++async function loadJson(url) {
++  const response = await fetch(url);
++  if (!response.ok) return null;
++  return response.json();
++}
++
++async function main() {
++  const [snapshot, history] = await Promise.all([
++    loadJson("stats/snapshot.json"),
++    loadJson("stats/history.json"),
++  ]);
++
++  if (!snapshot) {
++    document.getElementById("snapshot-meta").textContent =
++      "statistics unavailable for this deployment";
++    const tiles = document.getElementById("tiles");
++    tiles.replaceChildren(
++      placeholder("No snapshot — the stats job did not publish data for this run."),
++    );
++    document.getElementById("treemap-chart").replaceChildren(placeholder("No snapshot."));
++    document.getElementById("history-chart").replaceChildren(placeholder("No history."));
++    return;
++  }
++  liveData.snapshot = snapshot;
++  liveData.points = history && Array.isArray(history.points) ? history.points : [];
++
++  const shaShort = String(snapshot.sha || "").slice(0, 8);
++  document.getElementById("snapshot-meta").textContent =
++    `snapshot ${shaShort} · ${fmtFull(snapshot.totals.total)} executable LoC budget` +
++    (snapshot.mainline_sha ? ` · mainline ${String(snapshot.mainline_sha).slice(0, 8)}` : "");
++
++  renderTiles(snapshot, liveData.points);
++  renderHistoryChart(liveData.points);
++  renderTreemapChart(snapshot);
++  renderHistoryTable(liveData.points);
++  renderTreemapTable(snapshot);
++
++  const scheme = window.matchMedia("(prefers-color-scheme: dark)");
++  scheme.addEventListener("change", () => {
++    disposeCharts();
++    renderHistoryChart(liveData.points);
++    renderTreemapChart(liveData.snapshot);
++  });
++}
++
++main().catch((error) => {
++  document.getElementById("snapshot-meta").textContent = "failed to load stats";
++  console.error(error);
++});
+diff --git a/tools/site/index.html b/tools/site/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..06cb5a3978c11adf0e93009cbb82d73d9f4c29e9
+--- /dev/null
++++ b/tools/site/index.html
+@@ -0,0 +1,66 @@
++<!doctype html>
++<html lang="en">
++<head>
++  <meta charset="utf-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1">
++  <title>VOSTD — Verification Dashboard</title>
++  <meta name="description" content="Verification coverage of the VOSTD (verified OSTD) kernel standard library: per-module status and verified lines of code over time.">
++  <link rel="icon" href="data:,">
++  <link rel="stylesheet" href="style.css">
++  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
++          integrity="sha384-Mx5lkUEQPM1pOJCwFtUICyX45KNojXbkWdYhkKUKsbv391mavbfoAmONbzkgYPzR"
++          crossorigin="anonymous"></script>
++</head>
++<body>
++  <div class="wrap">
++    <header class="page">
++      <h1>VOSTD</h1>
++      <span class="subtitle">verification dashboard</span>
++      <span class="spacer"></span>
++      <a class="repo-btn" href="https://github.com/asterinas/vostd" target="_blank" rel="noopener">GitHub</a>
++      <p class="meta" id="snapshot-meta">loading…</p>
++    </header>
++
++    <nav class="site-links" aria-label="Site sections">
++      <a href="verusdoc/ostd/index.html">
++        <span class="card-title">Verusdoc</span>
++        <span class="card-desc">API documentation with verified specifications</span>
++        <span class="card-arrow">→ /verusdoc/</span>
++      </a>
++      <a href="dev/bench/">
++        <span class="card-title">Performance bench</span>
++        <span class="card-desc">Verification cost (rlimit) per commit over time</span>
++        <span class="card-arrow">→ /dev/bench/</span>
++      </a>
++    </nav>
++
++    <section class="tiles" id="tiles" aria-label="Headline verification numbers"></section>
++
++    <section class="card">
++      <h2>Verified lines of code over time</h2>
++      <p class="card-note" id="history-note">VOSTD-raw line counts recorded on every verified main-branch commit (spec and proof lines are not part of the executable budget).</p>
++      <div class="chart" id="history-chart" role="img" aria-label="Line chart of verified, trusted, spec, and proof lines of code over time"></div>
++      <details class="data-table">
++        <summary>View data</summary>
++        <div id="history-table"></div>
++      </details>
++    </section>
++
++    <section class="card">
++      <h2>Verification status by module</h2>
++      <p class="card-note" id="treemap-note">Area is the mainline OSTD executable-LoC budget per module; VOSTD counts are clamped to it so numbers describe real code size. Click to drill down.</p>
++      <div class="chart" id="treemap-chart" role="img" aria-label="Treemap of OSTD modules by executable lines of code, split into verified, trusted, and unverified parts"></div>
++      <details class="data-table">
++        <summary>View data</summary>
++        <div id="treemap-table"></div>
++      </details>
++    </section>
++
++    <footer class="page" id="footer">
++      Generated by CI from <a href="https://github.com/asterinas/vostd" target="_blank" rel="noopener">asterinas/vostd</a>.
++      Data: <a href="stats/snapshot.json">snapshot.json</a> · <a href="stats/history.json">history.json</a>.
++    </footer>
++  </div>
++  <script src="app.js"></script>
++</body>
++</html>
+diff --git a/tools/site/style.css b/tools/site/style.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..89794a399413b2fedc16fdf2f0e98e7567ca8628
+--- /dev/null
++++ b/tools/site/style.css
+@@ -0,0 +1,190 @@
++/* VOSTD verification dashboard chrome.
++ * Values follow the validated reference palette (see the dataviz skill):
++ * chart chrome/ink tokens plus a blue ordinal ramp for the treemap states. */
++
++:root {
++  --page: #f9f9f7;
++  --surface-1: #fcfcfb;
++  --ink: #0b0b0b;
++  --ink-2: #52514e;
++  --ink-3: #898781;
++  --grid: #e1e0d9;
++  --baseline: #c3c2b7;
++  --border: rgba(11, 11, 11, 0.10);
++  --good-text: #006300;
++  --bad-text: #d03b3b;
++
++  /* Categorical series (fixed order, validated set). */
++  --series-verified: #2a78d6; /* slot 1 blue — verified exec */
++  --series-trusted: #1baf7a;  /* slot 2 aqua — trusted boundary */
++  --series-spec: #eda100;    /* slot 3 yellow — spec */
++  --series-proof: #008300;   /* slot 4 green — proof */
++
++  /* Treemap: one blue ordinal ramp unverified → trusted → verified. */
++  --tm-unverified: #86b6ef;
++  --tm-trusted: #3987e5;
++  --tm-verified: #184f95;
++}
++
++@media (prefers-color-scheme: dark) {
++  :root {
++    --page: #0d0d0d;
++    --surface-1: #1a1a19;
++    --ink: #ffffff;
++    --ink-2: #c3c2b7;
++    --ink-3: #898781;
++    --grid: #2c2c2a;
++    --baseline: #383835;
++    --border: rgba(255, 255, 255, 0.10);
++    --good-text: #0ca30c;
++    --bad-text: #e66767;
++
++    --series-verified: #3987e5;
++    --series-trusted: #199e70;
++    --series-spec: #c98500;
++    --series-proof: #008300;
++
++    --tm-unverified: #86b6ef;
++    --tm-trusted: #3987e5;
++    --tm-verified: #184f95;
++  }
++}
++
++* { box-sizing: border-box; }
++
++html { scroll-behavior: smooth; }
++
++body {
++  margin: 0;
++  background: var(--page);
++  color: var(--ink);
++  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
++  font-size: 15px;
++  line-height: 1.55;
++}
++
++.wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px 64px; }
++
++header.page {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: baseline;
++  gap: 8px 20px;
++  padding: 40px 0 8px;
++}
++
++header.page h1 { margin: 0; font-size: 26px; letter-spacing: 0.2px; }
++header.page .subtitle { color: var(--ink-2); font-size: 17.1px; }
++header.page .spacer { flex: 1; }
++header.page .repo-btn {
++  padding: 6px 14px;
++  border-radius: 15px;
++  border: 1px solid var(--baseline);
++  color: var(--ink);
++  font-size: 14px;
++  text-decoration: none;
++}
++header.page .repo-btn:hover { background: var(--surface-1); }
++
++.meta { color: var(--ink-3); font-size: 12.8px; margin: 2px 0 0; }
++
++/* Link cards to the two sub-sites. */
++.site-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 22px 0 30px; }
++
++.site-links a {
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++  background: var(--surface-1);
++  border: 1px solid var(--border);
++  border-radius: 8px;
++  padding: 18px 20px;
++  text-decoration: none;
++  color: var(--ink);
++}
++.site-links a:hover { border-color: var(--baseline); }
++.site-links .card-title { font-size: 16.1px; font-weight: 600; }
++.site-links .card-desc { color: var(--ink-2); font-size: 13.4px; }
++.site-links .card-arrow { color: var(--ink-3); font-size: 13px; font-family: ui-monospace, monospace; }
++
++/* Stat tiles. */
++.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin: 24px 0 8px; }
++
++.tile {
++  background: var(--surface-1);
++  border: 1px solid var(--border);
++  border-radius: 8px;
++  padding: 14px 18px 12px;
++}
++
++.tile .tile-label { color: var(--ink-2); font-size: 12.8px; }
++.tile .tile-value { font-size: 30px; font-weight: 600; line-height: 1.2; margin-top: 4px; }
++.tile .tile-delta { font-size: 12.8px; margin-top: 2px; color: var(--ink-2); }
++.tile .tile-delta.up { color: var(--good-text); }
++.tile .tile-delta.down { color: var(--bad-text); }
++
++/* Chart cards. */
++.card {
++  background: var(--surface-1);
++  border: 1px solid var(--border);
++  border-radius: 8px;
++  padding: 6px 8px 14px;
++  margin: 18px 0;
++}
++
++.card h2 { font-size: 16.1px; margin: 16px 16px 4px; font-weight: 600; }
++.card .card-note { color: var(--ink-2); font-size: 12.8px; margin: 0 16px 8px; }
++
++.chart { width: 100%; height: 420px; }
++
++.chart-placeholder {
++  color: var(--ink-3);
++  font-size: 13.4px;
++  padding: 60px 16px;
++  text-align: center;
++}
++
++/* Table view (toggleable twin of each chart). */
++details.data-table { margin: 8px 16px 6px; }
++details.data-table summary { cursor: pointer; color: var(--ink-2); font-size: 12.8px; }
++details.data-table summary:hover { color: var(--ink); }
++
++table.grid {
++  border-collapse: collapse;
++  width: 100%;
++  margin: 10px 0 4px;
++  font-size: 13px;
++}
++
++table.grid th, table.grid td {
++  padding: 5px 10px;
++  border-bottom: 1px solid var(--grid);
++  text-align: right;
++  font-variant-numeric: tabular-nums;
++}
++
++table.grid th:first-child, table.grid td:first-child { text-align: left; }
++table.grid th { color: var(--ink-2); font-weight: 600; border-top: none; }
++table.grid tr:last-child td { border-bottom: none; }
++table.grid td.num-mismatch td, table.grid td .muted { color: var(--ink-3); }
++
++footer.page {
++  color: var(--ink-3);
++  font-size: 12.4px;
++  border-top: 1px solid var(--grid);
++  padding-top: 18px;
++  margin-top: 36px;
++}
++footer.page a { color: var(--ink-2); }
++
++/* ECharts tooltip chrome (canvas charts don't inherit page CSS). */
++.card .echarts-tooltip {
++  background: var(--surface-1);
++  border: 1px solid var(--border);
++  color: var(--ink);
++  font-size: 12.5px;
++  line-height: 1.5;
++  padding: 6px 10px;
++}
++.card .echarts-tooltip .tt-value { color: var(--ink); font-weight: 600; }
++.card .echarts-tooltip .tt-label { color: var(--ink-2); }
+diff --git a/tools/verus_stats.py b/tools/verus_stats.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..bd8abc89efcd29c85cdd5de6f0ff679fed2eef1c
+--- /dev/null
++++ b/tools/verus_stats.py
+@@ -0,0 +1,553 @@
++#!/usr/bin/env python3
++"""Generate VOSTD verification statistics for the GitHub Pages site.
++
++The ``snapshot`` subcommand scans the VOSTD sources (``ostd/src`` and
++``ostd/libs`` by default) with the Verus ``line_count`` tool and reports, per
++module, how much executable code is verified, sits at a trusted boundary, or is
++unverified. With ``--mainline-source`` (a checkout of the ``phaseII/mainline``
++branch), each file's verified/trusted counts are clamped to the mainline
++executable-LoC budget with the same normalization ``code_treemap.py`` applies,
++so headline numbers describe real code size rather than post-rewrite growth.
++
++The ``record`` subcommand appends a snapshot's totals to a history file (one
++point per commit) that the site renders as a line chart.
++"""
++
++from __future__ import annotations
++
++import argparse
++import json
++import os
++import subprocess
++import sys
++from concurrent.futures import ThreadPoolExecutor
++from dataclasses import dataclass
++from pathlib import Path
++from typing import Any
++
++REPO_ROOT = Path(__file__).resolve().parents[1]
++DEFAULT_LINE_COUNT = REPO_ROOT / "tools/verus/source/target-verus/release/line_count"
++DEFAULT_SOURCES = ("src=ostd/src", "libs=ostd/libs")
++
++VERIFIED = "verified_exec"
++TRUSTED = "trusted"
++UNVERIFIED = "unverified"
++
++TEST_DIRECTORY_NAMES = {"test", "tests"}
++
++
++@dataclass
++class Coverage:
++    """Classification counts for one module (or the whole tree)."""
++
++    budget: int = 0  # executable LoC budget (mainline exec, or vostd exec if unmatched)
++    verified_exec: int = 0
++    trusted: int = 0
++    spec: int = 0
++    proof: int = 0
++    rust_mode: int = 0
++    files: int = 0
++    files_with_mainline: int = 0
++
++    def add(self, other: "Coverage") -> None:
++        for name in vars(self):
++            setattr(self, name, getattr(self, name) + getattr(other, name))
++
++    @property
++    def total(self) -> int:
++        return self.budget
++
++    @property
++    def unverified(self) -> int:
++        return max(0, self.budget - self.verified_exec - self.trusted)
++
++    def as_dict(self) -> dict[str, Any]:
++        return {
++            "total": self.total,
++            VERIFIED: self.verified_exec,
++            TRUSTED: self.trusted,
++            UNVERIFIED: self.unverified,
++            "spec": self.spec,
++            "proof": self.proof,
++            "rust_mode": self.rust_mode,
++            "files": self.files,
++            "files_with_mainline": self.files_with_mainline,
++        }
++
++
++def is_test_source(relative: Path) -> bool:
++    parts = [part.casefold() for part in relative.parts]
++    filename = parts[-1] if parts else ""
++    stem = Path(filename).stem.casefold()
++    return (
++        stem in TEST_DIRECTORY_NAMES
++        or any(part in TEST_DIRECTORY_NAMES for part in parts)
++        or stem.endswith(("_test", "_tests"))
++    )
++
++
++def run_line_count_file(
++    line_count_path: Path, file_path: Path, *, no_external_by_default: bool = False
++) -> tuple[dict[str, Any] | None, str | None]:
++    """Run Verus line_count on one source file and parse its JSON report."""
++    cmd = [str(line_count_path), str(file_path), "--json"]
++    if no_external_by_default:
++        cmd.append("--no-external-by-default")
++
++    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
++    if result.returncode != 0:
++        detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
++        return None, f"{file_path}: {detail.splitlines()[-1]}"
++    try:
++        return json.loads(result.stdout), None
++    except json.JSONDecodeError as exc:
++        return None, f"{file_path}: invalid line_count JSON: {exc}"
++
++
++def classify_lines(report: dict[str, Any] | None) -> dict[str, int]:
++    """Bucket a line_count ``total`` map into VOSTD's verification statuses.
++
++    ``total`` maps a comma-joined kind set (``"exec,trusted"``, ``"proof,exec"``,
++    ``""`` for Rust-mode code outside ``verus!``, ...) to a line count. The
++    buckets follow ``code_treemap.py``: any set containing ``trusted`` is
++    trusted, then ``exec`` (including ``proof,exec`` proof blocks living in
++    exec functions), ``spec``, ``proof``, and the empty set is Rust-mode.
++    Comments, layout, and directives are ignored.
++    """
++    counts = {name: 0 for name in (VERIFIED, TRUSTED, "spec", "proof", "rust_mode")}
++    if report is None:
++        return counts
++    for labels, value in report.get("total", {}).items():
++        kinds = {part.strip().lower() for part in labels.split(",") if part.strip()}
++        if "trusted" in kinds:
++            counts[TRUSTED] += int(value or 0)
++        elif "exec" in kinds:
++            counts[VERIFIED] += int(value or 0)
++        elif "spec" in kinds:
++            counts["spec"] += int(value or 0)
++        elif "proof" in kinds:
++            counts["proof"] += int(value or 0)
++        elif not kinds:
++            counts["rust_mode"] += int(value or 0)
++    return counts
++
++
++def mainline_budget(buckets: dict[str, int]) -> int:
++    """Executable-LoC budget of a mainline file (no VOSTD twin counted here).
++
++    Mainline files are plain Rust run through ``--no-external-by-default``, so
++    function bodies land in the ``exec`` kind (verified bucket here); blank
++    lines and item shells stay unaccounted. ``code_treemap.py`` counts the same
++    ``exec`` kind set as its per-file budget.
++    """
++    return buckets[VERIFIED] + buckets[TRUSTED]
++
++
++def normalize_coverage(total: int, full: int, partial: int) -> tuple[int, int]:
++    """Clamp VOSTD counts to the mainline executable-LoC budget.
++
++    Mirrors ``code_treemap.py``: the full:partial ratio is preserved, scaled
++    down when rewrites inflate the VOSTD tree past the mainline file verifies.
++    """
++    total = max(0, int(total))
++    full = max(0, int(full))
++    partial = max(0, int(partial))
++    verified_total = full + partial
++    if verified_total > total and verified_total > 0:
++        exact_full = total * full / verified_total
++        full = int(exact_full)
++        partial = total - full
++        if exact_full - full >= 0.5 and partial > 0:
++            full += 1
++            partial -= 1
++    return full, partial
++
++
++def module_path(relative: Path, kind: str) -> tuple[str, str] | None:
++    """Map a source file relative to its root to a (group, child) module pair.
++
++    ``src`` files under ``arch/<platform>/...`` group under ``arch`` with the
++    platform retained in the child name; other ``src`` files group by top-level
++    directory. ``libs`` files roll up under ``libs`` with the crate as child.
++    """
++    parts = relative.parts
++    if not parts:
++        return None
++    if kind == "libs":
++        return "libs", parts[0]
++
++    if parts[0] == "arch" and len(parts) >= 3:
++        tail = parts[2:]
++        child = Path(tail[0]).stem if len(tail) == 1 else tail[0]
++        return "arch", f"{parts[1]}/{child}"
++
++    if len(parts) == 1:
++        return relative.stem, relative.stem
++
++    tail = parts[1:]
++    child = Path(tail[0]).stem if len(tail) == 1 else tail[0]
++    return parts[0], child
++
++
++def parse_exclude(specs: list[str]) -> set[tuple[str, str | None]]:
++    """Parse ``--exclude`` specs into (group, child|None) pairs."""
++    parsed: set[tuple[str, str | None]] = set()
++    for spec in specs:
++        spec = spec.strip().strip("/")
++        if not spec:
++            continue
++        if "/" in spec:
++            group, child = spec.split("/", 1)
++            if group.strip() and child.strip():
++                parsed.add((group.strip().strip("/"), child.strip().strip("/")))
++        else:
++            parsed.add((spec, None))
++    return parsed
++
++
++def is_excluded(group: str, child: str, excluded: set[tuple[str, str | None]]) -> bool:
++    """Check exclusion for group/child including arch platform prefixes."""
++    if (group, child) in excluded or (group, None) in excluded:
++        return True
++    if group == "arch" and "/" in child:
++        platform, module = child.split("/", 1)
++        return (
++            ("arch", platform) in excluded
++            or (platform, None) in excluded
++            or (platform, module) in excluded
++        )
++    return False
++
++
++def inventory(roots: list[tuple[str, Path]]) -> dict[tuple[str, Path], Path]:
++    """Collect ``{(kind, relative_path): absolute_path}`` for a tree's roots."""
++    files: dict[tuple[str, Path], Path] = {}
++    for kind, root in roots:
++        for file in sorted(root.rglob("*.rs"), key=lambda p: str(p)):
++            relative = file.relative_to(root)
++            if not is_test_source(relative):
++                files[(kind, relative)] = file
++    return files
++
++
++def collect_coverage(
++    line_count_path: Path,
++    vostd_roots: list[tuple[str, Path]],
++    mainline_roots: list[tuple[str, Path]] | None,
++    jobs: int,
++    excluded: set[tuple[str, str | None]],
++) -> tuple[dict[str, dict[str, Coverage]], list[str]]:
++    """Count every file, pairing each VOSTD file with its mainline twin."""
++    if mainline_roots is None:
++        mainline_roots = []
++
++    vostd_files = inventory(vostd_roots)
++    mainline_files = inventory(mainline_roots)
++
++    vostd_reports: dict[tuple[str, Path], dict[str, Any] | None] = {}
++    mainline_reports: dict[tuple[str, Path], dict[str, Any] | None] = {}
++    warnings: list[str] = []
++
++    with ThreadPoolExecutor(max_workers=jobs) as pool:
++        # VOSTD files are counted verbatim (external-by-default, as
++        # code_treemap.py counts its verified tree).
++        for (key, report, error) in [
++            (key, *run_line_count_file(line_count_path, path))
++            for key, path in sorted(vostd_files.items())
++        ]:
++            vostd_reports[key] = report
++            if error:
++                warnings.append(error)
++        # Mainline files are plain Rust; --no-external-by-default makes foreign
++        # items count as exec instead of being trusted away.
++        for (key, report, error) in [
++            (key, *run_line_count_file(line_count_path, path, no_external_by_default=True))
++            for key, path in sorted(mainline_files.items())
++        ]:
++            mainline_reports[key] = report
++            if error:
++                warnings.append(error)
++
++    modules: dict[str, dict[str, Coverage]] = {}
++
++    def account(group: str, child: str, coverage: Coverage) -> None:
++        if is_excluded(group, child, excluded):
++            return
++        modules.setdefault(group, {}).setdefault(child, Coverage())
++        modules[group][child].add(coverage)
++
++    for key in sorted(vostd_reports):
++        group_child = module_path(key[1], key[0])
++        if group_child is None:
++            continue
++        group, child = group_child
++
++        buckets = classify_lines(vostd_reports[key])
++        has_mainline = key in mainline_reports
++        if has_mainline:
++            budget = mainline_budget(classify_lines(mainline_reports[key]))
++            full, partial = normalize_coverage(budget, buckets[VERIFIED], buckets[TRUSTED])
++        else:
++            # No mainline twin (new/rewritten file): keep vostd raw counts, the
++            # site marks such modules as backed only by vostd itself.
++            budget = buckets[VERIFIED] + buckets[TRUSTED]
++            full, partial = buckets[VERIFIED], buckets[TRUSTED]
++
++        account(
++            group,
++            child,
++            Coverage(
++                budget=budget,
++                verified_exec=full,
++                trusted=partial,
++                spec=buckets["spec"],
++                proof=buckets["proof"],
++                rust_mode=buckets["rust_mode"],
++                files=1,
++                files_with_mainline=1 if has_mainline else 0,
++            ),
++        )
++
++    # Mainline-only files: entirely unverified, still sized by their budget.
++    for key in sorted(mainline_reports):
++        if key in vostd_files:
++            continue
++        group_child = module_path(key[1], key[0])
++        if group_child is None:
++            continue
++        group, child = group_child
++        budget = mainline_budget(classify_lines(mainline_reports[key]))
++        account(group, child, Coverage(budget=budget, files=1))
++
++    return modules, warnings
++
++
++def totals_of(modules: dict[str, dict[str, Coverage]]) -> Coverage:
++    totals = Coverage()
++    for children in modules.values():
++        for coverage in children.values():
++            totals.add(coverage)
++    return totals
++
++
++def git_output(repo: Path, *args: str) -> str:
++    result = subprocess.run(
++        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=False
++    )
++    return result.stdout.strip() if result.returncode == 0 else ""
++
++
++def print_report(modules: dict[str, dict[str, Coverage]], warnings: list[str]) -> None:
++    totals = totals_of(modules)
++    print(f"Files scanned: {totals.files}")
++    if totals.files:
++        matched = totals.files_with_mainline
++        print(f"Files with a mainline twin: {matched} ({100 * matched / totals.files:.1f}%)")
++    print(f"Executable LoC (mainline budget): {totals.total:,}")
++    for label, value in (
++        ("Verified", totals.verified_exec),
++        ("Trusted boundary", totals.trusted),
++        ("Unverified", totals.unverified),
++        ("Spec", totals.spec),
++        ("Proof", totals.proof),
++        ("Rust-mode (vostd raw)", totals.rust_mode),
++    ):
++        share = 100 * value / totals.total if totals.total else 0
++        print(f"{label:<22} {value:>8,}  {share:>6.1f}%")
++    print()
++    print(
++        f"{'Module':<12} {'Exec LoC':>10} {'Verified':>9} "
++        f"{'Trusted':>8} {'Unverified':>11} {'Backed':>7}"
++    )
++    for group in sorted(modules):
++        coverage = Coverage()
++        for child_coverage in modules[group].values():
++            coverage.add(child_coverage)
++        backed = (
++            f"{100 * coverage.files_with_mainline / coverage.files:.0f}%"
++            if coverage.files
++            else "-"
++        )
++        total = coverage.total or 1
++        print(
++            f"{group:<12} {coverage.total:>10,} "
++            f"{100 * coverage.verified_exec / total:>8.1f}% "
++            f"{100 * coverage.trusted / total:>7.1f}% "
++            f"{100 * coverage.unverified / total:>10.1f}% "
++            f"{backed:>7}"
++        )
++    if warnings:
++        print(f"\nline_count warnings/errors: {len(warnings)}", file=sys.stderr)
++        for warning in warnings[:10]:
++            print(f"  {warning}", file=sys.stderr)
++        if len(warnings) > 10:
++            print(f"  ... and {len(warnings) - 10} more", file=sys.stderr)
++
++
++def write_snapshot(
++    modules: dict[str, dict[str, Coverage]],
++    output: Path,
++    sha: str,
++    date: str,
++    mainline_sha: str | None,
++) -> None:
++    totals = totals_of(modules)
++    snapshot = {
++        "date": date,
++        "sha": sha,
++        "mainline_sha": mainline_sha,
++        "modules": [
++            {"group": group, "child": child, **coverage.as_dict()}
++            for group, children in sorted(modules.items())
++            for child, coverage in sorted(children.items())
++            if coverage.total > 0
++        ],
++        "totals": totals.as_dict(),
++    }
++    output.parent.mkdir(parents=True, exist_ok=True)
++    output.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
++    print(f"Snapshot: {output}")
++
++
++def resolve_roots(specs: list[str]) -> list[tuple[str, Path]]:
++    """Resolve 'src=DIR' / 'libs=DIR' specs to (kind, absolute dir) pairs."""
++    roots = []
++    for spec in specs:
++        kind, sep, path = spec.partition("=")
++        if kind not in ("src", "libs"):
++            kind, path = "src", spec
++        root = Path(path).expanduser()
++        if not root.is_absolute():
++            root = REPO_ROOT / root
++        root = root.resolve()
++        if not root.is_dir():
++            raise SystemExit(f"source directory does not exist: {root}")
++        roots.append((kind, root))
++    return roots
++
++
++def cmd_snapshot(args: argparse.Namespace) -> int:
++    line_count_path = args.line_count.expanduser().resolve()
++    if not line_count_path.is_file():
++        raise SystemExit(
++            f"line_count does not exist: {line_count_path}\n"
++            "Build it with: cd tools/verus/source && cargo build --release -p line_count"
++        )
++
++    modules, warnings = collect_coverage(
++        line_count_path,
++        resolve_roots(args.source or list(DEFAULT_SOURCES)),
++        resolve_roots(args.mainline_source) if args.mainline_source else None,
++        args.jobs,
++        parse_exclude(args.exclude),
++    )
++
++    if args.arch is not None and "arch" in modules:
++        modules["arch"] = {
++            child: coverage
++            for child, coverage in modules["arch"].items()
++            if child.startswith(f"{args.arch}/")
++        }
++        if not modules["arch"]:
++            del modules["arch"]
++
++    if not modules:
++        raise SystemExit("line_count produced no executable lines")
++
++    sha = args.sha or git_output(REPO_ROOT, "rev-parse", "HEAD")
++    date = args.date or git_output(REPO_ROOT, "show", "-s", "--format=%cI", sha) or ""
++    write_snapshot(modules, args.output, sha, date, args.mainline_sha)
++    print_report(modules, warnings)
++    return 0
++
++
++def cmd_record(args: argparse.Namespace) -> int:
++    snapshot = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
++    history_path = Path(args.history)
++    history_path.parent.mkdir(parents=True, exist_ok=True)
++    if history_path.is_file():
++        history = json.loads(history_path.read_text(encoding="utf-8"))
++    else:
++        history = {"points": []}
++    points = history.setdefault("points", [])
++
++    totals = snapshot["totals"]
++    point = {
++        "date": snapshot["date"],
++        "sha": snapshot["sha"],
++        **{key: totals[key] for key in ("total", VERIFIED, TRUSTED, UNVERIFIED, "spec", "proof", "rust_mode")},
++    }
++    for existing in points:
++        if existing.get("sha") == point["sha"]:
++            existing.update(point)  # reruns refresh the same commit
++            break
++    else:
++        points.append(point)
++    points.sort(key=lambda p: (p.get("date") or "", p.get("sha") or ""))
++
++    history_path.write_text(json.dumps(history, indent=2) + "\n", encoding="utf-8")
++    print(f"History now holds {len(points)} points: {history_path}")
++    return 0
++
++
++def positive_integer(value: str) -> int:
++    parsed = int(value)
++    if parsed <= 0:
++        raise argparse.ArgumentTypeError("must be a positive integer")
++    return parsed
++
++
++def parse_args() -> argparse.ArgumentParser:
++    parser = argparse.ArgumentParser(
++        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
++    )
++    subparsers = parser.add_subparsers(dest="command", required=True)
++
++    snapshot = subparsers.add_parser("snapshot", help="count verification status per module")
++    snapshot.add_argument(
++        "--line-count", type=Path, default=DEFAULT_LINE_COUNT, help="Verus line_count binary"
++    )
++    snapshot.add_argument(
++        "--source",
++        action="append",
++        default=[],
++        metavar="KIND=DIR",
++        help="source root as 'src=DIR' or 'libs=DIR'; repeatable "
++        f"(default: {' '.join(DEFAULT_SOURCES)})",
++    )
++    snapshot.add_argument(
++        "--mainline-source",
++        action="append",
++        default=[],
++        metavar="KIND=DIR",
++        help="mainline baseline roots; repeatable (checkout of phaseII/mainline)",
++    )
++    snapshot.add_argument("--mainline-sha", help="commit the mainline checkout is at")
++    snapshot.add_argument("--arch", help="keep only one arch platform, e.g. x86")
++    snapshot.add_argument(
++        "--exclude",
++        action="append",
++        default=[],
++        help="exclude 'group/child' or 'group' from stats; repeatable",
++    )
++    snapshot.add_argument("--sha", help="commit being counted (default: git HEAD)")
++    snapshot.add_argument("--date", help="ISO timestamp of the commit (default: from git)")
++    snapshot.add_argument("-o", "--output", type=Path, default=Path("stats-snapshot.json"))
++    snapshot.add_argument("--jobs", type=positive_integer, default=min(8, os.cpu_count() or 1))
++    snapshot.set_defaults(func=cmd_snapshot)
++
++    record = subparsers.add_parser("record", help="append snapshot totals to a history file")
++    record.add_argument("--snapshot", type=Path, required=True)
++    record.add_argument("--history", type=Path, required=True)
++    record.set_defaults(func=cmd_record)
++
++    return parser
++
++
++def main(argv: list[str] | None = None) -> int:
++    args = parse_args().parse_args(argv)
++    return args.func(args)
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())

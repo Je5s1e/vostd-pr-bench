@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-70-ca8ef69001b0",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-70-ca8ef69001b0:commit-fix-9000178ee84b7a61db2212916a14b48cbf4fd308-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`lemma_va_range_get_guard_level` exports the guard-level bound used for path indexing and loop invariants while its entire proof body is `admit()`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 165,
+          "end_line": 172
+        }
+      ],
+      "rationale": "For every well-formed virtual-address range, callers may assume `1 <= va_range_get_guard_level(va) <= 4`, but the selected snapshot provides no checked derivation. `lock_range` invokes the lemma before indexing its path and maintaining level bounds. Repair 9000178e adds a decreasing recursive lemma over levels 1 through 4 and uses it to discharge exactly this guarantee.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/cursor.rs:165-172 declares the callable bound and closes it with `admit()`. The same selected file calls it in `lock_range` at lines 261-262. Repair 9000178ee84b7a61db2212916a14b48cbf4fd308 adds `lemma_va_range_get_guard_level_rec` and replaces the admit with a checked call.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/9000178ee84b7a61db2212916a14b48cbf4fd308",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "9000178ee84b7a61db2212916a14b48cbf4fd308:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/9000178ee84b7a61db2212916a14b48cbf4fd308",
+          "commit_id": "9000178ee84b7a61db2212916a14b48cbf4fd308"
+        }
+      ],
+      "verification": "Compatible historical Verus reports a passing problem target because `admit()` is trusted. Fixed-source primary and independent reviews confirm the unchecked guard-level theorem and that repair 9000178e replaces only this admit with a recursive proof."
+    },
+    {
+      "id": "pr-70-ca8ef69001b0:commit-fix-623d3a17a87382ce4b7e8dfb9b95600727f7fe86-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`lemma_va_range_get_tree_path` exports valid NodeIds and the exact guard-path length while its entire proof body is `admit()`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 183,
+          "end_line": 195
+        }
+      ],
+      "rationale": "`lock_range` consumes the theorem immediately after the guard-level lemma and may rely on every generated path node being valid and on `path.len() == 5 - guard_level`. Those are separate structural guarantees not established by the guard-level numeric bound. Repair 623d3a17 proves trace length and trace validity recursively and derives both exported path facts.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/cursor.rs:183-195 declares both guarantees and closes them with `admit()`. Repair 623d3a17a87382ce4b7e8dfb9b95600727f7fe86 adds trace-length/validity lemmas and a checked proof of each path element and the exact length.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/623d3a17a87382ce4b7e8dfb9b95600727f7fe86",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "623d3a17a87382ce4b7e8dfb9b95600727f7fe86:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/623d3a17a87382ce4b7e8dfb9b95600727f7fe86",
+          "commit_id": "623d3a17a87382ce4b7e8dfb9b95600727f7fe86"
+        }
+      ],
+      "verification": "Compatible historical Verus accepts the selected snapshot because the body is trusted. Source and independent reviews confirm this distinct path-validity/length obligation and its complete removal by repair 623d3a17."
+    },
+    {
+      "id": "pr-70-ca8ef69001b0:commit-fix-5160ce043de84bf2edb9b96d94357c1774c20316-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`NodeHelper::lemma_is_child_level_relation` exports the one-level parent/child relationship while its entire proof body is `admit()`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/utils.rs",
+          "start_line": 1648,
+          "end_line": 1657
+        }
+      ],
+      "rationale": "Cursor descent can treat every valid child as exactly one paging level below its parent without deriving that fact from `is_child`. This is a general NodeHelper relation, distinct from the virtual-address range and trace theorems. Repair 5160ce04 derives subtree membership and applies established level/depth relations for both nodes.",
+      "source_evidence": "after/lock-protocol/src/spec/utils.rs:1648-1657 states `nid_to_level(pa) == nid_to_level(ch) + 1` and ends in `admit()`. The selected cursor calls the theorem during descent at line 369. Repair 5160ce043de84bf2edb9b96d94357c1774c20316 replaces the admit with three checked helper calls.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/5160ce043de84bf2edb9b96d94357c1774c20316",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "5160ce043de84bf2edb9b96d94357c1774c20316:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/5160ce043de84bf2edb9b96d94357c1774c20316",
+          "commit_id": "5160ce043de84bf2edb9b96d94357c1774c20316"
+        }
+      ],
+      "verification": "The selected snapshot verifies only because the parent/child theorem is trusted. Fixed Git comparison and independent review confirm that repair 5160ce04 proves this general level relation without changing its contract."
+    },
+    {
+      "id": "pr-70-ca8ef69001b0:commit-fix-86257079bec7c99f2c803970a9d4676f9d182b23-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`lemma_va_level_to_nid_inc` exports the correspondence between virtual-address traces and the next child NodeId while its entire proof body is `admit()`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/common.rs",
+          "start_line": 127,
+          "end_line": 139
+        }
+      ],
+      "rationale": "A cursor descent step may identify `get_child(nid, idx)` with the NodeId for the next lower virtual-address level without a checked connection between consecutive traces, the extracted offset, and the trace/NodeId bijection. Repair 86257079 proves those trace and offset facts and then derives the exact child equality.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/common.rs:127-139 declares the child-NodeId equality and ends in `admit()`. The selected cursor invokes it at lines 363-368. Repair 86257079bec7c99f2c803970a9d4676f9d182b23 replaces the admit with the consecutive-trace, bit-shift/offset, valid-trace, and bijection proof and relocates shared trace helpers without changing them.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/86257079bec7c99f2c803970a9d4676f9d182b23",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "86257079bec7c99f2c803970a9d4676f9d182b23:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/86257079bec7c99f2c803970a9d4676f9d182b23",
+          "commit_id": "86257079bec7c99f2c803970a9d4676f9d182b23"
+        }
+      ],
+      "verification": "The problem and final snapshots pass with compatible historical Verus because the problem admit is trusted. Source comparison and independent review confirm the distinct trace-to-child theorem and the checked final repair."
+    }
+  ]
+}

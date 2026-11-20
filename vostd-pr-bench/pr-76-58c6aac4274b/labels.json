@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-76-58c6aac4274b:commit-fix-ab845472e85a6dd406ad91ef0edbf839d797588a-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "recursive_trace duplicates reached children instead of including the starting node, while the admitted trace length theorem is false even for an empty path.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 765,
+          "end_line": 785
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 1394,
+          "end_line": 1430
+        }
+      ],
+      "rationale": "For root r and one-edge child c, recursive_trace returns [c,c], not the documented [r,c]; a missing child returns [] rather than the visited prefix. Independently, trace_no_longer_than_path([]) claims len([r]) <= 0. Repair ab845472 prepends self.value, preserves it on a missing child, changes the bound to path.len()+1, and proves the corrected lemmas; 9d8e1b1 updates FVT11's root-inclusive cursor invariant.",
+      "source_evidence": "after/vstd_extra/src/ghost_tree.rs\nlines 765-785\nblob 573d764ceab37347d6990476ea6d3b5c4e5e2996\nThe recursive step prepends child.value and then recurses into the same child; the missing-child arm returns empty.\n\nafter/vstd_extra/src/ghost_tree.rs\nlines 1425-1430\nblob 573d764ceab37347d6990476ea6d3b5c4e5e2996\nThe admitted wrapper promises trace.len() <= path.len(), contradicted by the empty path.\n\nrepair/vstd_extra/src/ghost_tree.rs\nlines 765-808\ncommit ab845472e85a6dd406ad91ef0edbf839d797588a\nThe repaired trace prepends self.value and proves length <= path.len()+1.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "ab845472e85a6dd406ad91ef0edbf839d797588a:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+          "commit_id": "ab845472e85a6dd406ad91ef0edbf839d797588a"
+        },
+        {
+          "kind": "commit_fix_followup",
+          "id": "9d8e1b1a801a7acd8e89fe786e7264352e26b587:root-1-caller-adaptation",
+          "url": "https://github.com/asterinas/vostd/commit/9d8e1b1a801a7acd8e89fe786e7264352e26b587",
+          "commit_id": "9d8e1b1a801a7acd8e89fe786e7264352e26b587"
+        }
+      ],
+      "verification": "Direct finite source witnesses [k] and [] plus immutable repair diff; no historical Verus run."
+    },
+    {
+      "id": "pr-76-58c6aac4274b:commit-fix-ab845472e85a6dd406ad91ef0edbf839d797588a-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "seek_trace_next exports an admitted child/trace equality without requiring a resolvable path, present child, valid depth, or in-range child index.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 1432,
+          "end_line": 1443
+        }
+      ],
+      "rationale": "The theorem unwraps seek(path), indexes children[idx], unwraps that child, and indexes trace[path.len()+1], yet has no requires clause. A missing path, absent child, or idx >= N lacks the required domains. Repair ab845472 adds tree/path/depth/index and Some preconditions and proves the equality; 9d8e1b1 supplies those facts at FVT11 callers.",
+      "source_evidence": "after/vstd_extra/src/ghost_tree.rs\nlines 1432-1443\nblob 573d764ceab37347d6990476ea6d3b5c4e5e2996\nseek_trace_next has no preconditions and ends in admit despite multiple unwrap/index operations in its postcondition.\n\nrepair/vstd_extra/src/ghost_tree.rs\ncommit ab845472e85a6dd406ad91ef0edbf839d797588a\nThe repaired theorem requires valid invariants, successful seek, present child, depth bound, and idx < N, then proves the result recursively.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "ab845472e85a6dd406ad91ef0edbf839d797588a:root-2",
+          "url": "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+          "commit_id": "ab845472e85a6dd406ad91ef0edbf839d797588a"
+        },
+        {
+          "kind": "commit_fix_followup",
+          "id": "9d8e1b1a801a7acd8e89fe786e7264352e26b587:root-2-caller-adaptation",
+          "url": "https://github.com/asterinas/vostd/commit/9d8e1b1a801a7acd8e89fe786e7264352e26b587",
+          "commit_id": "9d8e1b1a801a7acd8e89fe786e7264352e26b587"
+        }
+      ],
+      "verification": "Fixed-source domain analysis and checked repair diff; no historical Verus run."
+    },
+    {
+      "id": "pr-76-58c6aac4274b:commit-fix-ab845472e85a6dd406ad91ef0edbf839d797588a-root-3",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The admitted removal lemmas claim a removed child is absent from the entire subtree even though the tree invariant permits the same child value at another key or path.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 1133,
+          "end_line": 1144
+        },
+        {
+          "version": "after",
+          "path": "vstd_extra/src/ghost_tree.rs",
+          "start_line": 1160,
+          "end_line": 1177
+        }
+      ],
+      "rationale": "Node::inv does not require child nodes/values to be unique. A parent can store equal child node values at k1 and k2; removing k1 leaves the same node reachable at k2, contradicting lemma_remove_not_on_subtree. An alternate path analogously contradicts the recursive theorem. Repair ab845472 removes both false callable theorem APIs and their broadcast entries.",
+      "source_evidence": "after/vstd_extra/src/ghost_tree.rs\nlines 1133-1144\nblob 573d764ceab37347d6990476ea6d3b5c4e5e2996\nThe direct remove theorem is admitted and guarantees global subtree absence after deleting one key.\n\nafter/vstd_extra/src/ghost_tree.rs\nlines 1160-1177\nblob 573d764ceab37347d6990476ea6d3b5c4e5e2996\nThe recursive form repeats the uniqueness-dependent global absence guarantee.\n\nrepair/vstd_extra/src/ghost_tree.rs\ncommit ab845472e85a6dd406ad91ef0edbf839d797588a\nBoth false theorem APIs and their broadcast uses are commented out rather than admitted.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "ab845472e85a6dd406ad91ef0edbf839d797588a:root-3",
+          "url": "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+          "commit_id": "ab845472e85a6dd406ad91ef0edbf839d797588a"
+        }
+      ],
+      "verification": "Direct duplicate-child/alternate-path source counterexample and immutable removal diff; no historical Verus run."
+    }
+  ],
+  "sample_id": "pr-76-58c6aac4274b"
+}

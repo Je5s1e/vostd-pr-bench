@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-17-30beab687be4",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-17-30beab687be4:commit-fix-cd964908bc10022ac3f96531dd40ba2af8d40f0c-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The new FVT13 target omits the execution-termination policy for an intentional spin loop and a consuming queue loop, so the fixed Verus toolchain rejects the target with missing-decreases errors.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "fvt13-vmspace-unmap-safety/src/spin/exec.rs",
+          "start_line": 201,
+          "end_line": 201
+        },
+        {
+          "version": "after",
+          "path": "fvt13-vmspace-unmap-safety/src/tlb/cpu_local_queue/mod.rs",
+          "start_line": 76,
+          "end_line": 76
+        }
+      ],
+      "rationale": "Official Verus 9e262800af8757047b179a36ca655863bc76d005 enforces execution termination checking by default. At the selected FVT13 commit, the verifier reports `loop must have a decreases clause` at both listed loops. The spin loop depends on another participant releasing the lock and needs an explicit `exec_allows_no_decreases_clause` policy; the queue loop pops one page per iteration and supports `decreases pages.len()`. Immediate repair cd964908bc10022ac3f96531dd40ba2af8d40f0c adds those annotations (and a same-root measure to a later `defers` loop), after which the identical target reports 23 verified, 0 errors. This is a verifier-policy rejection, not a claim that the runtime spin loop must terminate.",
+      "source_evidence": "after/fvt13-vmspace-unmap-safety/src/spin/exec.rs\n201:         while !acquired\n\nafter/fvt13-vmspace-unmap-safety/src/tlb/cpu_local_queue/mod.rs\n76:         while pages.len() > 0\n\nPinned problem run reports missing-decreases diagnostics at both locations. Repair cd964908bc10022ac3f96531dd40ba2af8d40f0c adds a function-level exec termination opt-out for the spin lock and `decreases pages.len()` for the consuming queue loop; the repaired target reports `23 verified, 0 errors`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/cd964908bc10022ac3f96531dd40ba2af8d40f0c",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "cd964908bc10022ac3f96531dd40ba2af8d40f0c:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/cd964908bc10022ac3f96531dd40ba2af8d40f0c",
+          "commit_id": "cd964908bc10022ac3f96531dd40ba2af8d40f0c"
+        }
+      ],
+      "verification": "Independently reproduced twice with Verus 9e262800af8757047b179a36ca655863bc76d005 plus the historical VOSTD compatibility patch, Rust 1.82.0, and Z3 4.12.5: problem snapshot reports two missing-decreases diagnostics; repair snapshot reports 23 verified, 0 errors."
+    }
+  ]
+}

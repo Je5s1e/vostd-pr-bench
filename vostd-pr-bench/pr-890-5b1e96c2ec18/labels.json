@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-890-5b1e96c2ec18",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The newly added lemma_filter_laws helper lacks its opening verus! block while retaining the closing delimiter, so util/ops.rs cannot parse; its signature also omits the iter parameter used by its contract and three-argument call.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/util/ops.rs",
+          "start_line": 147,
+          "end_line": 161
+        }
+      ],
+      "rationale": "The preceding verus! block closes before the executable range_difference function. The new helper follows that function as proof syntax outside a verus! invocation, yet line161 closes a nonexistent block. This is a parser failure before name resolution. The helper also declares only pred and ret while its requires/body refer to iter and the preceding call supplies iter,pred,ret. The immediate child commit adds exactly the missing verus! opener and iter:I formal. These are grouped as the malformed introduction of one helper, not counted as independent duplicate build failures.",
+      "source_evidence": "after/ostd/src/util/ops.rs\n147: \n148: proof fn lemma_filter_laws<I: Iterator, P: FnMut(&I::Item) -> bool>(\n149:     pred: P,\n150:     ret: core::iter::Filter<I, P>,\n151: )\n152:     requires\n153:         iter.obeys_prophetic_iter_laws(),\n154:         filter_post(iter, pred, ret),\n155:     ensures\n156:         ret.obeys_prophetic_iter_laws(),\n157: {\n158:     filter_postcondition(iter, pred, ret);\n159: }\n160: \n161: } // verus!",
+      "verification": "Fixed source and direct child repair inspected; official GitHub PR890 get_commits lists exactly problem and fix. Ordinary local rustc parser was run on the exact exported problem file and reported unexpected closing delimiter at line161 before dependency resolution. Historical Verus/full OSTD build was not executed.",
+      "id": "pr-890-5b1e96c2ec18:commit-fix-f44c2f5fbecd9bdd16858a5dbf87e37a736dbf7d-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/f44c2f5fbecd9bdd16858a5dbf87e37a736dbf7d",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "f44c2f5fbecd9bdd16858a5dbf87e37a736dbf7d:root-1",
+          "commit_id": "f44c2f5fbecd9bdd16858a5dbf87e37a736dbf7d",
+          "url": "https://github.com/asterinas/vostd/commit/f44c2f5fbecd9bdd16858a5dbf87e37a736dbf7d"
+        }
+      ]
+    }
+  ]
+}

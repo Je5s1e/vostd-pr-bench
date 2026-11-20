@@ -1,0 +1,287 @@
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index a85e5449cdaa830401db3a73c13a36eba2a89031..ee747b3aef83d8816f8ac48c93dd0234e8cdbff7 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -1,12 +1,19 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Information of memory regions in the boot phase.
++use vstd::prelude::*;
++use vstd_extra::prelude::*;
++
++use aster_common::prelude::*;
++use ostd_specs::MemRegionModel;
++
+ use core::ops::Deref;
+ 
+-use align_ext::AlignExt;
++//use align_ext::AlignExt;
+ 
+-use crate::mm::{kspace::kernel_loaded_offset, Paddr, Vaddr, PAGE_SIZE};
++//use crate::mm::{kspace::kernel_loaded_offset, Paddr, Vaddr, PAGE_SIZE};
+ 
+ /// The type of initial memory regions that are needed for the kernel.
++#[verus_verify]
+ #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+ pub enum MemoryRegionType {
+     /// Maybe points to an unplugged DIMM module. It's bad anyway.
+@@ -32,6 +39,7 @@ pub enum MemoryRegionType {
+ 
+ /// The information of initial memory regions that are needed by the kernel.
+ /// The sections are **not** guaranteed to not overlap. The region must be page aligned.
++#[verus_verify]
+ #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+ pub struct MemoryRegion {
+     base: usize,
+@@ -39,13 +47,75 @@ pub struct MemoryRegion {
+     typ: MemoryRegionType,
+ }
+ 
++verus!{
++
++impl MemoryRegionType {
++
++pub open spec fn to_int(self) -> int {
++    match self {
++        MemoryRegionType::BadMemory => 0,
++        MemoryRegionType::Unknown => 1,
++        MemoryRegionType::NonVolatileSleep => 2,
++        MemoryRegionType::Reserved => 3,
++        MemoryRegionType::Kernel => 4,
++        MemoryRegionType::Module => 5,
++        MemoryRegionType::Framebuffer => 6,
++        MemoryRegionType::Reclaimable => 7,
++        MemoryRegionType::Usable => 8,
++    }
++}
++}
++
++impl Inv for MemoryRegion {
++    closed spec fn inv(&self) -> bool {
++        self.base + self.len <= MAX_PADDR()
++    }
++}
++
++impl InvView for MemoryRegion {
++    type V = MemRegionModel;
++
++    closed spec fn view(&self) -> Self::V {
++        MemRegionModel {
++            base: self.base as int,
++            end: self.base + self.len,
++            typ: self.typ.to_int(),
++        }
++    }
++
++    proof fn view_preserves_inv(&self){}
++}
++}
++
++#[verus_verify]
+ impl MemoryRegion {
+     /// Constructs a valid memory region.
+-    pub const fn new(base: Paddr, len: usize, typ: MemoryRegionType) -> Self {
++    #[verus_spec(res =>
++        requires
++            base + len <= MAX_PADDR(),
++        ensures
++            res.inv(),
++            res@ == (MemRegionModel {
++                base: base as int,
++                end: base + len,
++                typ: typ.to_int(),
++            }),
++    )]
++    pub const fn new(base: Paddr, len: usize, typ: MemoryRegionType) -> Self
++    {
+         MemoryRegion { base, len, typ }
+     }
+-
++    
+     /// Constructs a bad memory region.
++    #[verus_spec(res =>
++        ensures
++            res.inv(),
++            res@ == (MemRegionModel {
++                base: 0,
++                end: 0,
++                typ: 0,
++            }),
++    )]
+     pub const fn bad() -> Self {
+         MemoryRegion {
+             base: 0,
+@@ -54,6 +124,7 @@ impl MemoryRegion {
+         }
+     }
+ 
++    /*
+     /// Constructs a memory region where kernel sections are loaded.
+     ///
+     /// Most boot protocols do not mark the place where the kernel loads as unusable. In this case,
+@@ -94,33 +165,39 @@ impl MemoryRegion {
+             len: bytes.len(),
+             typ: MemoryRegionType::Reclaimable,
+         }
+-    }
++    } */
+ 
+     /// The physical address of the base of the region.
++    #[verus_verify(dual_spec)]
+     pub fn base(&self) -> Paddr {
+         self.base
+     }
+ 
+     /// The length in bytes of the region.
++    #[verus_verify(dual_spec)]
+     pub fn len(&self) -> usize {
+         self.len
+     }
+-
++    
+     /// The physical address of the end of the region.
++    #[verus_verify(dual_spec)]
++    #[verus_spec(requires self.inv())]
+     pub fn end(&self) -> Paddr {
+         self.base + self.len
+     }
+-
++    
+     /// Checks whether the region is empty
++    #[verus_verify(dual_spec)]
+     pub fn is_empty(&self) -> bool {
+         self.len == 0
+     }
+ 
+     /// The type of the region.
++    #[verus_verify(dual_spec)]
+     pub fn typ(&self) -> MemoryRegionType {
+         self.typ
+     }
+-
++    /* 
+     fn as_aligned(&self) -> Self {
+         let (base, end) = match self.typ() {
+             MemoryRegionType::Usable => (
+@@ -137,9 +214,10 @@ impl MemoryRegion {
+             len: end - base,
+             typ: self.typ,
+         }
+-    }
++    }*/
+ }
+ 
++
+ /// The maximum number of regions that can be handled.
+ ///
+ /// The choice of 512 is probably fine since old Linux boot protocol only
+@@ -151,11 +229,12 @@ pub const MAX_REGIONS: usize = 512;
+ /// A heapless set of memory regions.
+ ///
+ /// The set cannot contain more than `LEN` regions.
++#[verus_verify]
+ pub struct MemoryRegionArray<const LEN: usize = MAX_REGIONS> {
+     regions: [MemoryRegion; LEN],
+     count: usize,
+ }
+-
++/*
+ impl<const LEN: usize> Default for MemoryRegionArray<LEN> {
+     fn default() -> Self {
+         Self::new()
+@@ -342,3 +421,4 @@ mod test {
+         assert_eq!(regions[4].typ(), MemoryRegionType::Usable);
+     }
+ }
++*/
+\ No newline at end of file
+diff --git a/ostd/src/boot/mod.rs b/ostd/src/boot/mod.rs
+index 8b11ece70b9685e0b360b0f0a1daca0abbd35fdc..9ee6582fb3b3ccbf75327573d5daffb985923a4d 100644
+--- a/ostd/src/boot/mod.rs
++++ b/ostd/src/boot/mod.rs
+@@ -5,8 +5,9 @@
+ //!  2. the routine booting into the actual kernel;
+ //!  3. the routine booting the other processors in the SMP context.
+ pub mod memory_region;
+-pub mod smp;
++//pub mod smp;
+ 
++/* 
+ use alloc::{
+     string::{String, ToString},
+     vec::Vec,
+@@ -128,3 +129,4 @@ pub(crate) fn call_ostd_main() -> ! {
+         __ostd_main();
+     }
+ }
++*/
+\ No newline at end of file
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 7d07df9002d7a3f3cc086574562649c4cd91a549..3dd3302717fb222dee4a75b88a63f34fc44edee5 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -34,8 +34,8 @@ pub mod arch;
+ //#[cfg(target_arch = "riscv64")]
+ //#[path = "arch/riscv/mod.rs"]
+ //pub mod arch;
+-/*pub mod boot;
+-pub mod bus;
++pub mod boot;
++/*pub mod bus;
+ pub mod console;
+ pub mod cpu;
+ mod error;
+diff --git a/specs/ostd/src/lib.rs b/specs/ostd/src/lib.rs
+index 3f2c4b973f63bc8ca616a598b3054b72090a97db..93d6828cc6c55165191ea7312233c17504138a5f 100644
+--- a/specs/ostd/src/lib.rs
++++ b/specs/ostd/src/lib.rs
+@@ -1,7 +1,9 @@
+ mod linked_list_specs;
+ mod meta_specs;
+ mod page_table_node_specs;
++mod memory_region_specs;
+ 
+ pub use linked_list_specs::*;
++pub use memory_region_specs::*;
+ pub use meta_specs::*;
+ pub use page_table_node_specs::*;
+\ No newline at end of file
+diff --git a/specs/ostd/src/memory_region_specs.rs b/specs/ostd/src/memory_region_specs.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..462cb44904308d78e56f66dabf2534d4e3060913
+--- /dev/null
++++ b/specs/ostd/src/memory_region_specs.rs
+@@ -0,0 +1,33 @@
++use vstd::prelude::*;
++use vstd_extra::prelude::*;
++use aster_common::prelude::MAX_PADDR;
++
++verus! {
++
++pub ghost struct MemRegionModel {
++    pub ghost base: int,
++    pub ghost end: int,
++    pub ghost typ: int,
++}
++
++impl Inv for MemRegionModel {
++    open spec fn inv(&self) -> bool {
++        0 <= self.base <= self.end <= MAX_PADDR() && 0 <= self.typ < 9
++    }
++}
++
++impl MemRegionModel {
++    pub open spec fn is_sub_region(self, old_region: Self) -> bool {
++        self.typ == old_region.typ && old_region.base <= self.base <= self.end <= old_region.end
++    }
++
++    pub open spec fn is_separate(self, region: Self) -> bool {
++        self.end <= region.base || region.end <= self.base
++    }
++}
++
++pub ghost struct MemoryRegionArrayModel<const LEN: usize> {
++    pub ghost regions: Seq<MemRegionModel>,
++    pub ghost count: int,
++}
++}
+\ No newline at end of file

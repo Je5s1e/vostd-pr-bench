@@ -1,5 +1,5 @@
 diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
-index 30ddccb5e..d2412ae5c 100644
+index 30ddccb5e8224e2363ed8fb5b9b39d7fb8056bd3..d2412ae5c2bbdd1feb0f48202a185b2c7e5d08a3 100644
 --- a/ostd/src/arch/x86/mod.rs
 +++ b/ostd/src/arch/x86/mod.rs
 @@ -11,8 +11,8 @@ pub(crate) mod kernel;
@@ -14,7 +14,7 @@ index 30ddccb5e..d2412ae5c 100644
  /* pub mod trap; */
  
 diff --git a/ostd/src/arch/x86/task/mod.rs b/ostd/src/arch/x86/task/mod.rs
-index ce7aa8c3a..72e5828d9 100644
+index ce7aa8c3af053563edf978cf817c7fcceab265f5..72e5828d92dee2688191f7a11bf3a54116a70683 100644
 --- a/ostd/src/arch/x86/task/mod.rs
 +++ b/ostd/src/arch/x86/task/mod.rs
 @@ -1,9 +1,17 @@

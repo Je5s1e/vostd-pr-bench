@@ -1,5 +1,5 @@
 diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
-index 167da7e9d..65373a7c1 100644
+index 167da7e9de7e379f8a9b424b837aaa856fcfbbb7..65373a7c1043177fb7d6bb5c0fa870898828c72f 100644
 --- a/ostd/src/mm/page_table/cursor/mod.rs
 +++ b/ostd/src/mm/page_table/cursor/mod.rs
 @@ -325,8 +325,6 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {

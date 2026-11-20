@@ -40,16 +40,19 @@
           "end_line": 90
         }
       ],
-      "rationale": "Independent source and applicable guideline inspection supports this specific finding: Search finds FreelistResource construction and use within this file; its associated resource role does not require exposing the individual fields.",
+      "rationale": "Historical reviewer comment 4129191709 specifically asks whether these fields can be private. Fixed-source search finds construction and named field uses within range_alloc.rs; the final archived head 6b0fffe3584e199c948d2942ec7ea08d222b7507 makes FreelistResource and its three fields private (lines 110-113). This confirms a case-specific representation-encapsulation cleanup. It is not an application of keep-internal-spec-helpers-closed, whose text governs spec functions, and does not imply that all tracked fields must be private.",
       "source_evidence": "87: /// Lock-guarded proof resource: initialization state, the authoritative set,\n88: /// and ownership of all currently free addresses.\n89: pub(super) tracked struct FreelistResource {\n90:     pub(super) initialized: Sum<OneShotPending, OneShotSet>,\n91:     pub(super) state: GhostSetAuth<usize>,\n92:     pub(super) remaining: GhostSubset<usize>,\n93: }\n94: \n95: #[cfg(feature = \"irc11\")]\n96: unsafe impl Objective for FreelistResource {\n97: ",
-      "rule_ids": [
-        "keep-internal-spec-helpers-closed"
-      ],
+      "rule_ids": [],
       "review_url": "https://github.com/asterinas/vostd/pull/809#discussion_r4129191709",
       "related_comment_ids": [
         "4129191709"
       ],
-      "verification": "source-only; historical Verus not executed"
+      "verification": "source-only; historical Verus not executed",
+      "applicability": {
+        "basis": "historical_reviewer_request_and_observed_fix",
+        "scope": "FreelistResource field visibility in this PR",
+        "rule_mapping": "No exact named rule; prior spec-function rule mapping removed."
+      }
     },
     {
       "id": "pr-809-9d1b88dd7b02:issue-4129214991",

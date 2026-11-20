@@ -1,5 +1,5 @@
 diff --git a/ostd/src/util/range_alloc.rs b/ostd/src/util/range_alloc.rs
-index 862387aa9..a25048cda 100644
+index 862387aa925b0723757223401127fb5f8367332e..a25048cda574ec342b550627b9b7e193aff37935 100644
 --- a/ostd/src/util/range_alloc.rs
 +++ b/ostd/src/util/range_alloc.rs
 @@ -1,9 +1,29 @@
@@ -1123,7 +1123,7 @@ index 862387aa9..a25048cda 100644
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/resource/mod.rs b/verified_libs/vstd_extra/src/resource/mod.rs
-index 7dacba3f5..2cf60a3dc 100644
+index 7dacba3f5498f039be5e40c2f9138307ccd00b11..2cf60a3dcba45883bcd31b1b3dd54f79c66aceb7 100644
 --- a/verified_libs/vstd_extra/src/resource/mod.rs
 +++ b/verified_libs/vstd_extra/src/resource/mod.rs
 @@ -1,4 +1,5 @@
@@ -1134,7 +1134,7 @@ index 7dacba3f5..2cf60a3dc 100644
  pub mod storage_protocol;
 diff --git a/verified_libs/vstd_extra/src/resource/range.rs b/verified_libs/vstd_extra/src/resource/range.rs
 new file mode 100644
-index 000000000..90325d993
+index 0000000000000000000000000000000000000000..90325d993d91c0cbb29503545356fe7f11754039
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/resource/range.rs
 @@ -0,0 +1,75 @@

@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
-index 8fddd83db..1663e7825 100644
+index 8fddd83db375ee0ab1ff2083c9eff37718720e4e..1663e782588830a76e5b4bc50f6556520d01bd70 100644
 --- a/ostd/specs/mm/embedding/mod.rs
 +++ b/ostd/specs/mm/embedding/mod.rs
 @@ -2926,30 +2926,133 @@ proof fn step_frame_drop<'rcu>(tracked s: &mut VmStore<'rcu>, fid: FrameId)
@@ -348,7 +348,7 @@ index 8fddd83db..1663e7825 100644
      }
  }
 diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
-index 5d4d670bf..4b5206143 100644
+index 5d4d670bf301c4554eccc9afcfe84aebb8216e58..4b52061431f84813c48e1844b5aa76ec986b91cd 100644
 --- a/ostd/src/mm/frame/linked_list.rs
 +++ b/ostd/src/mm/frame/linked_list.rs
 @@ -138,6 +138,7 @@ pub struct CursorMut<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> {

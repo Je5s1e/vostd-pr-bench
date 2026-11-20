@@ -17,7 +17,7 @@
     "ostd/src/task/stack_size.rs",
     "tools/tests/stack_size.rs"
   ],
-  "diff_sha256": "6fab3cc0189cddfbdde1f826e2017d7cdda60188d0d76ba04d15e3e5cd7b2166",
+  "diff_sha256": "1db422b92bd7b7506bf7d219b98372b0bc556fe2acd61212bce3f2a015b5cc81",
   "versions": {
     "before": {
       "commit": "24317fd3c8b086a637c239cf7c9f426b3c7e368d",
@@ -50,5 +50,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "f6e33f374cccf7ec2a35694d2f2e53a573747ed0",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/f6e33f374cccf7ec2a35694d2f2e53a573747ed0/docs/coding-guidelines/maintainability.md#L346",
+        "rule_id": "preserve-exec-code",
+        "line": 346,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

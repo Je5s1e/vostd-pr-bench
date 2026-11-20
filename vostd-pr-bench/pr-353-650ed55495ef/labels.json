@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-353-650ed55495ef",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The documentation command passes only local and Verus crates to rustdoc, omitting registry dependency --extern mappings and their artifact search directory, so targets importing registry crates cannot resolve those imports.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "dv/src/doc.rs",
+          "start_line": 115,
+          "end_line": 143
+        }
+      ],
+      "rationale": "generate_single_target_doc launches rustdoc directly with edition 2021. Its --extern arguments enumerate Verus builtins/vstd and get_local_dependency only; registry crates are not put into the extern prelude, and release/deps is not searched. The same selected OSTD manifest depends on registry bitflags and log and active x86 sources import them. Merely placing rlibs in a -L path does not introduce extern-prelude names. The immediate parent/child repair updates the pinned DV from 55b3285a to 19962d96; its sole code change obtains get_remote_dependency, checks the resolved artifacts, pushes --extern arguments and adds -L dependency=release/deps. This is a missing dependency-resolution input in the documented build tool, not a claim that the wait implementation itself is defective.",
+      "source_evidence": "after/dv/src/doc.rs\n115:     let vstd_path = verus_target_dir.join(\"libvstd.rlib\");\n116:     cmd.arg(\"--extern\")\n117:         .arg(format!(\"vstd={}\", vstd_path.display()));\n118: \n119:     // Add dependencies that this target actually needs\n120:     let deps = verus::get_local_dependency(target);\n121:     for (_name, dep_target) in deps.iter() {\n122:         if dep_target.name != target.name {\n123:             // Check if .rlib file exists for this dependency\n124:             let rlib_path =\n125:                 target_dir.join(format!(\"lib{}.rlib\", dep_target.name.replace('-', \"_\")));\n126:             if rlib_path.exists() {\n127:                 let extern_name = dep_target.name.replace('-', \"_\");\n128:                 cmd.arg(\"--extern\")\n129:                     .arg(format!(\"{}={}\", extern_name, rlib_path.display()));\n130:             } else {\n131:                 return Err(format!(\n132:                     \"Missing compiled dependency '{}' for target '{}'.\\n\\nPlease run:\\n  cargo dv verify --targets {}\",\n133:                     dep_target.name, target.name, target.name\n134:                 ).into());\n135:             }\n136:         }\n137:     }\n138: \n139:     cmd.arg(\"-L\").arg(format!(\"{}\", verus_target_dir.display()));\n140:     cmd.arg(\"-L\").arg(format!(\"{}\", target_dir.display()));\n141:     cmd.arg(\"--edition=2021\")\n142:         .arg(\"--cfg\")\n143:         .arg(\"verus_keep_ghost\")\n\nafter/ostd/Cargo.toml declares bitflags = \"1.3\" and log = \"0.4\"; after/ostd/src/arch/x86/cpu/context/mod.rs:6 imports bitflags::bitflags. The pinned DV repair adds registry --extern arguments and the release/deps dependency path.",
+      "verification": "source-only project adjudication; historical Verus and full historical project rustdoc were not executed. Independent Rust/rustdoc 1.88.0 micro-reproduction with a separately built remote_dep crate produced E0432 with only -L deps and succeeded with --extern remote_dep=... plus -L dependency=deps. This demonstrates argument-resolution semantics, not full-project execution. Complete doc command and fixed submodule diff inspected.",
+      "id": "pr-353-650ed55495ef:commit-fix-7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5:root-1",
+          "commit_id": "7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5",
+          "url": "https://github.com/asterinas/vostd/commit/7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5"
+        }
+      ]
+    }
+  ]
+}

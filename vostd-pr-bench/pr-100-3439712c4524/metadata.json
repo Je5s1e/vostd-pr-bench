@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-100-3439712c4524",
+  "pr_number": 100,
+  "title": "Cursor overhaul",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/100",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "e60701ed8307a30c136189b92e5159780a6f97a2",
+  "head_sha": "3439712c4524200fd10affd1bf1473342eb08c86",
+  "base_method": "Use the consolidated problem commit and the immutable official PR base. All three independently adjudicated semantic roots coexist at 3439712c, so the later a1d0de0d snapshot is redundant and must not be published as a second case.",
+  "archive_base_sha": "e60701ed8307a30c136189b92e5159780a6f97a2",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/test_map.rs",
+    "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "lock-protocol/src/mm/page_table/cursor/spec_helpers.rs",
+    "lock-protocol/src/mm/page_table/node/entry.rs",
+    "lock-protocol/src/mm/page_table/node/mod.rs",
+    "lock-protocol/src/spec/sub_page_table.rs"
+  ],
+  "diff_sha256": "9016c8bb919d398e0b34ab49af35d18d66315e3ae79befe7736dced19c27d14c",
+  "versions": {
+    "before": {
+      "commit": "e60701ed8307a30c136189b92e5159780a6f97a2",
+      "file_count": 6,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "3439712c4524200fd10affd1bf1473342eb08c86",
+      "file_count": 6,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 3,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T14:54:25.152019+00:00",
+    "reviewed_at": "2026-11-19T14:46:46Z",
+    "upstream_updated_at": "2025-07-21T05:42:08Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/100",
+      "https://github.com/asterinas/vostd/commit/a1d0de0d37a48d3c5e4983b4b061baad6ca76553",
+      "https://github.com/asterinas/vostd/commit/6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c",
+      "https://github.com/asterinas/vostd/commit/1f48716c9226d3deaf19a355e6e7ffa1b88d5a47"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00100"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected consolidated immutable problem 3439712c4524200fd10affd1bf1473342eb08c86 and official PR base e60701ed8307a30c136189b92e5159780a6f97a2; all three roots coexist at this snapshot.",
+    "zero_issues_meaning": "Not applicable; this case contains three independently adjudicated semantic issues.",
+    "source_export": "Regenerate the full-index binary diff for e60701ed8307a30c136189b92e5159780a6f97a2..3439712c4524200fd10affd1bf1473342eb08c86 and byte-check every manifest entry against fixed Git blobs. No additional context is exported.",
+    "tool_result": "Independent review approved three semantic roots in one fixed problem snapshot: path_wf reads a nonexistent ancestor field; map falsely promises an unchanged cursor level despite descending; and the new-child branch assumes the child/parent/path relationship. A1 and A2 are repaired by a1d0de0d. B1 is genuinely repaired at the intermediate 6b2ae965 snapshot, but the same root regresses at 1f48716c and remains in the final head, so no durable-final-repair claim is made. The final two-assume deletion is supporting proof cleanup only. Historical Rust/Verus was not executed."
+  },
+  "additional_context_paths": [],
+  "verification_summary": "Independent review approved three semantic roots in one fixed problem snapshot: path_wf reads a nonexistent ancestor field; map falsely promises an unchanged cursor level despite descending; and the new-child branch assumes the child/parent/path relationship. A1 and A2 are repaired by a1d0de0d. B1 is genuinely repaired at the intermediate 6b2ae965 snapshot, but the same root regresses at 1f48716c and remains in the final head, so no durable-final-repair claim is made. The final two-assume deletion is supporting proof cleanup only. Historical Rust/Verus was not executed."
+}

@@ -1,5 +1,5 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 04a89e2da..ac4ffd6ca 100644
+index 04a89e2da5a7877661d121f7eb049541bb90d4fa..ac4ffd6caf870c2b304ff3e4eaca8f2ec17163cf 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -676,6 +676,8 @@ dependencies = [
@@ -12,7 +12,7 @@ index 04a89e2da..ac4ffd6ca 100644
  
  [[package]]
 diff --git a/ostd/src/arch/x86/kernel/apic/mod.rs b/ostd/src/arch/x86/kernel/apic/mod.rs
-index d5bdf0c26..320871e3b 100644
+index d5bdf0c2611e75d2a2776767cadcf8bcd6cbdcc3..320871e3b9c0a38f24d51b352e825a2229ebecae 100644
 --- a/ostd/src/arch/x86/kernel/apic/mod.rs
 +++ b/ostd/src/arch/x86/kernel/apic/mod.rs
 @@ -1,5 +1,7 @@
@@ -467,7 +467,7 @@ index d5bdf0c26..320871e3b 100644
 +
 +} // verus!
 diff --git a/ostd/src/arch/x86/kernel/apic/x2apic.rs b/ostd/src/arch/x86/kernel/apic/x2apic.rs
-index 34bd07421..07845b7b0 100644
+index 34bd074211a48679b355b96e1eb14b832787c7b0..07845b7b023c8310a13d78f75e0be81af3f36438 100644
 --- a/ostd/src/arch/x86/kernel/apic/x2apic.rs
 +++ b/ostd/src/arch/x86/kernel/apic/x2apic.rs
 @@ -1,22 +1,43 @@
@@ -552,7 +552,7 @@ index 34bd07421..07845b7b0 100644
      fn set_timer_init_count(&self, value: u64) {
          unsafe {
 diff --git a/ostd/src/arch/x86/kernel/apic/xapic.rs b/ostd/src/arch/x86/kernel/apic/xapic.rs
-index 9fb8e579a..82cb95bd1 100644
+index 9fb8e579a5516311a5eb7046b15db3a66edf5fc2..82cb95bd17491242d4265fcecd59c5927df187cd 100644
 --- a/ostd/src/arch/x86/kernel/apic/xapic.rs
 +++ b/ostd/src/arch/x86/kernel/apic/xapic.rs
 @@ -1,13 +1,26 @@
@@ -769,7 +769,7 @@ index 9fb8e579a..82cb95bd1 100644
      unsafe {
          (x86_64::registers::model_specific::Msr::new(IA32_APIC_BASE_MSR).read() & 0xf_ffff_f000)
 diff --git a/ostd/src/arch/x86/kernel/mod.rs b/ostd/src/arch/x86/kernel/mod.rs
-index e3493e183..a762dc0f9 100644
+index e3493e18317b597d4072385a12200084beceb2c6..a762dc0f9806a190b21d7703a74fd9376206ca21 100644
 --- a/ostd/src/arch/x86/kernel/mod.rs
 +++ b/ostd/src/arch/x86/kernel/mod.rs
 @@ -1,7 +1,7 @@
@@ -783,7 +783,7 @@ index e3493e183..a762dc0f9 100644
  
  pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
 diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
-index f56a9a62b..57d0cac99 100644
+index f56a9a62b4f0b7850d6314a81fd90269d1f064c2..57d0cac99020a345ad52b3f2f3a8abae0b4354ce 100644
 --- a/verified_libs/vstd_extra/Cargo.toml
 +++ b/verified_libs/vstd_extra/Cargo.toml
 @@ -18,3 +18,5 @@ vstd = { workspace = true }
@@ -793,7 +793,7 @@ index f56a9a62b..57d0cac99 100644
 +x86 = "0.52.0"
 +x86_64 = "0.14.13"
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 34fb8f96d..8bd1f6fa3 100644
+index 34fb8f96defe3fcfcd0340bed79e151a942ab2e1..8bd1f6fa3314a70ec8320fa1429e9bb1e4029f05 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -19,6 +19,7 @@ pub mod smallvec;
@@ -813,7 +813,7 @@ index 34fb8f96d..8bd1f6fa3 100644
  use vstd::prelude::*;
  
 diff --git a/verified_libs/vstd_extra/src/external/ptr.rs b/verified_libs/vstd_extra/src/external/ptr.rs
-index 5cfc0f865..589663ef7 100644
+index 5cfc0f865b69bc6f42906db2a357f173e0932f15..589663ef77cba8eebe8a5666bdec3304c77ecb99 100644
 --- a/verified_libs/vstd_extra/src/external/ptr.rs
 +++ b/verified_libs/vstd_extra/src/external/ptr.rs
 @@ -107,4 +107,41 @@ pub assume_specification<T: PointeeSized>[ <*mut T>::is_null ](ptr: *mut T) -> b
@@ -860,7 +860,7 @@ index 5cfc0f865..589663ef7 100644
  } // verus!
 diff --git a/verified_libs/vstd_extra/src/external/x86.rs b/verified_libs/vstd_extra/src/external/x86.rs
 new file mode 100644
-index 000000000..a96b69061
+index 0000000000000000000000000000000000000000..a96b69061fbb17debe645b07407f809040c2ce7b
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/x86.rs
 @@ -0,0 +1,91 @@

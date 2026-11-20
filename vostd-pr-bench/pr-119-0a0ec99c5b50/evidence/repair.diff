@@ -1,0 +1,43 @@
+diff --git a/lock-protocol/src/mm/page_table/cursor/mod.rs b/lock-protocol/src/mm/page_table/cursor/mod.rs
+index ebe2da7a0b73bd1be019c9554178969b5774933e..03f96614220a0b9f2aa5b0ed91253c8213f487c1 100644
+--- a/lock-protocol/src/mm/page_table/cursor/mod.rs
++++ b/lock-protocol/src/mm/page_table/cursor/mod.rs
+@@ -698,6 +698,7 @@ impl<'a, C: PageTableConfig> CursorMut<'a, C> {
+ 
+             // the post condition
+             assert(!spt.i_ptes.value().contains_key(old_pte_paddr as int));
++
+             let item = match old {
+                 Child::Frame(page, level, prop) => PageTableItem::Mapped {
+                     va: self.0.va,
+@@ -733,7 +734,7 @@ impl<'a, C: PageTableConfig> CursorMut<'a, C> {
+             };
+ 
+             assume(self.0.va + page_size::<C>(self.0.level) <= self.0.barrier_va.end);  // TODO: P1
+-            assume(self.0.path_wf(spt));  // TODO: P0
++            assert(self.0.path_wf(spt));  // TODO: P0
+             self.0.move_forward(Tracked(spt));
+ 
+             return item;
+diff --git a/lock-protocol/src/mm/page_table/node/entry.rs b/lock-protocol/src/mm/page_table/node/entry.rs
+index aed9dddd9070e03897178302c8caff75d38eb533..3b0c2a8a14234114083823261cc08843913bd741 100644
+--- a/lock-protocol/src/mm/page_table/node/entry.rs
++++ b/lock-protocol/src/mm/page_table/node/entry.rs
+@@ -243,7 +243,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+             !spt.i_ptes.value().contains_key(old(self).pte.pte_paddr() as int),
+             spt.instance.id() == old(spt).instance.id(),
+             spt.wf(),
+-            spt_do_not_change_except(spt, old(spt), self.pte.pte_paddr() as int),
++            spt_do_not_change_except(spt, old(spt), old(self).pte.pte_paddr() as int),
+             self.remove_old_child(res, old(self).pte, old(spt), spt),
+     {
+         let old_pte = self.pte.clone_pte();
+@@ -296,7 +296,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+ 
+         assert(!spt.i_ptes.value().contains_key(old(self).pte.pte_paddr() as int));
+         assume(self.remove_old_child(old_child, old(self).pte, old(spt), spt));
+-        assume(spt_do_not_change_except(spt, old(spt), self.pte.pte_paddr() as int));
++        assume(spt_do_not_change_except(spt, old(spt), old(self).pte.pte_paddr() as int));
+ 
+         old_child
+     }

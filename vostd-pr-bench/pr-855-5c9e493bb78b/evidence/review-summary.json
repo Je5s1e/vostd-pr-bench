@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 8,
-  "inline_review_comment_count": 19,
-  "review_count": 7,
-  "core_lesson": "移除硬编码公理时，要检查是否只是把同一限制搬到了另一层 trait",
-  "category": "规约与模型",
-  "all_content_unadjudicated": true
-}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-355-2a3429fb0b20",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "Three lock-guard negative Send implementations contain two consecutive commas in their generic parameter lists, leaving an empty generic parameter and preventing the source from parsing.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rwlock.rs",
+          "start_line": 694,
+          "end_line": 694
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rwlock.rs",
+          "start_line": 699,
+          "end_line": 699
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rwlock.rs",
+          "start_line": 704,
+          "end_line": 704
+        }
+      ],
+      "rationale": "The problem snapshot contains impl<T /*?Sized*/,, G: SpinGuardian> for WriteGuard, ReadGuard and UpgradeableGuard. Comments are ignored by the lexer, so the parser sees impl<T,,G...>, an empty generic parameter. This is a single formatting-induced syntax root repeated three times, independent of verifier proof reasoning. The direct next PR commit changes all three lists to impl<T /*: ?Sized*/, G: SpinGuardian>. The enabled sync/rwlock module cannot be parsed with the malformed lists; the fix removes the extra comma without changing guard semantics.",
+      "source_evidence": "after/ostd/src/sync/rwlock.rs\n694: impl<T /*?Sized*/,, G: SpinGuardian> !Send for RwLockWriteGuard<'_, T, G> {}\n699: impl<T /*?Sized*/,, G: SpinGuardian> !Send for RwLockReadGuard<'_, T, G> {}\n704: impl<T /*?Sized*/,, G: SpinGuardian> !Send for RwLockUpgradeableGuard<'_, T, G> {}",
+      "verification": "Historical project Verus not executed. Source syntax and exact repair verified. An independent rustc 1.88.0 minimal generic impl containing the same doubled comma failed with expected one of #, >, const, identifier, or lifetime, found comma. This confirms parsing mechanics, not a complete historical project build.",
+      "id": "pr-355-2a3429fb0b20:commit-fix-1fa08be0fc8dcd7e4f22c13b565ce1a721a8e83f-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/1fa08be0fc8dcd7e4f22c13b565ce1a721a8e83f",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "1fa08be0fc8dcd7e4f22c13b565ce1a721a8e83f:root-1",
+          "commit_id": "1fa08be0fc8dcd7e4f22c13b565ce1a721a8e83f",
+          "url": "https://github.com/asterinas/vostd/commit/1fa08be0fc8dcd7e4f22c13b565ce1a721a8e83f"
+        }
+      ]
+    }
+  ]
+}

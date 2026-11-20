@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/embedding/list_store.rs b/ostd/specs/mm/embedding/list_store.rs
-index bf27ac812..584f5ed6f 100644
+index bf27ac81211f6b7c0f247462d86574675a87be8e..584f5ed6f6b1e01113459d6d1960550d3adcdad1 100644
 --- a/ostd/specs/mm/embedding/list_store.rs
 +++ b/ostd/specs/mm/embedding/list_store.rs
 @@ -364,8 +364,9 @@ pub proof fn lemma_fresh_loose_id_not_in_dom<M: AnyFrameMeta + Repr<MetaSlotSmal

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-161-1510b718eb7d",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-161-1510b718eb7d:commit-fix-fa698a4e527004be4da310b35b4db2dcbb5c09b5-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The stray-to-PTE invariant compares a child PTE's target address with its parent node ID instead of the stray record's physical address.",
+      "locations": [
+        {"version": "after", "path": "lock-protocol/src/spec/rcu/tree.rs", "start_line": 134, "end_line": 146}
+      ],
+      "rationale": "For a valid non-root child `nid`, `protocol_allocate` writes the parent PTE as `Alive(paddr)` and adds the false stray `(nid, paddr)`. The invariant shadows the quantified address with `let pa = get_parent(nid)` and requires `get_paddr(offset) == pa`; when the allocated physical address differs from the parent node ID, the produced state violates the declared invariant. The problem proof masks the invariant with an `assume`. Direct repair fa698a4e renames the quantified address to `paddr`, keeps `pa` for the parent ID, compares the PTE target with `paddr`, and replaces the corresponding assume with an assertion. An independent reviewer confirmed the variable-shadowing counterexample and repair attribution.",
+      "source_evidence": "after/lock-protocol/src/spec/rcu/tree.rs\n136: forall |nid: NodeId, pa: Paddr|\n138:     self.strays.contains_key((nid, pa)) &&\n141:     let pa = NodeHelper::get_parent(nid);\n145:     &&& self.pte_arrays[pa].get_paddr(offset) == pa\n\nRepair fa698a4e preserves the parent as `pa` but compares `get_paddr(offset)` with the quantified `paddr`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/fa698a4e527004be4da310b35b4db2dcbb5c09b5",
+      "related_comment_ids": [],
+      "sources": [
+        {"kind": "commit_fix", "id": "fa698a4e527004be4da310b35b4db2dcbb5c09b5:root-1", "url": "https://github.com/asterinas/vostd/commit/fa698a4e527004be4da310b35b4db2dcbb5c09b5", "commit_id": "fa698a4e527004be4da310b35b4db2dcbb5c09b5"}
+      ],
+      "verification": "Primary and independent source review confirmed the linear commit chain, concrete address counterexample, and direct repair. Historical Verus was not executed."
+    }
+  ]
+}

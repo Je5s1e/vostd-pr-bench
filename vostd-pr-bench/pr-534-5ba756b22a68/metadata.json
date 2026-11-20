@@ -72,5 +72,8 @@
         "url": "https://github.com/asterinas/vostd/blob/5ba756b22a68dfba31f21b9d5ae499798fe87e0e/AGENTS.md#L54"
       }
     ]
-  }
+  },
+  "additional_context_paths": [
+    "AGENTS.md"
+  ]
 }

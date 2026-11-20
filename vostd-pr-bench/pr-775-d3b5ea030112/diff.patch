@@ -1,5 +1,5 @@
 diff --git a/verified_libs/vstd_extra/src/ghost_tree.rs b/verified_libs/vstd_extra/src/ghost_tree.rs
-index 6d2fe4bcc..0f5ad9d25 100644
+index 6d2fe4bcc1c45ba2a9b46d751af3024c05037864..0f5ad9d254eb6c351072a7c59883d67f3523c96d 100644
 --- a/verified_libs/vstd_extra/src/ghost_tree.rs
 +++ b/verified_libs/vstd_extra/src/ghost_tree.rs
 @@ -593,16 +593,36 @@ impl<T: TreeNodeValue<L>, const N: usize, const L: usize> TreeNode<T, N, L> {

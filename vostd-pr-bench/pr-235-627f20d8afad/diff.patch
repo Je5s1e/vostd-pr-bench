@@ -1,0 +1,45 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 789ef8fb022bdb56c46401bc85f1c56ba5e4bab6..872648bf9d60053fb2eb893b91de888cd1b65d2b 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -174,7 +174,7 @@ version = "0.0.0-2025-08-12-1837"
+ 
+ [[package]]
+ name = "verus_builtin_macros"
+-version = "0.0.0-2025-11-16-0050"
++version = "0.0.0-2025-11-23-0053"
+ dependencies = [
+  "proc-macro2",
+  "quote",
+@@ -194,7 +194,7 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_state_machines_macros"
+-version = "0.0.0-2025-11-16-0050"
++version = "0.0.0-2025-11-23-0053"
+ dependencies = [
+  "indexmap",
+  "proc-macro2",
+@@ -213,7 +213,7 @@ dependencies = [
+ 
+ [[package]]
+ name = "vstd"
+-version = "0.0.0-2025-11-16-0050"
++version = "0.0.0-2025-11-23-0053"
+ dependencies = [
+  "verus_builtin",
+  "verus_builtin_macros",
+diff --git a/fvt3-page-acquisition-safety/src/common.rs b/fvt3-page-acquisition-safety/src/common.rs
+index 825a92172e9645311a1aff911f65aac75dba94f3..7769ef4e2e01f66e674bbf9424459d2d750ac8dc 100644
+--- a/fvt3-page-acquisition-safety/src/common.rs
++++ b/fvt3-page-acquisition-safety/src/common.rs
+@@ -91,8 +91,7 @@ pub fn meta_to_page(vaddr: Vaddr) -> (res: Paddr)
+ {
+     let base = FRAME_METADATA_RANGE.start;
+     let offset = (vaddr - base) / (size_of::<MetaSlot>() as u64);
+-    assert(size_of::<MetaSlot>() as u64 == 16);
+-    assert(offset * 16 == (vaddr - base));
++    assert(offset == (vaddr - base) / 16);
+     offset * PAGE_SIZE
+ }
+ 

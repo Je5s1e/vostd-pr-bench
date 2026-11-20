@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-235-627f20d8afad",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-235-627f20d8afad:commit-fix-04bbe66ef7f7b7bae8d928570387e4f7964739e2-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "After the Verus update, `lemma_nat_as_parts` no longer proves its nat-valued decomposition because the calc chain does not establish the required intermediate non-overflow/coercion equality.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol-rcu/src/mm/page_table/mod.rs",
+          "start_line": 935,
+          "end_line": 945
+        }
+      ],
+      "rationale": "With asterinas/verus fixed to 52b20fc504b265409308933340f3b77e0e5128ab, the selected problem snapshot fails exactly at this calc chain: its nat additions are represented with nested `clip(nat, ...)`, and the asserted equality is not established. The immediate repair rewrites the decomposition through explicitly non-negative `int` terms, proves the integer sum, and only then casts back to `nat`; the same target then verifies successfully.",
+      "source_evidence": "after/lock-protocol-rcu/src/mm/page_table/mod.rs:935-945 contains the failing nat-valued calc chain. Historical execution reports an assertion failure at line 935 with `455 verified, 1 errors`. Repair commit 04bbe66ef7f7b7bae8d928570387e4f7964739e2 changes this lemma to an explicit int-sum bridge; the identical command then reports `470 verified, 0 errors`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/04bbe66ef7f7b7bae8d928570387e4f7964739e2",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "04bbe66ef7f7b7bae8d928570387e4f7964739e2:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/04bbe66ef7f7b7bae8d928570387e4f7964739e2",
+          "commit_id": "04bbe66ef7f7b7bae8d928570387e4f7964739e2"
+        }
+      ],
+      "verification": "historical Verus executed. Pinned asterinas/verus 52b20fc504b265409308933340f3b77e0e5128ab and Z3 4.12.5; `cargo xtask verify --targets lock-protocol-rcu` fails on the problem SHA with 455 verified/1 error and passes on the immediate repair SHA with 470 verified/0 errors. No archived CI artifact identifies the author's exact Verus SHA, so the verifier is reproducibly selected as the latest origin/1.91.0 commit before the immutable problem commit time."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 diff --git a/ostd/src/arch/x86/kernel/mod.rs b/ostd/src/arch/x86/kernel/mod.rs
-index a762dc0f9..7d4224593 100644
+index a762dc0f9806a190b21d7703a74fd9376206ca21..7d422459306ad1c93dfa6f032bc631d92b50439a 100644
 --- a/ostd/src/arch/x86/kernel/mod.rs
 +++ b/ostd/src/arch/x86/kernel/mod.rs
 @@ -1,7 +1,7 @@
@@ -13,7 +13,7 @@ index a762dc0f9..7d4224593 100644
 -pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
 +/* pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
 diff --git a/ostd/src/arch/x86/kernel/tsc.rs b/ostd/src/arch/x86/kernel/tsc.rs
-index 6fa47d81d..dae6b5d89 100644
+index 6fa47d81d66c939074d8761a883795893f777fa3..dae6b5d89f267493509f780b667b7d9aad677fe3 100644
 --- a/ostd/src/arch/x86/kernel/tsc.rs
 +++ b/ostd/src/arch/x86/kernel/tsc.rs
 @@ -1,11 +1,19 @@
@@ -202,7 +202,7 @@ index 6fa47d81d..dae6b5d89 100644
  }
 +*/
 diff --git a/verified_libs/vstd_extra/src/external/x86.rs b/verified_libs/vstd_extra/src/external/x86.rs
-index f9d06fcbe..7482d11e7 100644
+index f9d06fcbe74677adcc384815aa1b448b6d206606..7482d11e71fb746b3282a4048e2b7151a671c916 100644
 --- a/verified_libs/vstd_extra/src/external/x86.rs
 +++ b/verified_libs/vstd_extra/src/external/x86.rs
 @@ -1,8 +1,9 @@

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-419-e2a32e9a225f",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The external seq_tracked_subrange and seq_tracked_map_values helpers return tracked sequences from ordinary ghost sequence inputs without consuming or borrowing the corresponding tracked resources, allowing the same resource model to produce duplicate ownership.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "vstd_extra/src/seq_extra.rs",
+          "start_line": 10,
+          "end_line": 26
+        }
+      ],
+      "rationale": "In proof functions, the unmarked s: Seq<T> input is a ghost value, while the result is explicitly tracked. For a nonempty ghost sequence s representing linear permissions, two calls to seq_tracked_subrange(s, 0, s.len()) both return tracked sequences equal to s, without either call taking a tracked input. seq_tracked_map_values admits the same conversion with an identity mapping. These are external_body promises, so their implementations do not discharge the resource transfer. Segment::split uses the subrange helper for frame-permission owners. The direct child repair removes both ghost-to-tracked axioms and replaces them with seq_tracked_split_at(tracked s: &mut Seq<T>, n), implemented by tracked_pop/tracked_push, transferring each element out of the input sequence. Treat the two axiom signatures as one ghost-to-tracked ownership fabrication root. This is a pre-repair snapshot within the PR, not a claim that this particular intermediate commit first introduced the helpers.",
+      "source_evidence": "after/vstd_extra/src/seq_extra.rs\n10: #[verifier::external_body]\n11: pub proof fn seq_tracked_map_values<T, U>(s: Seq<T>, f: spec_fn(T) -> U) -> (tracked res: Seq<U>)\n12:     ensures\n13:         res == s.map_values(f),\n14: {\n15:     unimplemented!();\n16: }\n17: \n18: #[verifier::external_body]\n19: pub proof fn seq_tracked_subrange<T>(s: Seq<T>, start: int, end: int) -> (tracked res: Seq<T>)\n20:     requires\n21:         0 <= start <= end <= s.len(),\n22:     ensures\n23:         res == s.subrange(start, end),\n24: {\n25:     unimplemented!();\n26: }\n\nThe direct repair dab3e2bda808bdf77c34675d4c70f8d96853983d deletes both axioms and defines a checked recursive tracked mutable-reference split; Segment::split now splits one tracked owner.perms sequence rather than producing results through ghost inputs.",
+      "verification": "source-only; historical Verus not executed. Read complete helper signatures/bodies, the Segment::split consumer, and direct child repair. The resource-duplication counterexample follows from ghost inputs and tracked outputs; no runtime corruption or historical verifier execution is claimed. Official PR419 commits retrieved in three pages (100+100+51); problem and repair are consecutive and Git parent equality checked.",
+      "id": "pr-419-e2a32e9a225f:commit-fix-dab3e2bda808bdf77c34675d4c70f8d96853983d-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/dab3e2bda808bdf77c34675d4c70f8d96853983d",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "dab3e2bda808bdf77c34675d4c70f8d96853983d:root-1",
+          "commit_id": "dab3e2bda808bdf77c34675d4c70f8d96853983d",
+          "url": "https://github.com/asterinas/vostd/commit/dab3e2bda808bdf77c34675d4c70f8d96853983d"
+        }
+      ]
+    }
+  ]
+}

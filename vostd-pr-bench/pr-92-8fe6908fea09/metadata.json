@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-92-8fe6908fea09",
+  "pr_number": 92,
+  "title": "Remove wrong assumptions",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/92",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "5dc35b804bc220d441f5e04d8353e99a6b1d2fc3",
+  "head_sha": "8fe6908fea09feb343f1ccceeb90b831e036cc1e",
+  "base_method": "selected problem 8fe6908fea09feb343f1ccceeb90b831e036cc1e is the feature-branch parent immediately before first official repair c35d78a437acba1016012c38f2ab3c1ed085615e; deterministic comparison base is its direct first parent 5dc35b804bc220d441f5e04d8353e99a6b1d2fc3",
+  "archive_base_sha": "cd3814905fc435b61a7d403fe7e3b1755dd8225d",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "lock-protocol/src/mm/page_table/cursor/spec_helpers.rs",
+    "lock-protocol/src/mm/page_table/node/mod.rs"
+  ],
+  "diff_sha256": "d99acc9096929d0b422dd905db1b7e2820d1529b73ff53e238dc59fea51b39a3",
+  "versions": {
+    "before": {
+      "commit": "5dc35b804bc220d441f5e04d8353e99a6b1d2fc3",
+      "file_count": 5,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "8fe6908fea09feb343f1ccceeb90b831e036cc1e",
+      "file_count": 5,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T14:13:34.776185+00:00",
+    "reviewed_at": "2026-11-19T14:12:49Z",
+    "upstream_updated_at": "2025-07-18T03:11:23Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/92",
+      "https://github.com/asterinas/vostd/commit/c35d78a437acba1016012c38f2ab3c1ed085615e",
+      "https://github.com/asterinas/vostd/commit/fb74f00c44047fe75d72f5f2f549fd44a36f4800",
+      "https://github.com/asterinas/vostd/commit/0966167ac66f72257edc6e86c0b85c883d329d27"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00092"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected 8fe6908fea09feb343f1ccceeb90b831e036cc1e, the feature-branch problem immediately before repair c35d78a437acba1016012c38f2ab3c1ed085615e. Compared mechanically with direct parent 5dc35b804bc220d441f5e04d8353e99a6b1d2fc3. The unchanged is_present and Entry::replace contract files are exported as additional fixed context.",
+    "zero_issues_meaning": "Not applicable; the case contains one independently adjudicated semantic contract-contradiction issue.",
+    "source_export": "Regenerate the full-index binary diff for 5dc35b804bc220d441f5e04d8353e99a6b1d2fc3..8fe6908fea09feb343f1ccceeb90b831e036cc1e. Export page_table/mod.rs and node/entry.rs in both versions as additional context and verify fixed blob identity.",
+    "tool_result": "Source-only adjudication. Historical Verus was not executed. The problem control flow and is_present contract establish contains(PTE), while the explicit assumption and Entry::replace precondition require !contains(PTE). A verifier pass would be non-exculpatory because this contradiction vacates downstream proof obligations."
+  },
+  "additional_context_paths": [
+    "lock-protocol/src/mm/page_table/mod.rs",
+    "lock-protocol/src/mm/page_table/node/entry.rs"
+  ]
+}

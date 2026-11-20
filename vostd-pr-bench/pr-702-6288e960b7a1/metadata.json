@@ -16,7 +16,7 @@
     "ostd/src/sync/spin.rs",
     "ostd/src/sync/wait.rs"
   ],
-  "diff_sha256": "28abe67aec4e4735c4d2b623fbc7c9b618bc0e5c0edc2be5e2b985d7a160afe0",
+  "diff_sha256": "aaf10a6b3fa794ffa31ca851eaa0d4bca8fd18b884aa388484d7a9903b44428d",
   "versions": {
     "before": {
       "commit": "6638dcc310f8fe891b10c294596826cbbadb52cc",

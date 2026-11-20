@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-546-269c2b583824",
+  "pr_number": 546,
+  "title": "New embedding ops, axiom cleanup, `in_scope` removal",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/546",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "856819ef6631169061dbc1fed1e2a3e0238c6e76",
+  "head_sha": "269c2b5838240a50d6287115561a34d593c57fc4",
+  "base_method": "git merge-base(archived target-branch tip d1bdfbb1b837dfd41aed08c7267d7d6dd000e208, selected pre-fix PR head 269c2b5838240a50d6287115561a34d593c57fc4) = 856819ef6631169061dbc1fed1e2a3e0238c6e76; computed from official Git objects",
+  "archive_base_sha": "d1bdfbb1b837dfd41aed08c7267d7d6dd000e208",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/kvirt_store.rs",
+    "ostd/specs/mm/embedding/list_store.rs",
+    "ostd/specs/mm/embedding/mod.rs",
+    "ostd/specs/mm/embedding/segment.rs",
+    "ostd/specs/mm/embedding/unique.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_specs.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/node/child.rs",
+    "ostd/specs/mm/page_table/node/entry.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/kspace/kvirt_area.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/child.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "ostd/src/mm/vm_space.rs"
+  ],
+  "diff_sha256": "761a79b25c00879eccafa2c66713bb30e70e1f9ba9301ba142d94169b3b5f350",
+  "versions": {
+    "before": {
+      "commit": "856819ef6631169061dbc1fed1e2a3e0238c6e76",
+      "file_count": 315,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "269c2b5838240a50d6287115561a34d593c57fc4",
+      "file_count": 318,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "5de8011be6322698f986be02de2858af8756fc59",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T07:27:54.202441+00:00",
+    "reviewed_at": "2026-11-19T07:27:54Z",
+    "upstream_updated_at": "2026-10-21T06:38:02Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/546",
+      "https://github.com/asterinas/vostd/commit/a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00546"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected pre-fix PR commit 269c2b5838240a50d6287115561a34d593c57fc4; compared the problem version with repair commit a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe.",
+    "zero_issues_meaning": "Not applicable; the case contains one source-adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-69-931cc78db2e3",
+  "pr_number": 69,
+  "title": "Revise PTE",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/69",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "81bddf830c1e0bbc864babf971b1989fe9decc13",
+  "head_sha": "931cc78db2e3c6ffe2654e9b44caf3dcdc344d23",
+  "base_method": "selected problem snapshot 931cc78db2e3c6ffe2654e9b44caf3dcdc344d23 is PR #69 actual merge-base and historical branch parent; export uses its immutable first parent 81bddf830c1e0bbc864babf971b1989fe9decc13 as truthful historical comparison and does not represent this as PR #69 repair diff",
+  "archive_base_sha": "44aefda21983fd0b955c565b8e22d29800bc48cc",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+    "lock-protocol/src/spec/common.rs"
+  ],
+  "diff_sha256": "8757885786943ac088d921817fdf27bd609d22926b39facff0a22448d55c5c15",
+  "versions": {
+    "before": {
+      "commit": "81bddf830c1e0bbc864babf971b1989fe9decc13",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "931cc78db2e3c6ffe2654e9b44caf3dcdc344d23",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T13:23:07.878819+00:00",
+    "reviewed_at": "2026-11-19T12:58:49Z",
+    "upstream_updated_at": "2025-07-07T14:30:24Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/69",
+      "https://github.com/asterinas/vostd/commit/20ba976dc4dc0943c3eda62b0d96cb8a37e41320"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00069"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "The selected problem snapshot is PR #69's actual merge base and historical branch parent. Because it is also the problem state before the first repair commit, use its immutable first parent for the exported comparison: 81bddf830c1e0bbc864babf971b1989fe9decc13 -> 931cc78db2e3c6ffe2654e9b44caf3dcdc344d23. This is the historical merge of PR #67 and must not be represented as PR #69's repair diff. The archived live base 44aefda21983fd0b955c565b8e22d29800bc48cc is not an ancestor of the PR head; its merge-base with the head is 931cc78db2e3c6ffe2654e9b44caf3dcdc344d23.",
+    "zero_issues_meaning": "Not applicable; this snapshot contains one adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "toolchain": "Direct bit-52 witness distinguishes the masks. Compatible Verus problem/final targets report 501/0 and 497/0; both passes are expected because x86 field width is not a built-in verifier rule."
+  },
+  "additional_context_paths": [],
+  "verification_summary": "Two independent reviewers confirmed that the problem mask retains bit 52 and other bits above the maximum x86-64 PTE physical-address field. The direct witness PageTableEntry(1 << 52).paddr() returns 1 << 52 at the selected problem snapshot and zero with repair 20ba976d. Compatible historical Verus runs pass both snapshots because the verifier checks the declared mask and has no built-in x86 PTE-width rule."
+}

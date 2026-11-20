@@ -86,12 +86,16 @@
       {
         "commit": "26e8809aa4070c5242958f3b40bda2145ae40cae",
         "path": "docs/coding-guidelines/maintainability.md",
-        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#name-proof-roles"
+        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#name-proof-roles",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
       },
       {
         "commit": "26e8809aa4070c5242958f3b40bda2145ae40cae",
         "path": "docs/coding-guidelines/maintainability.md",
-        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#preserve-exec-code"
+        "url": "https://github.com/asterinas/vostd/blob/26e8809aa4070c5242958f3b40bda2145ae40cae/docs/coding-guidelines/maintainability.md#preserve-exec-code",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
       }
     ],
     "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",

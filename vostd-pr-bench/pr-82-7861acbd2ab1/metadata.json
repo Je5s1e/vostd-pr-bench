@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-82-7861acbd2ab1",
+  "pr_number": 82,
+  "title": "Fix faulty `ilog2` spec",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/82",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "f0524f8a391671f07eaa6437a1a3159ef04b9173",
+  "head_sha": "7861acbd2ab1ec0577715f1f8407c2e5491e9e27",
+  "base_method": "feature-lineage comparison: f0524f8a391671f07eaa6437a1a3159ef04b9173 is the common direct parent of parallel commits fee6f136c0a1b213967e615ff7c14c11cf7f1029 and e88149d52cd42e29fdad1598211d4e8f1ef7f3fb, which are the two parents of selected problem merge 7861acbd2ab1ec0577715f1f8407c2e5491e9e27. Both parents and the merge are tree-identical, so using target-side parent fee6f136 would produce an empty diff. The selected fixed ancestor yields the complete non-empty feature snapshot; the separate repair comparison is 7861acbd -> 9797a63e.",
+  "archive_base_sha": "40861c714855351e8db05ca71386861301871981",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "vstd_extra/src/extra_num.rs"
+  ],
+  "additional_context_paths": [],
+  "diff_sha256": "f20bcc5591ddf70581d81878637a38a3d0dba228f15f97a817fb9e6a354a4ae7",
+  "versions": {
+    "before": {
+      "commit": "f0524f8a391671f07eaa6437a1a3159ef04b9173",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "7861acbd2ab1ec0577715f1f8407c2e5491e9e27",
+      "file_count": 1,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T13:57:36Z",
+    "reviewed_at": "2026-11-19T13:54:31Z",
+    "upstream_updated_at": "2025-07-15T03:35:54Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/82",
+      "https://github.com/asterinas/vostd/commit/9797a63e697a4f901a0a2e14c586729beed79a00",
+      "https://github.com/asterinas/vostd/commit/b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00082"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected official pre-repair merge 7861acbd2ab1ec0577715f1f8407c2e5491e9e27. Because that merge and both parents have identical trees, used their common feature-lineage parent f0524f8a391671f07eaa6437a1a3159ef04b9173 for the fixed non-empty evaluation comparison. The semantic repair is independently established by 9797a63e697a4f901a0a2e14c586729beed79a00; b94a3cdc9a0b23ddd92d67d5c99e974b08c0747c restates the same unsigned domain.",
+    "zero_issues_meaning": "Not applicable; the case contains one source-adjudicated semantic issue.",
+    "source_export": "Fixed Git ancestry, tree identities, changed path, and full-index diff were regenerated. The exporter must verify written blob bytes against the fixed objects before publication.",
+    "toolchain": "Compatibility verification used asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, Rust 1.88.0, and Z3 4.12.5. vstd_extra reported 236 verified/0 errors at both problem and repair. The problem pass is non-exculpatory because external_fn_specification trusts the wrapper and provides neither a nonzero precondition nor no_unwind. The verifier predates the July 14-15 commits by several days."
+  }
+}

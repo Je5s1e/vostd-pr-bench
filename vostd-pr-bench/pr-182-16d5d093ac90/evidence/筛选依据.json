@@ -1,0 +1,59 @@
+{
+  "number": 182,
+  "title": "Clean and stablize proofs",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Clean and stablize proofs",
+      "category": "证明与规约"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rcu/tree.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rw/atomic.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rw/tree.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/utils.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "vstd_extra/src/map_extra.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "vstd_extra/src/seq_extra.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "vstd_extra/src/set_extra.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "ree(pre,post,nid); broadcast use group_value_filter_lemmas; proof fn lemma_deallocate_keep_inv_not_allocated_subtree(pre: Self, post: Self, nid: NodeId) requires pre.inv_not_allocated_subtree(), pre.inv_pte_is_",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 10
+}

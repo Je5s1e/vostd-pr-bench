@@ -7,7 +7,7 @@
       "id": "pr-738-b759e2fe2adc:issue-3920760604",
       "original_label_id": "3920760604",
       "category": "guideline",
-      "description": "This change does not match the Asterinas source code. Just comment it.",
+      "description": "The as_ptr implementation replaces self.val.get() with a cast of a pointer to the enclosing PCell, but preserves only the old expression in a comment without explaining the executable divergence.",
       "locations": [
         {
           "version": "after",

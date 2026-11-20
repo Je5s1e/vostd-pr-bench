@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-74-519268844721",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-74-519268844721:commit-fix-07236f8a16d1bb38b73f0753ffff72c7fb07d7b7-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`pte_index` exports the less-than-512 `valid_pte_offset` guarantee while its decisive low-nine-bit range proof ends in `admit()`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/common.rs",
+          "start_line": 82,
+          "end_line": 98
+        }
+      ],
+      "rationale": "All callers may rely on both the exact virtual-address offset and `valid_pte_offset(res)`, but the selected body delegates the masked result's `< 512` bound to a trusted assumption. The executable expression is mathematically correct, so this is a proof-boundary defect rather than a runtime-value bug. Repair 07236f8a preserves the exact result and range contracts and checks `(num & 511) < 512` with bit-vector reasoning.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/common.rs:82-98 computes the low-nine-bit index, promises `valid_pte_offset`, and closes the range assertion with `admit()` at line 96. Repair 07236f8a16d1bb38b73f0753ffff72c7fb07d7b7 keeps `returns va_level_to_offset(...)` and proves `(num & 511) < 512` by bit-vector assertion at repaired lines 92-96.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/07236f8a16d1bb38b73f0753ffff72c7fb07d7b7",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "07236f8a16d1bb38b73f0753ffff72c7fb07d7b7:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/07236f8a16d1bb38b73f0753ffff72c7fb07d7b7",
+          "commit_id": "07236f8a16d1bb38b73f0753ffff72c7fb07d7b7"
+        }
+      ],
+      "verification": "Compatible historical Verus reports problem vstd_extra 228/0 and lock-protocol 503/0 because the selected admit is trusted; direct repair reports 228/0 and 502/0. Fixed-source primary and independent reviews confirm that the repair preserves the result/range contract and replaces the trusted range step with checked bit-vector reasoning."
+    }
+  ]
+}

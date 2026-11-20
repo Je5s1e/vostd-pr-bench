@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-668-12d847140254",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The public tracked_from_unused_owner axiom constructs a metadata owner and asserts the entire region invariant without any precondition, even while guaranteeing that the region slot map is unchanged.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/frame/unique.rs",
+          "start_line": 193,
+          "end_line": 207
+        }
+      ],
+      "rationale": "The complete axiom has no requires clause. Its from_unused_owner postcondition includes regions.inv() and regions.slots == old_regions.slots. MetaRegionOwners::inv requires every index in [0,max_meta_slots()) to have a slot owner and corresponding slot permission. Thus an input region missing one required slot cannot be repaired to satisfy inv while keeping slots unchanged, yet the axiom exports that guarantee without requiring initial validity. It also returns a generic M::Owner without taking one as input. This is not inferred merely from the use of axiom: the unchanged-map and unconditional-validity clauses give the concrete incompatible state condition. The direct child repair replaces the axiom with a checked constructor that consumes meta_own and repr_perm and returns their wrapper, removing the arbitrary region-state guarantee. Its from_unused caller is updated to receive and pass the real metadata owner. No runtime memory corruption or full verifier reproduction is claimed; LinkOwner itself has only ghost fields in this revision, so no specific LinkOwner pointer-permission duplication is alleged.",
+      "source_evidence": "after/ostd/specs/mm/frame/unique.rs\n166:         old_regions: MetaRegionOwners,\n167:         paddr: Paddr,\n168:         metadata: M,\n169:         res: Self,\n170:         regions: MetaRegionOwners,\n171:     ) -> bool {\n172:         &&& <M as OwnerOf>::wf(metadata, res.meta_own)\n173:         &&& res.slot_index == frame_to_index(paddr)\n174:         &&& regions.slots[res.slot_index].addr() == frame_to_meta(paddr)\n175:         &&& res.meta_wf(regions)\n176:         &&& res.meta_value(regions) == metadata\n177:         &&& regions.slots == old_regions.slots\n178:         &&& regions.slot_owners[frame_to_index(paddr)].inner_perms\n179:             == old_regions.slot_owners[frame_to_index(paddr)].inner_perms\n180:         &&& regions.slot_owners[frame_to_index(paddr)].usage\n181:             == old_regions.slot_owners[frame_to_index(paddr)].usage\n182:         &&& regions.slot_owners[frame_to_index(paddr)].paths_in_pt\n183:             == old_regions.slot_owners[frame_to_index(paddr)].paths_in_pt\n184:         &&& forall|i: int|\n185:             i != frame_to_index(paddr) ==> regions.slot_owners[i]\n186:                 == old_regions.slot_owners[i]\n187:         // Setting up the owner does not touch the per-frame ledger; the\n188:         // pending-Drop obligation is minted by `from_unused` itself.\n189:         &&& regions.frame_obligations == old_regions.frame_obligations\n190:         &&& regions.inv()\n191:     }\n192: \n193:     pub axiom fn tracked_from_unused_owner(\n194:         tracked regions: &mut MetaRegionOwners,\n195:         tracked repr_perm: M::ReprPerm,\n196:         paddr: Paddr,\n197:     ) -> (tracked res: Self)\n198:         ensures\n199:             Self::from_unused_owner(\n200:                 *old(regions),\n201:                 paddr,\n202:                 res.meta_value(*final(regions)),\n203:                 res,\n204:                 *final(regions),\n205:             ),\n206:             res.repr_perm == Some(repr_perm),\n207:     ;\n208: \n209:     pub proof fn tracked_borrow_repr_perm(tracked &self) -> (tracked res: &M::ReprPerm)\n210:         requires\n211:             self.repr_perm is Some,\n\nMetaRegionOwners::inv at after/ostd/specs/mm/frame/meta_region_owners.rs:65-88 requires all in-range keys in slot_owners and their presence in slots. The repair 8a9372c5de3b6cc7a97e809ad0328a96664f2742 changes tracked_from_unused_owner to a proof fn consuming meta_own, repr_perm and slot_index, with a concrete Self constructor body.",
+      "verification": "source-only; historical Verus not executed. Read complete axiom and specification predicate, region invariant, owner trait and concrete LinkOwner/PageMetaOwner definitions, from_unused caller and direct repair. Official PR668 get_commits contains both adjacent problem and repair; archive agrees. No duplicate root found among existing labels; Frame/PointsTo axioms in #382/#392/#403 are separate APIs and repairs.",
+      "id": "pr-668-12d847140254:commit-fix-8a9372c5de3b6cc7a97e809ad0328a96664f2742-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/8a9372c5de3b6cc7a97e809ad0328a96664f2742",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "8a9372c5de3b6cc7a97e809ad0328a96664f2742:root-1",
+          "commit_id": "8a9372c5de3b6cc7a97e809ad0328a96664f2742",
+          "url": "https://github.com/asterinas/vostd/commit/8a9372c5de3b6cc7a97e809ad0328a96664f2742"
+        }
+      ]
+    }
+  ]
+}

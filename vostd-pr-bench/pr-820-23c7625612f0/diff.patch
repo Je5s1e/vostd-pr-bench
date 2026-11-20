@@ -1,6 +1,6 @@
 diff --git a/ostd/specs/arch/x86/irq.rs b/ostd/specs/arch/x86/irq.rs
 new file mode 100644
-index 000000000..5d8016e2c
+index 0000000000000000000000000000000000000000..5d8016e2cb613d439a0f6a1114aad51939622e20
 --- /dev/null
 +++ b/ostd/specs/arch/x86/irq.rs
 @@ -0,0 +1,139 @@
@@ -144,7 +144,7 @@ index 000000000..5d8016e2c
 +
 +} // verus!
 diff --git a/ostd/specs/arch/x86/mod.rs b/ostd/specs/arch/x86/mod.rs
-index eda18e930..9fee01148 100644
+index eda18e9305a5338c528d5c21ac3e45e1478f25d6..9fee01148439b65dc2b3c62d4d857d271ae622c1 100644
 --- a/ostd/specs/arch/x86/mod.rs
 +++ b/ostd/specs/arch/x86/mod.rs
 @@ -1,3 +1,5 @@
@@ -154,7 +154,7 @@ index eda18e930..9fee01148 100644
      arithmetic::power2::{lemma_pow2_adds, lemma2_to64, lemma2_to64_rest, pow2},
      prelude::*,
 diff --git a/ostd/src/arch/x86/kernel/irq/mod.rs b/ostd/src/arch/x86/kernel/irq/mod.rs
-index 8179d0a85..81b075e19 100644
+index 8179d0a85128088ebbda0a7387e274d10d9965a4..81b075e19f523b97907c215756c00f6c623de0b5 100644
 --- a/ostd/src/arch/x86/kernel/irq/mod.rs
 +++ b/ostd/src/arch/x86/kernel/irq/mod.rs
 @@ -1,4 +1,11 @@

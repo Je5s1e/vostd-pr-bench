@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-237-24bb220c7879",
+  "pr_number": 237,
+  "title": "PhaseII: Verify `align_ext`",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/237",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "e5b76915e9af647deffc1704d2de2285c4c35a88",
+  "head_sha": "24bb220c78790484164f0f5c6f6adb19f15a3669",
+  "base_method": "Direct-parent incremental comparison: e5b76915e9af647deffc1704d2de2285c4c35a88 is the sole parent of selected problem commit 24bb220c78790484164f0f5c6f6adb19f15a3669. The reviewed repair chain completes both independent roots at 8488536c7972ae7e223853e2722efbe7f609988f.",
+  "archive_base_sha": "a57310cf8a63fd9826f83ee5d9e7a8049d4e864c",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "Cargo.lock",
+    "ostd/libs/align_ext/Cargo.toml",
+    "ostd/libs/align_ext/src/lib.rs",
+    "vstd_extra/src/arithmetic.rs",
+    "vstd_extra/src/lib.rs",
+    "vstd_extra/src/prelude.rs"
+  ],
+  "diff_sha256": "f635423427c63a3509ddc7e670521624afc8fc2a2965442ec8bc8839107bf57a",
+  "versions": {
+    "before": {
+      "commit": "e5b76915e9af647deffc1704d2de2285c4c35a88",
+      "file_count": 263,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "b444971945b7a88a5919e7d5ad1a844d0b4b35dd",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "24bb220c78790484164f0f5c6f6adb19f15a3669",
+      "file_count": 264,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "b444971945b7a88a5919e7d5ad1a844d0b4b35dd",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 2,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T12:29:39Z",
+    "reviewed_at": "2026-11-20T12:15:06Z",
+    "upstream_updated_at": "2025-11-28T03:08:02Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/237",
+      "https://github.com/asterinas/vostd/commit/24bb220c78790484164f0f5c6f6adb19f15a3669",
+      "https://github.com/asterinas/vostd/commit/8488536c7972ae7e223853e2722efbe7f609988f"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:13:10.394823+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00237"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected problem commit 24bb220c78790484164f0f5c6f6adb19f15a3669 and its sole parent e5b76915e9af647deffc1704d2de2285c4c35a88. Later official commits separately repair align-up and align-down, with 8488536c7972ae7e223853e2722efbe7f609988f the first reviewed snapshot where both public contracts are trust-token clean.",
+    "zero_issues_meaning": "Not applicable; the case contains two independently adjudicated semantic issues.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary problem and repair diffs regenerated. The complete ostd tree and all changed files outside ostd are included.",
+    "double_review": "Primary review by /root/audit_pr_143_147 and independent second review by /root/audit_pr_126_142 confirmed two independent alignment roots and their shared repair completion.",
+    "historical_toolchain_note": "Historical Verus was not executed; validation is based on immutable source snapshots, Git history, repair diffs, and two independent source reviews."
+  },
+  "additional_context_paths": []
+}

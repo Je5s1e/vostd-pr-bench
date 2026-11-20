@@ -24,7 +24,7 @@
     "verified_libs/vstd_extra/src/external/bitvec.rs",
     "verified_libs/vstd_extra/src/external/mod.rs"
   ],
-  "diff_sha256": "221581d00637bf8cfef1dcc50fb262c9d6001129b49dfe714b754401dce9ce3a",
+  "diff_sha256": "d0c095a0de4f551554817534738ae9a6c27f8c4b52f4ab594ceb68533b3d1d68",
   "versions": {
     "before": {
       "commit": "59a69f8e52bb3b9a8e302fb11a3cc0d5a9f81c81",
@@ -57,5 +57,17 @@
       ]
     }
   },
-  "known_issue_count": 3
+  "known_issue_count": 3,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "32f28ee1260b842a490686f275ffb6138e8e2b47",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/32f28ee1260b842a490686f275ffb6138e8e2b47/docs/coding-guidelines/maintainability.md#L72",
+        "rule_id": "group-imports-by-crate",
+        "line": 72,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

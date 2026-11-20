@@ -1,5 +1,5 @@
 diff --git a/ostd/src/arch/x86/ex_table.rs b/ostd/src/arch/x86/ex_table.rs
-index 42539b4f1..4735b54e7 100644
+index 42539b4f1bb1f8d889f1f37ca9afe9ae47f60e6e..4735b54e7b29ac4f6b6b810ea33d165fd896d8f8 100644
 --- a/ostd/src/arch/x86/ex_table.rs
 +++ b/ostd/src/arch/x86/ex_table.rs
 @@ -1,6 +1,12 @@
@@ -111,7 +111,7 @@ index 42539b4f1..4735b54e7 100644
 +    ex_table
 +}
 diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
-index d2412ae5c..c763ffff8 100644
+index d2412ae5c2bbdd1feb0f48202a185b2c7e5d08a3..c763ffff82b394ea383b0d3c6e7676d9106b9e72 100644
 --- a/ostd/src/arch/x86/mod.rs
 +++ b/ostd/src/arch/x86/mod.rs
 @@ -2,9 +2,9 @@

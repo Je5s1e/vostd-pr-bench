@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-35-fa067beadf03",
+  "pr_number": 35,
+  "title": "Refine the `rw_version` spec's invariant",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/35",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "e33588d9035b3f0eeb6b129843dddd7a21662b46",
+  "head_sha": "fa067beadf039187eb72f5ce1c2124a2d4644bfa",
+  "base_method": "git merge-base(archived historical PR base 48091f66240b239c87bb674ef81f2d93ac12c64e, selected official pre-repair commit fa067beadf039187eb72f5ce1c2124a2d4644bfa) = e33588d9035b3f0eeb6b129843dddd7a21662b46",
+  "archive_base_sha": "48091f66240b239c87bb674ef81f2d93ac12c64e",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/spec/utils.rs",
+    "lock-protocol/src/test/rw_version/spec/common.rs",
+    "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "vstd_extra/src/ghost_tree.rs",
+    "vstd_extra/src/map_extra.rs",
+    "vstd_extra/src/seq_extra.rs"
+  ],
+  "diff_sha256": "9d524ffdb8c5391c1818a4760971c7fe52f476f3c51cd4b0e2c69d0c5f8c1751",
+  "versions": {
+    "before": {
+      "commit": "e33588d9035b3f0eeb6b129843dddd7a21662b46",
+      "file_count": 6,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "fa067beadf039187eb72f5ce1c2124a2d4644bfa",
+      "file_count": 6,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 5,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T12:33:58.627754+00:00",
+    "reviewed_at": "2026-11-19T12:52:25Z",
+    "upstream_updated_at": "2025-06-04T03:34:53Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/35"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00035"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected official pre-repair commit fa067beadf03 where all five independently repaired trusted-boundary roots coexist; comparison base is its merge-base with the archived historical target tip.",
+    "zero_issues_meaning": "Not applicable; this snapshot contains five adjudicated semantic issues.",
+    "historical_verus_scope": "The fixed historical run covers final PR head only: lock-protocol 323 verified, 0 errors. Problem-snapshot admits were adjudicated from fixed source and repair diffs.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated."
+  },
+  "additional_context_paths": []
+}

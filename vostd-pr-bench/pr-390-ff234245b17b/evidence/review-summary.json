@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 12,
-  "inline_review_comment_count": 0,
-  "review_count": 0,
-  "core_lesson": "对运行时锁保护的数据，在持锁的内部接口上写精确规约",
-  "category": "内存与I/O",
-  "all_content_unadjudicated": true
-}

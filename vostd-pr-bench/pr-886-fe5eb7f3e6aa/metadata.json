@@ -15,7 +15,7 @@
     "ostd/src/arch/x86/ex_table.rs",
     "ostd/src/arch/x86/mod.rs"
   ],
-  "diff_sha256": "71842722692b38cc555dfcc3f461a3d1c63c96c7cbe7008368d60370f11edd8c",
+  "diff_sha256": "d6129143d3f8201bfea95035780acdd9f1b32edc639de19a5935be01ddd03d5d",
   "versions": {
     "before": {
       "commit": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
@@ -48,5 +48,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "fe5eb7f3e6aa70c7efce9d93d9fde2e1011b1986",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/fe5eb7f3e6aa70c7efce9d93d9fde2e1011b1986/docs/coding-guidelines/maintainability.md#L307",
+        "rule_id": "match-enum-results",
+        "line": 307,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

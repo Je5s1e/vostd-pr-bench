@@ -69,9 +69,12 @@
     ],
     "guideline_sources": [
       {
-        "commit": "fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3",
-        "path": "docs/coding-guidelines/maintainability.md",
-        "url": "https://github.com/asterinas/vostd/blob/fa4b6df36f6e4d92be2c2bf1c0a8662954079ec3/docs/coding-guidelines/maintainability.md#document-real-proof-debt"
+        "commit": "7a42b67bb385417f3906765513485ff3e36c1346",
+        "path": ".agents/skills/vostd-code-review/personas/specification.md",
+        "url": "https://github.com/asterinas/vostd/blob/7a42b67bb385417f3906765513485ff3e36c1346/.agents/skills/vostd-code-review/personas/specification.md#L31-L40",
+        "rule_id": "api-postconditions",
+        "line": 31,
+        "basis": "Exact review-skill definition at selected head; deterministic abstract results, not proof-debt comments."
       }
     ],
     "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",

@@ -17,7 +17,7 @@
     "ostd/src/arch/x86/irq.rs",
     "ostd/src/trap/irq.rs"
   ],
-  "diff_sha256": "16ea7e295e4b92cca53fb3566fe3498c3cd7bdbcbd7646f6b442e14c193fb091",
+  "diff_sha256": "16216190b4f5499443d5a6dc488e80538b1f7ef5a0e2bf75d5b562039a0b01fc",
   "versions": {
     "before": {
       "commit": "9c7677deee6fbe7ac154158b571282a801ecea8a",
@@ -50,5 +50,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "902b28e1956088886fea720640507623d8d11239",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/902b28e1956088886fea720640507623d8d11239/docs/coding-guidelines/maintainability.md#L432",
+        "rule_id": "avoid-unused-spec-helpers",
+        "line": 432,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

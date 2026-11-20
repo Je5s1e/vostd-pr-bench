@@ -17,7 +17,7 @@
         }
       ],
       "rationale": "The loop already relates `mapped_pages` to `it.index()` and states the same cursor equation using native values on the preceding line. The additional invariant restates it with four explicit `as int` casts. The reviewer identified the casts as unnecessary, the author confirmed the line was inherited and would be removed, and the next commit rewrites it as the direct equality without any casts. Under the same-commit requirement that routine proof edits remain lightweight and minimal, these redundant coercions add noise without an independent obligation.",
-      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n758: mapped_pages == it.index(),\n764: cursor.0.va == range.start + map_offset + it.index() * PAGE_SIZE,\n765: cursor.0.va as int == range.start as int + map_offset as int + mapped_pages\n766:     * PAGE_SIZE as int,\n\nafter/AGENTS.md\n47: Keep routine edits lightweight.\n54: Keep edits minimal and localized to the smallest necessary dependency closure.",
+      "source_evidence": "after/ostd/src/mm/kspace/kvirt_area.rs\n758: mapped_pages == it.index(),\n764: cursor.0.va == range.start + map_offset + it.index() * PAGE_SIZE,\n765: cursor.0.va as int == range.start as int + map_offset as int + mapped_pages\n766:     * PAGE_SIZE as int,\n\nafter/AGENTS.md\n47: For proof-sensitive changes, use `.agents/skills/verus-proof-guidance/SKILL.md` only when nontrivial Verus reasoning, specification changes, or verification failures require it. Keep routine edits lightweight.\n54: - Keep edits minimal and localized to the smallest necessary dependency closure.",
       "rule_ids": [
         "avoid-redundant-as-int-casts"
       ],

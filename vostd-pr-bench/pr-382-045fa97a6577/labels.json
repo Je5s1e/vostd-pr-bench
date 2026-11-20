@@ -89,7 +89,7 @@
         }
       ],
       "rationale": "The base contract guarantees that the returned cursor satisfies its invariants, that its owner is in the locked range, and that its level is strictly below the guard level. The selected review commit removes all three and retains only `level <= guard_level` plus address/frame facts. Callers such as cursor construction rely on the stronger properties to establish their success contracts; the weakened function contract no longer provides those proof facts, so the downstream API cannot be verified against its declared guarantees. This review commit was later force-pushed out rather than merged.",
-      "source_evidence": "before/ostd/src/mm/page_table/cursor/locking.rs\n43: ensures\n44:     ret.0.invariants(*ret.1, *regions, *guards),\n45:     (*ret.1).in_locked_range(),\n46:     ret.0.level < ret.0.guard_level,\n\nafter/ostd/src/mm/page_table/cursor/locking.rs\n43: ensures\n44:     ret.0.level <= ret.0.guard_level,\n45:     ret.0.va < ret.0.barrier_va.end,\n...\n56: )]",
+      "source_evidence": "before/ostd/src/mm/page_table/cursor/locking.rs\n41:     ensures\n42:         ret.0.invariants(*ret.1, *regions, *guards),\n43:         (*ret.1).in_locked_range(),\n44:         ret.0.level < ret.0.guard_level,\n45:         ret.0.va < ret.0.barrier_va.end,\n46:         ret.0.va == va.start,\n\nafter/ostd/src/mm/page_table/cursor/locking.rs\n43: ensures\n44:     ret.0.level <= ret.0.guard_level,\n45:     ret.0.va < ret.0.barrier_va.end,\n...\n56: )]",
       "rule_ids": [],
       "review_url": "https://github.com/asterinas/vostd/pull/382#discussion_r3000945911",
       "related_comment_ids": [

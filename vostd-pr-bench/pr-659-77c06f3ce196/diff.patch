@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/embedding/io.rs b/ostd/specs/mm/embedding/io.rs
-index d41666d81..41c7da7f3 100644
+index d41666d816a8a1380ae4fb2b6fad7c35fa13ceb0..41c7da7f386e3d14ee4b1d78bbad7ff0c266c6d2 100644
 --- a/ostd/specs/mm/embedding/io.rs
 +++ b/ostd/specs/mm/embedding/io.rs
 @@ -42,14 +42,15 @@
@@ -272,7 +272,7 @@ index d41666d81..41c7da7f3 100644
 -
  } // verus!
 diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
-index e263f265b..769325bfd 100644
+index e263f265b21d7cf930f24627574aece57b111c14..769325bfd28bb39b13a2cb83163acaf5ddaa3e7c 100644
 --- a/ostd/specs/mm/embedding/mod.rs
 +++ b/ostd/specs/mm/embedding/mod.rs
 @@ -2521,7 +2521,6 @@ proof fn step_write<'rcu>(tracked s: &mut VmStore<'rcu>, source: VmIoId, dest: V

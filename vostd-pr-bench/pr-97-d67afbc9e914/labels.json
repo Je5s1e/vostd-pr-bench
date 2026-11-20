@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-97-d67afbc9e914:commit-fix-8499a98174592cdc7c24ad951e82fa45bece61b9-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "take_next compensates for a no-op move_forward with one-byte increments, so absent page-table regions are traversed at unaligned byte addresses instead of advancing to the next PTE.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 258,
+          "end_line": 278
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 736,
+          "end_line": 808
+        }
+      ],
+      "rationale": "At the selected problem snapshot, move_forward has no executable statements and ensures va is unchanged. take_next then adds one byte after the absent-entry call, adds one byte after the empty-child call, and adds a third unconditional byte in the partial-entry path. Starting from a page-aligned absent entry, subsequent iterations use unaligned addresses and may scan a page byte by byte. Repair 8499a981 computes align_down(va,page_size)+page_size, guarantees strict progress, and removes all three compensating increments.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 258-278\nblob 0651c920c30b0ddeb09a92415eabee5bb7d52a50\nmove_forward is empty and its postcondition states self.va == old(self).va.\n\nafter/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 736-808\nblob 0651c920c30b0ddeb09a92415eabee5bb7d52a50\ntake_next calls the no-op and increments va at lines 744 and 776, with a third unconditional increment at line 805.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 261-297\nblob 136fb3bab895d36233dc9361900442c7edac4cfe\ncommit 8499a98174592cdc7c24ad951e82fa45bece61b9\nmove_forward assigns align_down(self.va,page_size)+page_size and promises strict forward progress.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 754-822\ncommit 8499a98174592cdc7c24ad951e82fa45bece61b9\nBoth traversal branches call move_forward(spt) without any +1 compensation, and the enclosing third increment is removed.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/8499a98174592cdc7c24ad951e82fa45bece61b9",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "8499a98174592cdc7c24ad951e82fa45bece61b9:root-2",
+          "url": "https://github.com/asterinas/vostd/commit/8499a98174592cdc7c24ad951e82fa45bece61b9",
+          "commit_id": "8499a98174592cdc7c24ad951e82fa45bece61b9"
+        }
+      ],
+      "verification": "Source-only runtime progress analysis and immutable repair diff. Historical Rust/Verus was not executed. Remaining proof assumes do not negate the concrete executable correction."
+    }
+  ],
+  "sample_id": "pr-97-d67afbc9e914"
+}

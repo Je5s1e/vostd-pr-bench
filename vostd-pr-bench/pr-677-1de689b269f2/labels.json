@@ -7,7 +7,7 @@
       "id": "pr-677-1de689b269f2:issue-3682414166",
       "original_label_id": "3682414166",
       "category": "guideline",
-      "description": "Direct source42-43 closes and immediately opens verus! with no intervening Rust item. Current separate-verus-modes explicitly requires adjoining verified items in one block.",
+      "description": "Adjacent verus! blocks split contiguous verified items without an intervening executable Rust item.",
       "locations": [
         {
           "version": "after",

@@ -14,7 +14,7 @@
   "changed_paths": [
     "ostd/src/mm/tlb.rs"
   ],
-  "diff_sha256": "d2146b69de919fae41e614945892486e5e5137e0c9577d68402d7c00d0932744",
+  "diff_sha256": "dc17feea3b7a54ea10231df3607a623dc5ad5154ddb7feaf32ac6b90ff4adff4",
   "versions": {
     "before": {
       "commit": "d54378ad684ff897cdecfecb8770f70c5aa3cd7c",

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-75-0ff02a61dc17:commit-fix-ea0e7a3b4febd1988c10a6fceba3e492236c0d65-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The intermediate Child::None allocation path assumes that the current PTE address owns an unused-PTE token immediately before consuming that linear token.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 550,
+          "end_line": 584
+        }
+      ],
+      "rationale": "At problem line 571, assume(unused_pte_addrs.contains_key(cur_entry.pte.pte_paddr())) manufactures the exact membership required by the following tracked_remove and Entry::replace. If the key is absent, no linear ownership token is derivable. Repair ea0e7a3 adds exact SPT/token complement clauses and the unpacked mpt_and_tokens_wf_addrs loop invariant, then removes this local assumption.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 550-584\nblob a4de72dd54cbcd783fa963164bde225a0f8c4138\nThe Child::None branch assumes unused_pte_addrs membership at line 571 and immediately tracked_remove's that key for Entry::replace.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 554-582\ncommit ea0e7a3b4febd1988c10a6fceba3e492236c0d65\nThe same intermediate branch directly performs tracked_remove without the local membership assumption.\n\nrepair/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs\nlines 94-132\ncommit ea0e7a3b4febd1988c10a6fceba3e492236c0d65\nThe repaired predicates state both directions of the SPT frame/PTE map versus unused-token-map complement.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/ea0e7a3b4febd1988c10a6fceba3e492236c0d65",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "ea0e7a3b4febd1988c10a6fceba3e492236c0d65:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/ea0e7a3b4febd1988c10a6fceba3e492236c0d65",
+          "commit_id": "ea0e7a3b4febd1988c10a6fceba3e492236c0d65"
+        }
+      ],
+      "verification": "Immutable source and per-commit diff adjudication. Both reviewers confirmed that the strengthened complement relation derives membership for the intermediate empty entry. No historical Verus run was performed."
+    }
+  ],
+  "sample_id": "pr-75-0ff02a61dc17"
+}

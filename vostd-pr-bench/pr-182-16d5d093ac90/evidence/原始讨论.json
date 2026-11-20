@@ -1,0 +1,164 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/182",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 182,
+    "title": "Clean and stablize proofs",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/182",
+    "state": "MERGED",
+    "createdAt": "2025-08-08T08:13:01Z",
+    "updatedAt": "2025-08-11T04:11:04Z",
+    "closedAt": "2025-08-11T04:10:57Z",
+    "mergedAt": "2025-08-11T04:10:57Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "1f849957b592de6ab4e0476bda0fbacba1e16359",
+    "headRefName": "proof-clean",
+    "headRefOid": "c1a29efcdcd483ff6444d953ac5dcce2a2d0da1f",
+    "changedFiles": 9,
+    "additions": 264,
+    "deletions": 510,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 9,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "OQ"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+          "additions": 0,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "additions": 100,
+          "deletions": 155,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+          "additions": 13,
+          "deletions": 47,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rw/atomic.rs",
+          "additions": 5,
+          "deletions": 5,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rw/tree.rs",
+          "additions": 19,
+          "deletions": 165,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/utils.rs",
+          "additions": 67,
+          "deletions": 98,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/map_extra.rs",
+          "additions": 36,
+          "deletions": 11,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/seq_extra.rs",
+          "additions": 6,
+          "deletions": 6,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "vstd_extra/src/set_extra.rs",
+          "additions": 18,
+          "deletions": 22,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

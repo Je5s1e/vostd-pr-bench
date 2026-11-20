@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-668-12d847140254",
+  "pr_number": 668,
+  "title": "refactor: Remove `Metadata`",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/668",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "40e9af00cf3962be53c9b37563591311a86fe0fc",
+  "head_sha": "12d84714025441dd294523004bfe3f59d3dcceef",
+  "base_method": "git merge-base(archived comparison base 73c73e61dfd728aff2adbc8e594faf5d2f90e8a8, selected pre-repair parent 12d84714025441dd294523004bfe3f59d3dcceef)",
+  "archive_base_sha": "73c73e61dfd728aff2adbc8e594faf5d2f90e8a8",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/embedding/frame.rs",
+    "ostd/specs/mm/embedding/list_store.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/mod.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/linked_list.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/frame/unique.rs",
+    "ostd/src/mm/kspace/mod.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "ostd/src/mm/page_table/node/mod.rs",
+    "verified_libs/vstd_extra/src/cast_ptr.rs"
+  ],
+  "diff_sha256": "365e790ed150143720ce1e1f6c786fe6ddeef4b48f22c090f60c9c0a9b6f335a",
+  "versions": {
+    "before": {
+      "commit": "40e9af00cf3962be53c9b37563591311a86fe0fc",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "12d84714025441dd294523004bfe3f59d3dcceef",
+      "file_count": 319,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "504e21936625ef9e65a5b9a0e7e39e7e29a73c39",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:51:57.387319+00:00",
+    "reviewed_at": "2026-11-20T08:51:57.387319+00:00",
+    "upstream_updated_at": "2026-07-27T02:19:03Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/668",
+      "https://github.com/asterinas/vostd/commit/8a9372c5de3b6cc7a97e809ad0328a96664f2742"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00668"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": [
+    "verified_libs/vstd_extra/src/ownership.rs"
+  ]
+}

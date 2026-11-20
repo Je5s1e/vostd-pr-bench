@@ -1,5 +1,5 @@
 diff --git a/ostd/src/sync/rwarc.rs b/ostd/src/sync/rwarc.rs
-index 1029560a6..bdd28ff74 100644
+index 1029560a62fb758e7c57a8fde30699babab6b46f..bdd28ff7446bb99fefe9aa9a0329870089c39e13 100644
 --- a/ostd/src/sync/rwarc.rs
 +++ b/ostd/src/sync/rwarc.rs
 @@ -77,6 +77,11 @@ impl<T> RwArc<T> {
@@ -15,7 +15,7 @@ index 1029560a6..bdd28ff74 100644
      /// Returns an immutable reference if no other `RwArc` points to the same allocation.
      ///
 diff --git a/ostd/src/sync/rwlock.rs b/ostd/src/sync/rwlock.rs
-index 1632c221a..9671c8790 100644
+index 1632c221a972d192dfe736c5a9f3ee171f31b329..9671c8790ff326d9b61e1573851557cb424e635d 100644
 --- a/ostd/src/sync/rwlock.rs
 +++ b/ostd/src/sync/rwlock.rs
 @@ -478,8 +478,8 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
@@ -112,7 +112,7 @@ index 1632c221a..9671c8790 100644
                  },
              )
 diff --git a/ostd/src/sync/rwmutex.rs b/ostd/src/sync/rwmutex.rs
-index 7112595ec..0a96b2faa 100644
+index 7112595ecae0f28fc782e48131dbd79728861b10..0a96b2faaa33a811a4d36a7dcc680cc6bbfb8681 100644
 --- a/ostd/src/sync/rwmutex.rs
 +++ b/ostd/src/sync/rwmutex.rs
 @@ -306,10 +306,10 @@ impl<T> RwMutex<T> {
@@ -129,7 +129,7 @@ index 7112595ec..0a96b2faa 100644
          }
      }
 diff --git a/ostd/src/sync/spin.rs b/ostd/src/sync/spin.rs
-index 283f54e39..3a62e780e 100644
+index 283f54e397a9b8a51a7a623ab18b15e63e6e20f8..3a62e780e99d9974caf819746ca6c78294513f17 100644
 --- a/ostd/src/sync/spin.rs
 +++ b/ostd/src/sync/spin.rs
 @@ -280,8 +280,8 @@ impl<T /*: ?Sized */, G: SpinGuardian, I: ResourceInvariant<T>> SpinLock<T, G, I

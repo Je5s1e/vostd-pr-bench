@@ -1,0 +1,19 @@
+{
+  "number": 136,
+  "title": "Prove remaining admits in rw",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Prove remaining admits in rw",
+      "category": "证明与规约"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "pub open spec fn va_level_to_trace_rec(va: Vaddr, level: PagingLevel) -> Seq<nat> pub open spec fn va_level_to_trace(va: Vaddr, level: PagingLevel) -> Seq<nat> de",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 2
+}

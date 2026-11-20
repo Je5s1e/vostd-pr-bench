@@ -1,5 +1,5 @@
 diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
-index 5d98702b5..df7a81de1 100644
+index 5d98702b5db91003d9e65b8b9fe062ea6a0193ed..df7a81de1ac5c69e3608434f1841adddd782fe24 100644
 --- a/ostd/src/arch/x86/mod.rs
 +++ b/ostd/src/arch/x86/mod.rs
 @@ -12,9 +12,9 @@ pub(crate) mod mm;
@@ -15,7 +15,7 @@ index 5d98702b5..df7a81de1 100644
  /*use io::construct_io_mem_allocator_builder;
  use spin::Once;
 diff --git a/ostd/src/arch/x86/timer/mod.rs b/ostd/src/arch/x86/timer/mod.rs
-index 491304656..816d35168 100644
+index 4913046564998b0ca702967e95dc9a8a0bdd9660..816d3516898b69ec74bac7684986d3484cdf7607 100644
 --- a/ostd/src/arch/x86/timer/mod.rs
 +++ b/ostd/src/arch/x86/timer/mod.rs
 @@ -1,5 +1,10 @@
@@ -53,7 +53,7 @@ index 491304656..816d35168 100644
 +*/
 +} // verus!
 diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
-index 80eb71a56..8a90a3876 100644
+index 80eb71a560d1aece5c390798c801b6cc0c0a83b8..8a90a38768d0a1763374bd1faf0a2299108472f9 100644
 --- a/ostd/src/lib.rs
 +++ b/ostd/src/lib.rs
 @@ -50,7 +50,7 @@ pub mod prelude;
@@ -66,7 +66,7 @@ index 80eb71a56..8a90a3876 100644
  // pub mod user;
  #[path = "../specs/mod.rs"]
 diff --git a/ostd/src/timer/jiffies.rs b/ostd/src/timer/jiffies.rs
-index f327d73aa..98dc93e19 100644
+index f327d73aace1189e372e12116d92cd9588c98d1e..98dc93e196cca0bfcb984961b923e5fa0bc1418f 100644
 --- a/ostd/src/timer/jiffies.rs
 +++ b/ostd/src/timer/jiffies.rs
 @@ -3,23 +3,65 @@ use core::{
@@ -175,7 +175,7 @@ index f327d73aa..98dc93e19 100644
      fn from(value: Jiffies) -> Self {
          value.as_duration()
 diff --git a/ostd/src/timer/mod.rs b/ostd/src/timer/mod.rs
-index c76df3b37..5724e323e 100644
+index c76df3b3751c8d8cbb9c51fe9121270a881a2fea..5724e323e955875bfcb5818782502a8d25e7e980 100644
 --- a/ostd/src/timer/mod.rs
 +++ b/ostd/src/timer/mod.rs
 @@ -2,12 +2,12 @@
@@ -201,7 +201,7 @@ index c76df3b37..5724e323e 100644
 -}
 +} */
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 7e2a80a33..5b1c6e366 100644
+index 7e2a80a33937ede9aca06c010bb625a2dfc0d402..5b1c6e3666dddbf5e78b51fdba63d00f8b75400e 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -11,6 +11,7 @@ pub mod ptr;
@@ -222,7 +222,7 @@ index 7e2a80a33..5b1c6e366 100644
  
 diff --git a/verified_libs/vstd_extra/src/external/time.rs b/verified_libs/vstd_extra/src/external/time.rs
 new file mode 100644
-index 000000000..608c3628a
+index 0000000000000000000000000000000000000000..608c3628a3bbd46bfafc6375b37b22eb13849168
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/time.rs
 @@ -0,0 +1,17 @@

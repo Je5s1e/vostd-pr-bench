@@ -22,7 +22,7 @@
     "ostd/src/lib.rs",
     "ostd/src/user.rs"
   ],
-  "diff_sha256": "305b33df2cc592b43940765e6f08894a8e1a6cd5d0cfa2df5a1c406f2065c1f3",
+  "diff_sha256": "121e3e7c51a449ed2e43aa1b300bfe8bee72d489ef131dbe5fed536f4f4acf3b",
   "versions": {
     "before": {
       "commit": "323526f8b7ff988ade49e9ab3ddf4f3feb91b794",
@@ -55,5 +55,25 @@
       ]
     }
   },
-  "known_issue_count": 2
+  "known_issue_count": 2,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "431e3c7c0000787a1cdc3abd702638b3a7140716",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/431e3c7c0000787a1cdc3abd702638b3a7140716/docs/coding-guidelines/maintainability.md#L346",
+        "rule_id": "preserve-exec-code",
+        "line": 346,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      },
+      {
+        "commit": "431e3c7c0000787a1cdc3abd702638b3a7140716",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/431e3c7c0000787a1cdc3abd702638b3a7140716/docs/coding-guidelines/maintainability.md#L35",
+        "rule_id": "use-returns-for-exact-results",
+        "line": 35,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

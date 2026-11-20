@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-675-6d0431e7ba0c",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The trusted drop_meta_in_place contract checks reference-count and list-membership values from an owner that is not required to describe the receiver, so those checks do not establish exclusive access to the metadata being destroyed.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/frame/meta.rs",
+          "start_line": 852,
+          "end_line": 862
+        }
+      ],
+      "rationale": "The complete requires block contains neither slot_own.inv()/wf() nor slot-owner-to-self identity requirements. It ties metadata_perms storage and vtable addresses to self, but the exclusive-reference-count and zero-list checks come from a separate slot_own and are not tied to self.ref_count or self.in_list. Consequently an owner for slot B can discharge these predicates while the metadata permissions refer to slot A; the stated precondition does not establish the receiver exclusivity claimed in the safety documentation. The direct child repair replaces slot_own with concrete count/list permissions and requires self.ref_count.id()==ref_count_perm.id() and self.in_list.id()==in_list_perm.id(), while retaining their value conditions. It also adds vtable initialization. This label is the identity-missing trusted-boundary contract root, not a claim of reproduced runtime memory corruption: the body is external_body and still contains unimplemented placeholders in both revisions.",
+      "source_evidence": "after/ostd/src/mm/frame/meta.rs\n852:     #[verifier::external_body]\n853:     #[verus_spec(\n854:         with\n855:             Tracked(slot_own): Tracked<&mut MetaSlotOwner>,\n856:             Tracked(metadata_perms): Tracked<&mut MetadataPerms>,\n857:         requires\n858:             old(slot_own).ref_count() == 0 || old(slot_own).ref_count() == REF_COUNT_UNIQUE,\n859:             old(metadata_perms).storage_perm.is_init(),\n860:             old(metadata_perms).storage_perm.id() == self.storage.id(),\n861:             old(metadata_perms).vtable_ptr_perm.pptr() == self.vtable_ptr,\n862:             old(slot_own).in_list_perm.value() == 0,\n\nRepair 39db0735a8d0c1c049a9e8e607976240038edba2 replaces these owner checks with concrete ref_count/in_list permission arguments, links both IDs to self, and requires initialized vtable permission.",
+      "verification": "source-only; historical Verus not executed. Read complete requires/ensures and body, direct parent repair and relevant caller diff. No indirect slot_own invariant or receiver-identity precondition is present. Official GitHub PR commit list retrieved in full (100+78 records); both problem merge commit and direct child fix occur consecutively. No runtime failure is claimed.",
+      "id": "pr-675-6d0431e7ba0c:commit-fix-39db0735a8d0c1c049a9e8e607976240038edba2-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/39db0735a8d0c1c049a9e8e607976240038edba2",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "39db0735a8d0c1c049a9e8e607976240038edba2:root-1",
+          "commit_id": "39db0735a8d0c1c049a9e8e607976240038edba2",
+          "url": "https://github.com/asterinas/vostd/commit/39db0735a8d0c1c049a9e8e607976240038edba2"
+        }
+      ]
+    }
+  ]
+}

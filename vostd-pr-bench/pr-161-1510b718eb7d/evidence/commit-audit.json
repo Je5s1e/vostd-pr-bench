@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "pr_number": 161,
+  "sample_id": "pr-161-1510b718eb7d",
+  "comparison_base_sha": "c1d63c7e77da5f3cacf16271b5e1da3f05e66adf",
+  "problem_commit_sha": "1510b718eb7d13fb074a025a6bebc96844f307e0",
+  "repair_commit_sha": "fa698a4e527004be4da310b35b4db2dcbb5c09b5",
+  "primary_reviewer": "/root",
+  "second_reviewer": "/root/audit_pr_126_142",
+  "second_review_verdict": "approved",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "The quantified stray target address is shadowed by the parent node address, so the invariant compares a live PTE target with the wrong value; the direct child commit separates paddr from the parent address and checks the corrected invariant.",
+  "claim_scope": "semantic_invariant_error",
+  "repair_diff": "repair.diff"
+}

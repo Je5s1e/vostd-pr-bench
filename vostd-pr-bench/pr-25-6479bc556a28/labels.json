@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-25-6479bc556a28",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-25-6479bc556a28:commit-fix-3caac781cd8c3f79b7313883f8e6e53264a1a469-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The callable subtree-bound lemma exports its full guarantee while the essential parent equality is still discharged by a nested `admit()`.",
+      "locations": [{"version": "after", "path": "lock-protocol/src/spec/utils.rs", "start_line": 964, "end_line": 964}],
+      "rationale": "`lemma_in_subtree_bounded_is_child` guarantees `next_outside_subtree(ch) <= next_outside_subtree(pa)` for the then-current `is_child` relation, but its proof assumes `pa == get_parent(ch)` with `admit()`. The relation only states subtree membership at the next depth, so the asserted equality is not definitionally available; callers can nevertheless consume the exported postcondition because Verus trusts the nested assumption. The final repair redefines the parent relation explicitly, adds the necessary non-root premise and helper facts, restores the theorem, and removes this admit.",
+      "source_evidence": "after/lock-protocol/src/spec/utils.rs\n956:                     // First, verify pa is the parent of ch by definition of is_child\n957:                     assert(Self::is_child(pa, ch));\n...\n960:                     assert(pa == Self::get_parent(ch)) by {\n961:                         // is_child implies parent-child relationship\n962:                         Self::is_child(pa, ch);\n963:                         // FIXME: need to prove this without admit\n964:                         admit();\n965:                     }\n\nThe repair commit restores the callable theorem with a checked parent-based proof. The separate top-level admit in lemma_in_subtree_bounded predates this PR and is not part of this issue.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/3caac781cd8c3f79b7313883f8e6e53264a1a469",
+      "related_comment_ids": [],
+      "sources": [{"kind": "commit_fix", "id": "3caac781cd8c3f79b7313883f8e6e53264a1a469:root-1", "url": "https://github.com/asterinas/vostd/commit/3caac781cd8c3f79b7313883f8e6e53264a1a469", "commit_id": "3caac781cd8c3f79b7313883f8e6e53264a1a469"}],
+      "verification": "Historical fixed-tool runs report 325 verified, 0 errors at the problem snapshot and 326 verified, 0 errors at the repair. The problem succeeds only because admit() is trusted; source and independent review establish the unchecked obligation and the repair removes it."
+    }
+  ]
+}

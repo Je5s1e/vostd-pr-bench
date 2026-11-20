@@ -20,7 +20,7 @@
     "verified_libs/vstd_extra/src/lib.rs",
     "verified_libs/vstd_extra/src/range.rs"
   ],
-  "diff_sha256": "406e939547e69688855b46087697b27c62ba350764b67c85cb8ab51410d3db0b",
+  "diff_sha256": "5a7e74d93190b8dc48868f20ce11da90a3dc6c189b76a94ff7476b3d0035e215",
   "versions": {
     "before": {
       "commit": "40899a0e45ae6ee7231ae7b606d8b3400198ad67",

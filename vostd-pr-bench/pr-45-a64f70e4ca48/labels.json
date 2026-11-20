@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-45-a64f70e4ca48",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The FVT6 error migration still imports std::fmt::Error in its VM reader/writer and specification modules while referring to the project-specific InvalidArgs and PageFault variants, so the enabled modules cannot resolve those error values.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "fvt6-vmreader-and-vmwriter/src/io/vmrw.rs",
+          "start_line": 3,
+          "end_line": 3
+        },
+        {
+          "version": "after",
+          "path": "fvt6-vmreader-and-vmwriter/src/io/vmrw.rs",
+          "start_line": 136,
+          "end_line": 136
+        },
+        {
+          "version": "after",
+          "path": "fvt6-vmreader-and-vmwriter/src/io/specs.rs",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "rationale": "The selected first PR commit switches to official Result support but leaves an explicit std::fmt::Error import. That standard formatting error is not the project enum and has neither InvalidArgs nor PageFault. FVT6 lib.rs enables io and its module declares vmrw/specs/fallible. The next direct child removes the formatting Error imports, imports crate::error::Error in fallible/specs, and re-exports crate::error through common so vmrw resolves its variants. This is one error-type migration root, not a claim that the final no-findings snapshot is faulty.",
+      "source_evidence": "after/fvt6-vmreader-and-vmwriter/src/io/vmrw.rs\n3: use std::fmt::Error;\n136:             return Err(Error::InvalidArgs);\n\nafter/fvt6-vmreader-and-vmwriter/src/io/specs.rs\n2: use std::fmt::Error;\n\nDirect child repair changes these imports to the project error enum; Error::PageFault is also used in fallible/specs.",
+      "verification": "source-only; historical Verus not executed. Official three-commit PR list, fixed parent-child diff, module declarations, imports and enum uses inspected.",
+      "id": "pr-45-a64f70e4ca48:commit-fix-bc3de7e840084868dfc0f2f0608582214324b7af-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/bc3de7e840084868dfc0f2f0608582214324b7af",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "bc3de7e840084868dfc0f2f0608582214324b7af:root-1",
+          "commit_id": "bc3de7e840084868dfc0f2f0608582214324b7af",
+          "url": "https://github.com/asterinas/vostd/commit/bc3de7e840084868dfc0f2f0608582214324b7af"
+        }
+      ]
+    }
+  ]
+}

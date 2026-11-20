@@ -1,9 +1,0 @@
-{
-  "number": 127,
-  "source_pr": "https://github.com/asterinas/vostd/pull/127",
-  "archive_base_sha": "9bb5c16487e8f7bd00132af393bb0415d7b1cbde",
-  "selected_base_sha": "9777ba2e0f04b144e2c306d5cf2fecaa334c7424",
-  "selected_head_sha": "ac14d35923e4acbc662f98091638ca0a15ff4e7f",
-  "selection_reason": "Latest PR head before collaborator issue comment 3121739038 requested warning on legacy PowerShell fallback.",
-  "repair_commit": "ef0cb9fd2aecf00afd1e4c8ac08980e1bb092710"
-}

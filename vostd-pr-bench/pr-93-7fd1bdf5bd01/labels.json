@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-93-7fd1bdf5bd01",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The ManuallyDrop specification migration removes ex_manually_drop_value_axiom but leaves an enabled FVT5 proof broadcasting that deleted item, so the proof-retaining target refers to a nonexistent symbol.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "fvt5-lifecycle-safety/src/page/mod.rs",
+          "start_line": 405,
+          "end_line": 405
+        }
+      ],
+      "rationale": "The first PR commit deletes the axiom from vstd_extra::manually_drop. A full fixed-tree symbol search finds only the remaining broadcast use in the page module; fvt5 lib.rs enables page and vstd_extra lib.rs enables manually_drop. The immediate next PR commit deletes that stale broadcast use. This is an intermediate proof-name resolution defect, not a claim that the final adjudicated no-findings head is faulty or that the retained ManuallyDrop model is unsound.",
+      "source_evidence": "after/fvt5-lifecycle-safety/src/page/mod.rs\n405:         broadcast use vstd_extra::manually_drop::ex_manually_drop_value_axiom;\n\nThe selected after/vstd_extra/src/manually_drop.rs has no such declaration. The direct child repair removes the stale use at line405.",
+      "verification": "source-only; historical Verus not executed. Read fixed module declarations, complete migrated specification file, fixed-tree symbol search, official two-commit PR list and direct repair diff.",
+      "id": "pr-93-7fd1bdf5bd01:commit-fix-4b761882aa490c9fd1627aafde29e98f67347f4a-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/4b761882aa490c9fd1627aafde29e98f67347f4a",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "4b761882aa490c9fd1627aafde29e98f67347f4a:root-1",
+          "commit_id": "4b761882aa490c9fd1627aafde29e98f67347f4a",
+          "url": "https://github.com/asterinas/vostd/commit/4b761882aa490c9fd1627aafde29e98f67347f4a"
+        }
+      ]
+    }
+  ]
+}

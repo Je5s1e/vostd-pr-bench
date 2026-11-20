@@ -6,24 +6,29 @@
     {
       "id": "pr-515-378590cc39ac:review-comment-3402157784",
       "original_label_id": null,
-      "category": "guideline",
-      "description": "The patch deletes the existing public `RcuOption::new_none` constructor even though the const/tracked-variable fix only required moving its inner implementation outside the verified block.",
+      "category": "semantic",
+      "description": "The public const `RcuOption::new_none` constructor is deleted even though the type's own example and existing API require it for static empty initialization.",
       "locations": [
         {
-          "version": "before",
+          "version": "after",
           "path": "ostd/src/sync/rcu/mod.rs",
-          "start_line": 789,
-          "end_line": 795
+          "start_line": 151,
+          "end_line": 151
+        },
+        {
+          "version": "after",
+          "path": "ostd/src/sync/rcu/mod.rs",
+          "start_line": 776,
+          "end_line": 789
         }
       ],
-      "rationale": "`RcuOption::new_none` is an established public executable API and is semantically appropriate for the nullable wrapper. The patch successfully keeps `RcuInner::new_none` and `RcuOption::new(None)` working after moving the const implementation out of `#[verus_verify]`, so deleting the convenience constructor is not required by the tracked-variable fix. The collaborator explicitly asks why original code was deleted, and the thread remains unresolved on the merged final head. This violates `preserve-exec-code`: proof migration should retain existing executable APIs unless a concrete incompatibility requires their removal.",
-      "source_evidence": "before/ostd/src/sync/rcu/mod.rs\n789: /// Creates a new RCU primitive that contains nothing.\n790: ///\n791: /// This is a constant equivalence to [`RcuOption::new(None)`].\n792: #[inline(always)]\n793: pub const fn new_none() -> Self {\n794:     Self(RcuInner::new_none())\n795: }\n\nafter/ostd/src/sync/rcu/mod.rs\n775: #[verus_verify]\n776: impl<P: NonNullPtr + Send> RcuOption<P> {\n778:     #[verus_spec]\n779:     pub fn new(pointer: Option<P>) -> Self {\n785:         } else {\n786:             Self(RcuInner::new_none())\n787:         }",
-      "rule_ids": [
-        "preserve-exec-code"
-      ],
+      "rationale": "The selected head still documents `static RCU: RcuOption<Box<usize>> = RcuOption::new_none();`, but the `RcuOption` implementation no longer defines that method. Its remaining `new(Option<P>)` is not const and therefore cannot replace the removed constructor in static initialization. A reviewer asks why the original API was deleted; PR #518 then explicitly says `Bring back #515`, and its next commit restores `RcuOption::new_none` unchanged as a const wrapper around `RcuInner::new_none`. Thus the selected revision breaks the documented public API and downstream code at compile time.",
+      "source_evidence": "after/ostd/src/sync/rcu/mod.rs\n151: /// static RCU: RcuOption<Box<usize>> = RcuOption::new_none();\n\nafter/ostd/src/sync/rcu/mod.rs\n776: impl<P: NonNullPtr + Send> RcuOption<P> {\n779:     pub fn new(pointer: Option<P>) -> Self {\n786:             Self(RcuInner::new_none())\n789: \n\nbefore/ostd/src/sync/rcu/mod.rs\n789:     /// Creates a new RCU primitive that contains nothing.\n793:     pub const fn new_none() -> Self {\n794:         Self(RcuInner::new_none())",
+      "rule_ids": [],
       "review_url": "https://github.com/asterinas/vostd/pull/515#discussion_r3402157784",
       "related_comment_ids": [
-        "3402157784"
+        "3402157784",
+        "4689651348"
       ],
       "sources": [
         {
@@ -31,9 +36,15 @@
           "id": "3402157784",
           "url": "https://github.com/asterinas/vostd/pull/515#discussion_r3402157784",
           "commit_id": "378590cc39aca0a74998f90513fd7ce11f9428a5"
+        },
+        {
+          "kind": "issue-comment",
+          "id": "4689651348",
+          "url": "https://github.com/asterinas/vostd/pull/518#issuecomment-4689651348",
+          "commit_id": null
         }
       ],
-      "verification": "source-only; historical Verus not executed. Compared the fixed base and merged head, inspected the surviving nullable constructors, and read the complete archived and live remote discussion."
+      "verification": "source-only; historical Rust, rustdoc, and Verus were not executed. Independently checked the fixed Git objects, the documented static call, the absence of the method in the selected head, the complete linked PR #515 review, the PR #518 restoration comment, and the immediate restoring commit. Follow-up local review confirmed identical base/head and source comment for the duplicate #518 snapshot; canonicalized this root under its original review PR #515."
     }
   ]
 }

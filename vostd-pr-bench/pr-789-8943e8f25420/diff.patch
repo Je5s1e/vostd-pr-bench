@@ -1,5 +1,5 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index e79d62f2b..23c782271 100644
+index e79d62f2b4a58aad5a6443678c7d12f82f18b364..23c78227165f3450b726e46e4bf2a86675fb8f1f 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -672,6 +672,7 @@ dependencies = [
@@ -11,7 +11,7 @@ index e79d62f2b..23c782271 100644
   "smallvec",
   "vstd",
 diff --git a/ostd/src/arch/x86/kernel/acpi/dmar.rs b/ostd/src/arch/x86/kernel/acpi/dmar.rs
-index e48f928ae..b99d4e431 100644
+index e48f928aefa69d7367b391176401b5a5a68b3b2f..b99d4e43156cb0a175c7d71b87225487a1cdf7de 100644
 --- a/ostd/src/arch/x86/kernel/acpi/dmar.rs
 +++ b/ostd/src/arch/x86/kernel/acpi/dmar.rs
 @@ -1,6 +1,11 @@
@@ -75,7 +75,7 @@ index e48f928ae..b99d4e431 100644
          self.remapping_structures.iter()
      }
 diff --git a/ostd/src/arch/x86/kernel/acpi/remapping.rs b/ostd/src/arch/x86/kernel/acpi/remapping.rs
-index 16528e1d3..5dbb1b887 100644
+index 16528e1d38b41d237847fd2c949e78c10835147b..5dbb1b88728a2cad4a25531d0a427215deaa22d0 100644
 --- a/ostd/src/arch/x86/kernel/acpi/remapping.rs
 +++ b/ostd/src/arch/x86/kernel/acpi/remapping.rs
 @@ -7,12 +7,26 @@
@@ -613,7 +613,7 @@ index 16528e1d3..5dbb1b887 100644
 +
 +} // verus!
 diff --git a/ostd/src/arch/x86/kernel/mod.rs b/ostd/src/arch/x86/kernel/mod.rs
-index d07841169..e3493e183 100644
+index d07841169c7f1a975e77b383699b1b491e6184d1..e3493e18317b597d4072385a12200084beceb2c6 100644
 --- a/ostd/src/arch/x86/kernel/mod.rs
 +++ b/ostd/src/arch/x86/kernel/mod.rs
 @@ -1,7 +1,7 @@
@@ -627,7 +627,7 @@ index d07841169..e3493e183 100644
 -pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine};
 +pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
 diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
-index df7a81de1..30ddccb5e 100644
+index df7a81de1ac5c69e3608434f1841adddd782fe24..30ddccb5e8224e2363ed8fb5b9b39d7fb8056bd3 100644
 --- a/ostd/src/arch/x86/mod.rs
 +++ b/ostd/src/arch/x86/mod.rs
 @@ -7,7 +7,7 @@ pub(crate) mod ex_table;
@@ -640,7 +640,7 @@ index df7a81de1..30ddccb5e 100644
  /*pub(crate) mod pci;
  pub mod qemu;
 diff --git a/ostd/src/boot/mod.rs b/ostd/src/boot/mod.rs
-index bdcffdb7f..96012a7ec 100644
+index bdcffdb7fb4449d2a0f67a832f9a865237e8f9c0..96012a7ec0b68b10bbdd927ef3a0f3aa1fa20240 100644
 --- a/ostd/src/boot/mod.rs
 +++ b/ostd/src/boot/mod.rs
 @@ -7,15 +7,15 @@
@@ -680,7 +680,7 @@ index bdcffdb7f..96012a7ec 100644
  ///
  /// This function copies the boot-time accessible information to the heap to
 diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
-index 70ba85ca6..f56a9a62b 100644
+index 70ba85ca6ec7da7cdaf610e92654898151b91c67..f56a9a62b4f0b7850d6314a81fd90269d1f064c2 100644
 --- a/verified_libs/vstd_extra/Cargo.toml
 +++ b/verified_libs/vstd_extra/Cargo.toml
 @@ -17,3 +17,4 @@ std = ["vstd/std"]
@@ -690,7 +690,7 @@ index 70ba85ca6..f56a9a62b 100644
 +acpi = "=5.2.0"
 diff --git a/verified_libs/vstd_extra/src/external/acpi.rs b/verified_libs/vstd_extra/src/external/acpi.rs
 new file mode 100644
-index 000000000..da439031d
+index 0000000000000000000000000000000000000000..da439031de3b5665f8863b0f2e242a33601b716c
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/acpi.rs
 @@ -0,0 +1,12 @@
@@ -707,7 +707,7 @@ index 000000000..da439031d
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 6fbe9b5b6..34fb8f96d 100644
+index 6fbe9b5b630b497fd560023636f375af10b14f21..34fb8f96defe3fcfcd0340bed79e151a942ab2e1 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -2,6 +2,7 @@
@@ -739,7 +739,7 @@ index 6fbe9b5b6..34fb8f96d 100644
  use vstd::prelude::*;
 diff --git a/verified_libs/vstd_extra/src/external/str.rs b/verified_libs/vstd_extra/src/external/str.rs
 new file mode 100644
-index 000000000..de82d844e
+index 0000000000000000000000000000000000000000..de82d844eecb46e011ee198dea20f978b3e128c2
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/str.rs
 @@ -0,0 +1,35 @@
@@ -779,7 +779,7 @@ index 000000000..de82d844e
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/trans_macros.rs b/verified_libs/vstd_extra/src/trans_macros.rs
-index 54cda36f6..ebf7e4dd2 100644
+index 54cda36f67bd40cc6b730a0569ccbf56de75e30f..ebf7e4dd2e3543f3b1d089ff9ed093c251ae3d5f 100644
 --- a/verified_libs/vstd_extra/src/trans_macros.rs
 +++ b/verified_libs/vstd_extra/src/trans_macros.rs
 @@ -40,3 +40,13 @@ macro_rules! debug_assert {

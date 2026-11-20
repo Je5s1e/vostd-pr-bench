@@ -1,5 +1,5 @@
 diff --git a/ostd/src/mm/tlb.rs b/ostd/src/mm/tlb.rs
-index 75f18dec7..ba3853d03 100644
+index 75f18dec7622d876d017474168d8a1fafa6d1637..ba3853d03bd50fb8d06e4c055f5f2f15aa5cecfe 100644
 --- a/ostd/src/mm/tlb.rs
 +++ b/ostd/src/mm/tlb.rs
 @@ -40,8 +40,10 @@ pub struct TlbFlusher<'a  /*, G: PinCurrentCpu*/ > {

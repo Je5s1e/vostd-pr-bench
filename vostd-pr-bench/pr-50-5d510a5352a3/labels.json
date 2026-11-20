@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-50-5d510a5352a3",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-50-5d510a5352a3:commit-fix-40b97821c08bd984014495d39c64649accc94849-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The blanket paging-constants implementation repeats two trait-owned `when_used_as_spec` mappings, causing the supported Verus to reject `lock-protocol` before verification.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/mod.rs",
+          "start_line": 130,
+          "end_line": 130
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/mod.rs",
+          "start_line": 142,
+          "end_line": 142
+        }
+      ],
+      "rationale": "The selected merge already declares `when_used_as_spec` on `PagingConstsTrait::BASE_PAGE_SIZE` and `NR_LEVELS`, but repeats each mapping on `impl<C: PageTableConfig> PagingConstsTrait for C`. With exact supported Verus 8ae07c, the first attribute aborts on unresolved `BASE_PAGE_SIZE_SPEC`; removing only that attribute exposes the independent unresolved `NR_LEVELS_SPEC` failure. Independent controlled variants show each attribute fails by itself and deleting only both attributes, while retaining all implementation postconditions and the duplicated trait equality, gives 304 verified and 0 errors. Repair commit 40b97821 removes the two obsolete implementation mappings and also verifies 304/0.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/mod.rs\n130:     #[verifier::when_used_as_spec(BASE_PAGE_SIZE_SPEC)]\n131:     fn BASE_PAGE_SIZE() -> (res: usize)\n132:         ensures\n133:             res == Self::BASE_PAGE_SIZE_SPEC(),\n...\n142:     #[verifier::when_used_as_spec(NR_LEVELS_SPEC)]\n143:     fn NR_LEVELS() -> (res: PagingLevel)\n144:         ensures\n145:             res == Self::NR_LEVELS_SPEC(),\n\nThe trait already owns the same mappings at lines 279 and 294. Fixed Verus reports `cannot find function referred to in when_used_as_spec: lib::mm::page_table::BASE_PAGE_SIZE_SPEC`; after removing only that attribute it reports the corresponding `NR_LEVELS_SPEC` error. Attribute-only removal of both gives `304 verified, 0 errors`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/40b97821c08bd984014495d39c64649accc94849",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "40b97821c08bd984014495d39c64649accc94849:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/40b97821c08bd984014495d39c64649accc94849",
+          "commit_id": "40b97821c08bd984014495d39c64649accc94849"
+        }
+      ],
+      "verification": "Reproduced with Verus 8ae07cceb1d1f0b17ca186faff4ba298eb6b33dd (0.2025.06.22.8ae07cc) and Rust 1.85.1-aarch64-apple-darwin. Exact problem: vstd_extra 228/0 and aster_common 253/0, then lock-protocol aborts on the first mapping. Each single-attribute variant fails on its remaining mapping. Removing both attributes only gives lock-protocol 304/0; the actual repair tree also gives 304/0."
+    }
+  ]
+}

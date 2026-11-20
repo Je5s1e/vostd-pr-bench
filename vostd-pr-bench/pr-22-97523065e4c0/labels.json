@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-22-97523065e4c0",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-22-97523065e4c0:commit-fix-bf2e519c92602e2737797ddc115f676ef673f948-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The selected snapshot's quotient-bound proof uses a division-order lemma whose strict-order precondition already requires the desired `offset < 512` fact, so the fixed verifier rejects the proof as circular.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/utils.rs",
+          "start_line": 395,
+          "end_line": 400
+        }
+      ],
+      "rationale": "At the selected immediate pre-repair snapshot, `lemma_nid_to_trace_rec` calls `lemma_div_by_multiple_is_strongly_ordered` with `x = offset * sz` and `y = 512 * sz` in order to prove `offset < 512`. The callee requires `x < y`, which already entails the desired quotient bound, so the proof has not established the required strict inequality. Fixed Verus 4c942d781827ba17f2a7060b64ce22300e2f81a2 reports the failed `x < y` precondition at line 395 and `349 verified, 1 errors`. Immediate repair bf2e519c92602e2737797ddc115f676ef673f948 derives a bound on the actual dividend and uses `lemma_multiply_divide_lt`, yielding `350 verified, 0 errors`. The failing proof is byte-identical in the PR base and reproduces there; the selected commit is the immutable pre-repair snapshot, not the introducing commit.",
+      "source_evidence": "after/lock-protocol/src/spec/utils.rs\n395:                     lemma_div_by_multiple_is_strongly_ordered(\n396:                         offset * sz as int,\n397:                         512 * sz as int,\n398:                         512,\n399:                         sz as int,\n400:                     );\n\nThe fixed verifier reports the callee's `x < y` precondition failure here. Repair bf2e519c92602e2737797ddc115f676ef673f948 instead proves `nid - cur_rt - 1 < sz * 512` and applies `lemma_multiply_divide_lt` to the actual dividend, divisor, and quotient bound; the repaired target reports `350 verified, 0 errors`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/bf2e519c92602e2737797ddc115f676ef673f948",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "bf2e519c92602e2737797ddc115f676ef673f948:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/bf2e519c92602e2737797ddc115f676ef673f948",
+          "commit_id": "bf2e519c92602e2737797ddc115f676ef673f948"
+        }
+      ],
+      "verification": "Independently reproduced with Verus 4c942d781827ba17f2a7060b64ce22300e2f81a2 plus the historical VOSTD compatibility patch, Rust 1.82.0, and Z3 4.12.5: base and selected snapshot each report the line-395 precondition failure and 349 verified, 1 errors; immediate repair and final cleanup each report 350 verified, 0 errors."
+    }
+  ]
+}

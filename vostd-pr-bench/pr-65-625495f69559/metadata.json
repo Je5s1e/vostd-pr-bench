@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-65-625495f69559",
+  "pr_number": 65,
+  "title": "Use `allow_in_spec` instead of `when_used_as_spec`",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/65",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "98f4c70fdf036869aae74c0a476fdd684070ea90",
+  "head_sha": "625495f695598206834a24887d2b1c6f90b2ecb7",
+  "base_method": "selected problem snapshot 625495f695598206834a24887d2b1c6f90b2ecb7 is PR #65 historical base; export uses its immutable first parent 98f4c70fdf036869aae74c0a476fdd684070ea90 as truthful historical comparison and does not represent this as PR #65 repair diff",
+  "archive_base_sha": "625495f695598206834a24887d2b1c6f90b2ecb7",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/rw/cursor.rs",
+    "lock-protocol/src/exec/rw/frame/mod.rs",
+    "lock-protocol/src/exec/rw/node/child.rs",
+    "lock-protocol/src/exec/rw/node/entry.rs",
+    "lock-protocol/src/exec/rw/node/mod.rs",
+    "lock-protocol/src/exec/rw/node/rwlock/mod.rs",
+    "lock-protocol/src/exec/rw/pte/mod.rs",
+    "lock-protocol/src/exec/rw/pte/page_table_entry_trait.rs"
+  ],
+  "diff_sha256": "4cd8727caa5929dbf6778086a16fb40faa18ceb3a995d53ed5e00c99b001b97e",
+  "versions": {
+    "before": {
+      "commit": "98f4c70fdf036869aae74c0a476fdd684070ea90",
+      "file_count": 10,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "625495f695598206834a24887d2b1c6f90b2ecb7",
+      "file_count": 10,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T13:23:07.589080+00:00",
+    "reviewed_at": "2026-11-19T12:58:49Z",
+    "upstream_updated_at": "2025-11-25T02:55:32Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/65",
+      "https://github.com/asterinas/vostd/commit/a8491dff31e06a219b0c4be65771cdc7fee7de72",
+      "https://github.com/asterinas/vostd/commit/58149432cd448cd6c116e581461d3379c4e2c73b"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00065"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "The selected problem snapshot is the PR's historical comparison base, so its immutable first parent is used as the truthful source comparison: 98f4c70fdf036869aae74c0a476fdd684070ea90 -> 625495f695598206834a24887d2b1c6f90b2ecb7. This is a historical snapshot diff (the merge of PR #64), not represented as PR #65's base-to-head diff. PR #65's repair chain is retained separately as adjudication evidence.",
+    "zero_issues_meaning": "Not applicable; this snapshot contains one adjudicated semantic issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "toolchain": "Fixed Verus micro-reproduction: 5 verified, 0 errors; full problem/final targets 494/0 and 496/0. The verifier revision postdates the PR and is compatibility evidence."
+  },
+  "additional_context_paths": [
+    "lock-protocol/src/exec/rw/pte/page_prop.rs",
+    "lock-protocol/src/mm/page_prop.rs"
+  ],
+  "verification_summary": "Two independent reviewers confirmed one copied semantic root at two fixed problem-snapshot locations. A fixed Verus micro-reproduction proves that the erroneous when_used_as_spec(X_spec) mapping makes PageFlags::RW().bits evaluate to 4 rather than the executable/RW-spec value 3; the two official PR commits repair the two copies in sequence. Full-target runs are compatible historical corroboration, not exact review-day reproduction."
+}

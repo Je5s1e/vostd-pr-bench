@@ -1,0 +1,24 @@
+{
+  "number": 146,
+  "title": "Alloc if none",
+  "selected": true,
+  "category": "规约或验证工具文件",
+  "evidence": [
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/sub_pt/mod.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/sub_pt/state_machine.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "ue() == old(model).meta_map[p as int].value() }, use vstd::prelude::*; verus! { pub axiom fn usize_mod_is_int_mod(x: usize, m: usize, z: usize) requires x % m == z, ensures (x as int)",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

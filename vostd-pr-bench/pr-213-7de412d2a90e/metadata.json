@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-213-7de412d2a90e",
+  "pr_number": 213,
+  "title": "PhaseII verified: Temporal logic and state machines",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/213",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "0e826a358beea7bf892e63b9a50290300aa0437c",
+  "head_sha": "7de412d2a90e9f6a45e097de31b7928653d2dfef",
+  "base_method": "git merge-base(archived base 0e826a358beea7bf892e63b9a50290300aa0437c, selected pre-repair parent 7de412d2a90e9f6a45e097de31b7928653d2dfef); nonempty comparison verified",
+  "archive_base_sha": "8a715a2f5e46483e20f1f9cf69138df7d1e92019",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "specs/ostd/Cargo.toml",
+    "specs/ostd/src/lib.rs",
+    "specs/ostd/src/sync/abstract_lock.rs",
+    "specs/ostd/src/sync/mod.rs",
+    "specs/ostd/src/sync/mutex.rs",
+    "specs/ostd/src/sync/mutex_verussync.rs",
+    "vstd_extra/src/lib.rs",
+    "vstd_extra/src/set_extra.rs",
+    "vstd_extra/src/state_machine/action.rs",
+    "vstd_extra/src/state_machine/mod.rs",
+    "vstd_extra/src/state_machine/state_machine.rs",
+    "vstd_extra/src/temporal_logic/defs.rs",
+    "vstd_extra/src/temporal_logic/mod.rs",
+    "vstd_extra/src/temporal_logic/rules.rs"
+  ],
+  "diff_sha256": "d48ca17ff24ad8803d694d30486f23aece3d2b72db3371fb83aa41b355d32167",
+  "versions": {
+    "before": {
+      "commit": "0e826a358beea7bf892e63b9a50290300aa0437c",
+      "file_count": 264,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "3180b7c88362dc7aa0d2ed44c20e417afdf5eeb1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "7de412d2a90e9f6a45e097de31b7928653d2dfef",
+      "file_count": 274,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "3180b7c88362dc7aa0d2ed44c20e417afdf5eeb1",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T09:05:04.401812+00:00",
+    "reviewed_at": "2026-11-20T09:05:04.401812+00:00",
+    "upstream_updated_at": "2025-12-05T07:12:01Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/213",
+      "https://github.com/asterinas/vostd/commit/47017f8007f0ccfa8a56282d63ddb84e5c50495b"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00213"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": []
+}

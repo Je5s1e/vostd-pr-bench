@@ -1,5 +1,5 @@
 diff --git a/ostd/src/util/mod.rs b/ostd/src/util/mod.rs
-index 03282f0c8..2c6cadffe 100644
+index 03282f0c88bfcce6be4d7a6a6ddc405f01142f9c..2c6cadffe15c3c3ca45849593b76659c0d2f94df 100644
 --- a/ostd/src/util/mod.rs
 +++ b/ostd/src/util/mod.rs
 @@ -2,7 +2,7 @@
@@ -12,7 +12,7 @@ index 03282f0c8..2c6cadffe 100644
  
  pub use either::Either;
 diff --git a/ostd/src/util/ops.rs b/ostd/src/util/ops.rs
-index 5a8611523..e9f01f6dc 100644
+index 5a8611523eab1a405f6ac753cf45dac6607358b8..e9f01f6dcaf1582d94dae4330878bf5f1b48763b 100644
 --- a/ostd/src/util/ops.rs
 +++ b/ostd/src/util/ops.rs
 @@ -1,4 +1,21 @@
@@ -149,7 +149,7 @@ index 5a8611523..e9f01f6dc 100644
  #[cfg(ktest)]
 diff --git a/verified_libs/vstd_extra/src/external/iter.rs b/verified_libs/vstd_extra/src/external/iter.rs
 new file mode 100644
-index 000000000..6513ceac3
+index 0000000000000000000000000000000000000000..6513ceac366e0d52b7db8b14469661fb5fa33bad
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/iter.rs
 @@ -0,0 +1,35 @@
@@ -189,7 +189,7 @@ index 000000000..6513ceac3
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index f4071583b..e61c8b930 100644
+index f4071583be31c52546ef98873d2e8ab52d9e0d41..e61c8b930b75a2a4c10e15aaa871c0ef145532f0 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -7,6 +7,7 @@ pub mod convert;
@@ -209,7 +209,7 @@ index f4071583b..e61c8b930 100644
  pub use ptr::*;
  pub use range::*;
 diff --git a/verified_libs/vstd_extra/src/external/range.rs b/verified_libs/vstd_extra/src/external/range.rs
-index 9703a16cb..ea3fdb300 100644
+index 9703a16cb4fd4c886f009526d0570045edaa7345..ea3fdb300bd3c3a51acb4f83e5e48316a49fabfd 100644
 --- a/verified_libs/vstd_extra/src/external/range.rs
 +++ b/verified_libs/vstd_extra/src/external/range.rs
 @@ -1,5 +1,9 @@
@@ -242,7 +242,7 @@ index 9703a16cb..ea3fdb300 100644
      ensures
          *ret == r@.start,
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index 91fe86a59..9fa472683 100644
+index 91fe86a5990608aa3d59b61380e086b28bf341d7..9fa4726839c8b728b122beb805e130368066bbc8 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -37,6 +37,7 @@ pub mod trans_macros;
@@ -255,7 +255,7 @@ index 91fe86a59..9fa472683 100644
  pub mod resource_invariant;
 diff --git a/verified_libs/vstd_extra/src/range.rs b/verified_libs/vstd_extra/src/range.rs
 new file mode 100644
-index 000000000..6571a8da6
+index 0000000000000000000000000000000000000000..6571a8da6cc945743d68ec8d0b026cadaa5d75e4
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/range.rs
 @@ -0,0 +1,194 @@

@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 0,
-  "inline_review_comment_count": 2,
-  "review_count": 2,
-  "core_lesson": "多次硬件读取的结果应以本次样本记录，不能假定再次读取会相同",
-  "category": "并发与原子性",
-  "all_content_unadjudicated": true
-}

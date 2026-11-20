@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-50-5d510a5352a3",
+  "pr_number": 50,
+  "title": "Align with latest verus: Seq::all and `when_used_as_spec` in traits",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/50",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "7b13ed1d466cc9d7690de2681cec2dcbb62f3147",
+  "head_sha": "5d510a5352a37e772761affc8e77a402e7eedf8b",
+  "base_method": "historical PR base and second parent of selected merge commit 7b13ed1d466cc9d7690de2681cec2dcbb62f3147; fixed archive metadata and immutable Git parent relation verified",
+  "archive_base_sha": "7b13ed1d466cc9d7690de2681cec2dcbb62f3147",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "aster_common/src/page/meta/page_meta.rs",
+    "aster_common/src/page_table/page_table_mode.rs",
+    "aster_common/src/x86_64/page_table_entry.rs",
+    "aster_common/src/x86_64/paging_consts.rs",
+    "lock-protocol/src/exec/mod.rs",
+    "lock-protocol/src/mm/page_table/mod.rs",
+    "vstd_extra/src/array_ptr.rs",
+    "vstd_extra/src/bit_mapping.rs",
+    "vstd_extra/src/seq_extra.rs"
+  ],
+  "diff_sha256": "c91c43bc859064d5e7564b67eac9b56019915ca4e9d3475a49640614de426cb5",
+  "versions": {
+    "before": {
+      "commit": "7b13ed1d466cc9d7690de2681cec2dcbb62f3147",
+      "file_count": 9,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "5d510a5352a37e772761affc8e77a402e7eedf8b",
+      "file_count": 9,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T11:18:25.207768+00:00",
+    "reviewed_at": "2026-11-19T11:20:55Z",
+    "upstream_updated_at": "2025-11-25T02:59:42Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/50",
+      "https://github.com/asterinas/vostd/commit/5d510a5352a37e772761affc8e77a402e7eedf8b",
+      "https://github.com/asterinas/vostd/commit/40b97821c08bd984014495d39c64649accc94849",
+      "https://github.com/asterinas/verus/commit/8ae07cceb1d1f0b17ca186faff4ba298eb6b33dd"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00050"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected the official merge immediately before the final repair; its second parent is the archived historical PR base and its tree contains both failing implementation-level mappings.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Exact supported Verus 8ae07cceb1d1f0b17ca186faff4ba298eb6b33dd with Rust 1.85.1 reproduced independent failures for both implementation attributes. Removing only both attributes yields 304 verified, 0 errors while retaining all postconditions; the unmodified final repair also yields 304 verified, 0 errors. Primary and independent second review approved one semantic root with two locations."
+  },
+  "additional_context_paths": []
+}

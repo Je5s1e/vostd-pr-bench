@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-78-6082813ffdda:commit-fix-498f3986e5af88d2d65e4c862b61003d648a9304-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The partial GuardInPath rename removes variant None but leaves six cursor predicates and invariants referring to it, so the Verus target no longer compiles or verifies.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 62,
+          "end_line": 62
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 92,
+          "end_line": 92
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 101,
+          "end_line": 101
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 313,
+          "end_line": 313
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 337,
+          "end_line": 337
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/exec/rw/cursor.rs",
+          "start_line": 579,
+          "end_line": 579
+        }
+      ],
+      "rationale": "6082813f renames GuardInPath::{ReadLocked,WriteLocked,None} to {Read,Write,ImplicitWrite,Unlocked} but misses exactly six GuardInPath `is None` tests in wf, wf_unlock, wf_with_lock_protocol_model, two lock_range clauses, and unlock_range. Other `is None` expressions are Option tests and valid. Repair 498f3986 changes these six sites to Unlocked; the same target changes from a deterministic enum-resolution failure to 502 verified and zero errors.",
+      "source_evidence": "after/lock-protocol/src/exec/rw/cursor.rs\nlines 62-62\nblob 32f7ab86099fd70a3036e150ba096f2a3f17e3df\nCursor::wf tests a GuardInPath value with removed variant None; this is the first reported compiler error.\n\nafter/lock-protocol/src/exec/rw/cursor.rs\nlines 92-101\nblob 32f7ab86099fd70a3036e150ba096f2a3f17e3df\nwf_unlock and wf_with_lock_protocol_model contain two more stale GuardInPath None tests.\n\nafter/lock-protocol/src/exec/rw/cursor.rs\nlines 313-337\nblob 32f7ab86099fd70a3036e150ba096f2a3f17e3df\nThe lock_range requires/ensures clauses repeat the stale enum variant at lines 313 and 337.\n\nafter/lock-protocol/src/exec/rw/cursor.rs\nlines 579-579\nblob 32f7ab86099fd70a3036e150ba096f2a3f17e3df\nThe unlock_range loop invariant is the sixth stale GuardInPath None test.\n\nrepair/lock-protocol/src/exec/rw/cursor.rs\ncommit 498f3986e5af88d2d65e4c862b61003d648a9304\nAll six GuardInPath tests change from None to Unlocked; no Option None test is altered.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/498f3986e5af88d2d65e4c862b61003d648a9304",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "498f3986e5af88d2d65e4c862b61003d648a9304:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/498f3986e5af88d2d65e4c862b61003d648a9304",
+          "commit_id": "498f3986e5af88d2d65e4c862b61003d648a9304"
+        }
+      ],
+      "verification": "Using asterinas/verus 0b6f3cbb, Rust 1.88.0, and Z3 4.12.5: dependency vstd_extra 228 verified/0 errors; problem lock-protocol aborts at cursor.rs:62 with no variant None; repair lock-protocol 502 verified/0 errors; final 510 verified/0 errors. The verifier predates the PR by two days and is compatible adjacent evidence, not an exact author-side toolchain."
+    }
+  ],
+  "sample_id": "pr-78-6082813ffdda"
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-250-8224e4aee238",
+  "pr_number": 250,
+  "title": "prove: `admit`s in TLA rules and simplify the code",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/250",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "03aa81697b59c96dd1e8457194fd3dfffe254b65",
+  "head_sha": "8224e4aee238b54457a5301f92ca71d2ea9bc51d",
+  "base_method": "git merge-base(archived base 03aa81697b59c96dd1e8457194fd3dfffe254b65, selected pre-repair parent 8224e4aee238b54457a5301f92ca71d2ea9bc51d); nonempty comparison verified",
+  "archive_base_sha": "03aa81697b59c96dd1e8457194fd3dfffe254b65",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "vstd_extra/src/temporal_logic/defs.rs",
+    "vstd_extra/src/temporal_logic/rules.rs"
+  ],
+  "diff_sha256": "0a1436dc0f8302bbc53e9f3d78312e2b4d93723fd948c3cc330b8700421f4575",
+  "versions": {
+    "before": {
+      "commit": "03aa81697b59c96dd1e8457194fd3dfffe254b65",
+      "file_count": 261,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "b444971945b7a88a5919e7d5ad1a844d0b4b35dd",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "8224e4aee238b54457a5301f92ca71d2ea9bc51d",
+      "file_count": 261,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "b444971945b7a88a5919e7d5ad1a844d0b4b35dd",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T09:03:45.645910+00:00",
+    "reviewed_at": "2026-11-20T09:03:45.645910+00:00",
+    "upstream_updated_at": "2026-01-08T09:27:16Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/250",
+      "https://github.com/asterinas/vostd/commit/609148d97d199f431416d3b8b71f9e2294f64b32"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00250"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": []
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-226-8c5c020ff2db",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The memory-region implementations use &self receivers for Inv and InvView methods whose traits require self by value, so the proof-retaining trait implementations do not match their declared interfaces.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/boot/memory_region.rs",
+          "start_line": 70,
+          "end_line": 85
+        },
+        {
+          "version": "after",
+          "path": "specs/ostd/src/memory_region_specs.rs",
+          "start_line": 14,
+          "end_line": 14
+        }
+      ],
+      "rationale": "vstd_extra/src/ownership.rs declares Inv::inv(self), InvView::view(self), and view_preserves_inv(self). MemoryRegion implements all three with &self and MemRegionModel implements inv(&self). The next direct-child commit changes precisely these four receivers to self. memory_region is actively declared by ostd/src/boot/mod.rs and memory_region_specs by specs/ostd/src/lib.rs. This is a trait-signature mismatch in retained specification/proof code, not a claim of ordinary ghost-erased runtime failure.",
+      "source_evidence": "after/ostd/src/boot/memory_region.rs\n70:     closed spec fn inv(&self) -> bool {\n71:         self.base + self.len <= MAX_PADDR()\n72:     }\n73: }\n74: \n75: impl InvView for MemoryRegion {\n76:     type V = MemRegionModel;\n77: \n78:     closed spec fn view(&self) -> Self::V {\n79:         MemRegionModel {\n80:             base: self.base as int,\n81:             end: self.base + self.len,\n82:             typ: self.typ.to_int(),\n83:         }\n84:     }\n85: \n\nafter/specs/ostd/src/memory_region_specs.rs\n14:     open spec fn inv(&self) -> bool {\n\nThe same snapshot vstd_extra/src/ownership.rs:12,18,23 requires by-value self receivers. Direct child repair 722baaaa01f85cc734cc1dc92635343738d7e05b changes all four implementation receivers to self.",
+      "verification": "source-only; historical Verus not executed",
+      "id": "pr-226-8c5c020ff2db:commit-fix-722baaaa01f85cc734cc1dc92635343738d7e05b-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/722baaaa01f85cc734cc1dc92635343738d7e05b",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "722baaaa01f85cc734cc1dc92635343738d7e05b:root-1",
+          "commit_id": "722baaaa01f85cc734cc1dc92635343738d7e05b",
+          "url": "https://github.com/asterinas/vostd/commit/722baaaa01f85cc734cc1dc92635343738d7e05b"
+        }
+      ]
+    }
+  ]
+}

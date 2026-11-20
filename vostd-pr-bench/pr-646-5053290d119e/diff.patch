@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/page_table/owners.rs b/ostd/specs/mm/page_table/owners.rs
-index aa806bec1..d524b791a 100644
+index aa806bec18e92e0b506baf7603e4331adb504613..d524b791ab8c69dbce9c5ff8befd7272d96d3777 100644
 --- a/ostd/specs/mm/page_table/owners.rs
 +++ b/ostd/specs/mm/page_table/owners.rs
 @@ -120,52 +120,31 @@ pub proof fn lemma_vaddr_strict_bound(path: TreePath<NR_ENTRIES>)

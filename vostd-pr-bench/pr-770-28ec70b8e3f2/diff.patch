@@ -1,5 +1,5 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 3dc567b7e..368ebb1e9 100644
+index 3dc567b7e5c891130ea90ab67db19f62359dac17..368ebb1e95ae48e6afe7ea5585782b99f7575173 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -605,7 +605,7 @@ dependencies = [
@@ -29,7 +29,7 @@ index 3dc567b7e..368ebb1e9 100644
  ]
  
 diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
-index 2dd9f15f6..604e330ba 100644
+index 2dd9f15f6816fb7e9a4e14f30b2d6f890f1d2d6f..604e330ba2099c9bae89632da861cf51f9d2fd82 100644
 --- a/ostd/src/cpu/mod.rs
 +++ b/ostd/src/cpu/mod.rs
 @@ -1,18 +1,22 @@
@@ -144,7 +144,7 @@ index 2dd9f15f6..604e330ba 100644
 -}
 +} */
 diff --git a/ostd/src/cpu/set.rs b/ostd/src/cpu/set.rs
-index a01a3b34d..fcbbaafdf 100644
+index a01a3b34d61f0f5a106fedfeb61a99e0961c255d..fcbbaafdf0669676267c1116f61c57ebbac2e924 100644
 --- a/ostd/src/cpu/set.rs
 +++ b/ostd/src/cpu/set.rs
 @@ -1,5 +1,21 @@
@@ -1065,7 +1065,7 @@ index a01a3b34d..fcbbaafdf 100644
  impl AtomicCpuSet {
      /// Creates a new `AtomicCpuSet` with an initial value.
 diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
-index 8a90a3876..8840e1ca6 100644
+index 8a90a38768d0a1763374bd1faf0a2299108472f9..8840e1ca6b477dae8438d8c3bbdcf29ec4bbed87 100644
 --- a/ostd/src/lib.rs
 +++ b/ostd/src/lib.rs
 @@ -39,8 +39,8 @@ pub mod arch;
@@ -1080,7 +1080,7 @@ index 8a90a3876..8840e1ca6 100644
  /*pub mod io;
  pub mod logger;*/
 diff --git a/ostd/src/util/mod.rs b/ostd/src/util/mod.rs
-index 2c6cadffe..56fddbae5 100644
+index 2c6cadffe15c3c3ca45849593b76659c0d2f94df..56fddbae5c6664d7c39555715e5642df46000ed3 100644
 --- a/ostd/src/util/mod.rs
 +++ b/ostd/src/util/mod.rs
 @@ -1,7 +1,7 @@
@@ -1093,7 +1093,7 @@ index 2c6cadffe..56fddbae5 100644
  pub(crate) mod range_alloc;
  
 diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
-index a4dd253d4..70ba85ca6 100644
+index a4dd253d478952c7e097e02a241c1b03c352ce99..70ba85ca6ec7da7cdaf610e92654898151b91c67 100644
 --- a/verified_libs/vstd_extra/Cargo.toml
 +++ b/verified_libs/vstd_extra/Cargo.toml
 @@ -16,3 +16,4 @@ std = ["vstd/std"]
@@ -1103,7 +1103,7 @@ index a4dd253d4..70ba85ca6 100644
 +smallvec = "1.13.2"
 diff --git a/verified_libs/vstd_extra/src/bits.rs b/verified_libs/vstd_extra/src/bits.rs
 new file mode 100644
-index 000000000..479472733
+index 0000000000000000000000000000000000000000..47947273385110cba1616ededd443f2259b102f2
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/bits.rs
 @@ -0,0 +1,150 @@
@@ -1259,7 +1259,7 @@ index 000000000..479472733
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/bits.rs b/verified_libs/vstd_extra/src/external/bits.rs
 new file mode 100644
-index 000000000..07b97d167
+index 0000000000000000000000000000000000000000..07b97d16703d3140cfbdcbb918729a5083390108
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/bits.rs
 @@ -0,0 +1,86 @@
@@ -1350,7 +1350,7 @@ index 000000000..07b97d167
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/int_specs.rs b/verified_libs/vstd_extra/src/external/int_specs.rs
-index 1998925a5..a73b3c24d 100644
+index 1998925a51f33052ba1961371adb224f7f10023f..a73b3c24d5988d24f223b165e99e1e5cda4db6a0 100644
 --- a/verified_libs/vstd_extra/src/external/int_specs.rs
 +++ b/verified_libs/vstd_extra/src/external/int_specs.rs
 @@ -41,4 +41,14 @@ pub assume_specification[ usize::is_power_of_two ](self_: usize) -> (r: bool)
@@ -1369,7 +1369,7 @@ index 1998925a5..a73b3c24d 100644
 +
  } // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 868f67cd4..6fbe9b5b6 100644
+index 868f67cd47f9da91c0ad727111f9aec95323eb97..6fbe9b5b630b497fd560023636f375af10b14f21 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -2,6 +2,7 @@
@@ -1397,7 +1397,7 @@ index 868f67cd4..6fbe9b5b6 100644
  pub use time::*;
  
 diff --git a/verified_libs/vstd_extra/src/external/slice.rs b/verified_libs/vstd_extra/src/external/slice.rs
-index 4663cd1e6..c57086546 100644
+index 4663cd1e6ca15365a174347ef1638f0dcf6e6b30..c57086546aaeb8b6e304197827b3d08756c8f2c0 100644
 --- a/verified_libs/vstd_extra/src/external/slice.rs
 +++ b/verified_libs/vstd_extra/src/external/slice.rs
 @@ -50,4 +50,16 @@ pub assume_specification<'a, T>[ core::slice::from_raw_parts_mut::<'a, T> ](
@@ -1419,7 +1419,7 @@ index 4663cd1e6..c57086546 100644
  } // verus!
 diff --git a/verified_libs/vstd_extra/src/external/smallvec.rs b/verified_libs/vstd_extra/src/external/smallvec.rs
 new file mode 100644
-index 000000000..19cc20335
+index 0000000000000000000000000000000000000000..19cc20335b78e14d4ecf92902d2383a2a8cf8ad3
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/smallvec.rs
 @@ -0,0 +1,173 @@
@@ -1597,7 +1597,7 @@ index 000000000..19cc20335
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index 285c3446d..6effb5137 100644
+index 285c3446de438ed7d72fcff6fdeb6a199b31a500..6effb51374ef8ca73d56b23282d87b82a1841012 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -22,6 +22,7 @@ pub mod atomic_data;

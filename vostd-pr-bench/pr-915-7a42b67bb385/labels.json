@@ -46,7 +46,11 @@
           "commit_id": "7a42b67bb385417f3906765513485ff3e36c1346"
         }
       ],
-      "verification": "source-only; historical Verus not executed. Compared both fixed contracts and their body assumptions with the unconditional contracts in the final approved head, and checked the complete archived and remote threads."
+      "verification": "source-only; historical Verus not executed. Compared both fixed contracts and their body assumptions with the unconditional contracts in the final approved head, and checked the complete archived and remote threads.",
+      "applicability": {
+        "basis": "same_head_review_skill_and_historical_comments",
+        "scope": "These address conversions under their explicitly trusted body bounds; not a general endorsement of arbitrary assume statements."
+      }
     }
   ]
 }

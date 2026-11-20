@@ -1,0 +1,104 @@
+{
+  "number": 143,
+  "source_pr": "https://github.com/asterinas/vostd/pull/143",
+  "base_sha": "326c9c81a40062de68f1c51ee78c6cc1b56ef81d",
+  "head_sha": "4315899fe63f0d3ae33d22ef7b2f71b06f2706b4",
+  "files": {
+    "totalCount": 12,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MTI"
+    },
+    "nodes": [
+      {
+        "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+        "additions": 40,
+        "deletions": 41,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rcu/node/child.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rcu/node/entry.rs",
+        "additions": 34,
+        "deletions": 44,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rcu/node/mod.rs",
+        "additions": 109,
+        "deletions": 26,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rcu/node/spinlock/mod.rs",
+        "additions": 462,
+        "deletions": 38,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rcu/node/stray.rs",
+        "additions": 66,
+        "deletions": 45,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/exec/rcu/types.rs",
+        "additions": 3,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/atomic.rs",
+        "additions": 171,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/mod.rs",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "additions": 196,
+        "deletions": 38,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/tree_refines_atomic.rs",
+        "additions": 138,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "lock-protocol/src/spec/rcu/types.rs",
+        "additions": 24,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://patch-diff.githubusercontent.com/raw/asterinas/vostd/pull/143.diff",
+    "bytes": 83130,
+    "sha256": "c3f67d3903cafb6f10edd22d0b55c73bb9d4e83b97631affd0f9b38f78637904",
+    "fetched_at": "2026-11-13T21:11:46.035610+00:00",
+    "diff_file_sections": 12,
+    "expected_changed_files": 12
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/143",
+    "accept": "application/vnd.github.patch",
+    "bytes": 122552,
+    "sha256": "34f663b3d8a8e3f66a10efc96e3075cbb464e6181dda8d2fd7056d6bd7e7b430",
+    "fetched_at": "2026-11-13T21:20:38.149832+00:00"
+  }
+}

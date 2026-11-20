@@ -1,0 +1,186 @@
+# root 1: 84f7a7f07d36f015a588bb8a5d1910e06384b11c -> 20fc76d3c11ec5d3be276833fcbb665a254e5af3
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index 256dd0cf1..fee1f6007 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -79,7 +79,57 @@ impl InvView for MemoryRegion {
+     }
+ 
+     proof fn view_preserves_inv(self) {
+-        admit();
++        assert(self.view().inv()) by {
++            let view = self.view();
++
++            assert(view.base == self.base as int);
++            assert(0 <= view.base);
++
++            assert(view.end == self.base + self.len);
++            assert(view.base <= view.end) by {
++                assert(view.base == self.base as int);
++                assert(view.end == self.base + self.len);
++                assert(self.base <= self.base + self.len);
++            };
++
++            assert(view.end <= CONST_MAX_PADDR) by {
++                assert(view.end == self.base + self.len);
++                assert(self.base + self.len <= CONST_MAX_PADDR);
++            };
++
++            assert(view.typ == self.typ.to_int());
++            match self.typ {
++                MemoryRegionType::BadMemory => {
++                    assert(view.typ == 0);
++                }
++                MemoryRegionType::Unknown => {
++                    assert(view.typ == 1);
++                }
++                MemoryRegionType::NonVolatileSleep => {
++                    assert(view.typ == 2);
++                }
++                MemoryRegionType::Reserved => {
++                    assert(view.typ == 3);
++                }
++                MemoryRegionType::Kernel => {
++                    assert(view.typ == 4);
++                }
++                MemoryRegionType::Module => {
++                    assert(view.typ == 5);
++                }
++                MemoryRegionType::Framebuffer => {
++                    assert(view.typ == 6);
++                }
++                MemoryRegionType::Reclaimable => {
++                    assert(view.typ == 7);
++                }
++                MemoryRegionType::Usable => {
++                    assert(view.typ == 8);
++                }
++            }
++            assert(0 <= view.typ);
++            assert(view.typ < 9);
++        };
+     }
+ }
+ 
+@@ -244,12 +294,7 @@ impl<const LEN: usize> InvView for MemoryRegionArray<LEN> {
+     }
+ 
+     proof fn view_preserves_inv(self) {
+-        assert(Seq::new(self.count as nat, |i: int| self.regions[i]@).len() == self.count);
+-        assert(self.count <= LEN);
+-        assert(self@.regions == Seq::new(self.count as nat, |i: int| self.regions[i]@));
+-        assert(self@.regions.len() <= LEN);
+-        assert(self.view().inv() <==> self@.regions.len() <= LEN);
+-        assert(self.view().inv());
++        assert(self@.inv());
+     }
+ }
+ 
+@@ -288,7 +333,6 @@ impl<const LEN: usize> MemoryRegionArray<LEN> {
+             regions: [MemoryRegion::bad(); LEN],
+             count: 0,
+         };
+-
+         ret
+     }
+     
+@@ -303,7 +347,7 @@ impl<const LEN: usize> MemoryRegionArray<LEN> {
+             !old(self)@.full(),
+         ensures
+             self.inv(),
+-            //self@ == old(self)@.push(region@),
++            self@ == old(self)@.push(region@),
+             ret.is_ok(),
+     )]
+     pub fn push(&mut self, region: MemoryRegion) -> Result<(), &'static str> {
+
+# root 2: 441e0c694a3571d9fa40104e41f25bf546c5eda3 -> bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index ac7048118..f939379dd 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -345,9 +345,7 @@ impl<const LEN: usize> MemoryRegionArray<LEN> {
+                 assert forall |i: int|
+                     0 <= i && i < ret@.regions.len() ==> #[trigger] ret@.regions[i] == Seq::<MemRegionModel>::empty()[i]
+                 by {
+-                    assume(0 <= i && i < ret@.regions.len());
+                     assert(ret@.regions.len() == 0);
+-                    assert(false);
+                 };
+             };
+ 
+
+# root 3: bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58 -> 8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index f939379dd..a7dd013b5 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -360,7 +360,6 @@ impl<const LEN: usize> MemoryRegionArray<LEN> {
+     /// Appends a region to the set.
+     ///
+     /// If the set is full, an error is returned.
+-    #[verus_verify(external_body)]
+     #[verus_spec(ret =>
+         requires
+             old(self).inv(),
+@@ -375,6 +374,59 @@ impl<const LEN: usize> MemoryRegionArray<LEN> {
+         if self.count < self.regions.len() {
+             self.regions[self.count] = region;
+             self.count = self.count + 1;
++            proof! {
++                let old_count = old(self).count;
++                let old_regions = old(self).regions;
++
++                // show invariant: count increased by 1 and was < len before
++                assert(old(self)@.regions.len() == old_count as nat);
++                assert(old(self).inv());
++                assert(old_count < self.regions.len());
++                assert(self.count == old_count + 1);
++                assert(self.count <= self.regions.len());
++                assert(self.count <= LEN);
++
++                // relate model sequences
++                let new_seq = self@.regions;
++                let old_seq = old(self)@.regions;
++
++                // for indices before old_count, elements unchanged
++                assert forall |i: int|
++                    0 <= i && i < old_count as int implies #[trigger] new_seq[i] == old_seq[i]
++                by {
++                    let ui = i as usize;
++                    // elements at indices < old_count were not modified
++                    assert(old_regions[ui as int]@ == old_seq[i]);
++                    assert(new_seq[i] == old_regions[ui as int]@);
++                };
++
++                // last element equals pushed region
++                // the newly written element equals the pushed region
++                assert(new_seq[old_count as int] == region@);
++
++                // lengths match
++                assert(new_seq.len() == old_seq.len() + 1);
++
++                // extensionality: new_seq == old_seq.push(region@)
++                assert(new_seq == old_seq.push(region@)) by {
++                    assert(new_seq.len() == old_seq.push(region@).len());
++                    assert forall |i: int|
++                        0 <= i && i < new_seq.len() implies #[trigger] new_seq[i] == old_seq.push(region@)[i]
++                    by {
++                        if i < old_seq.len() {
++                            assert(new_seq[i] == old_seq[i]);
++                            assert(old_seq.push(region@)[i] == old_seq[i]);
++                        } else {
++                            assert(i == old_seq.len());
++                            assert(new_seq[i] == region@);
++                            assert(old_seq.push(region@)[i] == region@);
++                        }
++                    };
++                };
++
++                assert(self@ == old(self)@.push(region@));
++                assert(self.inv());
++            };
+             Ok(())
+         } else {
+             Err("MemoryRegionArray is full")
+

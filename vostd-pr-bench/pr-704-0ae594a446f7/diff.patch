@@ -1,6 +1,6 @@
 diff --git a/verified_libs/vstd_extra/src/external/btree.rs b/verified_libs/vstd_extra/src/external/btree.rs
 new file mode 100644
-index 000000000..e00dccc62
+index 0000000000000000000000000000000000000000..e00dccc62edc4bc1a018607b7e5e20db05d65244
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/btree.rs
 @@ -0,0 +1,288 @@
@@ -293,7 +293,7 @@ index 000000000..e00dccc62
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 5b1c6e366..f4071583b 100644
+index 5b1c6e3666dddbf5e78b51fdba63d00f8b75400e..f4071583be31c52546ef98873d2e8ab52d9e0d41 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -2,6 +2,7 @@
@@ -313,7 +313,7 @@ index 5b1c6e366..f4071583b 100644
  pub use int_specs::*;
  pub use nonnull::*;
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index 68cf8e5ae..bb16e3a30 100644
+index 68cf8e5ae7fe618c16a76e2a360b223fc6415c4d..bb16e3a304633dd8dfd1f6ae613d901604a7d860 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -4,6 +4,7 @@

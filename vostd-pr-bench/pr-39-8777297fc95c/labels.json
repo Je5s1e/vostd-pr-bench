@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-39-8777297fc95c",
+  "status": "incremental_source_adjudicated",
+  "issues": [{
+    "id": "pr-39-8777297fc95c:commit-fix-501ef2425a18da07580463f1382f15fba9856f7f-root-1",
+    "original_label_id": null,
+    "category": "semantic",
+    "description": "Three proof postconditions call `Deref::deref` in specification context, which the supported Verus resolves as an illegal exec-mode call.",
+    "locations": [
+      {"version": "after", "path": "vstd_extra/src/manually_drop.rs", "start_line": 34, "end_line": 34},
+      {"version": "after", "path": "vstd_extra/src/manually_drop.rs", "start_line": 42, "end_line": 42},
+      {"version": "after", "path": "vstd_extra/src/manually_drop.rs", "start_line": 49, "end_line": 49}
+    ],
+    "rationale": "The explicit method-call spelling resolves to executable `core::ops::deref::Deref::deref`, which cannot be called from a proof postcondition. All three locations share this mode-resolution root. The final repair replaces them with unary `*`, preserving the intended dereference properties in specification mode. The source blob is identical in the PR base and selected pre-repair commit, so this is an immediate pre-repair snapshot rather than a claim that the first PR commit introduced the defect.",
+    "source_evidence": "after/vstd_extra/src/manually_drop.rs: lines 34, 42, and 49 use explicit `.deref()` inside proof postconditions. Exact Verus c3014c7b reports `cannot call core::ops::deref::Deref::deref with mode exec` at line 34 and exits 101. Repair 501ef242 changes all three to unary dereference and reports `225 verified, 0 errors`.",
+    "rule_ids": [],
+    "review_url": "https://github.com/asterinas/vostd/commit/501ef2425a18da07580463f1382f15fba9856f7f",
+    "related_comment_ids": [],
+    "sources": [{"kind": "commit_fix", "id": "501ef2425a18da07580463f1382f15fba9856f7f:root-1", "url": "https://github.com/asterinas/vostd/commit/501ef2425a18da07580463f1382f15fba9856f7f", "commit_id": "501ef2425a18da07580463f1382f15fba9856f7f"}],
+    "verification": "Reproduced with Verus c3014c7b5df1e3d70eab4339f4b8fd26360e0499, Rust 1.85.1 and Z3 4.12.5: problem vstd_extra compilation exits 101 on exec-mode deref; repair exits 0 with 225 verified, 0 errors."
+  }
+  ]
+}

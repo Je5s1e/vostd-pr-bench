@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-182-16d5d093ac90",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-182-16d5d093ac90:commit-fix-27231bec4b98f6c9d842390e7108e36e9001ff92-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "A newly generalized NodeHelper reconstruction lemma grants get_child(get_parent(nid), get_offset(nid)) == nid through admit instead of deriving it from the node trace representation.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/spec/utils.rs",
+          "start_line": 1666,
+          "end_line": 1680
+        }
+      ],
+      "rationale": "The public lemma applies to every valid non-root node ID and is reused to distinguish sibling offsets. In this revision, its full reconstruction equality crosses an admit boundary, so any mismatch among get_parent, get_offset, and get_child would be accepted as a theorem. The direct child commit proves the equality from the checked nid-to-trace and trace-to-nid soundness facts and the identity trace.drop_last().push(trace.last()) == trace.",
+      "source_evidence": "after/lock-protocol/src/spec/utils.rs lines 1666-1680 contains the generalized admitted theorem. Official direct repair 27231bec4b98f6c9d842390e7108e36e9001ff92 removes the admit and supplies the trace reconstruction proof. The narrower admitted sibling-offset proof in the comparison parent is not represented as a separate root.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/27231bec4b98f6c9d842390e7108e36e9001ff92",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "27231bec4b98f6c9d842390e7108e36e9001ff92:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/27231bec4b98f6c9d842390e7108e36e9001ff92",
+          "commit_id": "27231bec4b98f6c9d842390e7108e36e9001ff92"
+        }
+      ],
+      "verification": "Fixed-source theorem and direct repair-diff analysis. Historical Verus was not executed."
+    }
+  ]
+}

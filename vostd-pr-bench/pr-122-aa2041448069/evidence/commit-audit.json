@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "pr_number": 122,
+  "selected_base_sha": "d3d07090f22347daf8ced94392971db450606a42",
+  "selected_head_sha": "aa20414480698f77496c1812967f77761138b973",
+  "repair_sha": "d45f4d703838e6d916fe1a4b2c50bdbfd0600e16",
+  "repair_diff_sha256": "b551ea2c5e07505b753731af408582ee6da4bc814f9dfe35f82cecf095fa5449",
+  "official_base_sha": "aa20414480698f77496c1812967f77761138b973",
+  "official_commits": [
+    {"sha": "d45f4d703838e6d916fe1a4b2c50bdbfd0600e16", "parents": ["aa20414480698f77496c1812967f77761138b973"], "subject": "Fix missing manually drops"},
+    {"sha": "65ebf8f3b68e1be53d09cb1b8b1fe7965af1893c", "parents": ["d45f4d703838e6d916fe1a4b2c50bdbfd0600e16"], "subject": "Add two trusted lemmas"},
+    {"sha": "25f6e447a752c17ce280d475509599712f3b694b", "parents": ["65ebf8f3b68e1be53d09cb1b8b1fe7965af1893c"], "subject": "fmt"}
+  ],
+  "review_scope": {
+    "changed_paths_reviewed": ["lock-protocol/src/exec/rcu/cursor/locking.rs", "lock-protocol/src/exec/rcu/node/child.rs", "lock-protocol/src/exec/rcu/node/entry.rs", "lock-protocol/src/exec/rcu/node/mod.rs", "lock-protocol/src/exec/rcu/node/spinlock/mod.rs", "lock-protocol/src/spec/rcu/tree.rs", "lock-protocol/src/spec/rcu/types.rs"],
+    "checks": ["official commit order and parents", "guard definition and inactive Drop implementation", "both missing release locations", "repair diff", "single-root grouping", "PR 105/122 ownership boundary"]
+  },
+  "candidate_dispositions": [
+    {"candidate": "two missing normal_drop sites as separate roots", "disposition": "excluded", "rationale": "Both are branches of one function with the same manual-release failure mechanism and are represented as two locations under one root."},
+    {"candidate": "two later external_body stray lemmas", "disposition": "excluded", "rationale": "They remain trusted through final head and have no checked in-PR repair."}
+  ],
+  "primary_review": {"reviewer": "/root/audit_pr_117_122", "reviewed_sha": "aa20414480698f77496c1812967f77761138b973", "reviewed_at": "2026-11-20T09:57:33Z", "conclusion": "approve_one_semantic_issue", "evidence": "resource/work/commit-labels/122/candidate.json"},
+  "second_review": {"reviewer": "/root/audit_pr_143_147", "reviewed_sha": "aa20414480698f77496c1812967f77761138b973", "reviewed_at": "2026-11-20T00:00:00Z", "conclusion": "approve_one_semantic_issue", "evidence": "resource/work/commit-labels/122/second-review.json"},
+  "historical_verus_executed": false,
+  "deduplication": "The bug was introduced by 08be170523825499a55118084b4302066e06aba6 in PR 105, which contains no repair; PR 122 owns the first verified repair."
+}

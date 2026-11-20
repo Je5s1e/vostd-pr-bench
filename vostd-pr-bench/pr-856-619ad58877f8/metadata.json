@@ -14,7 +14,7 @@
   "changed_paths": [
     "ostd/src/mm/dma/dma_coherent.rs"
   ],
-  "diff_sha256": "1c311c44ac64f57a10edca20bc09a304520059ef00e86de619fc8c115a673010",
+  "diff_sha256": "5953444421b375024a7b1f093aa637f30cf30becf10c403a464b1ae44795a17d",
   "versions": {
     "before": {
       "commit": "18aea7a127610ad471325235b85395afe82710da",
@@ -47,5 +47,17 @@
       ]
     }
   },
-  "known_issue_count": 1
+  "known_issue_count": 1,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "619ad58877f84f3c310358e393f2ac3257311de8",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/619ad58877f84f3c310358e393f2ac3257311de8/docs/coding-guidelines/maintainability.md#L219",
+        "rule_id": "group-imports-by-crate",
+        "line": 219,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

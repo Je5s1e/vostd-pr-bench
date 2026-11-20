@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 2,
-  "inline_review_comment_count": 46,
-  "review_count": 44,
-  "core_lesson": "Arc 的值视图无法代表分配身份，借用权限也不能升级为拥有权限",
-  "category": "可信边界",
-  "all_content_unadjudicated": true
-}

@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/embedding/cursor.rs b/ostd/specs/mm/embedding/cursor.rs
-index 2a3cfd602..034acff57 100644
+index 2a3cfd602a74b9d56b8d9172afdd678068576432..034acff57a8fc8405f20d8cec12d1b663033ddea 100644
 --- a/ostd/specs/mm/embedding/cursor.rs
 +++ b/ostd/specs/mm/embedding/cursor.rs
 @@ -62,7 +62,7 @@ use crate::specs::mm::page_table::cursor::owners::CursorOwner;
@@ -42,7 +42,7 @@ index 2a3cfd602..034acff57 100644
          },
          Option::None => Option::None,
 diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
-index c4a7ef3b0..59edea231 100644
+index c4a7ef3b0f808aae959d29e4c4bcc36b4a74b313..59edea2319353ad3925cfd5fd5c92bd965f3d913 100644
 --- a/ostd/specs/mm/embedding/mod.rs
 +++ b/ostd/specs/mm/embedding/mod.rs
 @@ -538,9 +538,9 @@ pub enum CursorKind {
@@ -79,7 +79,7 @@ index c4a7ef3b0..59edea231 100644
  /// Tracked constructor for [`VmIoEntry`].
  pub proof fn tracked_vm_io_entry_new<'a>(
 diff --git a/ostd/specs/mm/frame/meta_region_owners.rs b/ostd/specs/mm/frame/meta_region_owners.rs
-index 9ce4004e7..b8d4351fa 100644
+index 9ce4004e7728467f015b33a5c2aa116a6cf39601..b8d4351faa1ac757dc4b05ac728f49ccf2cb2b48 100644
 --- a/ostd/specs/mm/frame/meta_region_owners.rs
 +++ b/ostd/specs/mm/frame/meta_region_owners.rs
 @@ -54,7 +54,7 @@ pub tracked struct MetaRegionOwners {
@@ -127,7 +127,7 @@ index 9ce4004e7..b8d4351fa 100644
  
  } // verus!
 diff --git a/ostd/specs/mm/page_table/cursor/owners.rs b/ostd/specs/mm/page_table/cursor/owners.rs
-index 5487042df..0246d6b1d 100644
+index 5487042df624b048e427f0fe088b8a865b26398d..0246d6b1d90aaed41953ef4622b5ca370c9612b4 100644
 --- a/ostd/specs/mm/page_table/cursor/owners.rs
 +++ b/ostd/specs/mm/page_table/cursor/owners.rs
 @@ -46,9 +46,9 @@ broadcast use group_ghost_tree_lemmas;
@@ -195,7 +195,7 @@ index 5487042df..0246d6b1d 100644
      pub open spec fn map_children(
          self,
 diff --git a/verified_libs/vstd_extra/src/ghost_tree.rs b/verified_libs/vstd_extra/src/ghost_tree.rs
-index 18291a403..4d178231d 100644
+index 18291a403b6931621e97846a62762ec07d971d64..4d178231d9104585dc3107b81dfdf1fb7c1b3e27 100644
 --- a/verified_libs/vstd_extra/src/ghost_tree.rs
 +++ b/verified_libs/vstd_extra/src/ghost_tree.rs
 @@ -305,6 +305,18 @@ impl<T: TreeNodeValue<L>, const N: usize, const L: usize> TreeNode<T, N, L> {

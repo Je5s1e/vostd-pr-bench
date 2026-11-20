@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-353-650ed55495ef",
+  "pr_number": 353,
+  "title": "verifiable: ostd::sync::wait",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/353",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "1cf1c5421efa8543515d2c2c54387a79fff927f2",
+  "head_sha": "650ed55495efed902f2a120d01f65d0a5aa3eb73",
+  "base_method": "merge-base(archived base 1cf1c5421efa8543515d2c2c54387a79fff927f2, selected pre-repair commit 650ed55495efed902f2a120d01f65d0a5aa3eb73)",
+  "archive_base_sha": "1cf1c5421efa8543515d2c2c54387a79fff927f2",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/src/arch/x86/irq.rs",
+    "ostd/src/arch/x86/mod.rs",
+    "ostd/src/lib.rs",
+    "ostd/src/sync/guard.rs",
+    "ostd/src/sync/mod.rs",
+    "ostd/src/sync/spin.rs",
+    "ostd/src/sync/wait.rs",
+    "ostd/src/task/mod.rs",
+    "ostd/src/task/scheduler/mod.rs",
+    "ostd/src/trap/irq.rs",
+    "ostd/src/trap/mod.rs"
+  ],
+  "diff_sha256": "d27b400fb2d93e4027a1b165af7eb55904ec5b1cb5f6d123a0d468f6b009f158",
+  "versions": {
+    "before": {
+      "commit": "1cf1c5421efa8543515d2c2c54387a79fff927f2",
+      "file_count": 343,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "55b3285a73732973764fb41f9b3a9f9e33209215",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "650ed55495efed902f2a120d01f65d0a5aa3eb73",
+      "file_count": 343,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "55b3285a73732973764fb41f9b3a9f9e33209215",
+          "included": true
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:45:11.572814+00:00",
+    "reviewed_at": "2026-11-20T08:45:11.572814+00:00",
+    "upstream_updated_at": "2026-05-01T09:36:15Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/353",
+      "https://github.com/asterinas/vostd/commit/7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00353"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": [
+    "dv"
+  ]
+}

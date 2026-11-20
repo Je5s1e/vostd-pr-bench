@@ -1,0 +1,375 @@
+diff --git a/lock-protocol/src/exec/mod.rs b/lock-protocol/src/exec/mod.rs
+index d111a4279..95ceef4a3 100644
+--- a/lock-protocol/src/exec/mod.rs
++++ b/lock-protocol/src/exec/mod.rs
+@@ -16,7 +16,7 @@ use crate::mm::entry::Entry;
+ use crate::mm::page_prop::{PageFlags, PageProperty, PrivilegedPageFlags};
+ use crate::mm::page_table::PageTableNode;
+ 
+-use crate::mm::{pte_index, Paddr, PageTableConfig, PagingLevel, NR_ENTRIES};
++use crate::mm::{page_size_spec, pte_index, Paddr, PageTableConfig, PagingLevel, NR_ENTRIES};
+ use crate::{
+     mm::{
+         cursor::{Cursor, CursorMut},
+@@ -65,7 +65,7 @@ pub fn alloc_page_table<C: PageTableConfig>(
+ ) -> (res: (Frame<PageTablePageMeta<C>>, Tracked<PointsTo<MockPageTablePage>>))
+     requires
+         old(model).invariants(),
+-        crate::spec::sub_pt::level_is_in_range(level as int),
++        crate::spec::sub_pt::level_is_in_range::<C>(level as int),
+     ensures
+         res.1@.pptr() == res.0.ptr,
+         res.1@.mem_contents().is_init(),
+@@ -84,6 +84,20 @@ pub fn alloc_page_table<C: PageTableConfig>(
+                 &&& res.1@.value().ptes[i].level == level
+                 &&& res.1@.value().ptes[i].prop == PageProperty::new_absent()
+             },
++        res.0.start_paddr() % page_size_spec::<C>(level) == 0,
++        // old model does not change
++        forall|pa: Paddr| #[trigger]
++            old(model).meta_map.contains_key(pa as int) ==> #[trigger] model.meta_map.contains_key(
++                pa as int,
++            ),
++        forall|p: Paddr|
++            old(model).meta_map.contains_key(p as int) ==> {
++                &&& model.meta_map.contains_key(p as int)
++                &&& (#[trigger] model.meta_map[p as int]).pptr() == old(
++                    model,
++                ).meta_map[p as int].pptr()
++                &&& model.meta_map[p as int].value() == old(model).meta_map[p as int].value()
++            },
+ {
+     let (frame, perm) = allocator::alloc(
+         |a| a.alloc(PageTablePageMeta::<C>::new(level), Tracked(model)),
+diff --git a/lock-protocol/src/helpers/conversion.rs b/lock-protocol/src/helpers/conversion.rs
+new file mode 100644
+index 000000000..57c9326a2
+--- /dev/null
++++ b/lock-protocol/src/helpers/conversion.rs
+@@ -0,0 +1,12 @@
++use vstd::prelude::*;
++
++verus! {
++
++pub axiom fn usize_mod_is_int_mod(x: usize, m: usize, z: usize)
++    requires
++        x % m == z,
++    ensures
++        (x as int) % (m as int) == (z as int),
++;
++
++} // verus!
+diff --git a/lock-protocol/src/helpers/mod.rs b/lock-protocol/src/helpers/mod.rs
+index 3e32a0745..da0dc4db0 100644
+--- a/lock-protocol/src/helpers/mod.rs
++++ b/lock-protocol/src/helpers/mod.rs
+@@ -1,4 +1,5 @@
+ pub mod align_ext;
+ pub mod bits;
++pub mod conversion;
+ pub mod extern_const;
+ pub mod math;
+diff --git a/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs b/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs
+index 0a930a882..a1465bf16 100644
+--- a/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs
++++ b/lock-protocol/src/mm/page_table/cursor/spec_helpers.rs
+@@ -40,6 +40,7 @@ use crate::exec;
+ 
+ verus! {
+ 
++#[verifier::inline]
+ pub open spec fn spt_do_not_change_except<C: PageTableConfig>(
+     spt: &SubPageTable<C>,
+     old_spt: &SubPageTable<C>,
+diff --git a/lock-protocol/src/mm/page_table/node/entry.rs b/lock-protocol/src/mm/page_table/node/entry.rs
+index 9c46c18a0..5177f96c3 100644
+--- a/lock-protocol/src/mm/page_table/node/entry.rs
++++ b/lock-protocol/src/mm/page_table/node/entry.rs
+@@ -4,6 +4,7 @@ use core::ops::Deref;
+ use std::marker::PhantomData;
+ 
+ use crate::{
++    helpers::conversion::usize_mod_is_int_mod,
+     mm::{
+         cursor::spec_helpers::{
+             self, spt_do_not_change_except, spt_do_not_change_except_frames_change,
+@@ -14,7 +15,8 @@ use crate::{
+         page_prop::PageProperty,
+         page_size,
+         vm_space::Token,
+-        PageTableConfig, PageTableEntryTrait, PagingConstsTrait, PagingLevel, Vaddr,
++        Paddr, PageTableConfig, PageTableEntryTrait, PagingConstsTrait, PagingLevel, Vaddr,
++        NR_ENTRIES,
+     },
+     sync::rcu::RcuDrop,
+     task::DisabledPreemptGuard,
+@@ -64,6 +66,19 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+             ||| spt.i_ptes.value().contains_key(self.pte.pte_paddr_spec() as int)
+             ||| spt.ptes.value().contains_key(self.pte.pte_paddr_spec() as int)
+         }
++        &&& self.idx < NR_ENTRIES
++        &&& self.va@ % page_size::<C>(self.node.level_spec(&spt.alloc_model))
++            == 0
++        // TODO: put node related spec to node wf
++        &&& self.node.level_spec(&spt.alloc_model) <= spt.root@.level
++        &&& if (self.node.level_spec(&spt.alloc_model) == spt.root@.level) {
++            self.node.paddr() == spt.root@.pa
++        } else {
++            self.node.paddr() != spt.root@.pa
++        }
++        &&& spt.frames.value()[self.node.paddr() as int].level as int == self.node.level_spec(
++            &spt.alloc_model,
++        )
+     }
+ 
+     #[verifier::external_body]
+@@ -371,7 +386,6 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+         }
+     }
+ 
+-    #[verifier::external_body]
+     pub(in crate::mm) fn alloc_if_none(
+         &mut self,
+         guard: &'rcu DisabledPreemptGuard,
+@@ -380,10 +394,10 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+         requires
+             old(self).wf(&old(spt)),
+             old(spt).wf(),
+-            old(self).idx < nr_subpage_per_huge::<C>(),
+-            old(spt).i_ptes.value().contains_key(old(self).pte.pte_paddr() as int),
+-            old(spt).ptes.value().contains_key(old(self).pte.pte_paddr() as int),
++            !old(spt).i_ptes.value().contains_key(old(self).pte.pte_paddr() as int),
++            !old(spt).ptes.value().contains_key(old(self).pte.pte_paddr() as int),
+             old(self).node.level_spec(&old(spt).alloc_model) > 1,
++            old(self).node.wf(&old(spt).alloc_model),
+         ensures
+             self.wf(spt),
+             self.pte.pte_paddr() == old(self).pte.pte_paddr(),
+@@ -418,13 +432,55 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+             return None;
+         }
+         let level = self.node.level(Tracked(&spt.alloc_model));
+-        let (pt, perm) = PageTableNode::<C>::alloc(level - 1, Tracked(&mut spt.alloc_model));
++        let (pt, Tracked(perm)) = PageTableNode::<C>::alloc(
++            level - 1,
++            Tracked(&mut spt.alloc_model),
++        );
++        assert(perm.mem_contents().is_init());
++
++        assert(!spt.frames.value().contains_key(pt.start_paddr() as int));
++        assert(spt.frames =~= old(spt).frames);
++        assert(forall|pa: Paddr| #[trigger]
++            spt.frames.value().contains_key(pa as int) ==> #[trigger] old(
++                spt,
++            ).alloc_model.meta_map.contains_key(pa as int));
++        // TODO: figure out what triggers we should use here.
++        assert(forall|pa: Paddr|
++            #![auto]
++            old(spt).alloc_model.meta_map.contains_key(pa as int)
++                ==> spt.alloc_model.meta_map.contains_key(pa as int));
++        assert(forall|pa: Paddr| #[trigger]
++            spt.frames.value().contains_key(pa as int)
++                ==> #[trigger] spt.alloc_model.meta_map.contains_key(pa as int));
+ 
+         let pa = pt.start_paddr();
+ 
+         assert(spt.alloc_model.meta_map.contains_key(pa as int));
+ 
+         proof {
++            let i_pte = IntermediatePageTableEntryView {
++                map_va: self.va@ as int,
++                frame_pa: self.node.paddr() as int,
++                in_frame_index: self.idx as int,
++                map_to_pa: pt.start_paddr() as int,
++                level,
++                phantom: PhantomData::<C>,
++            };
++            assert(i_pte.wf()) by {
++                usize_mod_is_int_mod(
++                    self.va@,
++                    page_size::<C>(self.node.level_spec(&spt.alloc_model)),
++                    0,
++                );
++            }
++            assert(level <= spt.root@.level);
++            assert(self.node.level_spec(&spt.alloc_model) == level);
++            if (level == spt.root@.level) {
++                assert(i_pte.frame_pa == spt.root@.pa);
++            } else {
++                assert(i_pte.frame_pa != spt.root@.pa);
++            }
++            assert(spt.frames.value()[self.node.paddr() as int].level as int == level as int);
+             spt.instance.set_child(
+                 IntermediatePageTableEntryView {
+                     map_va: self.va as int,
+@@ -438,9 +494,10 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+                 &mut spt.i_ptes,
+                 &spt.ptes,
+             );
+-            spt.perms.insert(pt.start_paddr(), perm@);
++            spt.perms.tracked_insert(pt.start_paddr(), perm);
+         }
+ 
++        assert(spt.wf());
+         self.node.write_pte(
+             self.idx,
+             Child::<C>::PageTable(RcuDrop::new(pt)).into_pte(),
+@@ -451,9 +508,9 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'a, 'rcu, C> {
+ 
+         let node_ref = PageTableNodeRef::borrow_paddr(pa, Tracked(&spt.alloc_model));
+ 
+-        assume(self.wf(spt));
++        assert(self.wf(spt));
+         assume(spt_do_not_change_except(spt, old(spt), self.pte.pte_paddr() as int));
+-        assume(node_ref.level_spec(&spt.alloc_model) == level - 1);
++        assert(node_ref.level_spec(&spt.alloc_model) == level - 1);
+ 
+         Some(node_ref.make_guard_unchecked(guard, Ghost(self.va@)))
+     }
+diff --git a/lock-protocol/src/mm/page_table/node/mod.rs b/lock-protocol/src/mm/page_table/node/mod.rs
+index efb01c6ee..977ceffb0 100644
+--- a/lock-protocol/src/mm/page_table/node/mod.rs
++++ b/lock-protocol/src/mm/page_table/node/mod.rs
+@@ -19,6 +19,7 @@ use crate::mm::frame;
+ use crate::mm::meta::AnyFrameMeta;
+ use crate::mm::nr_subpage_per_huge;
+ use crate::mm::page_prop::PageProperty;
++use crate::mm::page_size_spec;
+ use crate::mm::Paddr;
+ use crate::mm::PageTableEntryTrait;
+ use crate::mm::PagingConstsTrait;
+@@ -54,7 +55,7 @@ pub type PageTableNode<C: PageTableConfig> = Frame<PageTablePageMeta<C>>;
+ impl<C: PageTableConfig> PageTableNode<C> {
+     pub open spec fn wf(&self, alloc_model: &AllocatorModel<PageTablePageMeta<C>>) -> bool {
+         &&& pa_is_valid_pt_address(self.paddr() as int)
+-        &&& level_is_in_range(self.level_spec(alloc_model) as int)
++        &&& level_is_in_range::<C>(self.level_spec(alloc_model) as int)
+         &&& alloc_model.meta_map.contains_key(self.paddr() as int)
+         &&& alloc_model.meta_map[self.paddr() as int].pptr() == self.meta_ptr
+         &&& alloc_model.meta_map[self.paddr() as int].value().level == self.level_spec(alloc_model)
+@@ -95,7 +96,7 @@ impl<C: PageTableConfig> PageTableNode<C> {
+     ) -> (res: (Self, Tracked<PointsTo<MockPageTablePage>>))
+         requires
+             old(model).invariants(),
+-            crate::spec::sub_pt::level_is_in_range(level as int),
++            crate::spec::sub_pt::level_is_in_range::<C>(level as int),
+         ensures
+             res.1@.pptr() == res.0.ptr,
+             res.1@.mem_contents().is_init(),
+@@ -114,6 +115,19 @@ impl<C: PageTableConfig> PageTableNode<C> {
+                     &&& res.1@.value().ptes[i].level == level
+                     &&& res.1@.value().ptes[i].prop == PageProperty::new_absent()
+                 },
++            res.0.start_paddr() % page_size_spec::<C>(level) == 0,
++            // old model does not change
++            forall|pa: Paddr| #[trigger]
++                old(model).meta_map.contains_key(pa as int)
++                    ==> #[trigger] model.meta_map.contains_key(pa as int),
++            forall|p: Paddr| #[trigger]
++                old(model).meta_map.contains_key(p as int) ==> {
++                    &&& #[trigger] model.meta_map.contains_key(p as int)
++                    &&& (#[trigger] model.meta_map[p as int]).pptr() == (#[trigger] old(
++                        model,
++                    ).meta_map[p as int]).pptr()
++                    &&& model.meta_map[p as int].value() == old(model).meta_map[p as int].value()
++                },
+     {
+         crate::exec::alloc_page_table(level, Tracked(model))
+     }
+diff --git a/lock-protocol/src/spec/sub_pt/mod.rs b/lock-protocol/src/spec/sub_pt/mod.rs
+index 72b623c30..2dfe4185c 100644
+--- a/lock-protocol/src/spec/sub_pt/mod.rs
++++ b/lock-protocol/src/spec/sub_pt/mod.rs
+@@ -4,7 +4,7 @@ use std::ops::Sub;
+ 
+ use state_machine::{frames_valid, FrameView, SubPageTableStateMachine};
+ 
+-use vstd::prelude::*;
++use vstd::{prelude::*};
+ use vstd::simple_pptr::{PPtr, PointsTo};
+ 
+ use crate::mm::allocator::{AllocatorModel, pa_is_valid_kernel_address};
+@@ -14,11 +14,11 @@ use crate::mm::page_table::cursor::MAX_NR_LEVELS;
+ use crate::exec::SIZEOF_PAGETABLEENTRY;
+ use crate::exec::SIZEOF_FRAME;
+ use crate::spec::sub_pt::state_machine::ptes_frames_matches;
+-
++use crate::mm::page_table::PagingConstsTrait;
+ verus! {
+ 
+-pub open spec fn level_is_in_range(level: int) -> bool {
+-    1 <= level <= MAX_NR_LEVELS
++pub open spec fn level_is_in_range<C: PageTableConfig>(level: int) -> bool {
++    1 <= level <= C::C::NR_LEVELS_SPEC() as int
+ }
+ 
+ pub open spec fn index_is_in_range(index: int) -> bool {
+@@ -59,18 +59,18 @@ impl<C: PageTableConfig> SubPageTable<C> {
+         &&& self.i_ptes.instance_id() == self.instance.id()
+         &&& forall|pa: Paddr| #[trigger]
+             self.frames.value().contains_key(pa as int) <==> #[trigger] self.perms.contains_key(pa)
++        &&& forall|pa: Paddr| #[trigger]
++            self.frames.value().contains_key(pa as int)
++                ==> #[trigger] self.alloc_model.meta_map.contains_key(pa as int)
+         &&& forall|pa: Paddr|
++            #![trigger self.frames.value().contains_key(pa as int)]
+             #![trigger self.perms.get(pa)]
+-            {
+-                &&& #[trigger] self.frames.value().contains_key(pa as int)
+-                    ==> #[trigger] self.alloc_model.meta_map.contains_key(pa as int)
+-                &&& self.frames.value().contains_key(pa as int) ==> {
+-                    let frame = self.frames.value().get(pa as int).unwrap();
+-                    let perm = self.perms.get(pa).unwrap();
+-                    &&& frame.pa == pa as int
+-                    &&& frame.pa == perm.pptr().addr() as int
+-                    &&& perm.mem_contents().is_init()
+-                }
++            self.frames.value().contains_key(pa as int) ==> {
++                let frame = self.frames.value().get(pa as int).unwrap();
++                let perm = self.perms.get(pa).unwrap();
++                &&& frame.pa == pa as int
++                &&& frame.pa == perm.pptr().addr() as int
++                &&& perm.mem_contents().is_init()
+             }
+         &&& self.root == self.instance.root()
+         &&& frames_valid(self.root@, &self.frames.value(), &self.i_ptes.value())
+diff --git a/lock-protocol/src/spec/sub_pt/state_machine.rs b/lock-protocol/src/spec/sub_pt/state_machine.rs
+index 86e98bf92..bc1e63273 100644
+--- a/lock-protocol/src/spec/sub_pt/state_machine.rs
++++ b/lock-protocol/src/spec/sub_pt/state_machine.rs
+@@ -33,7 +33,7 @@ impl<C: PageTableConfig> LeafPageTableEntryView<C> {
+             self.map_to_pa,
+         )
+         // We assume that all level PTEs can be leaf. Thus they can map to huge pages.
+-        &&& level_is_in_range(
++        &&& level_is_in_range::<C>(
+             self.level as int,
+         )
+         // The corresponding virtual address must be aligned to the page size.
+@@ -59,7 +59,7 @@ impl<C: PageTableConfig> IntermediatePageTableEntryView<C> {
+         &&& pa_is_valid_pt_address(self.frame_pa)
+         &&& index_is_in_range(self.in_frame_index)
+         &&& pa_is_valid_pt_address(self.map_to_pa)
+-        &&& level_is_in_range(self.level as int)
++        &&& level_is_in_range::<C>(self.level as int)
+         // No self-loop.
+         &&& self.map_to_pa
+             != self.frame_pa
+@@ -84,7 +84,7 @@ pub ghost struct FrameView<C: PageTableConfig> {
+ impl<C: PageTableConfig> FrameView<C> {
+     pub open spec fn wf(&self) -> bool {
+         &&& pa_is_valid_pt_address(self.pa)
+-        &&& level_is_in_range(
++        &&& level_is_in_range::<C>(
+             self.level as int,
+         )
+         // The corresponding virtual address must be aligned to the upper-level page size.
+@@ -93,7 +93,7 @@ impl<C: PageTableConfig> FrameView<C> {
+         // Ancestor properties.
+         &&& forall|ancestor_level: int| #[trigger]
+             self.ancestor_chain.contains_key(ancestor_level) ==> {
+-                &&& level_is_in_range(ancestor_level)
++                &&& level_is_in_range::<C>(ancestor_level)
+                 &&& self.level < ancestor_level
+                 &&& self.ancestor_chain[ancestor_level].wf()
+                 &&& self.ancestor_chain[ancestor_level].level

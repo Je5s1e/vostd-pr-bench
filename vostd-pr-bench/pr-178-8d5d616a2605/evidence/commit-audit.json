@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "pr_number": 178,
+  "sample_id": "pr-178-8d5d616a2605",
+  "comparison_base_sha": "e229e872d36f0e37e1279dae293db13427105314",
+  "problem_commit_sha": "8d5d616a2605e166fa8fdadb798b4f86bd3d200d",
+  "repair_commit_sha": "c450c77d6e941eee68da286465b2cd31c8ba9ffe",
+  "primary_reviewer": "/root",
+  "second_reviewer": "/root/audit_pr_126_142",
+  "second_review_verdict": "approved",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "The problem commit conditionally imports OwoColorize and Stream only on Windows but uses both names unconditionally; the direct child commit removes the cfg gate from the import.",
+  "claim_scope": "non_windows_build_failure",
+  "repair_diff": "repair.diff"
+}

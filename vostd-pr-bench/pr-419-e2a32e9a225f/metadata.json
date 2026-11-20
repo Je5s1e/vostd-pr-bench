@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-419-e2a32e9a225f",
+  "pr_number": 419,
+  "title": "Fill API gaps and admits",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/419",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "efe45a8da3439988e77c4c26cfa347da5ee96e91",
+  "head_sha": "e2a32e9a225fb0d069c61889c8ea74c9157e414b",
+  "base_method": "git merge-base(archived base 7e56be12fc56bb1f4f027e88f9e71cbfc5a00d4b, selected PR pre-repair commit e2a32e9a225fb0d069c61889c8ea74c9157e414b); nonempty comparison verified",
+  "archive_base_sha": "7e56be12fc56bb1f4f027e88f9e71cbfc5a00d4b",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "ostd/specs/mm/frame/frame_lifecycle.rs",
+    "ostd/specs/mm/frame/frame_specs.rs",
+    "ostd/specs/mm/frame/linked_list/linked_list_specs.rs",
+    "ostd/specs/mm/frame/meta_owners.rs",
+    "ostd/specs/mm/frame/meta_region_owners.rs",
+    "ostd/specs/mm/frame/meta_specs.rs",
+    "ostd/specs/mm/frame/unique.rs",
+    "ostd/specs/mm/mod.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_fn_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "ostd/specs/mm/page_table/cursor/invariant_preservation_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/mapping_set_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/mod.rs",
+    "ostd/specs/mm/page_table/cursor/owners.rs",
+    "ostd/specs/mm/page_table/cursor/page_size_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/tree_lemmas.rs",
+    "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "ostd/specs/mm/page_table/node/entry.rs",
+    "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "ostd/specs/mm/page_table/node/entry_view.rs",
+    "ostd/specs/mm/page_table/node/owners.rs",
+    "ostd/specs/mm/page_table/owners.rs",
+    "ostd/specs/mm/virt_mem_newer.rs",
+    "ostd/specs/mm/vm_space.rs",
+    "ostd/src/mm/frame/frame_ref.rs",
+    "ostd/src/mm/frame/meta.rs",
+    "ostd/src/mm/frame/mod.rs",
+    "ostd/src/mm/frame/segment.rs",
+    "ostd/src/mm/io.rs",
+    "ostd/src/mm/page_table/cursor/locking.rs",
+    "ostd/src/mm/page_table/cursor/mod.rs",
+    "ostd/src/mm/page_table/mod.rs",
+    "ostd/src/mm/page_table/node/entry.rs",
+    "vstd_extra/src/ghost_tree.rs"
+  ],
+  "diff_sha256": "44ed04e5e0c2dc9d765c2fc4b8d331ea1a8ae012f4a9400ebd10a3f439974428",
+  "versions": {
+    "before": {
+      "commit": "efe45a8da3439988e77c4c26cfa347da5ee96e91",
+      "file_count": 320,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "e2a32e9a225fb0d069c61889c8ea74c9157e414b",
+      "file_count": 321,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "01925f799b6435f3e5cca83c23f215280e8434c0",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:51:35.368885+00:00",
+    "reviewed_at": "2026-11-20T08:51:35.368885+00:00",
+    "upstream_updated_at": "2026-04-21T06:42:18Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/419",
+      "https://github.com/asterinas/vostd/commit/dab3e2bda808bdf77c34675d4c70f8d96853983d"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00419"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": [
+    "vstd_extra/src/seq_extra.rs"
+  ]
+}

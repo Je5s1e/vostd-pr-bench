@@ -1,0 +1,29 @@
+{
+  "number": 161,
+  "title": "Prove protocol_allocate",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Prove protocol allocate",
+      "category": "证明与规约"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/rcu/tree.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "lock-protocol/src/spec/utils.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": ".len() == 0 add strays += [ (nid, paddr) => false ] by { admit(); }; add strays += [ (nid, paddr) => false ] by {admit();}; .len() <= 1 .len() == 0 fn protocol_allocate_inductive(pr",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 4
+}

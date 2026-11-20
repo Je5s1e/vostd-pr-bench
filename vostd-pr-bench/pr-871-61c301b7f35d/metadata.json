@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-871-61c301b7f35d",
+  "pr_number": 871,
+  "title": "ci: add ci verification dashboard with verification coverage, API links, and performance benchmarks",
+  "title_source": "archived_github_pr_metadata",
+  "url": "https://github.com/asterinas/vostd/pull/871",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "9833e14bb4ede64a400ddf40456a1ecdbd5686f4",
+  "head_sha": "61c301b7f35d5f85b36629545f29873b4b5d961e",
+  "base_method": "merge-base(archived base SHA, selected problem SHA)",
+  "archive_base_sha": "4a98896f7ecfd0a4fb7d31612a611670b73295c9",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    ".github/workflows/ci.yml",
+    "tools/site/app.js",
+    "tools/site/index.html",
+    "tools/site/style.css",
+    "tools/verus_stats.py"
+  ],
+  "diff_sha256": "851324240b66fec467672f812f448e452597670af2df7845ad52b0f374cfa801",
+  "versions": {
+    "before": {
+      "commit": "9833e14bb4ede64a400ddf40456a1ecdbd5686f4",
+      "file_count": 322,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    },
+    "after": {
+      "commit": "61c301b7f35d5f85b36629545f29873b4b5d961e",
+      "file_count": 326,
+      "submodules": [
+        {
+          "path": "dv",
+          "sha": "72961223ede38d3fcd3a6e8dd1fb8c4455bef1ba",
+          "included": false
+        }
+      ],
+      "license_files": [
+        "COPYRIGHT",
+        "LICENSE-MPL"
+      ],
+      "ostd_present": true
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-20T08:40:02.594905+00:00",
+    "reviewed_at": "2026-11-20T08:40:02.594905+00:00",
+    "upstream_updated_at": "2026-10-28T08:28:07Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/871",
+      "https://github.com/asterinas/vostd/commit/97fedbf3133226d16f3e62b8bfcddfb5d35a525a"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00871"
+  },
+  "verification": {
+    "historical_verus_executed": false,
+    "issues_adjudicated": true,
+    "snapshot_selection": "Fixed pre-repair parent of PR commit; independently source-reviewed."
+  },
+  "additional_context_paths": [
+    ".github/actions/setup-verus/action.yml",
+    ".gitignore"
+  ]
+}

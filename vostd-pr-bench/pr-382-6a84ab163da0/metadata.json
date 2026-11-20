@@ -69,7 +69,9 @@
       {
         "commit": "af3406cffc8500b06116606fc17c86d7d5d13c44",
         "path": "docs/coding-guidelines/maintainability.md",
-        "url": "https://github.com/asterinas/vostd/blob/af3406cffc8500b06116606fc17c86d7d5d13c44/docs/coding-guidelines/maintainability.md#document-verified-apis"
+        "url": "https://github.com/asterinas/vostd/blob/af3406cffc8500b06116606fc17c86d7d5d13c44/docs/coding-guidelines/maintainability.md#document-verified-apis",
+        "temporal_role": "non_ancestor_reference_only",
+        "applicability_note": "Classification/context reference, not evidence the rule was in force at selected head. Use the historical review and fixed-source evidence for the finding."
       }
     ],
     "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",

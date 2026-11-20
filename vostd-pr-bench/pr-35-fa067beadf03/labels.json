@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-35-fa067beadf03",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-35-fa067beadf03:commit-fix-0cc932ae121d4c4821ccf95cb744dbdc489ad771-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The public path-order theorem exports strict ordering for every index pair while admitting the case involving the final path element.",
+      "locations": [{"version": "after", "path": "lock-protocol/src/test/rw_version/spec/common.rs", "start_line": 135, "end_line": 135}],
+      "rationale": "`lemma_wf_tree_path_nid_increasing` proves only pairs within `drop_last()` and then trusts the remaining final-element case through `admit()`. Callers immediately use the full theorem to exclude the last node from the prefix. Repair 0cc932ae splits the last-index case and derives it from `lemma_is_child_nid_increasing`.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/spec/common.rs\n117: pub proof fn lemma_wf_tree_path_nid_increasing(...)\n120-123: ensures every 0 <= i < j < path.len() has path[i] < path[j]\n129-134: proves pairs inside drop_last()\n135: admit();\n\nRepair 0cc932ae proves the final-element case from the child relation and removes the assumption.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/0cc932ae121d4c4821ccf95cb744dbdc489ad771",
+      "related_comment_ids": [],
+      "sources": [{"kind": "commit_fix", "id": "0cc932ae121d4c4821ccf95cb744dbdc489ad771:root-1", "url": "https://github.com/asterinas/vostd/commit/0cc932ae121d4c4821ccf95cb744dbdc489ad771", "commit_id": "0cc932ae121d4c4821ccf95cb744dbdc489ad771"}],
+      "verification": "Source and independent review confirm the unchecked final-element obligation and its checked repair. The historical 323/0 run covers final head only."
+    },
+    {
+      "id": "pr-35-fa067beadf03:commit-fix-0cc932ae121d4c4821ccf95cb744dbdc489ad771-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The write-lock transition exports subtree-lock preservation through an admitted inductive step and an admitted supporting subtree theorem.",
+      "locations": [{"version": "after", "path": "lock-protocol/src/test/rw_version/spec/tree.rs", "start_line": 476, "end_line": 476}, {"version": "after", "path": "lock-protocol/src/test/rw_version/spec/tree.rs", "start_line": 604, "end_line": 604}],
+      "rationale": "`write_lock_inductive` assumes preservation of `inv_write_lock_cursors_subtree_locked`. The same snapshot also exposes the descendant zero-reader theorem through `admit()`; although it has no direct caller yet, repair 0cc932ae proves and strengthens it, uses its checked wrapper in the write-lock proof, and removes both assumptions. They are one transition-level root.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/spec/tree.rs\n475: assert(post.inv_write_lock_cursors_subtree_locked()) by {\n476:     admit();\n477: }\n\n594-597: subtree-zero theorem guarantee\n604: admit();\n\nRepair 0cc932ae supplies the subtree reasoning and checked write-lock preservation proof.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/0cc932ae121d4c4821ccf95cb744dbdc489ad771",
+      "related_comment_ids": [],
+      "sources": [{"kind": "commit_fix", "id": "0cc932ae121d4c4821ccf95cb744dbdc489ad771:root-2", "url": "https://github.com/asterinas/vostd/commit/0cc932ae121d4c4821ccf95cb744dbdc489ad771", "commit_id": "0cc932ae121d4c4821ccf95cb744dbdc489ad771"}],
+      "verification": "Source and independent review confirm both assumptions and their common checked repair chain."
+    },
+    {
+      "id": "pr-35-fa067beadf03:commit-fix-7df760c2e9dd1c888315c840fc9f3f4fc32244cf-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The write-unlock transition's entire invariant-preservation proof is trusted through `admit()`.",
+      "locations": [{"version": "after", "path": "lock-protocol/src/test/rw_version/spec/tree.rs", "start_line": 481, "end_line": 481}],
+      "rationale": "The transition changes the node to `WriteUnLocked` and downgrades its cursor to `ReadLocking(path.drop_last())`, but its callable inductive proof is wholly admitted. Final repair 7df760c2 proves preservation of the cursor/reader-count relation.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/spec/tree.rs\n480: #[inductive(write_unlock)]\n481: fn write_unlock_inductive(...) { admit(); }\n\nFinal repair 7df760c2 replaces the assumption with a checked cursor/count preservation proof.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/7df760c2e9dd1c888315c840fc9f3f4fc32244cf",
+      "related_comment_ids": [],
+      "sources": [{"kind": "commit_fix", "id": "7df760c2e9dd1c888315c840fc9f3f4fc32244cf:root-1", "url": "https://github.com/asterinas/vostd/commit/7df760c2e9dd1c888315c840fc9f3f4fc32244cf", "commit_id": "7df760c2e9dd1c888315c840fc9f3f4fc32244cf"}],
+      "verification": "Final head verifies 323 obligations with zero errors; the problem theorem succeeds only because `admit()` is trusted."
+    },
+    {
+      "id": "pr-35-fa067beadf03:commit-fix-7df760c2e9dd1c888315c840fc9f3f4fc32244cf-root-2",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The allocate transition's entire inductiveness obligation is trusted through `admit()` even though it can be checked without an assumption.",
+      "locations": [{"version": "after", "path": "lock-protocol/src/test/rw_version/spec/tree.rs", "start_line": 484, "end_line": 484}],
+      "rationale": "`allocate_inductive` is a separately generated preservation obligation for changing a descendant node from `UnAllocated` to `WriteUnLocked`. Final repair 7df760c2 removes the assumption and the verifier accepts an empty checked body.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/spec/tree.rs\n483: #[inductive(allocate)]\n484: fn allocate_inductive(...) { admit(); }\n\nFinal repair 7df760c2 changes this to an empty checked proof body.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/7df760c2e9dd1c888315c840fc9f3f4fc32244cf",
+      "related_comment_ids": [],
+      "sources": [{"kind": "commit_fix", "id": "7df760c2e9dd1c888315c840fc9f3f4fc32244cf:root-2", "url": "https://github.com/asterinas/vostd/commit/7df760c2e9dd1c888315c840fc9f3f4fc32244cf", "commit_id": "7df760c2e9dd1c888315c840fc9f3f4fc32244cf"}],
+      "verification": "Final head verifies 323 obligations with zero errors after the assumption is removed."
+    },
+    {
+      "id": "pr-35-fa067beadf03:commit-fix-7df760c2e9dd1c888315c840fc9f3f4fc32244cf-root-3",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The deallocate transition's entire inductiveness obligation is trusted through `admit()` even though it can be checked without an assumption.",
+      "locations": [{"version": "after", "path": "lock-protocol/src/test/rw_version/spec/tree.rs", "start_line": 487, "end_line": 487}],
+      "rationale": "`deallocate_inductive` is a distinct preservation obligation for changing a descendant node from `WriteUnLocked` to `UnAllocated`. Final repair 7df760c2 removes the assumption and the verifier accepts an empty checked body.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/spec/tree.rs\n486: #[inductive(deallocate)]\n487: fn deallocate_inductive(...) { admit(); }\n\nFinal repair 7df760c2 changes this to an empty checked proof body.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/7df760c2e9dd1c888315c840fc9f3f4fc32244cf",
+      "related_comment_ids": [],
+      "sources": [{"kind": "commit_fix", "id": "7df760c2e9dd1c888315c840fc9f3f4fc32244cf:root-3", "url": "https://github.com/asterinas/vostd/commit/7df760c2e9dd1c888315c840fc9f3f4fc32244cf", "commit_id": "7df760c2e9dd1c888315c840fc9f3f4fc32244cf"}],
+      "verification": "Final head verifies 323 obligations with zero errors after the assumption is removed."
+    }
+  ]
+}

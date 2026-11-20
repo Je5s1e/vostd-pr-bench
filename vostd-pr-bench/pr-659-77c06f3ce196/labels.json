@@ -7,7 +7,7 @@
       "id": "pr-659-77c06f3ce196:issue-3613367103",
       "original_label_id": "3613367103",
       "category": "guideline",
-      "description": "Complete function213-221 is empty, takes unused len and only reexports unchanged input invariance/mem_view/range. Repository-wide search finds sole call334 in samefile dispatch. Not unused: remove trivial boundary/call or inline facts without changing exec code.",
+      "description": "The single-use lemma_vm_writer_fill_zeros_embedded helper has an empty body and only forwards unchanged owner facts, adding a redundant proof boundary.",
       "locations": [
         {
           "version": "after",

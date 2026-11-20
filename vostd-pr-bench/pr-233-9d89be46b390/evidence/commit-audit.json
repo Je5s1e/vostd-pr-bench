@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "pr_number": 233,
+  "selected_head_sha": "9d89be46b390baf213ffca2b82183f6ef253020c",
+  "comparison_base_sha": "8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd",
+  "repair_shas": [
+    "aa2547b7ff107ddfdfb3ac756740473faeb3e093"
+  ],
+  "official_commits": [
+    {
+      "sha": "9d89be46b390baf213ffca2b82183f6ef253020c",
+      "parents": [
+        "8bfa0d130f004b5dd4b3a0e418b8c6b6b01d74dd"
+      ]
+    },
+    {
+      "sha": "aa2547b7ff107ddfdfb3ac756740473faeb3e093",
+      "parents": [
+        "9d89be46b390baf213ffca2b82183f6ef253020c"
+      ]
+    }
+  ],
+  "review_scope": {
+    "changed_paths_reviewed": [
+      "vstd_extra/src/function_properties.rs"
+    ],
+    "additional_context_paths": [
+      "lock-protocol-rcu/src/spec/utils.rs",
+      "vstd_extra/src/prelude.rs"
+    ],
+    "checks": [
+      "Confirmed the linear direct-parent problem-to-repair chain.",
+      "Regenerated the base-to-problem full-index diff and mechanical changed path.",
+      "Confirmed the deleted public definition, unchanged prelude re-export, unchanged unqualified caller, and direct-child import repair.",
+      "Confirmed additional context paths are exported without being misclassified as changed paths."
+    ]
+  },
+  "primary_review": {
+    "reviewer": "/root/audit_pr_117_122",
+    "reviewed_at": "2026-11-20",
+    "conclusion": "one_semantic_issue",
+    "evidence": [
+      "resource/work/commit-labels/233/candidate.json",
+      "resource/archive-extraction/verification-results/pr-233.md"
+    ]
+  },
+  "second_review": {
+    "reviewer": "/root/audit_pr_143_147",
+    "reviewed_at": "2026-11-20T12:14:10Z",
+    "conclusion": "approve_one_semantic_issue",
+    "evidence": [
+      "resource/work/commit-labels/233/second-review.json"
+    ]
+  },
+  "historical_verus_executed": false,
+  "publication_state": "staged_only_not_published"
+}

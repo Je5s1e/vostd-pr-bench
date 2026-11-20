@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-74-519268844721",
+  "pr_number": 74,
+  "title": "Code clean",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/74",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "58c6aac4274bf63b0fc5179d54a9dec5dc013892",
+  "head_sha": "519268844721d4dcef9df64bfd33c905b7c687cc",
+  "base_method": "direct first parent of selected official PR-base problem snapshot 519268844721d4dcef9df64bfd33c905b7c687cc is 58c6aac4274bf63b0fc5179d54a9dec5dc013892; first PR commit is the repair",
+  "archive_base_sha": "519268844721d4dcef9df64bfd33c905b7c687cc",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits. Additional fixed source context outside ostd/ is included only when recorded in additional_context_paths.",
+  "changed_paths": [
+    "fvt3-page-acquisition-safety/src/page/meta/impls.rs",
+    "fvt4-into-from-raw/src/page/meta/impls.rs",
+    "fvt5-lifecycle-safety/src/page/meta/impls.rs",
+    "lock-protocol/src/exec/rw/cursor.rs",
+    "lock-protocol/src/exec/rw/frame/mod.rs",
+    "lock-protocol/src/exec/rw/mem_content/meta_slot/mapping.rs",
+    "lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs",
+    "lock-protocol/src/exec/rw/mem_content/mod.rs",
+    "lock-protocol/src/exec/rw/node/child.rs",
+    "lock-protocol/src/exec/rw/node/entry.rs",
+    "lock-protocol/src/exec/rw/node/mod.rs",
+    "lock-protocol/src/exec/rw/page_table.rs"
+  ],
+  "diff_sha256": "a6b616edb1355d13360d2e2a892668116daeca2eed81057ec1159a7460417f2b",
+  "versions": {
+    "before": {
+      "commit": "58c6aac4274bf63b0fc5179d54a9dec5dc013892",
+      "file_count": 13,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "519268844721d4dcef9df64bfd33c905b7c687cc",
+      "file_count": 13,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T13:29:18.985700+00:00",
+    "reviewed_at": "2026-11-19T12:58:05Z",
+    "upstream_updated_at": "2025-07-11T08:13:50Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/74",
+      "https://github.com/asterinas/vostd/commit/07236f8a16d1bb38b73f0753ffff72c7fb07d7b7"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00074"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Selected official PR base 519268844721d4dcef9df64bfd33c905b7c687cc immediately before first repair 07236f8a16d1bb38b73f0753ffff72c7fb07d7b7; compared mechanically with direct parent 58c6aac4274bf63b0fc5179d54a9dec5dc013892 and included rw/common.rs as additional fixed problem context.",
+    "zero_issues_meaning": "Not applicable; the case contains one source-adjudicated semantic trust-boundary issue.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes must be checked; regenerate the full-index binary diff for 58c6aac4274bf63b0fc5179d54a9dec5dc013892..519268844721d4dcef9df64bfd33c905b7c687cc and export rw/common.rs in both versions as additional context.",
+    "tool_result": "With compatible asterinas/verus 0b6f3cbb8fceff6681b4988c3cac37a8b801f8e6, both dependencies report 228/0; problem lock-protocol reports 503/0 because admit() is trusted and direct repair reports 502/0 after proof cleanup. The verifier is one day after PR and is compatibility evidence."
+  },
+  "additional_context_paths": [
+    "lock-protocol/src/exec/rw/common.rs"
+  ]
+}

@@ -1,6 +1,6 @@
 diff --git a/ostd/specs/task/irq.rs b/ostd/specs/task/irq.rs
 new file mode 100644
-index 000000000..1f29354e8
+index 0000000000000000000000000000000000000000..1f29354e856bcd8b508d0c8c4dcba8885e984685
 --- /dev/null
 +++ b/ostd/specs/task/irq.rs
 @@ -0,0 +1,181 @@
@@ -186,7 +186,7 @@ index 000000000..1f29354e8
 +
 +} // verus!
 diff --git a/ostd/specs/task/mod.rs b/ostd/specs/task/mod.rs
-index 8a4c96235..7f104c21a 100644
+index 8a4c96235591d3c050eeb456252fc3cd09aa4ad4..7f104c21a260d4795b26779a045c548a0a0bcd19 100644
 --- a/ostd/specs/task/mod.rs
 +++ b/ostd/specs/task/mod.rs
 @@ -17,3 +17,4 @@ impl InAtomicMode for AnyAtomicGuard {
@@ -195,7 +195,7 @@ index 8a4c96235..7f104c21a 100644
  pub mod cpu_local;
 +pub mod irq;
 diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
-index 3279a988e..309e3f4bd 100644
+index 3279a988ed79727df12f0ccdd13f64ca568110bc..309e3f4bdad1dd6f7f6323e428dbcf3984dadc65 100644
 --- a/ostd/src/arch/x86/irq.rs
 +++ b/ostd/src/arch/x86/irq.rs
 @@ -1,7 +1,15 @@
@@ -322,7 +322,7 @@ index 3279a988e..309e3f4bd 100644
      // (rflags::read_raw() & RFlags::INTERRUPT_FLAG.bits()) != 0
      unimplemented!()
 diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
-index dea4535dc..2af0cd016 100644
+index dea4535dcac88d0b9b0cc8f82fa650a949c1b8a0..2af0cd0169a07a34eb94db6137fee074d34050fa 100644
 --- a/ostd/src/trap/irq.rs
 +++ b/ostd/src/trap/irq.rs
 @@ -243,6 +243,13 @@ impl !Sync for DisabledLocalIrqGuard {

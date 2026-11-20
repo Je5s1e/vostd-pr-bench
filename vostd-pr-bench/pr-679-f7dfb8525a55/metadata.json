@@ -15,7 +15,7 @@
     "ostd/specs/mm/embedding/mod.rs",
     "ostd/src/mm/frame/linked_list.rs"
   ],
-  "diff_sha256": "86c0f203fbdabf91b92ba16fb6edc139831fbaf1cf3aa79df8d13bbc2db76af5",
+  "diff_sha256": "b4866e1b111e905e29ffa2eabf0c358ea7229bf0aa061600864e5c7297c46847",
   "versions": {
     "before": {
       "commit": "716e351a6c4986e5688ecefee5fecae4700d423f",

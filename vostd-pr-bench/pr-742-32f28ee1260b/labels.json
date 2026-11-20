@@ -7,7 +7,7 @@
       "id": "pr-742-32f28ee1260b:issue-3964397263",
       "original_label_id": "3964397263",
       "category": "guideline",
-      "description": "Is this definition used?",
+      "description": "The ghost old_store binding is unused in its function after the proof merge.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
       "id": "pr-742-32f28ee1260b:issue-3964412018",
       "original_label_id": "3964412018",
       "category": "guideline",
-      "description": "Is the `::` at the beginning necessary? Besides, this import is under `core::{fmt::Debug, ops::Range}` in the source code.",
+      "description": "The patch moves the original BitVec import above core and mixes it with verification-added imports instead of preserving the executable import grouping.",
       "locations": [
         {
           "version": "after",
@@ -55,7 +55,7 @@
       "id": "pr-742-32f28ee1260b:issue-3964456182",
       "original_label_id": "3964456182",
       "category": "guideline",
-      "description": "Do we need this lemma? It seems very trivial.",
+      "description": "The private lemma_first_zero_seq_ext_equal helper has no caller outside its own recursive proof.",
       "locations": [
         {
           "version": "after",

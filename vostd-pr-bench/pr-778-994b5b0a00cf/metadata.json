@@ -15,7 +15,7 @@
     "ostd/specs/mm/frame/memory_region_specs.rs",
     "ostd/src/boot/memory_region.rs"
   ],
-  "diff_sha256": "17f2944d15a2fb3b5959eda9ae8b53dbead5575fccbc7deb7a636fcf9211dd2e",
+  "diff_sha256": "c6afef2ce58ed491a51e0a3c5c1f19eb073693ae657755dd54f9fce4c8f295d2",
   "versions": {
     "before": {
       "commit": "69f005898d5d203bc59c9e7ffd8428be608222c2",

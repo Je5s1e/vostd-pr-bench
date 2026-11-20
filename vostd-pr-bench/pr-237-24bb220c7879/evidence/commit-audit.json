@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "pr_number": 237,
+  "sample_id": "pr-237-24bb220c7879",
+  "selected_head_sha": "24bb220c78790484164f0f5c6f6adb19f15a3669",
+  "comparison_base_sha": "e5b76915e9af647deffc1704d2de2285c4c35a88",
+  "repair_shas": [
+    "8488536c7972ae7e223853e2722efbe7f609988f"
+  ],
+  "problem_commit": {
+    "sha": "24bb220c78790484164f0f5c6f6adb19f15a3669",
+    "parents": [
+      "e5b76915e9af647deffc1704d2de2285c4c35a88"
+    ],
+    "subject": "Add align spec",
+    "committed_at": "2025-11-27T16:25:48+08:00"
+  },
+  "repair_completion": {
+    "sha": "8488536c7972ae7e223853e2722efbe7f609988f",
+    "parent": "033aeb13a36590557a769f5a2044188778dfbddd",
+    "subject": "prove: align_down in align_ext",
+    "committed_at": "2025-11-27T19:42:01+08:00"
+  },
+  "review_scope": {
+    "changed_paths_reviewed": [
+      "Cargo.lock",
+      "ostd/libs/align_ext/Cargo.toml",
+      "ostd/libs/align_ext/src/lib.rs",
+      "vstd_extra/src/arithmetic.rs",
+      "vstd_extra/src/lib.rs",
+      "vstd_extra/src/prelude.rs"
+    ],
+    "additional_context_paths": [],
+    "checks": [
+      "Confirmed the selected problem commit has exactly one parent and regenerated the full-index base-to-problem diff.",
+      "Confirmed the align-up and align-down theorem and method locations in the immutable problem snapshot.",
+      "Followed both repair chains and confirmed 8488536c7972ae7e223853e2722efbe7f609988f is the first reviewed snapshot where both public roots are complete without admit or assume.",
+      "Confirmed the two roots are independent opposite-direction extremal contracts despite sharing the final repair commit.",
+      "Confirmed the final relevant surface contains no assume, admit, external_body, or unimplemented! token."
+    ]
+  },
+  "roots": [
+    {
+      "root_number": 1,
+      "operation": "align_up",
+      "repair_chain": [
+        "dfb8afc4a1ae4bb26b44f6a88eae192399c264e5",
+        "c76a87898543b2dff3a2494c3b35606f020ca14c",
+        "033aeb13a36590557a769f5a2044188778dfbddd",
+        "8488536c7972ae7e223853e2722efbe7f609988f"
+      ],
+      "completion": "The nat align-up theorem, public method proof, and remaining mask/modulo bridge are checked."
+    },
+    {
+      "root_number": 2,
+      "operation": "align_down",
+      "repair_chain": [
+        "5152c6a7261e9ca2df511d4f42b98239a93d418d",
+        "8488536c7972ae7e223853e2722efbe7f609988f"
+      ],
+      "completion": "The nat align-down theorem and the separate public method proof are checked."
+    }
+  ],
+  "git_blobs": {
+    "ostd/libs/align_ext/src/lib.rs": {
+      "before": "901b657afc4bb8ed0ef7f3aad6009d49bdeaf449",
+      "problem": "d761e3d0321e2d9287df3f998f071cf678b65684",
+      "repair": "24f22b882e91a996b81b381b74b080ebf6c4a8ef"
+    },
+    "vstd_extra/src/arithmetic.rs": {
+      "before": null,
+      "before_absent": true,
+      "problem": "74122b3e860cc44c11acfb779a1a4e969c51e747",
+      "repair": "b1adc48f7d267a7819fb27092b80a1f2ba87c426"
+    }
+  },
+  "problem_diff": {
+    "path": "diff.patch",
+    "sha256": "f635423427c63a3509ddc7e670521624afc8fc2a2965442ec8bc8839107bf57a",
+    "comparison": "e5b76915e9af647deffc1704d2de2285c4c35a88..24bb220c78790484164f0f5c6f6adb19f15a3669"
+  },
+  "repair_diff": {
+    "path": "evidence/repair.diff",
+    "sha256": "54a94f96bf32941746dccb6357df6b226755a0ba65a368f4fac31ad161c71144",
+    "comparison": "24bb220c78790484164f0f5c6f6adb19f15a3669..8488536c7972ae7e223853e2722efbe7f609988f",
+    "paths": [
+      "ostd/libs/align_ext/src/lib.rs",
+      "vstd_extra/src/arithmetic.rs"
+    ]
+  },
+  "primary_review": {
+    "reviewer": "/root/audit_pr_143_147",
+    "reviewed_at": "2026-11-20",
+    "conclusion": "two_semantic_commit_fix_candidates",
+    "evidence": [
+      "resource/work/commit-labels/237/candidate.json",
+      "resource/archive-extraction/verification-results/pr-237.md"
+    ]
+  },
+  "second_review": {
+    "reviewer": "/root/audit_pr_126_142",
+    "reviewed_at": "2026-11-20T12:15:06Z",
+    "conclusion": "two_independent_alignment_roots_confirmed_final_clean",
+    "evidence": [
+      "resource/work/commit-labels/237/second-review.json"
+    ]
+  },
+  "historical_toolchain_executed": false,
+  "historical_verus_executed": false,
+  "final_surface_clean": true,
+  "publication_state": "staged_only_not_published"
+}

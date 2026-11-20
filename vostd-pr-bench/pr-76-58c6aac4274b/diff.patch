@@ -1,0 +1,161 @@
+diff --git a/lock-protocol/src/exec/rw/cursor.rs b/lock-protocol/src/exec/rw/cursor.rs
+index b0246273ac959d3b7dfb9d233014db36e6361aab..7f74e4bbdf9286292980ef49b6693064e6c97de7 100644
+--- a/lock-protocol/src/exec/rw/cursor.rs
++++ b/lock-protocol/src/exec/rw/cursor.rs
+@@ -19,6 +19,7 @@ use super::{common::*, types::*, mem_content::*, cpu::*, frame::*, page_table::*
+ use super::node::{
+     PageTableNode, PageTableReadLock, PageTableWriteLock, child::Child, entry::Entry, rwlock::*,
+ };
++use crate::mm::page_table::cursor::MAX_NR_LEVELS;
+ 
+ verus! {
+ 
+@@ -40,7 +41,7 @@ impl GuardInPath {
+ }
+ 
+ pub struct Cursor {
+-    pub path: Vec<GuardInPath>,
++    pub path: [GuardInPath; MAX_NR_LEVELS],
+     pub level: PagingLevel,
+     pub guard_level: PagingLevel,
+     pub va: Vaddr,
+@@ -213,11 +214,8 @@ pub proof fn lemma_va_range_get_tree_path(va: Range<Vaddr>)
+     let trace = va_level_to_trace(va.start, guard_level);
+     lemma_va_range_get_guard_level(va);
+     lemma_va_level_to_trace_rec_len(va.start >> 12, guard_level);
+-    assert(trace.len() == 4 - guard_level);
+     let path = va_range_get_tree_path(va);
+-    assert(path.len() == 1 + trace.len());
+-    assert(path.len() == 5 - guard_level);
+-    assert forall|i| 0 <= i < path.len() implies NodeHelper::valid_nid(path[i]) by {
++    assert forall|i| 0 <= i < path.len() implies #[trigger] NodeHelper::valid_nid(path[i]) by {
+         let nid = path[i];
+         if i == 0 {
+             assert(nid == NodeHelper::root_id());
+@@ -259,24 +257,16 @@ pub fn lock_range(
+         res.1@.path() =~= va_range_get_tree_path(*va),
+         res.0.wf_with_lock_protocol_model(res.1@),
+ {
+-    let mut path: Vec<GuardInPath> = Vec::with_capacity(4);
+-    let mut i: usize = 0;
+-    while i < 4
+-        invariant
+-            0 <= i <= 4,
+-            path@.len() == i,
+-            forall|_i| 0 <= _i < i ==> path@[_i] is None,
+-    {
+-        path.push(GuardInPath::None);
+-        i += 1;
+-    }
+-    assert(path.len() == 4);
+-    assert(forall|i| 0 <= i < 4 ==> path@[i] is None);
++    let mut path: [GuardInPath; MAX_NR_LEVELS] = [
++        GuardInPath::None,
++        GuardInPath::None,
++        GuardInPath::None,
++        GuardInPath::None,
++    ];
+ 
+     let ghost mut cur_nid: NodeId = 0;
+     let mut level: PagingLevel = 4;
+ 
+-    assert(cur_nid == NodeHelper::root_id());
+     assert(NodeHelper::valid_nid(cur_nid)) by {
+         NodeHelper::lemma_root_id();
+     };
+diff --git a/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs b/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs
+index ca5cac964155d334dfd5354e01d3a664e6fd53b2..3ebb4bce443393d06ca2f6c4749f0316bf78d8f5 100644
+--- a/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs
++++ b/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs
+@@ -3,7 +3,7 @@ pub mod mapping;
+ use builtin::*;
+ use builtin_macros::*;
+ use vstd::prelude::*;
+-use vstd::simple_pptr::{PPtr, PointsTo};
++use vstd::raw_ptr::{PointsTo};
+ 
+ use crate::spec::{common::*, utils::*};
+ use super::super::{common::*, types::*};
+@@ -86,9 +86,8 @@ pub tracked struct MetaSlotPerm {
+ }
+ 
+ impl MetaSlotPerm {
+-    pub open spec fn relate(&self, ptr: PPtr<MetaSlot>) -> bool {
+-        &&& self.inner.pptr() == ptr
+-        &&& self.inner.addr() == ptr.addr()
++    pub open spec fn relate(&self, ptr: *const MetaSlot) -> bool {
++        &&& self.inner.ptr() == ptr
+     }
+ 
+     pub open spec fn wf(&self, meta_slot_array: &MetaSlotArray) -> bool {
+@@ -111,7 +110,7 @@ impl MetaSlotPerm {
+     }
+ 
+     pub open spec fn meta_vaddr(&self) -> Vaddr {
+-        self.inner.addr()
++        self.inner.ptr() as usize
+     }
+ 
+     pub open spec fn value(&self) -> MetaSlot {
+@@ -121,7 +120,7 @@ impl MetaSlotPerm {
+ 
+ struct_with_invariants! {
+     pub struct MetaSlotArray {
+-        pub vec: Vec<PPtr<MetaSlot>>,
++        pub vec: Vec<* const MetaSlot>,
+     }
+ 
+     pub open spec fn wf(&self) -> bool {
+diff --git a/lock-protocol/src/exec/rw/node/mod.rs b/lock-protocol/src/exec/rw/node/mod.rs
+index 76bea30157569a31d91f3f98236e3bc8faf12a52..168bc214676d70d996915b5ad6576f937a021dae 100644
+--- a/lock-protocol/src/exec/rw/node/mod.rs
++++ b/lock-protocol/src/exec/rw/node/mod.rs
+@@ -5,7 +5,7 @@ pub mod rwlock;
+ use builtin::*;
+ use builtin_macros::*;
+ use vstd::prelude::*;
+-use vstd::simple_pptr::{PPtr, PointsTo};
++use vstd::raw_ptr::{PointsTo, ptr_ref};
+ 
+ use vstd_extra::array_ptr::*;
+ 
+@@ -19,7 +19,7 @@ use entry::Entry;
+ verus! {
+ 
+ pub struct PageTableNode {
+-    pub ptr: PPtr<MetaSlot>,
++    pub ptr: *const MetaSlot,
+     pub perm: Tracked<MetaSlotPerm>,
+     pub nid: Ghost<NodeId>,
+     pub inst: Tracked<SpecInstance>,
+@@ -38,7 +38,7 @@ impl PageTableNode {
+             *res =~= self.meta_spec(),
+     {
+         let tracked perm: &PointsTo<MetaSlot> = &self.perm.borrow().inner;
+-        let meta_slot: &MetaSlot = self.ptr.borrow(Tracked(perm));
++        let meta_slot: &MetaSlot = ptr_ref(self.ptr, (Tracked(perm)));
+         assert(meta_slot.is_pt());
+         &meta_slot.get_inner_pt()
+     }
+@@ -112,7 +112,7 @@ impl PageTableNode {
+             res == self.level_spec(),
+     {
+         let tracked perm: &PointsTo<MetaSlot> = &self.perm.borrow().inner;
+-        let meta_slot: &MetaSlot = self.ptr.borrow(Tracked(perm));
++        let meta_slot: &MetaSlot = ptr_ref(self.ptr, Tracked(perm));
+         assert(meta_slot.is_pt());
+         meta_slot.get_inner_pt().level
+     }
+diff --git a/lock-protocol/src/mm/page_table/cursor/mod.rs b/lock-protocol/src/mm/page_table/cursor/mod.rs
+index e673184da9d2f802175942c647efc4c18519f62c..a4de72dd54cbcd783fa963164bde225a0f8c4138 100644
+--- a/lock-protocol/src/mm/page_table/cursor/mod.rs
++++ b/lock-protocol/src/mm/page_table/cursor/mod.rs
+@@ -74,7 +74,7 @@ pub struct Cursor<'a, C: PageTableConfig, PTL: PageTableLockTrait<C>> {
+ }
+ 
+ /// The maximum value of `PagingConstsTrait::NR_LEVELS`.
+-const MAX_NR_LEVELS: usize = 4;
++pub const MAX_NR_LEVELS: usize = 4;
+ 
+ // #[derive(Clone, Debug)] // TODO: Implement Debug and Clone for PageTableItem
+ pub enum PageTableItem {

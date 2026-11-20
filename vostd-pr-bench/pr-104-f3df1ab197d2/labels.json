@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-104-f3df1ab197d2:commit-fix-1b93c8f936ebbdd8a9aa6119a09182616639e825-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "introduced_by_pr": false,
+      "description": "When page-sized cursor progress crosses a page-table-node boundary, move_forward does not ascend to the parent and pop_level would leave the departed child guard in a slot that must be empty at the higher level.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 269,
+          "end_line": 325
+        }
+      ],
+      "rationale": "At the last entry of a level-L node, next_va wraps pte_index(next_va,L) to zero and belongs under the next parent entry, but the disabled upward loop retains level L and the old child guard while changing va. The address and retained path can then describe different subtrees. The dormant pop_level cannot independently complete the transition because it increments level without clearing the departed level-L slot, while path_wf requires every slot below the new current level to be None. Repair 1b93c8f atomically activates the index-wrap loop and clears each departed slot before increasing level. Enabling only the loop or repairing only the unreachable helper is insufficient, so these edits form one level-transition root.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 269-295\nblob 05cfb8731aa027f9d9a2d6fb5d0397fff05990b6\nmove_forward computes page-sized next_va, but the entire index-wrap upward loop at lines 285-289 is commented out before va is assigned.\n\nafter/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 301-325\nblob 05cfb8731aa027f9d9a2d6fb5d0397fff05990b6\npop_level observes the current guard and increments level without clearing the departed path slot; its postcondition promises old(self).wf rather than post-state wf.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 269-301\nblob 0383f0a353527ff19da121d6dff4c29ef5c4b236\ncommit 1b93c8f936ebbdd8a9aa6119a09182616639e825\nmove_forward loops while next_va wraps the current-level PTE index, calls pop_level, and uses guard_level-level as its decreasing measure.\n\nrepair/lock-protocol/src/mm/page_table/cursor/mod.rs\nlines 308-329\nblob 0383f0a353527ff19da121d6dff4c29ef5c4b236\ncommit 1b93c8f936ebbdd8a9aa6119a09182616639e825\npop_level now ensures post-state wf and clears self.path[self.level-1] before increasing level.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/1b93c8f936ebbdd8a9aa6119a09182616639e825",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "1b93c8f936ebbdd8a9aa6119a09182616639e825:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/1b93c8f936ebbdd8a9aa6119a09182616639e825",
+          "commit_id": "1b93c8f936ebbdd8a9aa6119a09182616639e825"
+        }
+      ],
+      "verification": "Immutable control-flow, path-domain, and direct repair-diff adjudication by two reviewers. Historical Rust/Verus was not executed."
+    }
+  ],
+  "sample_id": "pr-104-f3df1ab197d2"
+}

@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/task/cpu_core.rs b/ostd/specs/task/cpu_core.rs
-index 7853a5afd..c6d237b3b 100644
+index 7853a5afd5b67282030676794e1d0cb0ca5d04b8..c6d237b3b55c33ca13580035516b88200e8dd4af 100644
 --- a/ostd/specs/task/cpu_core.rs
 +++ b/ostd/specs/task/cpu_core.rs
 @@ -6,6 +6,12 @@
@@ -316,7 +316,7 @@ index 7853a5afd..c6d237b3b 100644
 +
  } // verus!
 diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
-index 3279a988e..9ac4e95d3 100644
+index 3279a988ed79727df12f0ccdd13f64ca568110bc..9ac4e95d3c5eafdaac964a14afde3c517811cf68 100644
 --- a/ostd/src/arch/x86/irq.rs
 +++ b/ostd/src/arch/x86/irq.rs
 @@ -83,14 +83,20 @@ pub(crate) fn enable_local_and_halt() {
@@ -345,7 +345,7 @@ index 3279a988e..9ac4e95d3 100644
  
  // ####### Inter-Processor Interrupts (IPIs) #######
 diff --git a/ostd/src/task/preempt/guard.rs b/ostd/src/task/preempt/guard.rs
-index eae234574..d33b7c44f 100644
+index eae2345749b7eef8c274f516587712fd7140d4b0..d33b7c44f484950fb0954ae5c0cfde3190fa1aa6 100644
 --- a/ostd/src/task/preempt/guard.rs
 +++ b/ostd/src/task/preempt/guard.rs
 @@ -1,7 +1,10 @@
@@ -436,7 +436,7 @@ index eae234574..d33b7c44f 100644
 +    }
  }
 diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
-index 22327adce..02320d1b2 100644
+index 22327adceb6feba07277d66aa0aafe91ff811cd0..02320d1b2f096d486fc36f0d58102aaebfd47034 100644
 --- a/ostd/src/trap/irq.rs
 +++ b/ostd/src/trap/irq.rs
 @@ -198,9 +198,9 @@ verus! {

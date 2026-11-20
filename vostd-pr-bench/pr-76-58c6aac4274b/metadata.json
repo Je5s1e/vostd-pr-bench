@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-76-58c6aac4274b",
+  "pr_number": 76,
+  "title": "fix some lemmas in ghost_tree, update fvt11",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/76",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "40a0a11f0add408cab7eada88ea266175266b159",
+  "head_sha": "58c6aac4274bf63b0fc5179d54a9dec5dc013892",
+  "base_method": "All three approved issues share problem snapshot 58c6aac. Use its immutable first parent 40a0a11f as the comparison base, yielding a reliable non-empty four-path historical comparison. The labeled ghost_tree and three FVT11 caller files are unchanged in this comparison and are exported as fixed additional context, not changed_paths.",
+  "archive_base_sha": "93c440294da07c8ad42760b05009cd5bcf84c608",
+  "original_split": "incremental",
+  "source_scope": "Complete ostd/ at each commit, changed files outside ostd/, and original license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "lock-protocol/src/exec/rw/cursor.rs",
+    "lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs",
+    "lock-protocol/src/exec/rw/node/mod.rs",
+    "lock-protocol/src/mm/page_table/cursor/mod.rs"
+  ],
+  "diff_sha256": "a9526bc929dca08a0ab9b9f6056f701ec4f970b13778e117001d7ae3e5db3b21",
+  "versions": {
+    "before": {
+      "commit": "40a0a11f0add408cab7eada88ea266175266b159",
+      "file_count": 8,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "58c6aac4274bf63b0fc5179d54a9dec5dc013892",
+      "file_count": 8,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 3,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T14:18:18.899156+00:00",
+    "reviewed_at": "2026-11-19T13:57:22Z",
+    "upstream_updated_at": "2025-07-14T07:25:38Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/76",
+      "https://github.com/asterinas/vostd/commit/ab845472e85a6dd406ad91ef0edbf839d797588a",
+      "https://github.com/asterinas/vostd/commit/9d8e1b1a801a7acd8e89fe786e7264352e26b587"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00076"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "snapshot_selection": "Selected common immutable problem snapshot 58c6aac4274bf63b0fc5179d54a9dec5dc013892 and its direct parent 40a0a11f0add408cab7eada88ea266175266b159 for all three roots; later repair commits are evidence only.",
+    "zero_issues_meaning": "Not applicable; this case contains three independently adjudicated semantic issues.",
+    "source_export": "Regenerate the full-index binary diff for 40a0a11f0add408cab7eada88ea266175266b159..58c6aac4274bf63b0fc5179d54a9dec5dc013892 and byte-check every manifest entry against fixed Git blobs; four repair/caller-context paths are exported as additional_context_paths.",
+    "tool_result": "Two independent reviewers approved three semantic roots at common problem snapshot 58c6aac: incorrect root-inclusive trace values/length, an underconstrained admitted seek_trace_next theorem, and false subtree-removal theorems that assume child-value uniqueness. Library repair ab845472 fixes or removes the APIs; 9d8e1b1 adapts FVT11 callers. Historical Verus was not executed; roots 1 and 3 have direct finite counterexamples and root 2 has explicit missing expression domains."
+  },
+  "additional_context_paths": [
+    "fvt11-pt-cursor-guards/src/page_table/cursor/mod.rs",
+    "fvt11-pt-cursor-guards/src/page_table/cursor/model.rs",
+    "fvt11-pt-cursor-guards/src/page_table/table/model.rs",
+    "vstd_extra/src/ghost_tree.rs"
+  ],
+  "verification_summary": "Two independent reviewers approved three semantic roots at common problem snapshot 58c6aac: incorrect root-inclusive trace values/length, an underconstrained admitted seek_trace_next theorem, and false subtree-removal theorems that assume child-value uniqueness. Library repair ab845472 fixes or removes the APIs; 9d8e1b1 adapts FVT11 callers. Historical Verus was not executed; roots 1 and 3 have direct finite counterexamples and root 2 has explicit missing expression domains."
+}

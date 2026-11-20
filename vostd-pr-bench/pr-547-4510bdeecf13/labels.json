@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-547-4510bdeecf13",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The trusted Entry::new mutable-borrow contract promises that the borrowed PageTableGuard has its original value when the borrow ends, even though the returned Entry exposes that guard through a public mutable node reference.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/src/mm/page_table/node/entry.rs",
+          "start_line": 87,
+          "end_line": 98
+        }
+      ],
+      "rationale": "Entry::new stores its input mutable reference directly in the public node field. The external-body postcondition *final(node) == *old(node) constrains the eventual referent to remain unchanged, which is not a valid general guarantee for a mutable reference returned to the caller: the caller can replace or mutate the guard through res.node. This false frozen-parent relation is propagated by new_at and PageTableGuard::entry. The direct child fix removes external_body, specifies the initial returned referent separately, and replaces the false final equality with *final(node) == *final(res.node), alongside matching propagation repairs. This is one mutable-borrow root cause; do not also count the earlier path_slot_as_mut repair in4510, which belongs to #545.",
+      "source_evidence": "after/ostd/src/mm/page_table/node/entry.rs\n87:     #[verifier::external_body]\n88:     #[verus_spec(res =>\n89:         ensures\n90:             res == Self::new_spec(pte, idx, node),\n91:             // Move into a struct field doesn't mutate `*node`. Stating this\n92:             // explicitly makes the `*final(self) == *old(self)` chain in\n93:             // `new_at` (and transitively, `entry`) reliably derivable.\n94:             *final(node) == *old(node),\n95:     )]\n96:     pub fn new(pte: C::E, idx: usize, node: &'a mut PageTableGuard<'rcu, C>) -> Self {\n97:         Self { pte, idx, node }\n98:     }",
+      "verification": "source-only; historical Verus not executed. Read complete Entry declaration/new body, direct parent-child fix, propagated borrow contracts and prior full PR audit. Cached archive lists both commits and only one uninformative issue comment Fixing; no reviewer attribution inferred.",
+      "id": "pr-547-4510bdeecf13:commit-fix-80d7ef6173e449e55c390d61c70f2229b5f7e291-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/80d7ef6173e449e55c390d61c70f2229b5f7e291",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "80d7ef6173e449e55c390d61c70f2229b5f7e291:root-1",
+          "commit_id": "80d7ef6173e449e55c390d61c70f2229b5f7e291",
+          "url": "https://github.com/asterinas/vostd/commit/80d7ef6173e449e55c390d61c70f2229b5f7e291"
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@
       "id": "pr-692-1c768aa6f173:issue-3732669271",
       "original_label_id": "3732669271",
       "category": "guideline",
-      "description": "Independent source and rule inspection confirms: New from_spec uses fully-qualified free spec name with no attribute resolution requirement; import duration_new_spec and use direct name.",
+      "description": "The new Jiffies::from_spec body repeats the fully qualified duration_new_spec path instead of importing the free specification helper.",
       "locations": [
         {
           "version": "after",

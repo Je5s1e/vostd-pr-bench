@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-71-ddd2e78f5931",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-71-ddd2e78f5931:commit-fix-15b5ddbb625c562138b416f4f73b8c39c8b09172-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "`cur_entry` does not expose that its returned `Entry.node` is the current path node, so the map caller cannot prove the returned PTE address relative to `cur_entry.node`.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "start_line": 566,
+          "end_line": 569
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "start_line": 177,
+          "end_line": 203
+        }
+      ],
+      "rationale": "`Entry::new_at` constructs its result with the input `node` and specifies the PTE address relative to that input, but omits `res.node == node`. `cur_entry` therefore relates the PTE to the current path node without relating its returned `res.node` to that node. In the `Child::None` map branch, the assertion using `cur_entry.node` fails modular verification. Repair 15b5ddbb adds the construction identity and propagates the derived address relation through `cur_entry`; the same assertion then verifies.",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/cursor/mod.rs:319-341 specifies `cur_entry` only against the path node, while lines 566-569 assert the address against `cur_entry.node`. after/lock-protocol/src/mm/page_table/node/entry.rs:177-203 constructs `Self { ..., node, ... }` but omits the corresponding identity postcondition. Repair 15b5ddbb625c562138b416f4f73b8c39c8b09172 adds `res.node == node` to `Entry::new_at` and the PTE/node address postcondition to `cur_entry`.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/15b5ddbb625c562138b416f4f73b8c39c8b09172",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "15b5ddbb625c562138b416f4f73b8c39c8b09172:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/15b5ddbb625c562138b416f4f73b8c39c8b09172",
+          "commit_id": "15b5ddbb625c562138b416f4f73b8c39c8b09172"
+        }
+      ],
+      "verification": "With compatible historical Verus, the exact selected merge reports vstd_extra 228/0 and lock-protocol 496/1, failing the labeled assertion at cursor/mod.rs:566. Direct repair 15b5ddbb reports 228/0 and 497/0. Primary and independent reviews confirmed the merge ancestry and two-layer contract repair."
+    }
+  ]
+}

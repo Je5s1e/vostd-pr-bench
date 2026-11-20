@@ -7,13 +7,13 @@
       "id": "pr-674-fc2045c29e48:issue-3671555470",
       "original_label_id": "3671555470",
       "category": "guideline",
-      "description": "Inspected page_table/mod.rs1835-1836 generic assume_specification for std AtomicUsize::from_ptr with no OSTD-specific input. Shared std boundary belongs in external specs. More serious missing safety contract is separate from this historical placement root.",
+      "description": "The generic AtomicUsize::from_ptr external specification is declared inside the page-table implementation instead of the shared external-specification layer.",
       "locations": [
         {
           "version": "after",
           "path": "ostd/src/mm/page_table/mod.rs",
-          "start_line": 1837,
-          "end_line": 1837
+          "start_line": 1835,
+          "end_line": 1836
         }
       ],
       "rationale": "Inspected page_table/mod.rs1835-1836 generic assume_specification for std AtomicUsize::from_ptr with no OSTD-specific input. Shared std boundary belongs in external specs. More serious missing safety contract is separate from this historical placement root.",
@@ -31,7 +31,7 @@
       "id": "pr-674-fc2045c29e48:issue-3671541240",
       "original_label_id": "3671541240",
       "category": "semantic",
-      "description": "Independently read complete as_mut_ptr534-544: requires only permission/bounds, no ensures/returns/effect relationship. Rust inline(always) is not Verus contract inlining. Caller store_pte1874-1877 casts returned ptr into atomic memory, yet modular specification cannot connect that ptr to tracked array element. Do not claim std atomic store is intrinsically tracked or that a patch was verified.",
+      "description": "The as_mut_ptr contract has no postcondition relating its returned pointer to the tracked array element, so callers cannot derive that pointer-to-element correspondence from the modular specification.",
       "locations": [
         {
           "version": "after",

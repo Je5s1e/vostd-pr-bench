@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-651-4fe5602573ae",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-651-4fe5602573ae:review-comment-3602168651",
+      "original_label_id": null,
+      "category": "guideline",
+      "description": "The single-use `tracked_pop_level_owner` proof helper unnecessarily expands the cursor-owner proof API instead of keeping the tracked state transition at its only call site.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+          "start_line": 710,
+          "end_line": 736
+        }
+      ],
+      "rationale": "The selected fixed object contains one declaration and exactly one call. The reviewer asks whether the helper is needed, and the immediate accepted child commit deletes it and inlines the same continuation removal, guard restoration, reinsertion, level increment, and `popped_too_high` update. The helper therefore creates an unnecessary named proof boundary under the fixed `inline-single-use-proof-helpers` rule; no semantic failure is claimed.",
+      "source_evidence": "after/ostd/specs/mm/page_table/cursor/cursor_steps.rs:710-736 defines `tracked_pop_level_owner`, which performs the tracked continuation and guard updates. Whole-tree fixed-object search finds its only call at after/ostd/src/mm/page_table/cursor/mod.rs:1853. Repair commit a9ab447cd350b7e3d886e21859bdda9f6100538c deletes the helper and reproduces the same operations at that call site.",
+      "rule_ids": [
+        "inline-single-use-proof-helpers"
+      ],
+      "review_url": "https://github.com/asterinas/vostd/pull/651#discussion_r3602168651",
+      "related_comment_ids": [
+        "3602168651"
+      ],
+      "sources": [
+        {
+          "kind": "review-comment",
+          "id": "3602168651",
+          "url": "https://github.com/asterinas/vostd/pull/651#discussion_r3602168651",
+          "commit_id": "4fe5602573ae08b1db6863e56763f9f75a61f4fd"
+        }
+      ],
+      "verification": "source-only; historical Verus was not executed. Two reviewers independently checked the fixed parent chain, full-tree call count, applicable fixed guideline, review thread, and immediate repair diff."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 diff --git a/.github/workflows/ci-irc11.yml b/.github/workflows/ci-irc11.yml
-index 07cc51bb1..bb9afe839 100644
+index 07cc51bb19356c2308b2d3fbe580369a1f114832..bb9afe839b83a196a094ef949d32907c5af72cf5 100644
 --- a/.github/workflows/ci-irc11.yml
 +++ b/.github/workflows/ci-irc11.yml
 @@ -11,6 +11,7 @@ on:
@@ -89,7 +89,7 @@ index 07cc51bb1..bb9afe839 100644
          if: always()
          run: git diff --exit-code
 diff --git a/ostd/specs/mod.rs b/ostd/specs/mod.rs
-index f316bf901..c66f9100f 100644
+index f316bf9016a296f4653b694d63df1da5afcc105c..c66f9100fcffbc8f2b3db5bfff4bf66662146737 100644
 --- a/ostd/specs/mod.rs
 +++ b/ostd/specs/mod.rs
 @@ -11,7 +11,7 @@ pub mod arch;
@@ -102,7 +102,7 @@ index f316bf901..c66f9100f 100644
  #[allow(unused_braces)]
  pub mod task;
 diff --git a/ostd/specs/sync/mod.rs b/ostd/specs/sync/mod.rs
-index 5faf84536..fd2997b4c 100644
+index 5faf845362401db806bcd60c37fe414402e5a9c8..fd2997b4c8be827c0c86fef853c73922ba657fec 100644
 --- a/ostd/specs/sync/mod.rs
 +++ b/ostd/specs/sync/mod.rs
 @@ -1 +1,2 @@
@@ -110,7 +110,7 @@ index 5faf84536..fd2997b4c 100644
 +pub mod rcu;
 diff --git a/ostd/specs/sync/rcu/atomic.rs b/ostd/specs/sync/rcu/atomic.rs
 new file mode 100644
-index 000000000..ac0f20bf9
+index 0000000000000000000000000000000000000000..ac0f20bf983025b53a3b1b2ddfc36e831f52c007
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/atomic.rs
 @@ -0,0 +1,935 @@
@@ -1051,7 +1051,7 @@ index 000000000..ac0f20bf9
 +} // verus!
 diff --git a/ostd/specs/sync/rcu/cpu.rs b/ostd/specs/sync/rcu/cpu.rs
 new file mode 100644
-index 000000000..342b5acab
+index 0000000000000000000000000000000000000000..342b5acab4dbf63c328b3064772f5946b650f5f6
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/cpu.rs
 @@ -0,0 +1,1281 @@
@@ -2338,7 +2338,7 @@ index 000000000..342b5acab
 +} // verus!
 diff --git a/ostd/specs/sync/rcu/grace_period.rs b/ostd/specs/sync/rcu/grace_period.rs
 new file mode 100644
-index 000000000..b6c4c0703
+index 0000000000000000000000000000000000000000..b6c4c07030eee511bdc6596edbfda519e9eb8da3
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/grace_period.rs
 @@ -0,0 +1,362 @@
@@ -2706,7 +2706,7 @@ index 000000000..b6c4c0703
 +} // verus!
 diff --git a/ostd/specs/sync/rcu/link.rs b/ostd/specs/sync/rcu/link.rs
 new file mode 100644
-index 000000000..adaa3f0f8
+index 0000000000000000000000000000000000000000..adaa3f0f882e2458d203a0ab4ad5b2e904e84d85
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/link.rs
 @@ -0,0 +1,252 @@
@@ -2964,7 +2964,7 @@ index 000000000..adaa3f0f8
 +} // verus!
 diff --git a/ostd/specs/sync/rcu/mod.rs b/ostd/specs/sync/rcu/mod.rs
 new file mode 100644
-index 000000000..0c8a83bc3
+index 0000000000000000000000000000000000000000..0c8a83bc35e79ecda6bb2d589d9998e5063b1bac
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/mod.rs
 @@ -0,0 +1,16 @@
@@ -2986,7 +2986,7 @@ index 000000000..0c8a83bc3
 +pub mod traversal;
 diff --git a/ostd/specs/sync/rcu/permissions.rs b/ostd/specs/sync/rcu/permissions.rs
 new file mode 100644
-index 000000000..73de6756d
+index 0000000000000000000000000000000000000000..73de6756dfe7b6ea4868b975c1d3c996d749193e
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/permissions.rs
 @@ -0,0 +1,710 @@
@@ -3702,7 +3702,7 @@ index 000000000..73de6756d
 +} // verus!
 diff --git a/ostd/specs/sync/rcu/retirement.rs b/ostd/specs/sync/rcu/retirement.rs
 new file mode 100644
-index 000000000..399f8116e
+index 0000000000000000000000000000000000000000..399f8116eeb3edafb8c7f0989fbeb4acb0cddf3b
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/retirement.rs
 @@ -0,0 +1,388 @@
@@ -4096,7 +4096,7 @@ index 000000000..399f8116e
 +} // verus!
 diff --git a/ostd/specs/sync/rcu/traversal.rs b/ostd/specs/sync/rcu/traversal.rs
 new file mode 100644
-index 000000000..577ae541b
+index 0000000000000000000000000000000000000000..577ae541bd1cf82ba8a36d313726f47453e03843
 --- /dev/null
 +++ b/ostd/specs/sync/rcu/traversal.rs
 @@ -0,0 +1,406 @@
@@ -4507,7 +4507,7 @@ index 000000000..577ae541b
 +
 +} // verus!
 diff --git a/ostd/specs/task/cpu_core.rs b/ostd/specs/task/cpu_core.rs
-index 7853a5afd..5f3d719de 100644
+index 7853a5afd5b67282030676794e1d0cb0ca5d04b8..5f3d719de85044c9fafad26c74268f3e7be381a7 100644
 --- a/ostd/specs/task/cpu_core.rs
 +++ b/ostd/specs/task/cpu_core.rs
 @@ -6,14 +6,19 @@
@@ -4714,7 +4714,7 @@ index 7853a5afd..5f3d719de 100644
              res.1 == self.locals(),
              res.1.belongs_to_cpu(res.0.cpu()),
 diff --git a/ostd/specs/task/mod.rs b/ostd/specs/task/mod.rs
-index 8a4c96235..e45546e85 100644
+index 8a4c96235591d3c050eeb456252fc3cd09aa4ad4..e45546e854e92f46bea885fb22498da5070604c7 100644
 --- a/ostd/specs/task/mod.rs
 +++ b/ostd/specs/task/mod.rs
 @@ -17,3 +17,5 @@ impl InAtomicMode for AnyAtomicGuard {
@@ -4725,7 +4725,7 @@ index 8a4c96235..e45546e85 100644
 +pub mod rcu;
 diff --git a/ostd/specs/task/rcu.rs b/ostd/specs/task/rcu.rs
 new file mode 100644
-index 000000000..2766cf087
+index 0000000000000000000000000000000000000000..2766cf08710bcb74a839c4bf814d7b1acbf54fe2
 --- /dev/null
 +++ b/ostd/specs/task/rcu.rs
 @@ -0,0 +1,251 @@
@@ -4981,7 +4981,7 @@ index 000000000..2766cf087
 +
 +} // verus!
 diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
-index f20cc7a11..7adc8c594 100644
+index f20cc7a112d1f48ac47f6d191f9b0be456d90202..7adc8c5946d87f57a54c2a52fe399cb024b3712c 100644
 --- a/ostd/src/cpu/mod.rs
 +++ b/ostd/src/cpu/mod.rs
 @@ -175,6 +175,15 @@ pub broadcast proof fn lemma_cpu_id_model(cpu_id: CpuId)
@@ -5002,7 +5002,7 @@ index f20cc7a11..7adc8c594 100644
          true
 diff --git a/ostd/src/sync/rcu/acceptance.rs b/ostd/src/sync/rcu/acceptance.rs
 new file mode 100644
-index 000000000..817a00c79
+index 0000000000000000000000000000000000000000..817a00c79348f4c836d7e59d173ddf311055cd28
 --- /dev/null
 +++ b/ostd/src/sync/rcu/acceptance.rs
 @@ -0,0 +1,518 @@
@@ -5526,7 +5526,7 @@ index 000000000..817a00c79
 +} // verus!
 diff --git a/ostd/src/sync/rcu/irc11.rs b/ostd/src/sync/rcu/irc11.rs
 new file mode 100644
-index 000000000..03f8ca5e6
+index 0000000000000000000000000000000000000000..03f8ca5e6c359a7af8bffed30bcd3ea721a5457d
 --- /dev/null
 +++ b/ostd/src/sync/rcu/irc11.rs
 @@ -0,0 +1,1120 @@
@@ -6651,7 +6651,7 @@ index 000000000..03f8ca5e6
 +
 +} // verus!
 diff --git a/ostd/src/sync/rcu/mod.rs b/ostd/src/sync/rcu/mod.rs
-index 2b022a38d..29c4f12ed 100644
+index 2b022a38d2993f9156d7f8160b4dacfc2fd508e6..29c4f12ed8b09d0d3550022025d65b00e9937b3e 100644
 --- a/ostd/src/sync/rcu/mod.rs
 +++ b/ostd/src/sync/rcu/mod.rs
 @@ -40,8 +40,18 @@ use crate::task::{
@@ -6674,7 +6674,7 @@ index 2b022a38d..29c4f12ed 100644
  verus! {
  
 diff --git a/ostd/src/sync/rcu/non_null/mod.rs b/ostd/src/sync/rcu/non_null/mod.rs
-index 4a0914304..edf09e1a4 100644
+index 4a091430475025ddfa27dca7a3989c91b3161152..edf09e1a4f684b801defae06344e90d92c5e3a23 100644
 --- a/ostd/src/sync/rcu/non_null/mod.rs
 +++ b/ostd/src/sync/rcu/non_null/mod.rs
 @@ -263,6 +263,16 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
@@ -6708,7 +6708,7 @@ index 4a0914304..edf09e1a4 100644
          }
 diff --git a/ostd/src/sync/rcu/weak_lock.rs b/ostd/src/sync/rcu/weak_lock.rs
 new file mode 100644
-index 000000000..6f5d5253f
+index 0000000000000000000000000000000000000000..6f5d5253f201bfd586c7dc56b3cc106a4ada7a83
 --- /dev/null
 +++ b/ostd/src/sync/rcu/weak_lock.rs
 @@ -0,0 +1,339 @@
@@ -7053,7 +7053,7 @@ index 000000000..6f5d5253f
 +} // verus!
 diff --git a/ostd/src/sync/rcu/weak_monitor.rs b/ostd/src/sync/rcu/weak_monitor.rs
 new file mode 100644
-index 000000000..3bfbac606
+index 0000000000000000000000000000000000000000..3bfbac6066dbc1528ffb5a10de47fa21e929033d
 --- /dev/null
 +++ b/ostd/src/sync/rcu/weak_monitor.rs
 @@ -0,0 +1,759 @@
@@ -7818,7 +7818,7 @@ index 000000000..3bfbac606
 +} // verus!
 diff --git a/ostd/src/sync/rcu/weak_root.rs b/ostd/src/sync/rcu/weak_root.rs
 new file mode 100644
-index 000000000..7f0c91b10
+index 0000000000000000000000000000000000000000..7f0c91b1067f45a8003391c1c0ec04b7f9fa5e1e
 --- /dev/null
 +++ b/ostd/src/sync/rcu/weak_root.rs
 @@ -0,0 +1,738 @@
@@ -8562,7 +8562,7 @@ index 000000000..7f0c91b10
 +} // verus!
 diff --git a/tools/tests/rcu_callback_smoke.rs b/tools/tests/rcu_callback_smoke.rs
 new file mode 100644
-index 000000000..409d84fb9
+index 0000000000000000000000000000000000000000..409d84fb9e0536a29e871280ea18ced5b541c6fb
 --- /dev/null
 +++ b/tools/tests/rcu_callback_smoke.rs
 @@ -0,0 +1,76 @@
@@ -8643,7 +8643,7 @@ index 000000000..409d84fb9
 +    assert_eq!(CALLS.load(Ordering::Relaxed), 1);
 +}
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index 992664508..04e53a774 100644
+index 9926645081cba6b1f4d0f5be4c7586e2c196ebd9..04e53a774744c49b44efdba47d45f8f75699f75b 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -41,6 +41,7 @@ pub mod map_extra;
@@ -8656,7 +8656,7 @@ index 992664508..04e53a774 100644
  pub mod rcu_read_lease;
 diff --git a/verified_libs/vstd_extra/src/raw_callback.rs b/verified_libs/vstd_extra/src/raw_callback.rs
 new file mode 100644
-index 000000000..2c5f76b10
+index 0000000000000000000000000000000000000000..2c5f76b102fd760dd8491cba0b8ddfba7b8560e7
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/raw_callback.rs
 @@ -0,0 +1,151 @@
@@ -8812,7 +8812,7 @@ index 000000000..2c5f76b10
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/rcu_objects.rs b/verified_libs/vstd_extra/src/rcu_objects.rs
-index ed5bd2569..a948d1e07 100644
+index ed5bd256910c0ebd6499d5e1eb988b56a50999b6..a948d1e07ba02bef36c7a5417f96b9946e32138a 100644
 --- a/verified_libs/vstd_extra/src/rcu_objects.rs
 +++ b/verified_libs/vstd_extra/src/rcu_objects.rs
 @@ -81,6 +81,26 @@ impl RcuDomainAuth {
@@ -8861,7 +8861,7 @@ index ed5bd2569..a948d1e07 100644
      ///
      /// # Preconditions
 diff --git a/verified_libs/vstd_extra/src/rcu_objects/owned_root.rs b/verified_libs/vstd_extra/src/rcu_objects/owned_root.rs
-index 439466740..7581f5ce1 100644
+index 4394667400fd6bf89e4a882ce761b1b257e12782..7581f5ce1d464aa95de38b50b29d17b2909bfacd 100644
 --- a/verified_libs/vstd_extra/src/rcu_objects/owned_root.rs
 +++ b/verified_libs/vstd_extra/src/rcu_objects/owned_root.rs
 @@ -17,11 +17,11 @@ use crate::{
@@ -9028,7 +9028,7 @@ index 439466740..7581f5ce1 100644
 +
  } // verus!
 diff --git a/verified_libs/vstd_extra/src/rcu_objects/root.rs b/verified_libs/vstd_extra/src/rcu_objects/root.rs
-index ea5d9788d..39590dd5f 100644
+index ea5d9788d3ed5dc2a7df227cde756c08f79752d6..39590dd5f2ee3fe7560d4e8ab50359e684df7d68 100644
 --- a/verified_libs/vstd_extra/src/rcu_objects/root.rs
 +++ b/verified_libs/vstd_extra/src/rcu_objects/root.rs
 @@ -98,6 +98,13 @@ impl RcuRootGhost {

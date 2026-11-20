@@ -1,6 +1,6 @@
 diff --git a/ostd/specs/arch/loongarch/mod.rs b/ostd/specs/arch/loongarch/mod.rs
 new file mode 100644
-index 000000000..549fc9d12
+index 0000000000000000000000000000000000000000..549fc9d120308d45282b743997177599b075ca7a
 --- /dev/null
 +++ b/ostd/specs/arch/loongarch/mod.rs
 @@ -0,0 +1,118 @@
@@ -123,7 +123,7 @@ index 000000000..549fc9d12
 +
 +} // verus!
 diff --git a/ostd/specs/arch/mod.rs b/ostd/specs/arch/mod.rs
-index 2821fa0f0..b59a70cb0 100644
+index 2821fa0f0818788a08ae1dd84b4ad0c3b8ae6ea3..b59a70cb0d584746bb427bd8d13ae80bb8d44797 100644
 --- a/ostd/specs/arch/mod.rs
 +++ b/ostd/specs/arch/mod.rs
 @@ -37,6 +37,10 @@ mod riscv;
@@ -148,7 +148,7 @@ index 2821fa0f0..b59a70cb0 100644
  pub open spec fn valid_frame_paddr(paddr: Paddr) -> bool {
      valid_frame_paddr_for::<CurrentArch>(paddr)
 diff --git a/ostd/specs/arch/riscv/mod.rs b/ostd/specs/arch/riscv/mod.rs
-index 371aaa2cd..1c454ee6e 100644
+index 371aaa2cdd6565ab7cdd71fb0d880c0047cc0e6f..1c454ee6e8ca507b13346947a15746e85328b26b 100644
 --- a/ostd/specs/arch/riscv/mod.rs
 +++ b/ostd/specs/arch/riscv/mod.rs
 @@ -14,16 +14,29 @@ use crate::specs::{
@@ -183,7 +183,7 @@ index 371aaa2cd..1c454ee6e 100644
  ///
  /// The address constants are shared by all architectures in `mm::kspace`, so
 diff --git a/ostd/specs/arch/x86/mod.rs b/ostd/specs/arch/x86/mod.rs
-index 564e7ed6e..255143e0e 100644
+index 564e7ed6efd0318088ede9f48c13538f4710c131..255143e0e7c546919fb97d5e5ad48bd15bfdc59d 100644
 --- a/ostd/specs/arch/x86/mod.rs
 +++ b/ostd/specs/arch/x86/mod.rs
 @@ -20,7 +20,7 @@ use crate::specs::{
@@ -222,7 +222,7 @@ index 564e7ed6e..255143e0e 100644
  pub ghost struct X86Arch;
  
 diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
-index 245e13466..5c4979be1 100644
+index 245e13466dcdf565403d23b2893e435f50fe3fe2..5c4979be1fb3f803bb211ecfd20892bab3779cc6 100644
 --- a/ostd/specs/mm/embedding/mod.rs
 +++ b/ostd/specs/mm/embedding/mod.rs
 @@ -1866,6 +1866,18 @@ proof fn lemma_step_segment_from_unused<'rcu>(tracked s: &mut VmStore<'rcu>, ran
@@ -245,7 +245,7 @@ index 245e13466..5c4979be1 100644
              Option::None => {},
          }
 diff --git a/ostd/src/arch/loongarch/mm/mod.rs b/ostd/src/arch/loongarch/mm/mod.rs
-index 848d22e86..67f335555 100644
+index 848d22e86c98829f3e988bd8b2c42ad47ec0b1d2..67f33555562aea590fe968b0f72923d1f7ed3036 100644
 --- a/ostd/src/arch/loongarch/mm/mod.rs
 +++ b/ostd/src/arch/loongarch/mm/mod.rs
 @@ -1,78 +1,179 @@
@@ -1282,7 +1282,7 @@ index 848d22e86..67f335555 100644
 +
 +} // verus!
 diff --git a/ostd/src/arch/loongarch/mod.rs b/ostd/src/arch/loongarch/mod.rs
-index c7da5030d..33eb641f2 100644
+index c7da5030d1401adb288e97fc9e1b3414357906f8..33eb641f261ee8599e575d8050881b37c8cd872b 100644
 --- a/ostd/src/arch/loongarch/mod.rs
 +++ b/ostd/src/arch/loongarch/mod.rs
 @@ -1,21 +1,21 @@
@@ -1320,7 +1320,7 @@ index c7da5030d..33eb641f2 100644
  pub(crate) fn enable_cpu_features() {}
 +*/
 diff --git a/ostd/src/arch/loongarch/timer/mod.rs b/ostd/src/arch/loongarch/timer/mod.rs
-index e13609b22..51b9843bb 100644
+index e13609b226e59daf79585cd60808893c6dc1a1c3..51b9843bb687232307f4614dc819b77dd224dfef 100644
 --- a/ostd/src/arch/loongarch/timer/mod.rs
 +++ b/ostd/src/arch/loongarch/timer/mod.rs
 @@ -1,9 +1,11 @@
@@ -1336,7 +1336,7 @@ index e13609b22..51b9843bb 100644
 +#[verus_verify]
  pub const TIMER_FREQ: u64 = 1000;
 diff --git a/ostd/src/arch/riscv/mm/mod.rs b/ostd/src/arch/riscv/mm/mod.rs
-index 376ce55ac..c3c528d4c 100644
+index 376ce55acea6fc39285a88b152ec5f05c3ce5ea6..c3c528d4c788cebb6a6caa07ec37740cd4cc9d83 100644
 --- a/ostd/src/arch/riscv/mm/mod.rs
 +++ b/ostd/src/arch/riscv/mm/mod.rs
 @@ -412,12 +412,11 @@ impl PageTableEntryTrait for PageTableEntry {
@@ -1356,7 +1356,7 @@ index 376ce55ac..c3c528d4c 100644
           * https://github.com/asterinas/asterinas/commit/c77c2686d85a1952683db21d7bd7e287f4e8b883
           * Origin Rust: <none; new executable code>
 diff --git a/ostd/src/arch/x86/mm/mod.rs b/ostd/src/arch/x86/mm/mod.rs
-index 784cac9aa..4c1b8da7a 100644
+index 784cac9aa041a5e7cc1036af01b990682a1417a4..4c1b8da7aeae3b599a0801d6c76d22d89b3b6210 100644
 --- a/ostd/src/arch/x86/mm/mod.rs
 +++ b/ostd/src/arch/x86/mm/mod.rs
 @@ -495,13 +495,9 @@ impl PageTableEntryTrait for PageTableEntry {
@@ -1385,7 +1385,7 @@ index 784cac9aa..4c1b8da7a 100644
          proof {
              lemma_x86_set_prop_roundtrip(old(self).0, flags, prop);
 diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
-index 5a6603f01..5147cb5aa 100644
+index 5a6603f01085d95ea90d74283e0f8618dac8ce2d..5147cb5aa712fc40f7c452d2be4be4772b602cac 100644
 --- a/ostd/src/mm/kspace/kvirt_area.rs
 +++ b/ostd/src/mm/kspace/kvirt_area.rs
 @@ -258,21 +258,20 @@ pub axiom fn kvirt_alloc_range_bounds(
@@ -1464,7 +1464,7 @@ index 5a6603f01..5147cb5aa 100644
                      cursor.0.invariants(cursor_owner, *regions, *guards),
                      // Level bounds / alignment from `collect_largest_pages` postconditions.
 diff --git a/ostd/src/mm/kspace/mod.rs b/ostd/src/mm/kspace/mod.rs
-index 6b05d8e8f..2f784596a 100644
+index 6b05d8e8f4f74ac1296cb393ebcea6368207b508..2f784596accb1683b45abec7b0e3959966e88bdf 100644
 --- a/ostd/src/mm/kspace/mod.rs
 +++ b/ostd/src/mm/kspace/mod.rs
 @@ -122,17 +122,13 @@ pub const VMALLOC_VADDR_RANGE: Range<Vaddr> = VMALLOC_BASE_VADDR..FRAME_METADATA
@@ -1488,7 +1488,7 @@ index 6b05d8e8f..2f784596a 100644
  /// Convert physical address to virtual address using offset, only available inside `ostd`
  #[verus_verify(dual_spec, open)]
 diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
-index 37950f47e..07f448f6c 100644
+index 37950f47ea4b13a17b2038032ae9f0045d7ad17a..07f448f6c43eee68a8e43988a3420fe7b43e7cc0 100644
 --- a/ostd/src/mm/page_table/mod.rs
 +++ b/ostd/src/mm/page_table/mod.rs
 @@ -1518,11 +1518,11 @@ pub trait PageTableEntryTrait:

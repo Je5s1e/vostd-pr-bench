@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-26-5474cd472251",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-26-5474cd472251:commit-fix-289e346cc383d5e5187734cf6b3e0ba1f3b85565-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "The read-unlock transition exports cursor/count consistency and positive reader-count guarantees through four related `admit()` calls.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+          "start_line": 341,
+          "end_line": 341
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+          "start_line": 344,
+          "end_line": 344
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+          "start_line": 355,
+          "end_line": 355
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+          "start_line": 419,
+          "end_line": 419
+        }
+      ],
+      "rationale": "`read_unlock_inductive` must prove positivity for the changed and unchanged cursor paths and preserve `rc_cursors_relation`; its supporting positivity lemma must justify every count on the held path. The selected snapshot admits both cursor cases, the transition relation, and the supporting lemma, collectively leaving one transition's consistency proof unchecked. Final repair 289e346c proves the dropped-last update, separates and derives `inv_rc_positive`, proves the filter-count change, and removes all four assumptions.",
+      "source_evidence": "after/lock-protocol/src/test/rw_version/spec/tree.rs\n331: #[inductive(read_unlock)]\n...\n340:                 assert(post.cursors[cpu].get_read_lock_path() == path.drop_last());\n341:                 admit();\n342:             } else {\n343:                 assert(post.cursors[cpu0].get_read_lock_path() == pre.cursors[cpu0].get_read_lock_path());\n344:                 admit();\n...\n354:     assert(post.rc_cursors_relation()) by {\n355:         admit();\n...\n405: ensures\n406:     s.rc_positive(path),\n...\n419:     admit();\n\nFinal repair 289e346c removes all four related assumptions with checked transition and positivity proofs.",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/289e346cc383d5e5187734cf6b3e0ba1f3b85565",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "289e346cc383d5e5187734cf6b3e0ba1f3b85565:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/289e346cc383d5e5187734cf6b3e0ba1f3b85565",
+          "commit_id": "289e346cc383d5e5187734cf6b3e0ba1f3b85565"
+        }
+      ],
+      "verification": "With Verus 377ef530f468edb31d764be2f45602bf6fecc708, Rust 1.82.0 and Z3 4.12.5, both problem and repair report lock-protocol 297 verified, 0 errors. The problem succeeds because admit() is trusted; fixed-source and independent review confirm the final commit removes all four assumptions."
+    }
+  ]
+}

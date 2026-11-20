@@ -7,7 +7,7 @@
       "id": "pr-870-d808e2c9c911:issue-4410505691",
       "original_label_id": "4410505691",
       "category": "guideline",
-      "description": "CalleeRegs literal repeated exactly in returns87-89 and executable body90-91, then copied into TaskContext specification. Constructor only zeros integerfields, supporting shared dual_spec model; no toolchain validation of proposed patch claimed.",
+      "description": "The CalleeRegs zero constructor duplicates its struct literal in the return contract and executable body instead of sharing a dual-mode model.",
       "locations": [
         {
           "version": "after",

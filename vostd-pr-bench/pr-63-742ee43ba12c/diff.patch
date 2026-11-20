@@ -1,0 +1,1307 @@
+diff --git a/fvt5-lifecycle-safety/src/page/meta/impls.rs b/fvt5-lifecycle-safety/src/page/meta/impls.rs
+index 8e2fc0e7c18cc4499c01822ab35d918ed8516faa..793c71b52251ed0c783c6f7cb1e9baf6aa17dc4e 100644
+--- a/fvt5-lifecycle-safety/src/page/meta/impls.rs
++++ b/fvt5-lifecycle-safety/src/page/meta/impls.rs
+@@ -1,5 +1,13 @@
+ extern crate vstd_extra;
+-use aster_common::{x86_64::*, mm::*, page::{meta::*,model::PageUsePermission}, page_prop::*, page_table::*, task::*, vm_space::*};
++use aster_common::{
++    x86_64::*,
++    mm::*,
++    page::{meta::*, model::PageUsePermission},
++    page_prop::*,
++    page_table::*,
++    task::*,
++    vm_space::*,
++};
+ use std::fs::read;
+ 
+ use vstd::prelude::*;
+@@ -9,12 +17,12 @@ use crate::common::*;
+ use super::*;
+ use super::model::*;
+ 
+-/* 
++/*
+ verus! {
+ /// # Write of the `MetaSlotInner` to the `MetaSlot`.
+-/// 
+-/// Verus (and also safe Rust) does not support writing value to 
+-/// the union type. So we use a more verbose way to define the 
++///
++/// Verus (and also safe Rust) does not support writing value to
++/// the union type. So we use a more verbose way to define the
+ /// new object of the `MetaSlotInner`.
+ 
+ impl MetaSlotInner {
+@@ -39,10 +47,10 @@ verus!{
+ impl MetaSlot {
+ 
+ /// Simulate the initial state of the `MetaSlot`.
+-/// 
++///
+ /// This function is purely logical and not used for the implementation.
+ /// It is defined for verify the invariants of the `MetaSlot`.
+-/// 
++///
+ #[rustc_allow_incoherent_impl]
+ pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
+     ensures
+@@ -81,7 +89,7 @@ pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
+ 
+ /// implements `self.usage.compare_exchange(0, u)`
+ #[rustc_allow_incoherent_impl]
+-pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>) 
++pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+     -> (res: (bool, Tracked<MetaSlotModel>))
+     requires
+         self.inv_relate(model),
+@@ -186,7 +194,7 @@ pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<Meta
+ 
+ /// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
+ #[rustc_allow_incoherent_impl]
+-pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>) 
++pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>)
+     -> (res: Tracked<MetaSlotModel>)
+     requires
+         self.inv_relate(model@),
+@@ -209,7 +217,7 @@ pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>)
+ }
+ 
+ /// seal the `inner` for `from_unused()`
+-/// 
++///
+ /// This function is purely logical and not used for the implementation.
+ #[rustc_allow_incoherent_impl]
+ pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+@@ -230,7 +238,7 @@ pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotM
+ }
+ 
+ /// complete M::on_drop() for `drop_as_last()`
+-/// 
++///
+ /// This function is purely logical and not used for the implementation.
+ #[rustc_allow_incoherent_impl]
+ pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+@@ -285,4 +293,4 @@ pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlot
+ }
+ 
+ }
+-} // verus!*/
+\ No newline at end of file
++} // verus!*/
+diff --git a/lock-protocol/src/exec/rw/pte/page_prop.rs b/lock-protocol/src/exec/rw/pte/page_prop.rs
+index 5456a32726f19cd76051fa88752f6b03b09e29ab..4a55221fdd3806c4a84f1c799edbe47455801cad 100644
+--- a/lock-protocol/src/exec/rw/pte/page_prop.rs
++++ b/lock-protocol/src/exec/rw/pte/page_prop.rs
+@@ -49,8 +49,8 @@ impl PageProperty {
+     }
+ 
+     #[verifier::when_used_as_spec(new_spec)]
+-    pub fn new(flags: PageFlags, cache: CachePolicy) -> (res: Self)
+-        ensures res == Self::new_spec(flags, cache)
++    pub fn new(flags: PageFlags, cache: CachePolicy) -> Self
++        returns Self::new_spec(flags, cache)
+     {
+         Self {
+             flags,
+@@ -68,8 +68,8 @@ impl PageProperty {
+     }
+ 
+     #[verifier::when_used_as_spec(new_absent_spec)]
+-    pub fn new_absent() -> (res: Self)
+-        ensures res == Self::new_absent_spec()
++    pub fn new_absent() -> Self
++        returns Self::new_absent_spec()
+     {
+         Self {
+             flags: PageFlags::empty(),
+@@ -103,8 +103,8 @@ impl CachePolicy {
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(N_spec)]
+-    pub const fn N() -> (res: usize)
+-        ensures res == Self::N_spec()
++    pub const fn N() -> usize
++        returns Self::N_spec()
+     {
+         (CachePolicy::Writeback.value() + 1) as usize
+     }
+@@ -122,8 +122,8 @@ impl CachePolicy {
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(value_spec)]
+-    pub const fn value(&self) -> (res: u8)
+-        ensures res == self.value()
++    pub const fn value(&self) -> u8
++        returns self.value_spec()
+     {
+         match self {
+             CachePolicy::Uncacheable => 0,
+@@ -169,21 +169,30 @@ impl PageFlags {
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(empty_spec)]
+-    pub const fn empty() -> (res: Self)
+-        ensures res == Self::empty_spec()
++    pub const fn empty() -> Self
++        returns Self::empty_spec()
+     {
+         Self { bits: 0 }
+     }
+ 
+     #[verifier::inline]
+-    pub open spec fn value_spec(&self) -> u8 {
++    pub open spec fn bits_spec(&self) -> u8 {
+         self.bits
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(value_spec)]
++    #[verifier::when_used_as_spec(bits_spec)]
++    pub const fn bits(&self) -> (res: u8)
++        returns self.bits_spec()
++    {
++        self.bits
++    }
++
++    #[inline(always)]
++    #[verifier::when_used_as_spec(bits_spec)]
++    #[deprecated(note = "Use `bits()` instead. It is now aligned with asterinas.")]
+     pub const fn value(&self) -> (res: u8)
+-        ensures res == self.value_spec()
++        returns self.bits_spec()
+     {
+         self.bits
+     }
+@@ -212,8 +221,8 @@ impl PageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(R_spec)]
+-    pub const fn R() -> (res: Self)
+-        ensures res == Self::R_spec()
++    pub const fn R() -> Self
++        returns Self::R_spec()
+     {
+         Self { bits: 0b00000001 }
+     }
+@@ -227,8 +236,8 @@ impl PageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(W_spec)]
+-    pub const fn W() -> (res: Self)
+-        ensures res == Self::W_spec()
++    pub const fn W() -> Self
++        returns Self::W_spec()
+     {
+         Self { bits: 0b00000010 }
+     }
+@@ -242,8 +251,8 @@ impl PageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(X_spec)]
+-    pub const fn X() -> (res: Self)
+-        ensures res == Self::X_spec()
++    pub const fn X() -> Self
++        returns Self::X_spec()
+     {
+         Self { bits: 0b00000100 }
+     }
+@@ -251,46 +260,46 @@ impl PageFlags {
+     #[allow(non_snake_case)]
+     #[verifier::inline]
+     pub open spec fn RW_spec() -> Self {
+-        Self { bits: Self::R().value() | Self::W().value() }
++        Self { bits: Self::R().bits() | Self::W().bits() }
+     }
+ 
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(X_spec)]
+-    pub const fn RW() -> (res: Self)
+-        ensures res == Self::RW_spec()
++    pub const fn RW() -> Self
++        returns Self::RW_spec()
+     {
+-        Self { bits: Self::R().value() | Self::W().value() }
++        Self { bits: Self::R().bits() | Self::W().bits() }
+     }
+ 
+     #[allow(non_snake_case)]
+     #[verifier::inline]
+     pub open spec fn RX_spec() -> Self {
+-        Self { bits: Self::R().value() | Self::X().value() }
++        Self { bits: Self::R().bits() | Self::X().bits() }
+     }
+ 
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(RX_spec)]
+-    pub const fn RX() -> (res: Self)
+-        ensures res == Self::RX_spec()
++    pub const fn RX() -> Self
++        returns Self::RX_spec()
+     {
+-        Self { bits: Self::R().value() | Self::X().value() }
++        Self { bits: Self::R().bits() | Self::X().bits() }
+     }
+ 
+     #[allow(non_snake_case)]
+     #[verifier::inline]
+     pub open spec fn RWX_spec() -> Self {
+-        Self { bits: Self::R().value() | Self::W().value() | Self::X().value() }
++        Self { bits: Self::R().bits() | Self::W().bits() | Self::X().bits() }
+     }
+ 
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(RWX_spec)]
+-    pub const fn RWX() -> (res: Self)
+-        ensures res == Self::RWX_spec()
++    pub const fn RWX() -> Self
++        returns Self::RWX_spec()
+     {
+-        Self { bits: Self::R().value() | Self::W().value() | Self::X().value() }
++        Self { bits: Self::R().bits() | Self::W().bits() | Self::X().bits() }
+     }
+ 
+     #[allow(non_snake_case)]
+@@ -302,8 +311,8 @@ impl PageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(ACCESSED_spec)]
+-    pub const fn ACCESSED() -> (res: Self)
+-        ensures res == Self::ACCESSED_spec()
++    pub const fn ACCESSED() -> Self
++        returns Self::ACCESSED_spec()
+     {
+         Self { bits: 0b00001000 }
+     }
+@@ -317,11 +326,22 @@ impl PageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(DIRTY_spec)]
+-    pub const fn DIRTY() -> (res: Self)
+-        ensures res == Self::DIRTY_spec()
++    pub const fn DIRTY() -> Self
++        returns Self::DIRTY_spec()
+     {
+         Self { bits: 0b00010000 }
+     }
++
++    #[verifier::external_body]
++    pub proof fn lemma_consts_properties()
++        ensures
++            Self::R().bits().ilog2() == 0,
++            Self::W().bits().ilog2() == 1,
++            Self::X().bits().ilog2() == 2,
++            Self::ACCESSED().bits().ilog2() == 3,
++            Self::DIRTY().bits().ilog2() == 4,
++    {
++    }
+ }
+ 
+ }
+@@ -353,21 +373,30 @@ impl PrivilegedPageFlags {
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(empty_spec)]
+-    pub const fn empty() -> (res: Self)
+-        ensures res == Self::empty_spec()
++    pub const fn empty() -> Self
++        returns Self::empty_spec()
+     {
+         Self { bits: 0 }
+     }
+ 
+     #[verifier::inline]
+-    pub open spec fn value_spec(&self) -> u8 {
++    pub open spec fn bits_spec(&self) -> u8 {
+         self.bits
+     }
+ 
+     #[inline(always)]
+-    #[verifier::when_used_as_spec(value_spec)]
+-    pub const fn value(&self) -> (res: u8)
+-        ensures res == self.value_spec()
++    #[verifier::when_used_as_spec(bits_spec)]
++    #[deprecated(note = "Use `bits()` instead. It is now aligned with asterinas.")]
++    pub const fn value(&self) -> u8
++        returns self.bits_spec()
++    {
++        self.bits
++    }
++
++    #[inline(always)]
++    #[verifier::when_used_as_spec(bits_spec)]
++    pub const fn bits(&self) -> u8
++        returns self.bits_spec()
+     {
+         self.bits
+     }
+@@ -379,8 +408,8 @@ impl PrivilegedPageFlags {
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(from_bits_spec)]
+-    pub fn from_bits(value: u8) -> (res: Self)
+-        ensures res == Self::from_bits_spec(value)
++    pub fn from_bits(value: u8) -> Self
++        returns Self::from_bits_spec(value)
+     {
+         Self { bits: value }
+     }
+@@ -409,8 +438,8 @@ impl PrivilegedPageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(GLOBAL_spec)]
+-    pub const fn GLOBAL() -> (res: Self)
+-        ensures res == Self::GLOBAL_spec()
++    pub const fn GLOBAL() -> Self
++        returns Self::GLOBAL_spec()
+     {
+         Self { bits: 0b00000010 }
+     }
+@@ -424,12 +453,21 @@ impl PrivilegedPageFlags {
+     #[allow(non_snake_case)]
+     #[inline(always)]
+     #[verifier::when_used_as_spec(SHARED_spec)]
+-    pub const fn SHARED() -> (res: Self)
+-        ensures res == Self::SHARED_spec()
++    pub const fn SHARED() -> Self
++        returns Self::SHARED_spec()
+     {
+         Self { bits: 0b10000000 }
+     }
+ 
++    #[verifier::external_body]
++    pub proof fn lemma_consts_properties()
++        ensures
++            Self::USER().bits().ilog2() == 0,
++            Self::GLOBAL().bits().ilog2() == 1,
++            Self::SHARED().bits().ilog2() == 7,
++    {
++    }
++
+ }
+ 
+ }
+diff --git a/lock-protocol/src/exec/rw/pte/page_table_entry.rs b/lock-protocol/src/exec/rw/pte/page_table_entry.rs
+index 671249db91e1c25177e0c40a63857ce32c0b04b3..db8b3e3128ad97d1ae4546f8f947df46d60490f2 100644
+--- a/lock-protocol/src/exec/rw/pte/page_table_entry.rs
++++ b/lock-protocol/src/exec/rw/pte/page_table_entry.rs
+@@ -10,44 +10,6 @@ use super::page_prop::*;
+ use super::page_table_flags::PageTableFlags;
+ use super::page_table_entry_trait::*;
+ 
+-decl_bms_const!(
+-    PAGE_FLAG_MAPPING,
+-    PAGE_FLAG_MAPPING_SPEC,
+-    u8,
+-    usize,
+-    4,
+-    [
+-        (PageFlags::R().value(), PageTableFlags::PRESENT()),
+-        (PageFlags::W().value(), PageTableFlags::WRITABLE()),
+-        (PageFlags::ACCESSED().value(), PageTableFlags::ACCESSED()),
+-        (PageFlags::DIRTY().value(), PageTableFlags::DIRTY())
+-    ]
+-);
+-
+-decl_bms_const!(
+-    PAGE_PRIV_MAPPING,
+-    PAGE_PRIV_MAPPING_SPEC,
+-    u8,
+-    usize,
+-    2,
+-    [
+-        (PrivilegedPageFlags::USER().value(), PageTableFlags::USER()),
+-        (
+-            PrivilegedPageFlags::GLOBAL().value(),
+-            PageTableFlags::GLOBAL()
+-        )
+-    ]
+-);
+-
+-decl_bms_const!(
+-    PAGE_INVERTED_FLAG_MAPPING,
+-    PAGE_INVERTED_FLAG_MAPPING_SPEC,
+-    u8,
+-    usize,
+-    1,
+-    [(PageFlags::X().value(), PageTableFlags::NO_EXECUTE())]
+-);
+-
+ verus! {
+ 
+ #[repr(transparent)]
+@@ -71,20 +33,27 @@ impl Clone for PageTableEntry {
+     }
+ }
+ 
++/// Parse a bit-flag bits `val` in the representation of `from` to `to` in bits.
++macro_rules! parse_flags {
++    ($val:expr, $from:expr, $to:expr) => {
++        ($val as usize & $from.bits() as usize) >> $from.bits().ilog2() << $to.bits().ilog2()
++    };
++}
++
+ #[allow(non_snake_case)]
+ impl PageTableEntry {
+ 
+     #[verifier::inline]
+     pub open spec fn PROP_MASK_spec() -> usize {
+-        !PHYS_ADDR_MASK() & !(PageTableFlags::HUGE())
++        !PHYS_ADDR_MASK() & !(PageTableFlags::HUGE().bits())
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(PROP_MASK_spec)]
+-    pub const fn PROP_MASK() -> (res: usize)
+-        ensures res == Self::PROP_MASK_spec()
++    pub const fn PROP_MASK() -> usize
++        returns Self::PROP_MASK_spec()
+     {
+-        !PHYS_ADDR_MASK() & !(PageTableFlags::HUGE())
++        !PHYS_ADDR_MASK() & !(PageTableFlags::HUGE().bits())
+     }
+ 
+     #[verifier::inline]
+@@ -101,66 +70,87 @@ impl PageTableEntry {
+ 
+     pub open spec fn encode_cache_spec(cache: CachePolicy) -> usize {
+         match cache {
+-            CachePolicy::Uncacheable => PageTableFlags::NO_CACHE(),
+-            CachePolicy::Writethrough => PageTableFlags::WRITE_THROUGH(),
++            CachePolicy::Uncacheable => PageTableFlags::NO_CACHE().bits(),
++            CachePolicy::Writethrough => PageTableFlags::WRITE_THROUGH().bits(),
+             _ => 0,
+         }
+     }
+ 
+     #[verifier::when_used_as_spec(encode_cache_spec)]
+-    pub fn encode_cache(cache: CachePolicy) -> (res: usize)
+-        ensures res == Self::encode_cache_spec(cache)
++    pub fn encode_cache(cache: CachePolicy) -> usize
++        returns Self::encode_cache_spec(cache)
+     {
+         match cache {
+-            CachePolicy::Uncacheable => PageTableFlags::NO_CACHE(),
+-            CachePolicy::Writethrough => PageTableFlags::WRITE_THROUGH(),
++            CachePolicy::Uncacheable => PageTableFlags::NO_CACHE().bits(),
++            CachePolicy::Writethrough => PageTableFlags::WRITE_THROUGH().bits(),
+             _ => 0,
+         }
+     }
+ 
+     pub open spec fn format_flags_spec(prop: PageProperty) -> usize {
+-        let flags: u8 = prop.flags.value();
+-        let priv_flags: u8 = prop.priv_flags.value();
+-        PageTableFlags::PRESENT()
+-            | flags.map_forward_spec(&PAGE_FLAG_MAPPING)
+-            | flags.map_invert_forward_spec(&PAGE_INVERTED_FLAG_MAPPING)
+-            | priv_flags.map_forward_spec(&PAGE_PRIV_MAPPING)
++        let flags: u8 = prop.flags.bits();
++        let priv_flags: u8 = prop.priv_flags.bits();
++        PageTableFlags::PRESENT().bits()
++            | if flags & PageFlags::R().bits() == 0 {0} else { PageTableFlags::PRESENT().bits() }
++            | if flags & PageFlags::W().bits() == 0 {0} else { PageTableFlags::WRITABLE().bits() }
++            | if flags & PageFlags::ACCESSED().bits() == 0 {0} else { PageTableFlags::ACCESSED().bits() }
++            | if flags & PageFlags::DIRTY().bits() == 0 {0} else { PageTableFlags::DIRTY().bits() }
++            | if !flags & PageFlags::X().bits() == 0 {0} else { PageTableFlags::NO_EXECUTE().bits() }
++            | if priv_flags & PrivilegedPageFlags::USER().bits() == 0 {0} else { PageTableFlags::USER().bits() }
++            | if priv_flags & PrivilegedPageFlags::GLOBAL().bits() == 0 {0} else { PageTableFlags::GLOBAL().bits() }
+             | Self::encode_cache(prop.cache)
+     }
+ 
+     proof fn lemma_format_flags_present(prop: PageProperty)
+         ensures
+-            Self::format_flags(prop) & PageTableFlags::PRESENT() != 0,
++            Self::format_flags(prop) & PageTableFlags::PRESENT().bits() != 0,
+     {
+-        let flags: u8 = prop.flags.value();
+-        let priv_flags: u8 = prop.priv_flags.value();
+-        let flag1 = flags.map_forward_spec(&PAGE_FLAG_MAPPING);
+-        let flag2 = flags.map_invert_forward_spec(&PAGE_INVERTED_FLAG_MAPPING);
+-        let priv_flag = priv_flags.map_forward_spec(&PAGE_PRIV_MAPPING);
+-        let cache_flag = Self::encode_cache(prop.cache);
++        let flags: u8 = prop.flags.bits();
++        let priv_flags: u8 = prop.priv_flags.bits();
++        let flag_1 = if flags & PageFlags::R().bits() == 0 {0} else { PageTableFlags::PRESENT().bits() };
++        let flag_2 = if flags & PageFlags::W().bits() == 0 {0} else { PageTableFlags::WRITABLE().bits() };
++        let flag_3 = if flags & PageFlags::ACCESSED().bits() == 0 {0} else { PageTableFlags::ACCESSED().bits() };
++        let flag_4 = if flags & PageFlags::DIRTY().bits() == 0 {0} else { PageTableFlags::DIRTY().bits() };
++        let flag_5 = if !flags & PageFlags::X().bits() == 0 {0} else { PageTableFlags::NO_EXECUTE().bits() };
++        let flag_6 = if priv_flags & PrivilegedPageFlags::USER().bits() == 0 {0} else { PageTableFlags::USER().bits() };
++        let flag_7 = if priv_flags & PrivilegedPageFlags::GLOBAL().bits() == 0 {0} else { PageTableFlags::GLOBAL().bits() };
++        let flag_8 = Self::encode_cache(prop.cache);
++        let present_mask = PageTableFlags::PRESENT().bits();
+         assert(
+-            (PageTableFlags::PRESENT() | flag1 | flag2 | priv_flag | cache_flag) & PageTableFlags::PRESENT() != 0
+-        ) by (bit_vector);
++            (present_mask | flag_1 | flag_2 | flag_3 | flag_4 | flag_5 | flag_6 | flag_7 | flag_8) & present_mask != 0
++        ) by (bit_vector) requires
++            present_mask == 0b1;
+     }
+ 
+-    #[verifier::external_body]
++
+     #[verifier::when_used_as_spec(format_flags_spec)]
+-    pub fn format_flags(prop: PageProperty) -> (res: usize)
+-        ensures res == Self::format_flags_spec(prop)
++    pub fn format_flags(prop: PageProperty) -> usize
++        returns Self::format_flags_spec(prop)
+     {
+-        let flags: u8 = prop.flags.value();
+-        let priv_flags: u8 = prop.priv_flags.value();
+-        PageTableFlags::PRESENT()
+-            | flags.map_forward(&PAGE_FLAG_MAPPING)
+-            | flags.map_invert_forward(&PAGE_INVERTED_FLAG_MAPPING)
+-            | priv_flags.map_forward(&PAGE_PRIV_MAPPING)
++        let flags: u8 = prop.flags.bits();
++        let priv_flags: u8 = prop.priv_flags.bits();
++        proof {
++            lemma_parse_flags_page_flags(flags);
++            lemma_parse_flags_previleged_page_flags(priv_flags);
++            PageFlags::lemma_consts_properties();
++            PrivilegedPageFlags::lemma_consts_properties();
++            PageTableFlags::lemma_consts_properties();
++        }
++        PageTableFlags::PRESENT().bits()
++            | parse_flags!(flags, PageFlags::R(), PageTableFlags::PRESENT())
++            | parse_flags!(flags, PageFlags::W(), PageTableFlags::WRITABLE())
++            | parse_flags!(flags, PageFlags::ACCESSED(), PageTableFlags::ACCESSED())
++            | parse_flags!(flags, PageFlags::DIRTY(), PageTableFlags::DIRTY())
++            | parse_flags!(!flags, PageFlags::X(), PageTableFlags::NO_EXECUTE())
++            | parse_flags!(priv_flags, PrivilegedPageFlags::USER(), PageTableFlags::USER())
++            | parse_flags!(priv_flags, PrivilegedPageFlags::GLOBAL(), PageTableFlags::GLOBAL())
+             | Self::encode_cache(prop.cache)
+     }
+ 
+     pub open spec fn format_cache_spec(flags: usize) -> CachePolicy {
+-        if flags & PageTableFlags::NO_CACHE() != 0 {
++        if flags & PageTableFlags::NO_CACHE().bits() != 0 {
+             CachePolicy::Uncacheable
+-        } else if flags & PageTableFlags::WRITE_THROUGH() != 0 {
++        } else if flags & PageTableFlags::WRITE_THROUGH().bits() != 0 {
+             CachePolicy::Writethrough
+         } else {
+             CachePolicy::Writeback
+@@ -168,12 +158,12 @@ impl PageTableEntry {
+     }
+ 
+     #[verifier::when_used_as_spec(format_cache_spec)]
+-    pub fn format_cache(flags: usize) -> (res: CachePolicy)
+-        ensures res == Self::format_cache_spec(flags)
++    pub fn format_cache(flags: usize) -> CachePolicy
++        returns Self::format_cache_spec(flags)
+     {
+-        if flags & PageTableFlags::NO_CACHE() != 0 {
++        if flags & PageTableFlags::NO_CACHE().bits() != 0 {
+             CachePolicy::Uncacheable
+-        } else if flags & PageTableFlags::WRITE_THROUGH() != 0 {
++        } else if flags & PageTableFlags::WRITE_THROUGH().bits() != 0 {
+             CachePolicy::Writethrough
+         } else {
+             CachePolicy::Writeback
+@@ -181,30 +171,47 @@ impl PageTableEntry {
+     }
+ 
+     pub open spec fn format_property_spec(entry: usize) -> PageProperty {
+-        let flags: u8 = entry.map_backward(&PAGE_FLAG_MAPPING)
+-                      | entry.map_invert_backward(&PAGE_INVERTED_FLAG_MAPPING);
+-        let priv_flags: u8 = entry.map_backward(&PAGE_PRIV_MAPPING);
++        let flags: u8 =
++            if entry & PageTableFlags::PRESENT().bits() == 0 {0} else { PageFlags::R().bits() } |
++            if entry & PageTableFlags::WRITABLE().bits() == 0 {0} else { PageFlags::W().bits() } |
++            if entry & PageTableFlags::ACCESSED().bits() == 0 {0} else { PageFlags::ACCESSED().bits() } |
++            if entry & PageTableFlags::DIRTY().bits() == 0 {0} else { PageFlags::DIRTY().bits() } |
++            if !entry & PageTableFlags::NO_EXECUTE().bits() == 0 {0} else { PageFlags::X().bits() };
++        let priv_flags: u8 =
++            if entry & PageTableFlags::USER().bits() == 0 {0} else { PrivilegedPageFlags::USER().bits() } |
++            if entry & PageTableFlags::GLOBAL().bits() == 0 {0} else { PrivilegedPageFlags::GLOBAL().bits() };
+         let cache = Self::format_cache(entry);
+         PageProperty {
+-            flags: PageFlags::from_bits(flags),
++            flags: PageFlags::from_bits(flags as u8),
+             cache,
+             priv_flags: PrivilegedPageFlags::from_bits(priv_flags),
+         }
+     }
+ 
+-    #[verifier::external_body]
+     #[verifier::when_used_as_spec(format_property_spec)]
+-    pub fn format_property(entry: usize) -> (res: PageProperty)
+-        ensures res == Self::format_property_spec(entry)
++    pub fn format_property(entry: usize) -> PageProperty
++        returns Self::format_property_spec(entry)
+     {
+-        let flags = entry.map_backward(&PAGE_FLAG_MAPPING)
+-                  | entry.map_invert_backward(&PAGE_INVERTED_FLAG_MAPPING);
+-        let priv_flags: u8 = entry.map_backward(&PAGE_PRIV_MAPPING);
++        proof{
++            lemma_parse_flags_page_table_flags(entry);
++            PageFlags::lemma_consts_properties();
++            PrivilegedPageFlags::lemma_consts_properties();
++            PageTableFlags::lemma_consts_properties();
++        }
++        let flags =
++            parse_flags!(entry, PageTableFlags::PRESENT(), PageFlags::R()) |
++            parse_flags!(entry, PageTableFlags::WRITABLE(), PageFlags::W()) |
++            parse_flags!(entry, PageTableFlags::ACCESSED(), PageFlags::ACCESSED()) |
++            parse_flags!(entry, PageTableFlags::DIRTY(), PageFlags::DIRTY()) |
++            parse_flags!(!entry, PageTableFlags::NO_EXECUTE(), PageFlags::X());
++        let priv_flags =
++            parse_flags!(entry, PageTableFlags::USER(), PrivilegedPageFlags::USER()) |
++            parse_flags!(entry, PageTableFlags::GLOBAL(), PrivilegedPageFlags::GLOBAL());
+         let cache = Self::format_cache(entry);
+         PageProperty {
+-            flags: PageFlags::from_bits(flags),
++            flags: PageFlags::from_bits(flags as u8),
+             cache,
+-            priv_flags: PrivilegedPageFlags::from_bits(priv_flags),
++            priv_flags: PrivilegedPageFlags::from_bits(priv_flags as u8),
+         }
+     }
+ 
+@@ -213,19 +220,19 @@ impl PageTableEntry {
+         if level == 1 {
+             0
+         } else {
+-            PageTableFlags::HUGE() as u64
++            PageTableFlags::HUGE().bits() as u64
+         }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(format_huge_page_spec)]
+-    pub fn format_huge_page(level: PagingLevel) -> (res: u64)
+-        ensures res == Self::format_huge_page_spec(level)
++    pub fn format_huge_page(level: PagingLevel) -> u64
++        returns Self::format_huge_page_spec(level)
+     {
+         if level == 1 {
+             0
+         } else {
+-            PageTableFlags::HUGE() as u64
++            PageTableFlags::HUGE().bits() as u64
+         }
+     }
+ 
+@@ -257,7 +264,10 @@ impl PageTableEntryTrait for PageTableEntry {
+     #[inline(always)]
+     fn new_absent() -> Self
+     {
+-        assert(0 & PageTableFlags::PRESENT() == 0) by (bit_vector);
++        proof{
++            let bit = PageTableFlags::PRESENT().bits();
++            assert(0 & bit == 0) by (bit_vector);
++        }
+         Self::default()
+     }
+ 
+@@ -274,13 +284,13 @@ impl PageTableEntryTrait for PageTableEntry {
+ 
+     #[verifier::inline]
+     open spec fn is_present_spec(&self) -> bool {
+-        self.0 & PageTableFlags::PRESENT() != 0
++        self.0 & PageTableFlags::PRESENT().bits() != 0
+     }
+ 
+     #[inline(always)]
+     fn is_present(&self) -> bool
+     {
+-        self.0 & PageTableFlags::PRESENT() != 0
++        self.0 & PageTableFlags::PRESENT().bits() != 0
+     }
+ 
+     open spec fn set_prop_spec(&self, prop: PageProperty) -> Self {
+@@ -309,10 +319,10 @@ impl PageTableEntryTrait for PageTableEntry {
+ 
+         proof{
+             Self::lemma_page_table_entry_properties();
+-            assert(flags & PageTableFlags::PRESENT() != 0) by {
++            assert(flags & PageTableFlags::PRESENT().bits() != 0) by {
+             Self::lemma_format_flags_present(prop);}
+-            assert((addr | hp | flags) & PageTableFlags::PRESENT() != 0) by (bit_vector) requires
+-                flags & PageTableFlags::PRESENT() != 0;
++            assert((addr | hp | flags) & PageTableFlags::PRESENT().bits() != 0) by (bit_vector) requires
++                flags & PageTableFlags::PRESENT().bits() != 0;
+             assert(Self(addr | hp | flags).is_last(level));
+         }
+ 
+@@ -321,17 +331,17 @@ impl PageTableEntryTrait for PageTableEntry {
+ 
+     open spec fn new_pt_spec(paddr: Paddr) -> Self {
+         let addr = paddr & PHYS_ADDR_MASK();
+-        Self(addr | PageTableFlags::PRESENT() | PageTableFlags::WRITABLE() | PageTableFlags::USER())
++        Self(addr | PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits())
+     }
+ 
+     #[verifier::external_body] // TODO
+     fn new_pt(paddr: Paddr) -> Self {
+         let addr = paddr & PHYS_ADDR_MASK();
+         proof{
+-            let bit = addr | PageTableFlags::PRESENT() | PageTableFlags::WRITABLE() | PageTableFlags::USER();
+-            assert(bit & PageTableFlags::PRESENT() != 0) by (bit_vector);
++            let bit = addr | PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits();
++            assert(bit & PageTableFlags::PRESENT().bits() != 0) by (bit_vector);
+         }
+-        Self(addr | PageTableFlags::PRESENT() | PageTableFlags::WRITABLE() | PageTableFlags::USER())
++        Self(addr | PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits())
+     }
+ 
+     #[verifier::inline]
+@@ -378,3 +388,244 @@ impl PageTableEntryTrait for PageTableEntry {
+ }
+ 
+ }
++
++macro_rules! declare_parse_flag_const {
++    ($name:ident, $from_expr:expr, $from_mask:expr, $from_bit:expr, $from_ty: ty, $to_expr:expr, $to_mask:expr, $to_bit:expr, $to_ty: ty) => {
++        verus!{
++        proof fn $name(flag: $from_ty)
++            ensures
++                0 <= parse_flags!(flag, $from_expr, $to_expr) ==
++                    if flag & $from_expr.bits() == 0 { 0 } else { $to_expr.bits() } <= $to_ty::MAX,
++        {
++            PageTableFlags::lemma_consts_properties();
++            PageFlags::lemma_consts_properties();
++            PrivilegedPageFlags::lemma_consts_properties();
++
++            if flag & $from_mask != 0 {
++                assert(flag & $from_mask == $from_mask) by (bit_vector)
++                    requires flag & $from_mask != 0;
++                assert(($from_mask as usize >> $from_bit << $to_bit) == $to_mask) by (bit_vector);
++            }
++
++            if flag & $from_mask == 0 {
++                assert(0usize >> $from_bit << $to_bit == 0) by (bit_vector);
++            }
++        }
++    }
++    };
++}
++
++verus! {
++
++pub proof fn lemma_parse_flags_page_table_flags(flag:usize)
++    ensures
++        parse_flags!(flag, PageTableFlags::WRITABLE(), PageFlags::W()) == if flag & PageTableFlags::WRITABLE().bits() == 0 {0} else{ PageFlags::W().bits()} <= u8::MAX,
++        parse_flags!(flag, PageTableFlags::PRESENT(), PageFlags::R()) == if flag & PageTableFlags::PRESENT().bits() == 0 {0} else{ PageFlags::R().bits()} <= u8::MAX,
++        parse_flags!(flag, PageTableFlags::ACCESSED(), PageFlags::ACCESSED()) == if flag & PageTableFlags::ACCESSED().bits() == 0 {0} else{ PageFlags::ACCESSED().bits()} <= u8::MAX,
++        parse_flags!(!flag, PageTableFlags::NO_EXECUTE(), PageFlags::X()) == if !flag & PageTableFlags::NO_EXECUTE().bits() == 0 {0} else{ PageFlags::X().bits()} <= u8::MAX,
++        parse_flags!(flag, PageTableFlags::DIRTY(), PageFlags::DIRTY()) == if flag & PageTableFlags::DIRTY().bits() == 0 {0} else{ PageFlags::DIRTY().bits()} <= u8::MAX,
++        parse_flags!(flag, PageTableFlags::USER(), PrivilegedPageFlags::USER()) == if flag & PageTableFlags::USER().bits() == 0 {0} else{ PrivilegedPageFlags::USER().bits()} <= u8::MAX,
++        parse_flags!(flag, PageTableFlags::GLOBAL(), PrivilegedPageFlags::GLOBAL()) == if flag & PageTableFlags::GLOBAL().bits() == 0 {0} else{ PrivilegedPageFlags::GLOBAL().bits()} <= u8::MAX,
++    {
++        lemma_parse_flag_present(flag);
++        lemma_parse_flag_writable(flag);
++        lemma_parse_flag_accessed(flag);
++        lemma_parse_flag_no_execute(!flag);
++        lemma_parse_flag_dirty(flag);
++        lemma_parse_flag_user(flag);
++        lemma_parse_flag_global(flag);
++    }
++
++pub proof fn lemma_parse_flags_page_flags(flag:u8)
++    ensures
++        parse_flags!(flag, PageFlags::W(), PageTableFlags::WRITABLE()) == if flag & PageFlags::W().bits() == 0 {0} else{ PageTableFlags::WRITABLE().bits()} <= usize::MAX,
++        parse_flags!(flag, PageFlags::R(), PageTableFlags::PRESENT()) == if flag & PageFlags::R().bits() == 0 {0} else{ PageTableFlags::PRESENT().bits()} <= usize::MAX,
++        parse_flags!(flag, PageFlags::ACCESSED(), PageTableFlags::ACCESSED()) == if flag & PageFlags::ACCESSED().bits() == 0 {0} else{ PageTableFlags::ACCESSED().bits()} <= usize::MAX,
++        parse_flags!(!flag, PageFlags::X(), PageTableFlags::NO_EXECUTE()) == if !flag & PageFlags::X().bits() == 0 {0} else{ PageTableFlags::NO_EXECUTE().bits()} <= usize::MAX,
++        parse_flags!(flag, PageFlags::DIRTY(), PageTableFlags::DIRTY()) == if flag & PageFlags::DIRTY().bits() == 0 {0} else{ PageTableFlags::DIRTY().bits()} <= usize::MAX,
++    {
++        lemma_parse_flag_present_inverted(flag);
++        lemma_parse_flag_writable_inverted(flag);
++        lemma_parse_flag_accessed_inverted(flag);
++        lemma_parse_flag_no_execute_inverted(!flag);
++        lemma_parse_flag_dirty_inverted(flag);
++    }
++
++pub proof fn lemma_parse_flags_previleged_page_flags(flag:u8)
++    ensures
++        parse_flags!(flag, PrivilegedPageFlags::USER(), PageTableFlags::USER()) == if flag & PrivilegedPageFlags::USER().bits() == 0 {0} else{ PageTableFlags::USER().bits()} <= usize::MAX,
++        parse_flags!(flag, PrivilegedPageFlags::GLOBAL(), PageTableFlags::GLOBAL()) == if flag & PrivilegedPageFlags::GLOBAL().bits() == 0 {0} else{ PageTableFlags::GLOBAL().bits()} <= usize::MAX,
++    {
++        lemma_parse_flag_user_inverted(flag);
++        lemma_parse_flag_global_inverted(flag);
++    }
++
++}
++
++declare_parse_flag_const!(
++    lemma_parse_flag_present,
++    PageTableFlags::PRESENT(),
++    0b00000001,
++    0,
++    usize,
++    PageFlags::R(),
++    0b00000001,
++    0,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_present_inverted,
++    PageFlags::R(),
++    0b00000001,
++    0,
++    u8,
++    PageTableFlags::PRESENT(),
++    0b00000001,
++    0,
++    usize
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_writable,
++    PageTableFlags::WRITABLE(),
++    0b00000010,
++    1,
++    usize,
++    PageFlags::W(),
++    0b00000010,
++    1,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_writable_inverted,
++    PageFlags::W(),
++    0b00000010,
++    1,
++    u8,
++    PageTableFlags::WRITABLE(),
++    0b00000010,
++    1,
++    usize
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_accessed,
++    PageTableFlags::ACCESSED(),
++    0b00100000,
++    5,
++    usize,
++    PageFlags::ACCESSED(),
++    0b00001000,
++    3,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_accessed_inverted,
++    PageFlags::ACCESSED(),
++    0b00001000,
++    3,
++    u8,
++    PageTableFlags::ACCESSED(),
++    0b00100000,
++    5,
++    usize
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_dirty,
++    PageTableFlags::DIRTY(),
++    0b01000000,
++    6,
++    usize,
++    PageFlags::DIRTY(),
++    0b00010000,
++    4,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_dirty_inverted,
++    PageFlags::DIRTY(),
++    0b00010000,
++    4,
++    u8,
++    PageTableFlags::DIRTY(),
++    0b01000000,
++    6,
++    usize
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_user,
++    PageTableFlags::USER(),
++    0b00000100,
++    2,
++    usize,
++    PrivilegedPageFlags::USER(),
++    0b00000001,
++    0,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_user_inverted,
++    PrivilegedPageFlags::USER(),
++    0b00000001,
++    0,
++    u8,
++    PageTableFlags::USER(),
++    0b00000100,
++    2,
++    usize
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_global,
++    PageTableFlags::GLOBAL(),
++    0b00000001_00000000,
++    8,
++    usize,
++    PrivilegedPageFlags::GLOBAL(),
++    0b00000010,
++    1,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_global_inverted,
++    PrivilegedPageFlags::GLOBAL(),
++    0b00000010,
++    1,
++    u8,
++    PageTableFlags::GLOBAL(),
++    0b00000001_00000000,
++    8,
++    usize
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_no_execute,
++    PageTableFlags::NO_EXECUTE(),
++    1usize << 63,
++    63,
++    usize,
++    PageFlags::X(),
++    0b00000100,
++    2,
++    u8
++);
++
++declare_parse_flag_const!(
++    lemma_parse_flag_no_execute_inverted,
++    PageFlags::X(),
++    0b00000100,
++    2,
++    u8,
++    PageTableFlags::NO_EXECUTE(),
++    1usize << 63,
++    63,
++    usize
++);
+diff --git a/lock-protocol/src/exec/rw/pte/page_table_flags.rs b/lock-protocol/src/exec/rw/pte/page_table_flags.rs
+index edde6d0e7be2f060ec8d0aae5b5e3da02fd0944a..0270c0d16dff6643eb97d451271545fff87a8363 100644
+--- a/lock-protocol/src/exec/rw/pte/page_table_flags.rs
++++ b/lock-protocol/src/exec/rw/pte/page_table_flags.rs
+@@ -1,150 +1,197 @@
++use vstd::arithmetic::power2::{lemma2_to64, lemma2_to64_rest};
+ use vstd::prelude::*;
++use vstd::arithmetic::{
++    power2::pow2,
++    logarithm::{log, lemma_log_pow},
++};
+ 
+ verus! {
+-
+-pub struct PageTableFlags { }
++#[verifier::ext_equal]
++#[repr(transparent)]
++#[derive(Copy, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
++pub struct PageTableFlags{
++    pub bits: usize,
++}
+ 
+ #[allow(non_snake_case)]
+ impl PageTableFlags {
+ 
++    #[verifier::inline]
++    pub open spec fn bits_spec(&self) -> usize {
++        self.bits
++    }
++
++    #[inline(always)]
++    #[verifier::when_used_as_spec(bits_spec)]
++    pub const fn bits(&self) -> usize
++        returns self.bits_spec()
++    {
++        self.bits
++    }
++
++    #[inline(always)]
++    #[verifier::when_used_as_spec(bits_spec)]
++    #[deprecated(note = "Use `bits()` instead. It is now aligned with asterinas")]
++    pub const fn value(&self) -> usize
++        returns self.bits_spec()
++    {
++        self.bits
++    }
++
+     /// Specifies whether the mapped frame or page table is loaded in memory.
+     #[verifier::inline]
+-    pub open spec fn PRESENT_spec() -> usize {
+-        0b00000001
++    pub open spec fn PRESENT_spec() -> Self {
++        Self { bits: 0b00000001 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(PRESENT_spec)]
+-    pub const fn PRESENT() -> (res: usize)
+-        ensures res == Self::PRESENT_spec()
++    pub const fn PRESENT() -> Self
++        returns Self::PRESENT_spec()
+     {
+-        0b00000001
++        Self { bits: 0b00000001 }
+     }
+ 
+     /// Controls whether writes to the mapped frames are allowed.
+     #[verifier::inline]
+-    pub open spec fn WRITABLE_spec() -> usize {
+-        0b00000010
++    pub open spec fn WRITABLE_spec() -> Self {
++        Self { bits: 0b00000010 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(WRITABLE_spec)]
+-    pub const fn WRITABLE() -> (res: usize)
+-        ensures res == Self::WRITABLE_spec()
++    pub const fn WRITABLE() -> Self
++        returns Self::WRITABLE_spec()
+     {
+-        0b00000010
++        Self { bits: 0b00000010 }
+     }
+ 
+     /// Controls whether accesses from userspace (i.e. ring 3) are permitted.
+     #[verifier::inline]
+-    pub open spec fn USER_spec() -> usize {
+-        0b00000100
++    pub open spec fn USER_spec() -> Self {
++        Self { bits: 0b00000100 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(USER_spec)]
+-    pub const fn USER() -> (res: usize)
+-        ensures res == Self::USER_spec()
++    pub const fn USER() -> Self
++        returns Self::USER_spec()
+     {
+-        0b00000100
++        Self { bits: 0b00000100 }
+     }
+ 
+     /// If this bit is set, a “write-through” policy is used for the cache, else a “write-back” policy is used.
+     #[verifier::inline]
+-    pub open spec fn WRITE_THROUGH_spec() -> usize {
+-        0b00001000
++    pub open spec fn WRITE_THROUGH_spec() -> Self {
++        Self { bits: 0b00001000 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(WRITE_THROUGH_spec)]
+-    pub const fn WRITE_THROUGH() -> (res: usize)
+-        ensures res == Self::WRITE_THROUGH_spec()
++    pub const fn WRITE_THROUGH() -> Self
++        returns Self::WRITE_THROUGH_spec()
+     {
+-        0b00001000
++        Self { bits: 0b00001000 }
+     }
+ 
+     /// Disables caching for the pointed entry if cacheable.
+     #[verifier::inline]
+-    pub open spec fn NO_CACHE_spec() -> usize {
+-        0b00010000
++    pub open spec fn NO_CACHE_spec() -> Self {
++        Self { bits: 0b00010000 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(NO_CACHE_spec)]
+-    pub const fn NO_CACHE() -> (res: usize)
+-        ensures res == Self::NO_CACHE_spec()
++    pub const fn NO_CACHE() -> Self
++        returns Self::NO_CACHE_spec()
+     {
+-        0b00010000
++        Self { bits: 0b00010000 }
+     }
+ 
+     /// Whether this entry has been used for linear-address translation.
+     #[verifier::inline]
+-    pub open spec fn ACCESSED_spec() -> usize {
+-        0b00100000
++    pub open spec fn ACCESSED_spec() -> Self {
++        Self { bits: 0b00100000 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(ACCESSED_spec)]
+-    pub const fn ACCESSED() -> (res: usize)
+-        ensures res == Self::ACCESSED_spec()
++    pub const fn ACCESSED() -> Self
++        returns Self::ACCESSED_spec()
+     {
+-        0b00100000
++        Self { bits: 0b00100000 }
+     }
+ 
+     /// Whether the memory area represented by this entry is modified.
+     #[verifier::inline]
+-    pub open spec fn DIRTY_spec() -> usize {
+-        0b01000000
++    pub open spec fn DIRTY_spec() -> Self {
++        Self { bits: 0b01000000 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(DIRTY_spec)]
+-    pub const fn DIRTY() -> (res: usize)
+-        ensures res == Self::DIRTY_spec()
++    pub const fn DIRTY() -> Self
++        returns Self::DIRTY_spec()
+     {
+-        0b01000000
++        Self { bits: 0b01000000 }
+     }
+ 
+     /// Only in the non-starting and non-ending levels, indication of huge page.
+     #[verifier::inline]
+-    pub open spec fn HUGE_spec() -> usize {
+-        0b10000000
++    pub open spec fn HUGE_spec() -> Self {
++        Self { bits: 0b10000000 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(HUGE_spec)]
+-    pub const fn HUGE() -> (res: usize)
+-        ensures res == Self::HUGE_spec()
++    pub const fn HUGE() -> Self
++        returns Self::HUGE_spec()
+     {
+-        0b10000000
++        Self { bits: 0b10000000 }
+     }
+ 
+     /// Indicates that the mapping is present in all address spaces, so it isn't flushed from the TLB on an address space switch.
+     #[verifier::inline]
+-    pub open spec fn GLOBAL_spec() -> usize {
+-        0b00000001_00000000
++    pub open spec fn GLOBAL_spec() -> Self {
++        Self { bits: 0b00000001_00000000 }
+     }
+ 
+     #[inline(always)]
+     #[verifier::when_used_as_spec(GLOBAL_spec)]
+-    pub const fn GLOBAL() -> (res: usize)
+-        ensures res == Self::GLOBAL_spec()
++    pub const fn GLOBAL() -> Self
++        returns Self::GLOBAL_spec()
+     {
+-        0b00000001_00000000
++        Self { bits: 0b00000001_00000000 }
+     }
+ 
+     #[verifier::inline]
+-    pub open spec fn NO_EXECUTE_spec() -> usize {
+-        1usize << 63
++    pub open spec fn NO_EXECUTE_spec() -> Self {
++        Self { bits: 1usize << 63 }
+     }
+ 
+     /// Forbid constute codes on the page. The NXE bits in EFER msr must be set.
+     #[inline(always)]
+     #[verifier::when_used_as_spec(NO_EXECUTE_spec)]
+-    pub const fn NO_EXECUTE() -> (res: usize)
+-        ensures res == Self::NO_EXECUTE_spec()
++    pub const fn NO_EXECUTE() -> Self
++        returns Self::NO_EXECUTE_spec()
++    {
++        Self { bits: 1usize << 63 }
++    }
++
++    #[verifier::external_body]
++    pub proof fn lemma_consts_properties()
++        ensures
++            Self::PRESENT().bits().ilog2() == 0,
++            Self::WRITABLE().bits().ilog2() == 1,
++            Self::USER().bits().ilog2() == 2,
++            Self::WRITE_THROUGH().bits().ilog2() == 3,
++            Self::NO_CACHE().bits().ilog2() == 4,
++            Self::ACCESSED().bits().ilog2() == 5,
++            Self::DIRTY().bits().ilog2() == 6,
++            Self::HUGE().bits().ilog2() == 7,
++            Self::GLOBAL().bits().ilog2() == 8,
++            Self::NO_EXECUTE().bits().ilog2() == 63,
+     {
+-        1usize << 63
+     }
+ 
+ }
+diff --git a/vstd_extra/src/array_ptr.rs b/vstd_extra/src/array_ptr.rs
+index 1a24798bdc9a9bc63d38ef9ad42f3a6787210538..c721788742fb090e4a4a3c33e1d3e69ec5074303 100644
+--- a/vstd_extra/src/array_ptr.rs
++++ b/vstd_extra/src/array_ptr.rs
+@@ -51,8 +51,7 @@ pub uninterp spec fn mem_contents_wrap<V, const N: usize>(
+     data: raw_ptr::MemContents<[V; N]>,
+ ) -> (res: [raw_ptr::MemContents<V>; N]);
+ 
+-#[verifier::external_body]
+-pub proof fn axiom_mem_contents_unwrap_init_correctness<V, const N: usize>(
++pub axiom fn axiom_mem_contents_unwrap_init_correctness<V, const N: usize>(
+     arr: [raw_ptr::MemContents<V>; N],
+     res: raw_ptr::MemContents<[V; N]>,
+ )
+@@ -62,12 +61,9 @@ pub proof fn axiom_mem_contents_unwrap_init_correctness<V, const N: usize>(
+     ensures
+         res.is_init(),
+         forall|index: int| 0 <= index < N ==> #[trigger] res.value()[index] == arr[index].value(),
+-{
+-    unimplemented!();
+-}
++;
+ 
+-#[verifier::external_body]
+-pub proof fn axiom_mem_contents_unwrap_uninit_correctness<V, const N: usize>(
++pub axiom fn axiom_mem_contents_unwrap_uninit_correctness<V, const N: usize>(
+     arr: [raw_ptr::MemContents<V>; N],
+     res: raw_ptr::MemContents<[V; N]>,
+ )
+@@ -76,12 +72,9 @@ pub proof fn axiom_mem_contents_unwrap_uninit_correctness<V, const N: usize>(
+         is_mem_contents_all_uninit(arr),
+     ensures
+         res.is_uninit(),
+-{
+-    unimplemented!();
+-}
++;
+ 
+-#[verifier::external_body]
+-pub proof fn axiom_mem_contents_wrap_correctness<V, const N: usize>(
++pub axiom fn axiom_mem_contents_wrap_correctness<V, const N: usize>(
+     data: raw_ptr::MemContents<[V; N]>,
+     res: [raw_ptr::MemContents<V>; N],
+ )
+@@ -91,9 +84,7 @@ pub proof fn axiom_mem_contents_wrap_correctness<V, const N: usize>(
+         data.is_uninit() ==> is_mem_contents_all_uninit(res),
+         data.is_init() ==> is_mem_contents_all_init(res) && forall|index: int|
+             0 <= index < N ==> #[trigger] res[index].value() == data.value()[index],
+-{
+-    unimplemented!();
+-}
++;
+ 
+ impl<V, const N: usize> PointsToArrayData<V, N> {
+     #[verifier::external_body]

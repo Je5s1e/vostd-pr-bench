@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-17-30beab687be4",
+  "pr_number": 17,
+  "title": "Add FVT13",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/17",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "8aef3158911833cbac4f68641a0b6422a5f5b565",
+  "head_sha": "30beab687be4ef3f015eccb524cf0591ef3e4ff1",
+  "base_method": "git merge-base(archived PR base 8aef3158911833cbac4f68641a0b6422a5f5b565, selected problem commit 30beab687be4ef3f015eccb524cf0591ef3e4ff1) = 8aef3158911833cbac4f68641a0b6422a5f5b565; official parent chain verified",
+  "archive_base_sha": "8aef3158911833cbac4f68641a0b6422a5f5b565",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "Makefile",
+    "fvt13-vmspace-unmap-safety/Cargo.toml",
+    "fvt13-vmspace-unmap-safety/src/common.rs",
+    "fvt13-vmspace-unmap-safety/src/lib.rs",
+    "fvt13-vmspace-unmap-safety/src/rwlock/mod.rs",
+    "fvt13-vmspace-unmap-safety/src/spin/exec.rs",
+    "fvt13-vmspace-unmap-safety/src/spin/mod.rs",
+    "fvt13-vmspace-unmap-safety/src/spin/spec.rs",
+    "fvt13-vmspace-unmap-safety/src/tlb/cpu_local_queue/mod.rs",
+    "fvt13-vmspace-unmap-safety/src/tlb/cpu_local_queue/model.rs",
+    "fvt13-vmspace-unmap-safety/src/tlb/local_queue.rs",
+    "fvt13-vmspace-unmap-safety/src/tlb/mod.rs",
+    "fvt13-vmspace-unmap-safety/src/tlb/model.rs"
+  ],
+  "diff_sha256": "bad84232cf170911659c916a666999e5dec599c5638d30a7b61acace353d031f",
+  "versions": {
+    "before": {
+      "commit": "8aef3158911833cbac4f68641a0b6422a5f5b565",
+      "file_count": 3,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "30beab687be4ef3f015eccb524cf0591ef3e4ff1",
+      "file_count": 15,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T10:04:22.246522+00:00",
+    "reviewed_at": "2026-11-19T10:13:53Z",
+    "upstream_updated_at": "2025-08-01T10:26:16Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/17",
+      "https://github.com/asterinas/vostd/commit/30beab687be4ef3f015eccb524cf0591ef3e4ff1",
+      "https://github.com/asterinas/vostd/commit/cd964908bc10022ac3f96531dd40ba2af8d40f0c"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00017"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "First official PR commit that introduces FVT13 and precedes the immediate loop-termination annotation repair.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Primary and independent second review reproduced two missing-decreases diagnostics with Verus 9e262800af8757047b179a36ca655863bc76d005, Rust 1.82.0, and Z3 4.12.5; the immediate repair reports 23 verified, 0 errors."
+  },
+  "additional_context_paths": []
+}

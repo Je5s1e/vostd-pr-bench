@@ -7,12 +7,12 @@
       "id": "pr-646-5053290d119e:issue-3600750301",
       "original_label_id": "3600750301",
       "category": "guideline",
-      "description": "Do we need this broadcast use? It is already included in the `broadcast use group_ghost_tree_lemmas` at the beginning of the file.",
+      "description": "The local broadcast block repeats three TreePath facts already activated by the module-level group_ghost_tree_lemmas.",
       "locations": [
         {
           "version": "after",
           "path": "ostd/specs/mm/page_table/owners.rs",
-          "start_line": 121,
+          "start_line": 117,
           "end_line": 121
         }
       ],

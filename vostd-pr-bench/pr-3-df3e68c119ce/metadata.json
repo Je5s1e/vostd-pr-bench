@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-3-df3e68c119ce",
+  "pr_number": 3,
+  "title": "1.82.0",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/3",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "2a21b0cfae3e2ae4f31e4290b385a615895c2e3a",
+  "head_sha": "df3e68c119ce05e4d10f03f617ff218ed7f62346",
+  "base_method": "direct parent of selected problem commit df3e68c119ce05e4d10f03f617ff218ed7f62346 is 2a21b0cfae3e2ae4f31e4290b385a615895c2e3a; official fixed parent chain verified",
+  "archive_base_sha": "b26c84244f13106e70fc620dd174d465651f3147",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "aster_common/src/page_table/page_table_mode.rs",
+    "vstd_extra/src/ghost_tree.rs"
+  ],
+  "diff_sha256": "3b0226c93fd3b7b194c0048e4c92be9adbec9314552d5c97188f4826515a37a0",
+  "versions": {
+    "before": {
+      "commit": "2a21b0cfae3e2ae4f31e4290b385a615895c2e3a",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "df3e68c119ce05e4d10f03f617ff218ed7f62346",
+      "file_count": 2,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T10:38:07.895178+00:00",
+    "reviewed_at": "2026-11-19T10:33:06Z",
+    "upstream_updated_at": "2025-11-25T03:02:20Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/3",
+      "https://github.com/asterinas/vostd/commit/df3e68c119ce05e4d10f03f617ff218ed7f62346",
+      "https://github.com/asterinas/vostd/commit/6772140e630958cdf11c69b063fdd9efad49e8c6",
+      "https://github.com/asterinas/vostd/commit/a134cdfe1b8724b437d49c6a74518834c5de25a3"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00003"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": true,
+    "snapshot_selection": "Direct commit introducing the two temporary external_body boundaries, compared with its fixed parent.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Primary and independent second review confirmed one semantic trusted-boundary issue. Controlled historical runs reproduce each hidden postcondition failure; later official history checks the ghost proof and removes the covers API."
+  },
+  "additional_context_paths": []
+}

@@ -16,7 +16,7 @@
     "verified_libs/vstd_extra/src/resource/mod.rs",
     "verified_libs/vstd_extra/src/resource/range.rs"
   ],
-  "diff_sha256": "9fad956ec82425edbd29b63ba438099668b5f932c3ea3c3b2a8e987df59a89b9",
+  "diff_sha256": "1a77eeefd951d6661159993bf05afb524d47c4f36a31b991af9c8ec863b54b47",
   "versions": {
     "before": {
       "commit": "bd9a25ddace74af5b0529f3ed4d005fe0bd1705d",
@@ -49,5 +49,17 @@
       ]
     }
   },
-  "known_issue_count": 3
+  "known_issue_count": 3,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "9d1b88dd7b02cbe0be5e3cf02c630a8ff2b006ed",
+        "path": "docs/coding-guidelines/proof-engineering.md",
+        "url": "https://github.com/asterinas/vostd/blob/9d1b88dd7b02cbe0be5e3cf02c630a8ff2b006ed/docs/coding-guidelines/proof-engineering.md#L166",
+        "rule_id": "canonical-spec-models",
+        "line": 166,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

@@ -1,0 +1,137 @@
+diff --git a/verus.code-workspace b/verus.code-workspace
+index 67f191b738edad8afd3481be0468776e5eb14b80..9e02a7b4e082cd39dbb2c50f11ea2dc7937048c5 100644
+--- a/verus.code-workspace
++++ b/verus.code-workspace
+@@ -8,15 +8,5 @@
+         "[rust]": {
+             "editor.tabSize": 2,
+         },
+-        "rust-analyzer.server.path": "${workspaceFolder}/tools/verus-analyzer/dist/verus-analyzer-aarch64-apple-darwin",
+-        "rust-analyzer.server.extraEnv": {
+-            "VERUS_BINARY_PATH": "${workspaceFolder}/tools/verus/source/target-verus/release/verus",
+-            "TMPDIR": "/tmp/.verus",
+-            "VERUS_FMT_BINARY_PATH": "~/.cargo/bin/verusfmt",
+-        },
+-        "rust-analyzer.checkOnSave": false,
+-        "rust-analyzer.check.overrideCommand": [
+-            "${workspaceFolder}/tools/verus/source/target-verus/release/verus",
+-        ]
+     },
+ }
+\ No newline at end of file
+diff --git a/xtask/src/main.rs b/xtask/src/main.rs
+index 9028ae7f7da7aaafa4a7abec09fac97b42e0a9c9..df01759a7c1a54d534d3b594e96e5a791a4a07e7 100644
+--- a/xtask/src/main.rs
++++ b/xtask/src/main.rs
+@@ -208,9 +208,6 @@ enum Commands {
+ 
+ #[derive(Parser, Debug)]
+ struct BootstrapArgs {
+-    /*#[arg(long = "no-vscode-extension", help = "Do not build verus vscode extension",
+-        default_value = "false", action = ArgAction::SetTrue)]
+-    no_vscode_extension: bool,*/
+     #[arg(long = "restart", help = "Remove all toolchain and restart the bootstrap",
+         default_value = "false", action = ArgAction::SetTrue)]
+     restart: bool,
+@@ -742,90 +739,6 @@ fn apply_patch(dir: &Path, patch: &Path) -> bool {
+     status.success()
+ }
+ 
+-#[allow(dead_code)]
+-// Not required because verus-analyzer now can be found in VsCode extension marketplace
+-fn build_vscode_extension(args: &BootstrapArgs) -> Result<(), DynError> {
+-    let verus_analyzer_repo = "https://github.com/asterinas/verus-analyzer.git";
+-    let verus_analyzer_dir = Path::new("tools").join("verus-analyzer");
+-
+-    if args.restart && verus_analyzer_dir.exists() {
+-        std::fs::remove_dir_all(&verus_analyzer_dir)?;
+-    }
+-
+-    if !verus_analyzer_dir.exists() {
+-        println!(
+-            "Start to clone the Verus Analyzer repository to {}",
+-            verus_analyzer_dir.display()
+-        );
+-        let res = Repository::clone(verus_analyzer_repo, &verus_analyzer_dir);
+-        if res.is_err() {
+-            eprintln!("Failed to clone the Verus Analyzer repository. Please try to manually clone it to {} and run
+-      `cargo xtask bootstrap` again", verus_analyzer_dir.display());
+-            std::process::exit(1);
+-        }
+-    }
+-
+-    /*let verus_analyzer_patch = Path::new("..")
+-        .join("patches")
+-        .join("verus-analyzer-fixes.patch");
+-    if !is_patch_applied(&verus_analyzer_dir, &verus_analyzer_patch) {
+-        println!("Apply the Verus Analyzer patch");
+-        apply_patch(&verus_analyzer_dir, &verus_analyzer_patch);
+-    }*/
+-
+-    println!("Start to build the Verus Analyzer");
+-    #[cfg(target_os = "windows")]
+-    {
+-        let cmd = &mut Command::new("cmd");
+-        cmd.current_dir(&verus_analyzer_dir)
+-            .env_remove("RUSTUP_TOOLCHAIN")
+-            .arg("/c")
+-            .arg("cargo xtask dist");
+-        println!("{:?}", cmd);
+-        cmd.status()?;
+-    }
+-    #[cfg(not(target_os = "windows"))]
+-    {
+-        let cmd = &mut Command::new("bash");
+-        cmd.current_dir(&verus_analyzer_dir)
+-            .env_remove("RUSTUP_TOOLCHAIN")
+-            .arg("-c")
+-            .arg("cargo xtask dist");
+-        println!("{:?}", cmd);
+-        cmd.status()?;
+-    }
+-
+-    println!("Prepare the Verus Analyzer binary");
+-    #[cfg(target_os = "windows")]
+-    {
+-        Command::new("pwsh")
+-    .current_dir(&verus_analyzer_dir)
+-    .arg("-Command")
+-    .arg(format!(
+-        "Get-ChildItem -Path './dist' -Filter 'verus-analyzer*.zip' | Expand-Archive -DestinationPath './dist' -Force"
+-    ))
+-    .status()?;
+-    }
+-    #[cfg(not(target_os = "windows"))]
+-    {
+-        Command::new("bash")
+-            .current_dir(&verus_analyzer_dir)
+-            .arg("-c")
+-            .arg("gunzip ./dist/verus-analyzer-*.gz && chmod u+x ./dist/verus-analyzer-*")
+-            .status()?;
+-    }
+-    let server = fs::read_dir(verus_analyzer_dir.join("dist"))
+-        .unwrap()
+-        .next()
+-        .unwrap()
+-        .unwrap()
+-        .path();
+-
+-    println!("Done LSP server: {:?}", server);
+-
+-    Ok(())
+-}
+-
+ fn is_verusfmt_installed() -> bool {
+     let output = Command::new("verusfmt").arg("--version").output();
+     match output {
+@@ -973,10 +886,6 @@ fn exec_bootstrap(args: &BootstrapArgs) -> Result<(), DynError> {
+ 
+     compile_verus()?;
+ 
+-    /*if !args.no_vscode_extension {
+-        build_vscode_extension(args)?;
+-    }*/
+-
+     if args.restart || !is_verusfmt_installed() {
+         install_verusfmt()?;
+     }

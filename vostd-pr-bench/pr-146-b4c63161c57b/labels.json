@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-146-b4c63161c57b",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "id": "pr-146-b4c63161c57b:commit-fix-6747158e33ae6c85efbe0f7485cb3e614d9a9e51-root-1",
+      "original_label_id": null,
+      "category": "semantic",
+      "description": "alloc_if_none assumes that a newly allocated page is fresh in the SPT frame map and then assumes the entire updated SubPageTable invariant.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "start_line": 434,
+          "end_line": 438
+        },
+        {
+          "version": "after",
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "start_line": 481,
+          "end_line": 485
+        }
+      ],
+      "rationale": "The function inserts a new child frame and permission into the SPT model, but the allocator contract at this revision does not guarantee that the returned address is absent from the old metadata/frame domains, and the raw permission value is inserted without the tracked ownership relation needed by SubPageTable::wf. The two assumptions therefore manufacture the freshness and global invariant required by the function's postconditions. Commit 6747158e strengthens PageTableNode::alloc with a non-membership guarantee and preservation facts, inserts the tracked permission, proves freshness, and replaces assume(spt.wf()) with assert(spt.wf()).",
+      "source_evidence": "after/lock-protocol/src/mm/page_table/node/entry.rs lines 434-438 assumes the new page address is absent from spt.frames; lines 481-485 insert the permission and assume the whole SPT invariant. Official repair 6747158e33ae6c85efbe0f7485cb3e614d9a9e51 adds allocator freshness/preservation guarantees, tracked-inserts the permission, and proves spt.wf().",
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/6747158e33ae6c85efbe0f7485cb3e614d9a9e51",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "6747158e33ae6c85efbe0f7485cb3e614d9a9e51:root-1",
+          "url": "https://github.com/asterinas/vostd/commit/6747158e33ae6c85efbe0f7485cb3e614d9a9e51",
+          "commit_id": "6747158e33ae6c85efbe0f7485cb3e614d9a9e51"
+        }
+      ],
+      "verification": "Fixed-source invariant/ownership analysis and direct official repair diff. Historical Verus was not executed."
+    }
+  ]
+}

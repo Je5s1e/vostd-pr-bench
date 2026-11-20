@@ -1,5 +1,5 @@
 diff --git a/ostd/src/boot/mod.rs b/ostd/src/boot/mod.rs
-index 96012a7ec..2fa506ad7 100644
+index 96012a7ec0b68b10bbdd927ef3a0f3aa1fa20240..2fa506ad7be1feceda050909d5b75a486ec2c313 100644
 --- a/ostd/src/boot/mod.rs
 +++ b/ostd/src/boot/mod.rs
 @@ -39,6 +39,7 @@ pub fn boot_info() -> &'static BootInfo {
@@ -11,7 +11,7 @@ index 96012a7ec..2fa506ad7 100644
  ///
  /// The boot crate can choose either providing the raw RSDP physical address or
 diff --git a/ostd/src/mm/frame/allocator.rs b/ostd/src/mm/frame/allocator.rs
-index f4af3c832..f903e8356 100644
+index f4af3c83259d59eded865587c66d66db38ae7ba3..f903e835627323dcd890ce1f76823efc8b3b808f 100644
 --- a/ostd/src/mm/frame/allocator.rs
 +++ b/ostd/src/mm/frame/allocator.rs
 @@ -1,8 +1,21 @@
@@ -355,7 +355,7 @@ index f4af3c832..f903e8356 100644
 -*/
 diff --git a/verified_libs/vstd_extra/src/external/layout.rs b/verified_libs/vstd_extra/src/external/layout.rs
 new file mode 100644
-index 000000000..1dcfbdda4
+index 0000000000000000000000000000000000000000..1dcfbdda4703f17a0d7edbfcc3145c98339ccd7b
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/external/layout.rs
 @@ -0,0 +1,45 @@
@@ -405,7 +405,7 @@ index 000000000..1dcfbdda4
 +
 +} // verus!
 diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
-index 34fb8f96d..038b0c372 100644
+index 34fb8f96defe3fcfcd0340bed79e151a942ab2e1..038b0c3729504c9735c4a9ecea5cdadf65a0597d 100644
 --- a/verified_libs/vstd_extra/src/external/mod.rs
 +++ b/verified_libs/vstd_extra/src/external/mod.rs
 @@ -11,6 +11,7 @@ pub mod deref;

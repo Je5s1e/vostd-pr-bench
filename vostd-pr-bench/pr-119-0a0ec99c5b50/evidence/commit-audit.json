@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "pr_number": 119,
+  "selected_base_sha": "618a49450d5d73ed3a590dd24e918929c14ac32a",
+  "selected_head_sha": "0a0ec99c5b505bd7511d73e9ac4572bd96c22311",
+  "repair_sha": "3c55e81c43d179b7179ed5ccde686f6446b49af5",
+  "repair_diff_sha256": "045a1d7924b2a6760f2d1f5b1057d147bd4b37ce31975415c98eb1ad53b06eb4",
+  "official_base_sha": "97ddf373036a33316d442c982db7bbaaaf40bc0e",
+  "official_commits": [
+    {"sha": "3c55e81c43d179b7179ed5ccde686f6446b49af5", "parents": ["97ddf373036a33316d442c982db7bbaaaf40bc0e"], "subject": "Fix wrong post condition"},
+    {"sha": "4dedf269b935a9ce8c8a76e6cb24dc0d78fa5588", "parents": ["3c55e81c43d179b7179ed5ccde686f6446b49af5"], "subject": "Still assume path_wf"}
+  ],
+  "review_scope": {
+    "changed_paths_reviewed": ["lock-protocol/src/mm/page_table/node/entry.rs"],
+    "checks": ["official commit order and parents", "problem/base tree and ownership boundary", "problem source lines", "repair diff", "unrepaired final-head trust boundary"]
+  },
+  "candidate_dispositions": [
+    {"candidate": "final-head assume(path_wf)", "disposition": "excluded", "rationale": "It has no later checked repair and is not folded into this commit-fix label."}
+  ],
+  "primary_review": {"reviewer": "/root/audit_pr_117_122", "reviewed_sha": "0a0ec99c5b505bd7511d73e9ac4572bd96c22311", "reviewed_at": "2026-11-20T09:57:33Z", "conclusion": "approve_one_semantic_issue", "evidence": "resource/work/commit-labels/119/candidate.json"},
+  "second_review": {"reviewer": "/root/audit_pr_143_147", "reviewed_sha": "0a0ec99c5b505bd7511d73e9ac4572bd96c22311", "reviewed_at": "2026-11-20T00:00:00Z", "conclusion": "approve_one_semantic_issue", "evidence": "resource/work/commit-labels/119/second-review.json"},
+  "historical_verus_executed": false,
+  "deduplication": "PR 117 head and PR 119 base have identical tree 5abff15a7c4916b6e1c61d4cd83ab16937520e94; PR 119 owns the unique repair."
+}

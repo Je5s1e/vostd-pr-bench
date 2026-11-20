@@ -1,0 +1,29 @@
+{
+  "official_history_note": "The selected problem commit descends from fe9835da. The archived base 1f849957 is the second parent of the later two-parent merge dd259c2; it is not used as the problem edge base.",
+  "repair_commits": [
+    "27231bec4b98f6c9d842390e7108e36e9001ff92"
+  ],
+  "excluded_candidates": [
+    {
+      "candidate": "Two map_extra admits removed by the repair commit",
+      "disposition": "excluded_preexisting_provenance",
+      "reason": "Both admits already exist in the direct comparison parent fe9835da."
+    }
+  ],
+  "schema_version": 1,
+  "pr_number": 182,
+  "sample_id": "pr-182-16d5d093ac90",
+  "problem_snapshot": "16d5d093ac90ba94baa5f82bb07f95b32657e29a",
+  "comparison_base": "fe9835da9d23028bd6f70181ed99d9eca466f147",
+  "primary_review": {
+    "reviewer": "/root/audit_pr_126_142",
+    "conclusion": "Confirmed one commit-fix semantic candidate in the generalized NodeHelper reconstruction lemma."
+  },
+  "second_review": {
+    "reviewer": "/root/audit_pr_117_122",
+    "reviewed_at": "2026-11-20T10:12:52Z",
+    "conclusion": "Approved the direct-parent chain, single root, repair attribution, merge-parent accounting, and exclusion of pre-existing map_extra admits."
+  },
+  "historical_verus_executed": false,
+  "exported_at": "2026-11-20T10:22:07.645969+00:00"
+}

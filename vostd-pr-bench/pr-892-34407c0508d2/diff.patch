@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/frame/frame_specs.rs b/ostd/specs/mm/frame/frame_specs.rs
-index ea411c299..be23da7a1 100644
+index ea411c299a13545e8e2aaea8df3b73b512dfab7b..be23da7a140b194fa3bd246431d78a7d997ca3e4 100644
 --- a/ostd/specs/mm/frame/frame_specs.rs
 +++ b/ostd/specs/mm/frame/frame_specs.rs
 @@ -1,9 +1,5 @@
@@ -65,7 +65,7 @@ index ea411c299..be23da7a1 100644
              #[cfg(verus_keep_ghost_body)]
              tracked_slot_perm: Tracked(slot_perm),
 diff --git a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
-index 2567a59a0..a23892114 100644
+index 2567a59a0575fea542dd9b11ad73e878119954f6..a23892114c000dd0da8cff45d3c2736b181ea535 100644
 --- a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
 +++ b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
 @@ -1,4 +1,4 @@
@@ -181,7 +181,7 @@ index 2567a59a0..a23892114 100644
              owner.index,
          ).addr() == self.current->0.addr()
 diff --git a/ostd/specs/mm/frame/meta_owners.rs b/ostd/specs/mm/frame/meta_owners.rs
-index aeed410a2..605519ce8 100644
+index aeed410a2df61490675f26fb1d4c553604cb63db..605519ce8b6e70ee3e080f2d92cb19275b3e51bb 100644
 --- a/ostd/specs/mm/frame/meta_owners.rs
 +++ b/ostd/specs/mm/frame/meta_owners.rs
 @@ -1,8 +1,9 @@
@@ -245,7 +245,7 @@ index aeed410a2..605519ce8 100644
          slot.storage.borrow_mut(Tracked(&mut metadata_perms.storage_perm)),
          Tracked(repr_perm),
 diff --git a/ostd/specs/mm/frame/meta_region_owners.rs b/ostd/specs/mm/frame/meta_region_owners.rs
-index 2b9ec0e2f..aafa1d0dc 100644
+index 2b9ec0e2f50882b9db76e461d0ad060ae445a208..aafa1d0dcb249fdfb785e5902c8efb9059ff0de7 100644
 --- a/ostd/specs/mm/frame/meta_region_owners.rs
 +++ b/ostd/specs/mm/frame/meta_region_owners.rs
 @@ -1,9 +1,5 @@
@@ -279,7 +279,7 @@ index 2b9ec0e2f..aafa1d0dc 100644
              valid_frame_paddr(paddr),
              self.inv(),
 diff --git a/ostd/specs/mm/frame/meta_specs.rs b/ostd/specs/mm/frame/meta_specs.rs
-index 5d956c013..aef12e790 100644
+index 5d956c013be44c3b99571b3ed8230de1d5b17d0c..aef12e790807ef5b55653fa47913668c145cd172 100644
 --- a/ostd/specs/mm/frame/meta_specs.rs
 +++ b/ostd/specs/mm/frame/meta_specs.rs
 @@ -1,5 +1,5 @@
@@ -309,7 +309,7 @@ index 5d956c013..aef12e790 100644
          &&& perm.addr() % META_SLOT_SIZE == 0
      }
 diff --git a/ostd/specs/mm/frame/unique.rs b/ostd/specs/mm/frame/unique.rs
-index c253e5611..16ce13d06 100644
+index c253e5611f79d6bcb8c86b8d978417aeb1baf26e..16ce13d06e8df0346057754c9decc956080b8d1a 100644
 --- a/ostd/specs/mm/frame/unique.rs
 +++ b/ostd/specs/mm/frame/unique.rs
 @@ -1,5 +1,5 @@
@@ -337,7 +337,7 @@ index c253e5611..16ce13d06 100644
      }
  }
 diff --git a/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs b/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs
-index 0142fd306..bda168591 100644
+index 0142fd30642fd8cf9d0305d966db8dea7d3fe279..bda16859135433b0c241531667d49fa0012332d4 100644
 --- a/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs
 +++ b/ostd/specs/mm/page_table/cursor/split_while_huge_lemmas.rs
 @@ -1,4 +1,4 @@
@@ -355,7 +355,7 @@ index 0142fd306..bda168591 100644
      }
  
 diff --git a/ostd/specs/mm/page_table/node/entry_owners.rs b/ostd/specs/mm/page_table/node/entry_owners.rs
-index dff887296..1fe4e7cb0 100644
+index dff887296c92906ca532ce438d92f6a6a50fa878..1fe4e7cb0db11b8ea63129fff3bb5c64fb15bcc0 100644
 --- a/ostd/specs/mm/page_table/node/entry_owners.rs
 +++ b/ostd/specs/mm/page_table/node/entry_owners.rs
 @@ -1,4 +1,4 @@
@@ -365,7 +365,7 @@ index dff887296..1fe4e7cb0 100644
  
  use crate::specs::{
 diff --git a/ostd/specs/mm/page_table/node/owners.rs b/ostd/specs/mm/page_table/node/owners.rs
-index f06c869c8..f3d2cbd60 100644
+index f06c869c8968e432d2d0777d8a8d11557d55995d..f3d2cbd6056979bfffe1817cfc1a0f33d6fff557 100644
 --- a/ostd/specs/mm/page_table/node/owners.rs
 +++ b/ostd/specs/mm/page_table/node/owners.rs
 @@ -2,7 +2,6 @@ use vstd::{
@@ -377,7 +377,7 @@ index f06c869c8..f3d2cbd60 100644
  use vstd_extra::{array_ptr, ownership::*};
  
 diff --git a/ostd/specs/mm/page_table/owners.rs b/ostd/specs/mm/page_table/owners.rs
-index 96f57af23..9322c9b7d 100644
+index 96f57af2308d366fd52e096b5d15d54f0a3487e3..9322c9b7dbb47590c2b9d88fa56d02423c30ac92 100644
 --- a/ostd/specs/mm/page_table/owners.rs
 +++ b/ostd/specs/mm/page_table/owners.rs
 @@ -601,6 +601,10 @@ impl<C: PageTableConfig> PageTableOwner<C> {
@@ -392,7 +392,7 @@ index 96f57af23..9322c9b7d 100644
  
      pub proof fn pt_inv_non_node(self, i: int)
 diff --git a/ostd/src/mm/frame/frame_ref.rs b/ostd/src/mm/frame/frame_ref.rs
-index 997962b71..5af6a5894 100644
+index 997962b7112d292dc19f05a388cda8e4f6e6fa37..5af6a58944a84fe9d314aff0d7cda0b30ea54b0f 100644
 --- a/ostd/src/mm/frame/frame_ref.rs
 +++ b/ostd/src/mm/frame/frame_ref.rs
 @@ -1,9 +1,10 @@
@@ -451,7 +451,7 @@ index 997962b71..5af6a5894 100644
              #[cfg(verus_keep_ghost_body)]
              tracked_slot_perm: Tracked(permission.slot_perm),
 diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
-index f7ad76591..de6daf359 100644
+index f7ad76591aae393553f9a918cc4a79e66b789923..de6daf359f544abba2ed6f9f6707da126a116d97 100644
 --- a/ostd/src/mm/frame/linked_list.rs
 +++ b/ostd/src/mm/frame/linked_list.rs
 @@ -3,7 +3,7 @@
@@ -473,7 +473,7 @@ index f7ad76591..de6daf359 100644
                  &&& regions.slot_owners[i].metadata_perm.is_resource_vacant()
                  &&& owner.list_own.metadata_perms[np].storage_perm.id()
 diff --git a/ostd/src/mm/frame/meta.rs b/ostd/src/mm/frame/meta.rs
-index 08ddf8113..a7aeea45b 100644
+index 08ddf81132daa15a4229a6f743c356701e601681..a7aeea45b4071dc0f978feb18161147a3ea4d9a5 100644
 --- a/ostd/src/mm/frame/meta.rs
 +++ b/ostd/src/mm/frame/meta.rs
 @@ -80,13 +80,14 @@ use vstd::{
@@ -602,7 +602,7 @@ index 08ddf8113..a7aeea45b 100644
              perm.value() == self,
              Self::frame_paddr_safety_cond(*perm),
 diff --git a/ostd/src/mm/frame/mod.rs b/ostd/src/mm/frame/mod.rs
-index 9a19c4ba2..70deafdb8 100644
+index 9a19c4ba2c04c08c66591e580d95815e63e2c412..70deafdb88a1ab7d6fdfd84edc7d5a88e19c72ba 100644
 --- a/ostd/src/mm/frame/mod.rs
 +++ b/ostd/src/mm/frame/mod.rs
 @@ -30,14 +30,15 @@
@@ -697,7 +697,7 @@ index 9a19c4ba2..70deafdb8 100644
          // the same runtime layout (thin pointer + ZST phantom).
          unsafe { core::mem::transmute(self) }
 diff --git a/ostd/src/mm/frame/segment.rs b/ostd/src/mm/frame/segment.rs
-index f46fc6d32..cf74cda63 100644
+index f46fc6d32a0a13947f8ae4e36580c576d21fd36a..cf74cda638a88b64db44adbde97c7da2c9ff4654 100644
 --- a/ostd/src/mm/frame/segment.rs
 +++ b/ostd/src/mm/frame/segment.rs
 @@ -2,13 +2,14 @@
@@ -727,7 +727,7 @@ index f46fc6d32..cf74cda63 100644
      }
  }
 diff --git a/ostd/src/mm/frame/unique.rs b/ostd/src/mm/frame/unique.rs
-index 05d8d880c..57a2e6081 100644
+index 05d8d880c1f7b9f3e4ba00e8756d7d4ca9d76104..57a2e6081261a0d50fc41ec6ec4662f975aadff4 100644
 --- a/ostd/src/mm/frame/unique.rs
 +++ b/ostd/src/mm/frame/unique.rs
 @@ -1,10 +1,12 @@
@@ -789,7 +789,7 @@ index 05d8d880c..57a2e6081 100644
  }
  
 diff --git a/ostd/src/mm/io.rs b/ostd/src/mm/io.rs
-index b81379524..2c5277f90 100644
+index b81379524024ad867c8d75c53e2ec90e2b239e65..2c5277f901bb8b96f6af16f86cddbbbac1399972 100644
 --- a/ostd/src/mm/io.rs
 +++ b/ostd/src/mm/io.rs
 @@ -38,7 +38,7 @@
@@ -802,7 +802,7 @@ index b81379524..2c5277f90 100644
  
  pub use crate::specs::mm::io::{
 diff --git a/ostd/src/mm/kspace/mod.rs b/ostd/src/mm/kspace/mod.rs
-index 2f784596a..8ed7f2fdd 100644
+index 2f784596accb1683b45abec7b0e3959966e88bdf..8ed7f2fdda6bca0ae2e595c02bca29cca4b1f552 100644
 --- a/ostd/src/mm/kspace/mod.rs
 +++ b/ostd/src/mm/kspace/mod.rs
 @@ -32,7 +32,7 @@
@@ -824,7 +824,7 @@ index 2f784596a..8ed7f2fdd 100644
                      #[cfg(verus_keep_ghost_body)]
                      tracked_slot_perm: Tracked((perm@->0).slot_perm),
 diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
-index 3c1186875..d3780b5e7 100644
+index 3c1186875518b1183c9dae515c31197a7aaf5306..d3780b5e70171f9b2a8c55ca26e4dc27cf7a5fe2 100644
 --- a/ostd/src/mm/page_table/cursor/mod.rs
 +++ b/ostd/src/mm/page_table/cursor/mod.rs
 @@ -27,7 +27,7 @@
@@ -837,7 +837,7 @@ index 3c1186875..d3780b5e7 100644
      arithmetic::*, assert, assert_eq, drop_tracking::TrackDrop, ghost_tree::*, ownership::*,
      panic::*,
 diff --git a/ostd/src/mm/page_table/node/child.rs b/ostd/src/mm/page_table/node/child.rs
-index d597f0472..ef0808860 100644
+index d597f0472dda60c3eb36bb5933f4e3c120cbccb2..ef080886059e92f6b9afde17e342499d0160b540 100644
 --- a/ostd/src/mm/page_table/node/child.rs
 +++ b/ostd/src/mm/page_table/node/child.rs
 @@ -1,7 +1,7 @@
@@ -860,7 +860,7 @@ index d597f0472..ef0808860 100644
              };
  
 diff --git a/ostd/src/mm/page_table/node/mod.rs b/ostd/src/mm/page_table/node/mod.rs
-index 4e3007159..85702775a 100644
+index 4e300715934990444d4f6d4415d18db432fa10e9..85702775ab182240f5303680f66fc45177002d6e 100644
 --- a/ostd/src/mm/page_table/node/mod.rs
 +++ b/ostd/src/mm/page_table/node/mod.rs
 @@ -31,7 +31,7 @@ mod child_specs;
@@ -873,7 +873,7 @@ index 4e3007159..85702775a 100644
  
  pub use crate::specs::mm::page_table::node::{entry_owners::*, owners::*};
 diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
-index d9cb8f2bc..5e69d11e5 100644
+index d9cb8f2bc5f536c8bae57486ad8b70a267d47633..5e69d11e5aebe7a867e1192b25d93d957aeb261d 100644
 --- a/ostd/src/mm/vm_space.rs
 +++ b/ostd/src/mm/vm_space.rs
 @@ -1693,10 +1693,7 @@ unsafe impl PageTableConfig for UserPtConfig {
@@ -889,7 +889,7 @@ index d9cb8f2bc..5e69d11e5 100644
                  #[cfg(verus_keep_ghost_body)]
                  tracked_slot_perm: Tracked((perm@->0).slot_perm),
 diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
-index 3d732ed49..78def966d 100644
+index 3d732ed49d3ff3fd3cc4631b4c68d463ba2fe1c7..78def966d0588ce7435edef0fc8931f2300d1d7f 100644
 --- a/verified_libs/vstd_extra/src/lib.rs
 +++ b/verified_libs/vstd_extra/src/lib.rs
 @@ -40,6 +40,7 @@ pub mod map_extra;
@@ -902,7 +902,7 @@ index 3d732ed49..78def966d 100644
  pub mod rcu_read_lease;
 diff --git a/verified_libs/vstd_extra/src/raw_ptr.rs b/verified_libs/vstd_extra/src/raw_ptr.rs
 new file mode 100644
-index 000000000..546b69586
+index 0000000000000000000000000000000000000000..546b69586c408d518507cc1b7b29286599727a41
 --- /dev/null
 +++ b/verified_libs/vstd_extra/src/raw_ptr.rs
 @@ -0,0 +1,128 @@

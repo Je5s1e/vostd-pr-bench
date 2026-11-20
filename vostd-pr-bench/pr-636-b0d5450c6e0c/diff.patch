@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/page_table/cursor/va_lemmas.rs b/ostd/specs/mm/page_table/cursor/va_lemmas.rs
-index f875ef20e..03cdbcc25 100644
+index f875ef20e91bd90dfa39438119fe562b897555aa..03cdbcc256163c82a9a89650450a1f191fc07211 100644
 --- a/ostd/specs/mm/page_table/cursor/va_lemmas.rs
 +++ b/ostd/specs/mm/page_table/cursor/va_lemmas.rs
 @@ -187,6 +187,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
@@ -11,7 +11,7 @@ index f875ef20e..03cdbcc25 100644
          let ps = page_size(self.level as PagingLevel) as nat;
          let self_va = self.va.to_vaddr() as nat;
 diff --git a/ostd/specs/mm/page_table/node/entry_owners.rs b/ostd/specs/mm/page_table/node/entry_owners.rs
-index 9cc3272e9..9956d4648 100644
+index 9cc3272e94d8a9b868daf8d76e584f2dd2c17520..9956d46487b532dfce3f1cede008725f5d4ceaac 100644
 --- a/ostd/specs/mm/page_table/node/entry_owners.rs
 +++ b/ostd/specs/mm/page_table/node/entry_owners.rs
 @@ -262,9 +262,10 @@ impl<C: PageTableConfig> EntryOwner<C> {
@@ -57,7 +57,7 @@ index 9cc3272e9..9956d4648 100644
      pub open spec fn match_pte(self, pte: C::E, parent_level: PagingLevel) -> bool {
          &&& pte.paddr() % PAGE_SIZE == 0
 diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
-index a6b9e3ae2..8e37ed34c 100644
+index a6b9e3ae200091fab39e755ac5f8afe03ee319a0..8e37ed34c4035699534aa404e828cf40b93d99aa 100644
 --- a/ostd/src/mm/kspace/kvirt_area.rs
 +++ b/ostd/src/mm/kspace/kvirt_area.rs
 @@ -1017,7 +1017,7 @@ impl KVirtArea {

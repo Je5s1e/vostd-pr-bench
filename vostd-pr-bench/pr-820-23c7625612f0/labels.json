@@ -7,7 +7,7 @@
       "id": "pr-820-23c7625612f0:issue-4227846100",
       "original_label_id": "4227846100",
       "category": "guideline",
-      "description": "This lemma is not called",
+      "description": "The newly added lemma_nonempty_isa_overrides_without_timer proof helper has no caller.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
       "id": "pr-820-23c7625612f0:issue-4227853351",
       "original_label_id": "4227853351",
       "category": "guideline",
-      "description": "This is also not called",
+      "description": "The newly added lemma_empty_isa_overrides proof helper has no caller.",
       "locations": [
         {
           "version": "after",
@@ -55,7 +55,7 @@
       "id": "pr-820-23c7625612f0:issue-4227854716",
       "original_label_id": "4227854716",
       "category": "guideline",
-      "description": "same here",
+      "description": "The newly added lemma_isa_override_origin proof helper has no caller.",
       "locations": [
         {
           "version": "after",

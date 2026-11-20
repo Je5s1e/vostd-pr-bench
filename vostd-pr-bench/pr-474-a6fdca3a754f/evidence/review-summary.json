@@ -1,8 +1,0 @@
-{
-  "issue_comment_count": 7,
-  "inline_review_comment_count": 0,
-  "review_count": 0,
-  "core_lesson": "禁止抢占守卫的生命周期必须来自真实借用，而不是调用者任意指定",
-  "category": "所有权与生命周期",
-  "all_content_unadjudicated": true
-}

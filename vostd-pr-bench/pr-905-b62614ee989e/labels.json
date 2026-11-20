@@ -7,7 +7,7 @@
       "id": "pr-905-b62614ee989e:issue-4525099006",
       "original_label_id": "4525099006",
       "category": "guideline",
-      "description": "Actual diff removes unchanged-execution CPUID leaf-description/formula comments and rewrites them as new prose; no proof requires this rewrite. Historical reviewer explicitly asks preserving source comments. This is a localized scope/convention issue, not an executable behavioral bug.",
+      "description": "The proof migration rewrites existing CPUID leaf-description and frequency-formula comments instead of preserving the original source comments.",
       "locations": [
         {
           "version": "after",

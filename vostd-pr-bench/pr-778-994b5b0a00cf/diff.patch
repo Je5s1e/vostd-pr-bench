@@ -1,5 +1,5 @@
 diff --git a/ostd/specs/mm/frame/memory_region_specs.rs b/ostd/specs/mm/frame/memory_region_specs.rs
-index 42ac9a010..4f04a21d7 100644
+index 42ac9a01051d8d7c79762eb351c5cbdb6079e5ca..4f04a21d76ce7e812956c42d784699a27719ba8b 100644
 --- a/ostd/specs/mm/frame/memory_region_specs.rs
 +++ b/ostd/specs/mm/frame/memory_region_specs.rs
 @@ -1,7 +1,7 @@
@@ -74,7 +74,7 @@ index 42ac9a010..4f04a21d7 100644
  
  pub ghost struct MemoryRegionArrayModel<const LEN: usize> {
 diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
-index 3f88734e0..28836033c 100644
+index 3f88734e05bf9b71c19cc8468b5b49a7ba67f6b9..28836033ce528fd60796ecd3a8eb08a922106691 100644
 --- a/ostd/src/boot/memory_region.rs
 +++ b/ostd/src/boot/memory_region.rs
 @@ -9,7 +9,7 @@ use crate::specs::mm::frame::memory_region_specs::{MemRegionModel, MemoryRegionA

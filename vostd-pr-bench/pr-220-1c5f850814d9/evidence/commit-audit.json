@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "pr_number": 220,
+  "sample_id": "pr-220-1c5f850814d9",
+  "comparison_base_sha": "5b630c407019fb3c98bde1cec3766ffc13b771e1",
+  "problem_commit_sha": "1c5f850814d95ccfdddf217d9def5f5a67e595e1",
+  "repair_commit_sha": "cfcd9e87ed0da9aed525d3155885f1131c74733f",
+  "primary_reviewer": "/root/audit_pr_126_142",
+  "second_reviewer": "/root/audit_pr_117_122",
+  "second_review_verdict": "approved_complete_snapshot",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "Both shell if/then/else blocks lack fi in the problem snapshot; the direct child adds both missing terminators.",
+  "repair_diff": "repair.diff"
+}

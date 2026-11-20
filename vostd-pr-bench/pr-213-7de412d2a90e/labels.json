@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-213-7de412d2a90e",
+  "status": "incremental_source_adjudicated",
+  "issues": [
+    {
+      "category": "semantic",
+      "description": "The lock-freedom predicate existentially chooses one thread for the entire leads-to relation, so an out-of-set thread makes the property vacuously true even when a real thread waits forever.",
+      "locations": [
+        {
+          "version": "after",
+          "path": "specs/ostd/src/sync/abstract_lock.rs",
+          "start_line": 227,
+          "end_line": 235
+        }
+      ],
+      "rationale": "Tid is int and inv_unchanged fixes ProcSet to [0,n). Choose i=-1: in_ProcSet(i) is false at every suffix, so always(trying(i) implies eventually(any_cs)) holds vacuously. Thus the old existential predicate holds on every execution with that fixed process set, regardless of progress. A constant trace with ProcSet={0}, pc[0]=lock and no cs state satisfies the old predicate using i=-1, whereas the repaired predicate (exists i trying(i)) leads_to (exists j cs(j)) is false. This is a counterexample to the adequacy of the specification, not a claim that such a nonprogress trace satisfies the program transition/fairness assumptions. The bad formula was introduced by PR commit706e8dc268643ba8808b0621f497b24053fe640e (originally valid_tid) and survives at this pre-repair snapshot; the direct child moves the existential inside the antecedent.",
+      "source_evidence": "227: pub open spec fn dead_and_alive_lock_free() -> TempPred<ProgramState> {\n228:     tla_exists(\n229:         |i: Tid|\n230:             lift_state(|s: ProgramState| s.in_ProcSet(i) && s.trying(i)).leads_to(\n231:                 tla_exists(\n232:                     |j: Tid| lift_state(|s: ProgramState| s.in_ProcSet(j) && s.pc[j] == Label::cs),\n233:                 ),\n234:             ),\n235:     )",
+      "verification": "source-only; historical Verus not executed. Checked definitions, direct parent/repair diff and explicit counterexample. Official GitHub PR commit list fetched completely and both SHA memberships confirmed. Inspected leads_to = always(implies(eventually)), tla_exists, Tid, process-set invariant, and original introducing commit706e8dc. No executable deadlock claim.",
+      "id": "pr-213-7de412d2a90e:commit-fix-47017f8007f0ccfa8a56282d63ddb84e5c50495b-root-1",
+      "original_label_id": null,
+      "rule_ids": [],
+      "review_url": "https://github.com/asterinas/vostd/commit/47017f8007f0ccfa8a56282d63ddb84e5c50495b",
+      "related_comment_ids": [],
+      "sources": [
+        {
+          "kind": "commit_fix",
+          "id": "47017f8007f0ccfa8a56282d63ddb84e5c50495b:root-1",
+          "commit_id": "47017f8007f0ccfa8a56282d63ddb84e5c50495b",
+          "url": "https://github.com/asterinas/vostd/commit/47017f8007f0ccfa8a56282d63ddb84e5c50495b"
+        }
+      ]
+    }
+  ]
+}

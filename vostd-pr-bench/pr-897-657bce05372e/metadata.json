@@ -18,7 +18,7 @@
     "ostd/src/sync/rcu/non_null/either.rs",
     "ostd/src/sync/rcu/non_null/mod.rs"
   ],
-  "diff_sha256": "82a4da38b3ae6a4f91bfe7b996d53f4857dd3d25d747853189a37eb474ad011b",
+  "diff_sha256": "3848c3b1169d247f2da08fd23e0fa78c8f2e97320cbcb947b00b2a37d8362c6a",
   "versions": {
     "before": {
       "commit": "37f97540f041db2a2939d1883fab0823ed63534c",
@@ -51,5 +51,17 @@
       ]
     }
   },
-  "known_issue_count": 2
+  "known_issue_count": 2,
+  "collection": {
+    "guideline_sources": [
+      {
+        "commit": "657bce05372e51e7ffb032c9bf602d8978197eb8",
+        "path": "docs/coding-guidelines/maintainability.md",
+        "url": "https://github.com/asterinas/vostd/blob/657bce05372e51e7ffb032c9bf602d8978197eb8/docs/coding-guidelines/maintainability.md#L473",
+        "rule_id": "defer-auxiliary-proof-functions",
+        "line": 473,
+        "basis": "Rule marker and text read from the selected head Git object; contemporaneous to this snapshot."
+      }
+    ]
+  }
 }

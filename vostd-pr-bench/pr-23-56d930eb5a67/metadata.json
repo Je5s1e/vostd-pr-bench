@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "sample_id": "pr-23-56d930eb5a67",
+  "pr_number": 23,
+  "title": "Prove `rw_version::initialize_inductive`",
+  "title_source": "github_pr_metadata_at_collection",
+  "url": "https://github.com/asterinas/vostd/pull/23",
+  "repository": "https://github.com/asterinas/vostd",
+  "base_sha": "22bc36355c998fec697949c8be973519ee7574c2",
+  "head_sha": "56d930eb5a678d4faf918afc166e6eb5ce0b08b4",
+  "base_method": "git merge-base(archived PR base 22bc36355c998fec697949c8be973519ee7574c2, final official PR head 56d930eb5a678d4faf918afc166e6eb5ce0b08b4) = 22bc36355c998fec697949c8be973519ee7574c2; parent chain and fixed objects independently verified",
+  "archive_base_sha": "22bc36355c998fec697949c8be973519ee7574c2",
+  "source_scope": "Complete ostd/ when present at each historical commit, changed files outside ostd/, and root license/notice files. Changed submodules are expanded at their pinned commits.",
+  "changed_paths": [
+    "Cargo.lock",
+    "lock-protocol/Cargo.toml",
+    "lock-protocol/src/helpers/extra_num.rs",
+    "lock-protocol/src/helpers/mod.rs",
+    "lock-protocol/src/lib.rs",
+    "lock-protocol/src/mm/mod.rs",
+    "lock-protocol/src/mm/page_table/mod.rs",
+    "lock-protocol/src/spec/common.rs",
+    "lock-protocol/src/spec/utils.rs",
+    "lock-protocol/src/test/rw_version/spec/atomic.rs",
+    "lock-protocol/src/test/rw_version/spec/common.rs",
+    "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "vstd_extra/Cargo.toml",
+    "vstd_extra/src/array_ptr.rs",
+    "vstd_extra/src/ghost_tree.rs",
+    "vstd_extra/src/lib.rs",
+    "vstd_extra/src/manually_drop.rs",
+    "vstd_extra/src/prelude.rs",
+    "vstd_extra/src/seq_extra.rs",
+    "vstd_extra/src/set_extra.rs",
+    "xtask/src/main.rs"
+  ],
+  "diff_sha256": "1f8b641bdca51f5739921625579d5c7eaf7f0a8e626d12ee3b121f2f2872ccf1",
+  "versions": {
+    "before": {
+      "commit": "22bc36355c998fec697949c8be973519ee7574c2",
+      "file_count": 20,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    },
+    "after": {
+      "commit": "56d930eb5a678d4faf918afc166e6eb5ce0b08b4",
+      "file_count": 20,
+      "submodules": [],
+      "license_files": [],
+      "ostd_present": false
+    }
+  },
+  "known_issue_count": 1,
+  "verification_status": "incremental_source_adjudicated",
+  "archive_state": "MERGED",
+  "collection": {
+    "collected_at": "2026-11-19T09:40:42.752387+00:00",
+    "reviewed_at": "2026-11-19T09:37:47Z",
+    "upstream_updated_at": "2025-05-30T06:15:19Z",
+    "source_urls": [
+      "https://github.com/asterinas/vostd/pull/23",
+      "https://github.com/asterinas/vostd/commit/56d930eb5a678d4faf918afc166e6eb5ce0b08b4",
+      "https://github.com/asterinas/vostd/commit/11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0",
+      "https://github.com/asterinas/vostd/pull/127"
+    ],
+    "guideline_sources": [],
+    "source_snapshot_at": "2026-11-13T21:03:41.165953+00:00",
+    "source_archive_directory": "星绽-vostd-PR归档-20261114x/02_形式化验证PR_含diff/PR-00023"
+  },
+  "verification": {
+    "issues_adjudicated": true,
+    "historical_verus_executed": false,
+    "historical_windows_executed": false,
+    "snapshot_selection": "Final official PR head where the unconditional pwsh dependency was introduced; later official commit 11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0 fixes the failure with a powershell fallback.",
+    "source_export": "Fixed Git objects, blob hashes and written bytes checked; full-index binary diff regenerated.",
+    "adjudication": "Primary and independent second review confirmed one semantic commit-fix issue. The host is not Windows; the missing-executable failure is source-confirmed and corroborated by PR #127's author report and repair."
+  },
+  "additional_context_paths": []
+}

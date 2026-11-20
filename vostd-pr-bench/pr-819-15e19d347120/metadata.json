@@ -22,7 +22,7 @@
     "verified_libs/vstd_extra/src/external/ptr.rs",
     "verified_libs/vstd_extra/src/external/x86.rs"
   ],
-  "diff_sha256": "946bcd1f794d6cc8fcf2866f666f564e6d4ff266ec174f88eb67f7be20044dcf",
+  "diff_sha256": "6df5d97f235188617eeb4cb8a5aa09cb3ed26e0d4e248afa1316552e36b191df",
   "versions": {
     "before": {
       "commit": "7e53bd1223e5c3f958c863ad48dcb917cd8e9b3e",

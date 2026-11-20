@@ -1,0 +1,1021 @@
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index 15483cf591b658b2803d47256cad12a7e22f7166..1762c00fb8ab504771c1a632c2600f738875ed9e 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -529,7 +529,6 @@ impl NodeHelper {
+     pub proof fn lemma_nid_to_trace_rec_sound(nid: NodeId, cur_level: nat, cur_rt: NodeId)
+         requires
+             Self::valid_nid(nid),
+-            Self::valid_nid(cur_rt),
+             0 <= cur_level <= 3,
+             cur_rt < nid < cur_rt + Self::tree_size_spec(cur_level as int),
+         ensures
+@@ -632,9 +631,7 @@ impl NodeHelper {
+     pub proof fn lemma_trace_to_nid_rec_sound(trace: Seq<nat>, cur_rt: NodeId, cur_level: int)
+         requires
+             Self::valid_trace(trace),
+-            Self::valid_nid(cur_rt),
+             cur_rt + Self::tree_size_spec(cur_level) <= Self::total_size(),
+-            0 <= cur_level <= 3,
+             trace.len() <= cur_level,
+         ensures
+             cur_rt <= Self::trace_to_nid_rec(trace, cur_rt, cur_level) < cur_rt
+@@ -810,8 +807,6 @@ impl NodeHelper {
+ 
+     // Helper lemma: prove that the result length of nid_to_trace_rec does not exceed cur_level
+     proof fn lemma_trace_rec_len_le_level(nid: NodeId, cur_level: nat, cur_rt: NodeId)
+-        requires
+-            cur_level <= 3,
+         ensures
+             Self::nid_to_trace_rec(nid, cur_level, cur_rt).len() <= cur_level,
+         decreases cur_level,
+@@ -838,8 +833,6 @@ impl NodeHelper {
+ 
+     /// `nid_to_depth` correctly returns a depth of 3 or less.
+     pub proof fn lemma_nid_to_dep_le_3(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+         ensures
+             Self::nid_to_dep(nid) <= 3,
+     {
+@@ -857,8 +850,6 @@ impl NodeHelper {
+ 
+     /// The relation between nid_to_level and nid_to_dep.
+     pub proof fn lemma_level_dep_relation(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+         ensures
+             Self::nid_to_level(nid) == 4 - Self::nid_to_dep(nid),
+     {
+@@ -908,8 +899,6 @@ impl NodeHelper {
+ 
+     /// A node is in its own subtree.
+     pub proof fn lemma_in_subtree_self(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+         ensures
+             Self::in_subtree(nid, nid),
+     {
+@@ -918,8 +907,6 @@ impl NodeHelper {
+     /// A child is in the subtree of its parent.
+     pub proof fn lemma_is_child_implies_in_subtree(pa: NodeId, ch: NodeId)
+         requires
+-            Self::valid_nid(pa),
+-            Self::valid_nid(ch),
+             Self::is_child(pa, ch),
+         ensures
+             Self::in_subtree(pa, ch),
+@@ -1550,6 +1537,90 @@ impl NodeHelper {
+             Self::lemma_in_subtree_range_implies_in_subtree(rt, nd);
+         }
+     }
++
++    /// If `ch` is a child of `pa`, `ch` is in the subtree of `rt`, and `rt` is not equal to `ch`,
++    /// then `pa` is in the subtree of `rt`.
++    pub proof fn lemma_child_in_subtree_implies_in_subtree(rt: NodeId, pa: NodeId, ch: NodeId)
++        requires
++            Self::valid_nid(rt),
++            Self::valid_nid(ch),
++            Self::in_subtree(rt, ch),
++            Self::is_child(pa, ch),
++            rt != ch,
++        ensures
++            Self::in_subtree(rt, pa),
++    {
++        if (Self::nid_to_trace(ch).len() == Self::nid_to_trace(rt).len()) {
++            assert(Self::nid_to_trace(ch) =~= Self::nid_to_trace(rt));
++            Self::lemma_nid_to_trace_sound(ch);
++            Self::lemma_nid_to_trace_sound(rt);
++            assert(ch == rt);
++        }
++    }
++
++    /// The `in_subtree_range` version of `lemma_child_in_subtree_implies_in_subtree`.
++    pub proof fn lemma_child_in_subtree_range_implies_in_subtree_range(
++        rt: NodeId,
++        pa: NodeId,
++        ch: NodeId,
++    )
++        requires
++            Self::valid_nid(rt),
++            Self::valid_nid(pa),
++            Self::in_subtree_range(rt, ch),
++            Self::is_child(pa, ch),
++            rt != ch,
++        ensures
++            Self::in_subtree_range(rt, pa),
++    {
++        Self::lemma_in_subtree_iff_in_subtree_range(rt, ch);
++        Self::lemma_in_subtree_iff_in_subtree_range(rt, pa);
++        Self::lemma_child_in_subtree_implies_in_subtree(rt, pa, ch);
++    }
++
++    /// If `pa` is not in the subtree of `rt`, `ch` is a child of `pa`, and `rt` is not equal to `ch`,
++    /// then `ch` is not in the subtree of `rt`.
++    pub proof fn lemma_not_in_subtree_range_implies_child_not_in_subtree_range(
++        rt: NodeId,
++        pa: NodeId,
++        ch: NodeId,
++    )
++        requires
++            Self::valid_nid(rt),
++            Self::valid_nid(pa),
++            Self::is_child(pa, ch),
++            rt != ch,
++            !Self::in_subtree_range(rt, pa),
++        ensures
++            !Self::in_subtree_range(rt, ch),
++    {
++        if Self::in_subtree_range(rt, ch) {
++            Self::lemma_next_outside_subtree_bounded(rt);
++            Self::lemma_child_in_subtree_range_implies_in_subtree_range(rt, pa, ch);
++        }
++    }
++
++    /// If `pa` is in the subtree of `rt`, `ch` is a child of `pa`, then `ch` is in the subtree of `rt`.
++    pub proof fn lemma_in_subtree_is_child_in_subtree(rt: NodeId, nd: NodeId, ch: NodeId)
++        requires
++            Self::in_subtree(rt, nd),
++            Self::is_child(nd, ch),
++        ensures
++            Self::in_subtree(rt, ch),
++    {
++    }
++
++    /// If `pa` is the parent of `ch`, then `pa` is less than `ch`.
++    pub proof fn lemma_is_child_nid_increasing(pa: NodeId, ch: NodeId)
++        requires
++            Self::valid_nid(pa),
++            Self::is_child(pa, ch),
++        ensures
++            pa < ch,
++    {
++        Self::lemma_is_child_implies_in_subtree(pa, ch);
++        Self::lemma_in_subtree_iff_in_subtree_range(pa, ch);
++    }
+ }
+ 
+ } // verus!
+diff --git a/lock-protocol/src/test/rw_version/spec/common.rs b/lock-protocol/src/test/rw_version/spec/common.rs
+index 77c7ad68cf820a601846dfeae5bc9012bea56b73..ff2e74ec3ffe85b5df867d25d7e71ba842eb676c 100644
+--- a/lock-protocol/src/test/rw_version/spec/common.rs
++++ b/lock-protocol/src/test/rw_version/spec/common.rs
+@@ -3,7 +3,7 @@ use std::path;
+ use builtin::*;
+ use builtin_macros::*;
+ use vstd::{prelude::*, seq::*};
+-use vstd_extra::ghost_tree::Node;
++use vstd_extra::{ghost_tree::Node, seq_extra::forall_seq_values};
+ 
+ use crate::spec::utils::*;
+ 
+@@ -28,7 +28,7 @@ pub open spec fn wf_tree_path(path: Seq<NodeId>) -> bool {
+         &&& path[0] == NodeHelper::root_id()
+         &&& forall|i: int|
+             1 <= i < path.len() ==> NodeHelper::is_child(path[i - 1], #[trigger] path[i])
+-        &&& forall|i: int| 0 <= i < path.len() ==> #[trigger] NodeHelper::valid_nid(path[i])
++        &&& forall_seq_values(path, |nid| NodeHelper::valid_nid(nid))
+     }
+ }
+ 
+@@ -167,6 +167,50 @@ pub proof fn lemma_wf_tree_path_push_inversion(path: Seq<NodeId>, nid: NodeId)
+     }
+ }
+ 
++pub proof fn lemma_wf_tree_path_in_subtree_range(path: Seq<NodeId>)
++    requires
++        wf_tree_path(path),
++    ensures
++        forall|i: int, j: int|
++            #![trigger path[i],path[j]]
++            0 <= i <= j < path.len() ==> NodeHelper::in_subtree_range(path[i], path[j]),
++    decreases path.len(),
++{
++    if path.len() == 0 {
++    } else if path.len() == 1 {
++        NodeHelper::lemma_in_subtree_self(path[0]);
++        NodeHelper::lemma_in_subtree_iff_in_subtree_range(path[0], path[0]);
++    } else {
++        let last = path.last();
++        let rest = path.drop_last();
++        let rest_last = rest.last();
++        assert forall|i: int, j: int|
++            #![trigger path[i],path[j]]
++            0 <= i <= j < path.len() implies NodeHelper::in_subtree_range(path[i], path[j]) by {
++            lemma_wf_tree_path_in_subtree_range(rest);
++            if j < rest.len() {
++                assert(path[i] == rest[i]);
++                assert(path[j] == rest[j]);
++            } else {
++                assert(path[j] == last);
++                if (i == j) {
++                    NodeHelper::lemma_in_subtree_self(last);
++                    NodeHelper::lemma_in_subtree_iff_in_subtree_range(last, last);
++                } else {
++                    assert(path[i] == rest[i]);
++                    assert(NodeHelper::is_child(rest_last, last));
++                    assert(NodeHelper::in_subtree_range(path[i], rest_last));
++                    NodeHelper::lemma_in_subtree_iff_in_subtree_range(path[i], rest_last);
++                    assert(NodeHelper::in_subtree(path[i], rest_last));
++                    NodeHelper::lemma_in_subtree_is_child_in_subtree(path[i], rest_last, last);
++                    assert(NodeHelper::in_subtree(path[i], last));
++                    NodeHelper::lemma_in_subtree_iff_in_subtree_range(path[i], last);
++                }
++            }
++        }
++    }
++}
++
+ pub enum AtomicCursorState {
+     Void,
+     Locked(NodeId),
+diff --git a/lock-protocol/src/test/rw_version/spec/tree.rs b/lock-protocol/src/test/rw_version/spec/tree.rs
+index 138b4aa8c436cc41be801258e966850fcb896ac7..67595eec0be873f8ac361f0b295244cb01db5dc1 100644
+--- a/lock-protocol/src/test/rw_version/spec/tree.rs
++++ b/lock-protocol/src/test/rw_version/spec/tree.rs
+@@ -10,6 +10,11 @@ use vstd_extra::{seq_extra::*, set_extra::*, map_extra::*};
+ 
+ verus! {
+ 
++broadcast use {
++    vstd_extra::map_extra::group_forall_map_lemmas,
++    vstd_extra::map_extra::group_value_filter_lemmas,
++};
++
+ tokenized_state_machine!{
+ 
+ TreeSpec {
+@@ -35,7 +40,7 @@ fields {
+ /// Every node should have a valid NodeId.
+ #[invariant]
+ pub fn inv_nodes(&self) -> bool {
+-    &&& forall |nid: NodeId| #![auto]
++    forall |nid: NodeId| #![auto]
+         self.nodes.contains_key(nid) <==> NodeHelper::valid_nid(nid)
+ }
+ 
+@@ -46,58 +51,93 @@ pub fn inv_reader_counts(&self) -> bool {
+         self.reader_counts.contains_key(nid) <==> NodeHelper::valid_nid(nid)
+ }
+ 
+-/// Unallocated nodes should not have any reader counts.
++/// Each cursor should be for a valid CPU, and the invariant should hold for each cursor's state.
+ #[invariant]
+-pub fn inv_unallocated_has_no_rc(&self) -> bool {
+-    forall |nid: NodeId| #![auto] self.reader_counts.contains_key(nid) ==> {
+-        self.nodes[nid] is UnAllocated ==> self.reader_counts[nid] == 0
+-    }
++pub fn inv_cursors(&self) -> bool {
++    &&& self.cursors.dom().finite()
++    &&& forall |cpu: CpuId| #![auto]
++        self.cursors.contains_key(cpu) <==> valid_cpu(self.cpu_num, cpu)
++    &&& forall_map_values(self.cursors, |cursor: CursorState| cursor.inv())
++}
++
++/// Unallocated or WriteLocked nodes should not have any reader counts.
++#[invariant]
++pub fn inv_nodes_reader_counts_relation(&self) -> bool {
++    forall_map(self.reader_counts, |nid: NodeId, rc: nat| rc > 0 ==> self.nodes[nid] is WriteUnLocked)
++    // This is equivalent to `self.nodes[nid] is UnAllocated || self.nodes[nid] is WriteUnLocked
++    // ==> self.reader_counts[nid] == 0`*/
+ }
+ 
+ /// The number of cursors holding a read lock on each node should match the reader counts.
+ #[invariant]
+-pub fn rc_cursors_relation(&self) -> bool {
+-    &&& forall |nid: NodeId| #![auto] self.reader_counts.contains_key(nid) ==>
+-        self.reader_counts[nid] == value_filter(
++pub fn inv_reader_counts_cursors_relation(&self) -> bool {
++    forall_map(self.reader_counts, |nid: NodeId, rc: nat|
++        rc == value_filter(
+             self.cursors,
+             |cursor: CursorState| cursor.hold_read_lock(nid),
+         ).len()
++    )
+ }
+ 
+ /// If a cursor holds a read lock path, the reader count for each node in the path should be positive.
+ pub open spec fn rc_positive(&self, path: Seq<NodeId>) -> bool {
+-    forall |i| #![auto] 0 <= i < path.len() ==>
+-    self.reader_counts[path[i]] > 0
++    forall_seq_values(path, |id| self.reader_counts[id] > 0)
+ }
+ 
+ /// All cursors holding read lock paths should have positive reader counts.
+-#[invariant]
+-pub fn inv_rc_positive(&self) -> bool {
+-    forall |cpu: CpuId| #![auto] self.cursors.contains_key(cpu) ==>
+-        self.rc_positive(self.cursors[cpu].get_read_lock_path())
++//  This invariant is not marked #[invariant] as it is implied by `inv_reader_counts_cursors_relation`.
++pub open spec fn inv_rc_positive(&self) -> bool {
++    forall_map_values(self.cursors, |cursor: CursorState|
++        self.rc_positive(cursor.get_read_lock_path())
++    )
+ }
+ 
+-/// The number of cursors should be equal to the number of CPUs and the invariant should hold for each cursor's state.
+-#[invariant]
+-pub fn inv_cursors(&self) -> bool {
+-    &&& self.cursors.dom().finite()
+-    &&& forall |cpu: CpuId| #![auto]
+-        self.cursors.contains_key(cpu) <==> valid_cpu(self.cpu_num, cpu)
++/// The subtree rooted at `nid` should not have any read counts and should not be WriteLocked.
++pub open spec fn subtree_locked(&self, nid: NodeId) -> bool {
++    forall |id: NodeId| #![auto]
++        NodeHelper::in_subtree_range(nid, id) && id != nid ==>
++        self.reader_counts[id] == 0 &&
++        self.nodes[id] !is WriteLocked
++}
+ 
+-    &&& forall |cpu: CpuId| #![auto] self.cursors.contains_key(cpu) ==>
+-        self.cursors[cpu].inv()
++/// If a cursor holds a write lock, the node should be WriteLocked and its subtree should be locked.
++pub open spec fn inv_write_lock_cursors_subtree_locked(&self) -> bool {
++    forall_map_values (self.cursors, |cursor: CursorState|
++        cursor.hold_write_lock() ==>
++        {
++            let nid = cursor.get_write_lock_node();
++            self.nodes[nid] is WriteLocked &&
++            self.subtree_locked(nid)
++        }
++    )
+ }
+ 
+-/// Each node with a read lock held should be in the WriteUnLocked state.
+-#[invariant]
+-pub fn inv_rw_lock(&self) -> bool {
+-    forall |nid: NodeId| #![auto]
+-        self.reader_counts.contains_key(nid) &&
+-        self.reader_counts[nid] > 0 ==> self.nodes[nid] is WriteUnLocked
++/// If two cursors hold write locks, they should not be on the same node.
++pub open spec fn inv_write_lock_cursors_distinct(&self) -> bool {
++    forall |cpu1: CpuId, cpu2: CpuId| #![auto]
++        cpu1 != cpu2 &&
++        self.cursors.contains_key(cpu1) &&
++        self.cursors.contains_key(cpu2) &&
++        self.cursors[cpu1].hold_write_lock() &&
++        self.cursors[cpu2].hold_write_lock() ==>
++        {
++            let nid1 = self.cursors[cpu1].get_write_lock_node();
++            let nid2 = self.cursors[cpu2].get_write_lock_node();
++
++            nid1 != nid2
++        }
+ }
+ 
+ #[invariant]
+-pub fn inv_non_overlapping(&self) -> bool {
++pub fn inv_rw_lock(&self) -> bool
++{
++    &&& self.inv_write_lock_cursors_subtree_locked()
++    &&& self.inv_write_lock_cursors_distinct()
++}
++
++/// If two cursors hold write locks, the write-locked node should not overlap
++/// This invariant is not marked #[invariant] as it is directly implied by `inv_rw_lock`.
++pub open spec fn inv_non_overlapping(&self) -> bool {
+     forall |cpu1: CpuId, cpu2: CpuId| #![auto]
+         cpu1 != cpu2 &&
+         self.cursors.contains_key(cpu1) &&
+@@ -108,8 +148,8 @@ pub fn inv_non_overlapping(&self) -> bool {
+             let nid1 = self.cursors[cpu1].get_write_lock_node();
+             let nid2 = self.cursors[cpu2].get_write_lock_node();
+ 
+-            !NodeHelper::in_subtree(nid1, nid2) &&
+-            !NodeHelper::in_subtree(nid2, nid1)
++            !NodeHelper::in_subtree_range(nid1, nid2) &&
++            !NodeHelper::in_subtree_range(nid2, nid1)
+         }
+ }
+ 
+@@ -190,7 +230,9 @@ transition!{
+         require(path.len() > 0 && path.last() == nid);
+         add cursors += [ cpu => CursorState::ReadLocking(path.drop_last()) ];
+ 
+-        assert(rc > 0);
++        assert(rc > 0) by {
++            pre.lemma_inv_implies_inv_rc_positive()
++        };
+     }
+ }
+ 
+@@ -235,7 +277,7 @@ transition!{
+         require(nid != NodeHelper::root_id());
+ 
+         have cursors >= [ cpu => let CursorState::WriteLocked(path) ];
+-        require(NodeHelper::in_subtree(path.last(), nid));
++        require(NodeHelper::in_subtree_range(path.last(), nid));
+ 
+         remove nodes -= [ nid => NodeState::UnAllocated ];
+         add nodes += [ nid => NodeState::WriteUnLocked ];
+@@ -250,7 +292,7 @@ transition!{
+         require(nid != NodeHelper::root_id());
+ 
+         have cursors >= [ cpu => let CursorState::WriteLocked(path) ];
+-        require(NodeHelper::in_subtree(path.last(), nid));
++        require(NodeHelper::in_subtree_range(path.last(), nid));
+ 
+         remove nodes -= [ nid => NodeState::WriteUnLocked ];
+         add nodes += [ nid => NodeState::UnAllocated ];
+@@ -270,7 +312,7 @@ fn initialize_inductive(post: Self, cpu_num: CpuId) {
+             }
+         }
+     };
+-    assert(post.rc_cursors_relation()) by {
++    assert(post.inv_reader_counts_cursors_relation()) by {
+         assert forall |nid: NodeId| #[trigger]post.reader_counts.contains_key(nid) implies
+          post.reader_counts.index(nid) == value_filter(post.cursors, |cursor: CursorState| cursor.hold_read_lock(nid)).len() by {
+                     lemma_value_filter_all_false(
+@@ -282,7 +324,7 @@ fn initialize_inductive(post: Self, cpu_num: CpuId) {
+ 
+ #[inductive(locking_start)]
+ fn locking_start_inductive(pre: Self, post: Self, cpu: CpuId) {
+-    assert(post.rc_cursors_relation()) by {
++    assert(post.inv_reader_counts_cursors_relation()) by {
+         assert forall |nid: NodeId| #[trigger] post.reader_counts.contains_key(nid) implies
+         post.reader_counts[nid] == value_filter(
+             post.cursors,
+@@ -301,7 +343,7 @@ fn locking_start_inductive(pre: Self, post: Self, cpu: CpuId) {
+ 
+ #[inductive(unlocking_end)]
+ fn unlocking_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+-    assert(post.rc_cursors_relation()) by {
++    assert(post.inv_reader_counts_cursors_relation()) by {
+         assert forall |nid: NodeId| #[trigger] post.reader_counts.contains_key(nid) implies
+         post.reader_counts[nid] == value_filter(
+             post.cursors,
+@@ -321,22 +363,22 @@ fn unlocking_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+ #[inductive(read_lock)]
+ fn read_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     let path = pre.cursors[cpu].get_read_lock_path();
++    lemma_wf_tree_path_push_inversion(path, nid);
+     assert(post.cursors== pre.cursors.insert(cpu, CursorState::ReadLocking(path.push(nid))));
+-    assert(post.rc_cursors_relation()) by {
++    assert(post.inv_reader_counts_cursors_relation()) by {
+         assert forall |id: NodeId| #[trigger] post.reader_counts.contains_key(id) implies
+         post.reader_counts[id] == value_filter(
+             post.cursors,
+             |cursor: CursorState| cursor.hold_read_lock(id),
+         ).len() by {
+                 let f = |cursor: CursorState| cursor.hold_read_lock(id);
+-                lemma_wf_tree_path_push_inversion(path, nid);
+                 if id!=nid {
+                     assert(post.cursors[cpu].hold_read_lock(id) == pre.cursors[cpu].hold_read_lock(id)) by {
+                         lemma_push_contains_different(path, nid, id);
+                     }
+                     lemma_insert_value_filter_same_len(
+                         pre.cursors, f, cpu, CursorState::ReadLocking(path.push(nid))
+-                    );
++                    )
+                     }
+                 else {
+                     assert(!pre.cursors[cpu].hold_read_lock(nid));
+@@ -350,13 +392,37 @@ fn read_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+         };
+ 
+     };
++    assert (post.inv_write_lock_cursors_subtree_locked()) by {
++        assert forall |cpu0: CpuId| #[trigger] pre.cursors.contains_key(cpu0) &&
++            pre.cursors[cpu0].hold_write_lock() implies
++            !NodeHelper::in_subtree_range(
++                pre.cursors[cpu0].get_write_lock_node(), nid
++            ) by {
++                if path.len() == 0 {
++                    assert(nid == NodeHelper::root_id());
++                    pre.lemma_write_lock_root_id_state(cpu0);
++                    assert(pre.reader_counts[NodeHelper::root_id()] > 0);
++                }
++                else
++                {
++                    let locked_write_node = pre.cursors[cpu0].get_write_lock_node();
++                    let read_node = pre.cursors[cpu].get_read_lock_path().last();
++                    assert(pre.reader_counts[read_node]>0) by {
++                        pre.lemma_inv_implies_inv_rc_positive();
++                    };
++                    assert(!NodeHelper::in_subtree_range(locked_write_node, read_node));
++                    NodeHelper::lemma_not_in_subtree_range_implies_child_not_in_subtree_range(
++                        locked_write_node, read_node, nid);
++                }
++            };
++    }
+ }
+ 
+ #[inductive(read_unlock)]
+ fn read_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     let path = pre.cursors[cpu].get_read_lock_path();
+     assert(post.cursors== pre.cursors.insert(cpu, CursorState::ReadLocking(path.drop_last())));
+-    assert(post.rc_cursors_relation()) by {
++    assert(post.inv_reader_counts_cursors_relation()) by {
+         assert forall |id: NodeId| #[trigger] post.reader_counts.contains_key(id) implies
+         post.reader_counts[id] == value_filter(
+             post.cursors,
+@@ -379,9 +445,6 @@ fn read_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+                 }
+         };
+     };
+-    assert(post.inv_rc_positive()) by {
+-        Self::lemma_inv_implies_inv_rc_positive(post);
+-    };
+ }
+ 
+ #[inductive(write_lock)]
+@@ -390,7 +453,7 @@ fn write_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+     assert(post.cursors== pre.cursors.insert(cpu, CursorState::WriteLocked(path.push(nid))));
+     assert(post.cursors[cpu].get_read_lock_path() == path);
+     lemma_wf_tree_path_push_inversion(path,nid);
+-    assert(post.rc_cursors_relation()) by {
++    assert(post.inv_reader_counts_cursors_relation()) by {
+         assert forall |id: NodeId| #[trigger] post.reader_counts.contains_key(id) implies
+         post.reader_counts[id] == value_filter(
+             post.cursors,
+@@ -409,8 +472,8 @@ fn write_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
+             }
+         }
+     }
+-    assert(post.inv_non_overlapping()) by {
+-        admit();
++    assert(post.inv_write_lock_cursors_subtree_locked()) by {
++       admit();
+     }
+  }
+ 
+@@ -435,31 +498,30 @@ ensures
+ }
+ 
+ 
+-proof fn lemma_inv_implies_inv_rc_positive(s: Self)
++proof fn lemma_inv_implies_inv_rc_positive(&self)
+ requires
+-    s.inv_reader_counts(),
+-    s.inv_cursors(),
+-    s.rc_cursors_relation(),
++    self.inv_cursors(),
++    self.inv_reader_counts(),
++    self.inv_reader_counts_cursors_relation(),
+ ensures
+-    s.inv_rc_positive(),
+-
++    self.inv_rc_positive(),
+ {
+-    assert forall |cpu: CpuId| #![trigger] s.cursors.contains_key(cpu) implies
+-        #[trigger]s.rc_positive(s.cursors[cpu].get_read_lock_path()) by {
+-            match s.cursors[cpu] {
++    assert forall |cpu: CpuId| #![trigger] self.cursors.contains_key(cpu) implies
++        #[trigger]self.rc_positive(self.cursors[cpu].get_read_lock_path()) by {
++            match self.cursors[cpu] {
+                 CursorState::Void => {}
+                 CursorState::ReadLocking(path) => {
+-                    assert(path == s.cursors[cpu].get_read_lock_path());
++                    assert(path == self.cursors[cpu].get_read_lock_path());
+                     assert forall |i| 0 <= i < path.len() implies
+-                    #[trigger]s.reader_counts[path[i]] > 0 by {
++                    #[trigger]self.reader_counts[path[i]] > 0 by {
+                         let f = |cursor: CursorState| cursor.hold_read_lock(path[i]);
+                         let filtered_cursors = value_filter(
+-                            s.cursors,
++                            self.cursors,
+                             f,
+                         );
+                         assert(NodeHelper::valid_nid(path[i]));
+-                        assert(s.cursors[cpu].hold_read_lock(path[i]));
+-                        lemma_value_filter_finite(s.cursors, f);
++                        assert(self.cursors[cpu].hold_read_lock(path[i]));
++                        lemma_value_filter_finite(self.cursors, f);
+                         axiom_set_contains_len(
+                             filtered_cursors.dom(),
+                             cpu,
+@@ -468,17 +530,17 @@ ensures
+                 }
+                 CursorState::WriteLocked(path0) => {
+                     let path = path0.drop_last();
+-                    assert(path == s.cursors[cpu].get_read_lock_path());
++                    assert(path == self.cursors[cpu].get_read_lock_path());
+                     assert forall |i| 0 <= i < path.len() implies
+-                    #[trigger]s.reader_counts[path[i]] > 0 by {
++                    #[trigger]self.reader_counts[path[i]] > 0 by {
+                         let f = |cursor: CursorState| cursor.hold_read_lock(path[i]);
+                         let filtered_cursors = value_filter(
+-                            s.cursors,
++                            self.cursors,
+                             f,
+                         );
+                         assert(NodeHelper::valid_nid(path[i]));
+-                        assert(s.cursors[cpu].hold_read_lock(path[i]));
+-                        lemma_value_filter_finite(s.cursors, f);
++                        assert(self.cursors[cpu].hold_read_lock(path[i]));
++                        lemma_value_filter_finite(self.cursors, f);
+                         axiom_set_contains_len(
+                             filtered_cursors.dom(),
+                             cpu,
+@@ -489,6 +551,59 @@ ensures
+         };
+ }
+ 
++proof fn lemma_inv_implies_inv_non_overlapping(&self)
++requires
++    self.inv_write_lock_cursors_subtree_locked(),
++    self.inv_write_lock_cursors_distinct(),
++ensures
++    self.inv_non_overlapping(),
++{
++}
++
++proof fn lemma_write_lock_root_id_state(&self, cpu: CpuId)
++requires
++    valid_cpu(self.cpu_num, cpu),
++    self.cursors[cpu].hold_write_lock(),
++    self.inv_cursors(),
++    self.inv_reader_counts(),
++    self.inv_reader_counts_cursors_relation(),
++    self.inv_write_lock_cursors_subtree_locked(),
++ensures
++    self.nodes[NodeHelper::root_id()] is WriteLocked ||
++    self.reader_counts[NodeHelper::root_id()] > 0,
++{
++    let path = self.cursors[cpu].get_path();
++    assert(wf_tree_path(path));
++    assert(path.len() > 0);
++    if(path.len() == 1){
++        assert(self.cursors[cpu].get_write_lock_node() == NodeHelper::root_id());
++        assert(self.nodes[NodeHelper::root_id()] is WriteLocked);
++    } else
++    {
++        assert(self.cursors[cpu].get_read_lock_path()[0] == NodeHelper::root_id());
++        self.lemma_inv_implies_inv_rc_positive();
++    }
++}
++
++proof fn lemma_read_counter_zero_implies_subtree_zero(&self, nid: NodeId, child: NodeId)
++requires
++    self.inv_cursors(),
++    self.inv_reader_counts(),
++    self.inv_reader_counts_cursors_relation(),
++    NodeHelper::valid_nid(nid),
++    self.reader_counts[nid] == 0,
++    NodeHelper::in_subtree_range(nid, child),
++ensures
++    self.reader_counts[child] == 0,
++{
++    NodeHelper::lemma_in_subtree_iff_in_subtree_range(nid, child);
++    self.lemma_inv_implies_inv_rc_positive();
++    /*if self.reader_counts[child] > 0 {
++        assert(self.reader_counts[nid] > 0);
++    }*/
++    admit();
++}
++
+ }// TreeSpec
+ }  // tokenized_state_machine!
+ 
+diff --git a/vstd_extra/src/ghost_tree.rs b/vstd_extra/src/ghost_tree.rs
+index 7b9aed7d15ef0469d586b8e0de6723f1e522fad9..648ae35e0c4562464e1de0ce1f8eae46d57c6ed4 100644
+--- a/vstd_extra/src/ghost_tree.rs
++++ b/vstd_extra/src/ghost_tree.rs
+@@ -1,7 +1,4 @@
+ use vstd::prelude::*;
+-use vstd::seq::*;
+-use vstd::seq_lib::*;
+-use super::seq_extra::*;
+ 
+ verus! {
+ 
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index e74ec7c7efb057ea84f89f3a8909cb7c44b20c71..8a73289baf84703efae419f6ef1042888807e1c1 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -40,12 +40,18 @@ pub open spec fn value_filter<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool) -> Map<
+     m.restrict(m.dom().filter(|s| f(m[s])))
+ }
+ 
++pub broadcast group group_value_filter_lemmas {
++    lemma_value_filter_finite,
++    lemma_insert_value_filter_same_len,
++    lemma_insert_value_filter_different_len,
++}
++
+ /// The result of value-filtering a finite map is also finite.
+-pub proof fn lemma_value_filter_finite<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
++pub broadcast proof fn lemma_value_filter_finite<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
+     requires
+         m.dom().finite(),
+     ensures
+-        value_filter(m, f).dom().finite(),
++        #[trigger] value_filter(m, f).dom().finite(),
+ {
+     assert(value_filter(m, f).dom() =~= m.dom().filter(|s| f(m[s])));
+     m.dom().lemma_len_filter(|s| f(m[s]));
+@@ -146,7 +152,7 @@ pub proof fn lemma_insert_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -
+ /// is equal to the length of the value-filtered map for the original map `m`
+ /// if `k` exists in `m`, and `m[k]` and `v` both satisfy/un-satisfy the predicate
+ /// function `f`.
+-pub proof fn lemma_insert_value_filter_same_len<K, V>(
++pub broadcast proof fn lemma_insert_value_filter_same_len<K, V>(
+     m: Map<K, V>,
+     f: spec_fn(V) -> bool,
+     k: K,
+@@ -157,7 +163,7 @@ pub proof fn lemma_insert_value_filter_same_len<K, V>(
+         m.contains_key(k),
+         f(m[k]) == f(v),
+     ensures
+-        value_filter(m.insert(k, v), f).len() == value_filter(m, f).len(),
++        #[trigger] value_filter(m.insert(k, v), f).len() == value_filter(m, f).len(),
+ {
+     lemma_value_filter_finite(m, f);
+     if f(v) {
+@@ -173,7 +179,7 @@ pub proof fn lemma_insert_value_filter_same_len<K, V>(
+ /// is equal to the length of the value-filtered map for the original map `m`
+ /// plus one if `m[k]` does not satisfy `f` but `v` does, and minus one if
+ /// `m[k]` satisfies `f` but `v` does not.
+-pub proof fn lemma_insert_value_filter_different_len<K, V>(
++pub broadcast proof fn lemma_insert_value_filter_different_len<K, V>(
+     m: Map<K, V>,
+     f: spec_fn(V) -> bool,
+     k: K,
+@@ -184,7 +190,7 @@ pub proof fn lemma_insert_value_filter_different_len<K, V>(
+         m.contains_key(k),
+         f(m[k]) != f(v),
+     ensures
+-        value_filter(m.insert(k, v), f).len() == value_filter(m, f).len() + if f(v) {
++        #[trigger] value_filter(m.insert(k, v), f).len() == value_filter(m, f).len() + if f(v) {
+             1
+         } else {
+             -1
+@@ -202,3 +208,136 @@ pub proof fn lemma_insert_value_filter_different_len<K, V>(
+ }
+ 
+ } // verus!
++verus! {
++
++/// Returns true if predicate `f(k,v)` holds for all `(k,v)` in `map`.
++pub open spec fn forall_map<K, V>(map: Map<K, V>, f: spec_fn(K, V) -> bool) -> bool {
++    forall|k| #[trigger] map.contains_key(k) ==> f(k, map[k])
++}
++
++/// Returns true if predicate `f(v)` holds for all values in `map`.
++pub open spec fn forall_map_values<K, V>(map: Map<K, V>, f: spec_fn(V) -> bool) -> bool {
++    forall|k| #[trigger] map.contains_key(k) ==> f(map[k])
++}
++
++pub broadcast group group_forall_map_lemmas {
++    lemma_forall_map_insert,
++    lemma_forall_map_values_insert,
++    lemma_forall_map_remove,
++    lemma_forall_map_values_remove,
++}
++
++/// For any key in the map, `f(k, map[k])` holds if `forall_map(map, f)` holds.
++pub proof fn lemma_forall_map_entry<K, V>(m: Map<K, V>, f: spec_fn(K, V) -> bool, k: K)
++    requires
++        forall_map(m, f),
++        m.contains_key(k),
++    ensures
++        f(k, m[k]),
++{
++}
++
++/// For any key in the map, `f(map[k])` holds if `forall_map_values(map, f)` holds.
++pub proof fn lemma_forall_map_values_entry<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
++    requires
++        forall_map_values(m, f),
++        m.contains_key(k),
++    ensures
++        f(m[k]),
++{
++}
++
++/// `forall_map(m.insert(k, v), f)` holds if `f(k, v)` holds and
++/// `forall_map(m.remove(k),f)` (if `m` contains `k`) or `forall_map(m, f)` (if `m` does not contain `k`).
++pub broadcast proof fn lemma_forall_map_insert<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(K, V) -> bool,
++    k: K,
++    v: V,
++)
++    ensures
++        #[trigger] forall_map(m.insert(k, v), f) ==> f(k, v) && if m.contains_key(k) {
++            forall_map(m.remove(k), f)
++        } else {
++            forall_map(m, f)
++        },
++{
++    assert(m.insert(k, v).contains_key(k));
++    if m.contains_key(k) {
++        assert(m.insert(k, v) =~= m.remove(k).insert(k, v));
++    } else {
++        assert(m.insert(k, v) =~= m.insert(k, v));
++    }
++    if forall_map(m.insert(k, v), f) {
++        if m.contains_key(k) {
++        } else {
++            assert(forall|k0| #[trigger] m.contains_key(k0) ==> m.insert(k, v).contains_key(k0));
++        }
++    }
++}
++
++/// `forall_map_values(m.insert(k, v), f)` holds if `f(v)` holds and
++/// `forall_map_values(m.remove(k),f)` (if `m` contains `k`) or `forall_map_values(m, f)` (if `m` does not contain `k`).
++pub broadcast proof fn lemma_forall_map_values_insert<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++    v: V,
++)
++    ensures
++        #[trigger] forall_map_values(m.insert(k, v), f) ==> f(v) && if m.contains_key(k) {
++            forall_map_values(m.remove(k), f)
++        } else {
++            forall_map_values(m, f)
++        },
++{
++    assert(m.insert(k, v).contains_key(k));
++    if m.contains_key(k) {
++        assert(m.insert(k, v) =~= m.remove(k).insert(k, v));
++    } else {
++        assert(m.insert(k, v) =~= m.insert(k, v));
++    }
++    if forall_map_values(m.insert(k, v), f) {
++        if m.contains_key(k) {
++        } else {
++            assert(forall|k0| #[trigger] m.contains_key(k0) ==> m.insert(k, v).contains_key(k0));
++        }
++    }
++}
++
++/// `forall_map(m,f)` holds if `forall_map(m.remove(k), f)` holds and
++/// `f(k, m[k])` holds (if `m` contains `k`).
++pub broadcast proof fn lemma_forall_map_remove<K, V>(m: Map<K, V>, f: spec_fn(K, V) -> bool, k: K)
++    ensures
++        forall_map(m, f) <==> #[trigger] forall_map(m.remove(k), f) && (m.contains_key(k) ==> f(
++            k,
++            m[k],
++        )),
++{
++    if m.contains_key(k) {
++        assert(m =~= m.remove(k).insert(k, m[k]));
++    } else {
++        assert(m =~= m.remove(k));
++    }
++}
++
++/// `forall_map_values(m,f)` holds if `forall_map_values(m.remove(k), f)` holds and
++/// `f(m[k])` holds (if `m` contains `k`).
++pub broadcast proof fn lemma_forall_map_values_remove<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++)
++    ensures
++        forall_map_values(m, f) <==> #[trigger] forall_map_values(m.remove(k), f) && (
++        m.contains_key(k) ==> f(m[k])),
++{
++    if m.contains_key(k) {
++        assert(m =~= m.remove(k).insert(k, m[k]));
++    } else {
++        assert(m =~= m.remove(k));
++    }
++
++}
++
++} // verus!
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index d07fbef3d016cc1620c3b3c8d5b174af96cb7eb9..b2a1002dcb314fbc8a312307f0867e2d1e333b59 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -45,39 +45,32 @@ pub proof fn seq_tracked_add<T>(s1: Seq<T>, s2: Seq<T>) -> (tracked res: Seq<T>)
+     unimplemented!();
+ }
+ 
+-pub broadcast proof fn lemma_seq_add_head_back<T>(s: Seq<T>)
++pub proof fn lemma_seq_add_head_back<T>(s: Seq<T>)
+     requires
+         s.len() > 0,
+     ensures
+-        s =~= #[trigger] seq![s[0]].add(s.drop_first()),
++        s =~= seq![s[0]].add(s.drop_first()),
+ {
+ }
+ 
+-pub broadcast proof fn lemma_seq_push_head<T>(s: Seq<T>, hd: T)
++pub proof fn lemma_seq_push_head<T>(s: Seq<T>, hd: T)
+     ensures
+-        #[trigger] seq![hd].add(s) =~= #[trigger] s.reverse().push(hd).reverse(),
++        seq![hd].add(s) =~= s.reverse().push(hd).reverse(),
+ {
+ }
+ 
+-pub broadcast proof fn lemma_seq_drop_pushed_head<T>(s: Seq<T>, hd: T)
++pub proof fn lemma_seq_drop_pushed_head<T>(s: Seq<T>, hd: T)
+     ensures
+-        #[trigger] seq![hd].add(s).drop_first() =~= s,
++        seq![hd].add(s).drop_first() =~= s,
+ {
+ }
+ 
+-pub broadcast proof fn lemma_seq_push_head_take_head<T>(s: Seq<T>, hd: T)
++pub proof fn lemma_seq_push_head_take_head<T>(s: Seq<T>, hd: T)
+     ensures
+-        #[trigger] seq![hd].add(s)[0] == hd,
++        seq![hd].add(s)[0] == hd,
+ {
+ }
+ 
+-pub broadcast group group_seq_extra_lemmas {
+-    lemma_seq_add_head_back,
+-    lemma_seq_push_head,
+-    lemma_seq_drop_pushed_head,
+-    lemma_seq_push_head_take_head,
+-}
+-
+ } // verus!
+ verus! {
+ 
+@@ -134,8 +127,6 @@ pub open spec fn forall_seq_values<T>(seq: Seq<T>, f: spec_fn(T) -> bool) -> boo
+ }
+ 
+ pub broadcast group group_forall_seq_lemmas {
+-    lemma_forall_seq_index,
+-    lemma_forall_seq_values_index,
+     lemma_forall_seq_push,
+     lemma_forall_seq_values_push,
+     lemma_forall_seq_drop_last,
+@@ -144,30 +135,29 @@ pub broadcast group group_forall_seq_lemmas {
+ }
+ 
+ /// Index `i` of the sequence `s` satisfies `f(i,s[i])` if `forall_seq(s,f)` holds.
+-pub broadcast proof fn lemma_forall_seq_index<T>(s: Seq<T>, f: spec_fn(int, T) -> bool, i: int)
++pub proof fn lemma_forall_seq_index<T>(s: Seq<T>, f: spec_fn(int, T) -> bool, i: int)
+     requires
+         forall_seq(s, f),
+         0 <= i < s.len(),
+     ensures
+-        #[trigger] f(i, s[i]),
++        f(i, s[i]),
+ {
+ }
+ 
+ /// Index `i` of the sequence `s` satisfies `f(s[i])` if `forall_seq_values(s,f)` holds.
+-pub broadcast proof fn lemma_forall_seq_values_index<T>(s: Seq<T>, f: spec_fn(T) -> bool, i: int)
++pub proof fn lemma_forall_seq_values_index<T>(s: Seq<T>, f: spec_fn(T) -> bool, i: int)
+     requires
+         forall_seq_values(s, f),
+         0 <= i < s.len(),
+     ensures
+-        #[trigger] f(s[i]),
++        f(s[i]),
+ {
+ }
+ 
+ /// `forall_seq(s.push(v),f)` is equivalent to `forall_seq(s,f)` and `f(s.len(),v)`.
+ pub broadcast proof fn lemma_forall_seq_push<T>(s: Seq<T>, f: spec_fn(int, T) -> bool, v: T)
+     ensures
+-        forall_seq(s, f) && f(s.len() as int, v) ==> #[trigger] forall_seq(s.push(v), f),
+-        forall_seq(s.push(v), f) ==> forall_seq(s, f) && f(s.len() as int, v),
++        forall_seq(s, f) && f(s.len() as int, v) <==> #[trigger] forall_seq(s.push(v), f),
+ {
+     if (forall_seq(s.push(v), f)) {
+         assert forall|i| 0 <= i < s.len() implies f(i, s[i]) by {
+@@ -180,8 +170,7 @@ pub broadcast proof fn lemma_forall_seq_push<T>(s: Seq<T>, f: spec_fn(int, T) ->
+ /// `forall_seq_values(s.push(v),f)` is equivalent to `forall_seq_values(s,f)` and `f(v)`.
+ pub broadcast proof fn lemma_forall_seq_values_push<T>(s: Seq<T>, f: spec_fn(T) -> bool, v: T)
+     ensures
+-        #[trigger] forall_seq_values(s.push(v), f) ==> forall_seq_values(s, f) && f(v),
+-        forall_seq_values(s, f) && f(v) ==> forall_seq_values(s.push(v), f),
++        #[trigger] forall_seq_values(s.push(v), f) <==> forall_seq_values(s, f) && f(v),
+ {
+     if (forall_seq_values(s.push(v), f)) {
+         assert forall|i| 0 <= i < s.len() implies f(s[i]) by {
+@@ -196,11 +185,10 @@ pub broadcast proof fn lemma_forall_seq_drop_last<T>(s: Seq<T>, f: spec_fn(int,
+     requires
+         s.len() > 0,
+     ensures
+-        forall_seq(s, f) ==> #[trigger] forall_seq(s.drop_last(), f) && f(
++        forall_seq(s, f) <==> #[trigger] forall_seq(s.drop_last(), f) && f(
+             s.len() as int - 1,
+             s.last(),
+         ),
+-        forall_seq(s.drop_last(), f) && f(s.len() as int - 1, s.last()) ==> forall_seq(s, f),
+ {
+     assert(s =~= s.drop_last().push(s.last()));
+ }
+@@ -210,19 +198,17 @@ pub broadcast proof fn lemma_forall_seq_values_drop_last<T>(s: Seq<T>, f: spec_f
+     requires
+         s.len() > 0,
+     ensures
+-        forall_seq_values(s, f) ==> #[trigger] forall_seq_values(s.drop_last(), f) && f(s.last()),
+-        forall_seq_values(s.drop_last(), f) && f(s.last()) ==> forall_seq_values(s, f),
++        forall_seq_values(s, f) <==> #[trigger] forall_seq_values(s.drop_last(), f) && f(s.last()),
+ {
+     assert(s =~= s.drop_last().push(s.last()));
+ }
+ 
+ pub broadcast proof fn lemma_forall_seq_values_add<T>(s1: Seq<T>, s2: Seq<T>, f: spec_fn(T) -> bool)
+     ensures
+-        forall_seq_values(s1, f) && forall_seq_values(s2, f) ==> #[trigger] forall_seq_values(
++        forall_seq_values(s1, f) && forall_seq_values(s2, f) <==> #[trigger] forall_seq_values(
+             s1 + s2,
+             f,
+         ),
+-        forall_seq_values(s1 + s2, f) ==> forall_seq_values(s1, f) && forall_seq_values(s2, f),
+     decreases s2.len(),
+ // Induction proof on the length of s2
+ 

@@ -1,0 +1,53 @@
+diff --git a/lock-protocol/src/exec/rw/pte/page_table_entry.rs b/lock-protocol/src/exec/rw/pte/page_table_entry.rs
+index bc6d5cec983d2fec93c36d10226f4fb0c395dedf..f4fa6169097ac3dfe7987cbd00191719b316aa81 100644
+--- a/lock-protocol/src/exec/rw/pte/page_table_entry.rs
++++ b/lock-protocol/src/exec/rw/pte/page_table_entry.rs
+@@ -350,18 +350,25 @@ impl PageTableEntryTrait for PageTableEntry {
+     }
+ 
+     open spec fn new_pt_spec(paddr: Paddr) -> Self {
+-        let addr = paddr & PHYS_ADDR_MASK();
+-        Self(addr | PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits())
++        let flags = PageTableFlags::PRESENT().bits()
++            | PageTableFlags::WRITABLE().bits()
++            | PageTableFlags::USER().bits();
++        Self(paddr & PHYS_ADDR_MASK() | flags)
+     }
+ 
+-    #[verifier::external_body] // TODO
+-    fn new_pt(paddr: Paddr) -> Self {
+-        let addr = paddr & PHYS_ADDR_MASK();
++    fn new_pt(paddr: Paddr) -> Self
++    {
++        let flags = PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits();
+         proof{
+-            let bit = addr | PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits();
+-            assert(bit & PageTableFlags::PRESENT().bits() != 0) by (bit_vector);
++            assert((0b1usize| 0b10 | 0b100) & 0x7fff_ffff_ffff_f000 == 0) by (bit_vector);
++            assert((0b1usize | 0b10 | 0b100) & 0b1 != 0) by (bit_vector)
++                requires flags & 0x7fff_ffff_ffff_f000 == 0;
++            assert((paddr & 0x7fff_ffff_ffff_f000 | flags) & 0x7fff_ffff_ffff_f000 == paddr & 0x7fff_ffff_ffff_f000) by (bit_vector)
++                requires flags & 0x7fff_ffff_ffff_f000 == 0;
++            assert((paddr & 0x7fff_ffff_ffff_f000 | flags) & 0b1 != 0) by (bit_vector)
++                requires flags & 0b1 != 0;
+         }
+-        Self(addr | PageTableFlags::PRESENT().bits() | PageTableFlags::WRITABLE().bits() | PageTableFlags::USER().bits())
++        Self(paddr & PHYS_ADDR_MASK() | flags)
+     }
+ 
+     #[verifier::inline]
+diff --git a/lock-protocol/src/spec/common.rs b/lock-protocol/src/spec/common.rs
+index 53dbc51a9cf3dc8069dd0be9c0d71533448c189e..10c04f1ba719ecc4ac7f8b08a496c4e3f5c80193 100644
+--- a/lock-protocol/src/spec/common.rs
++++ b/lock-protocol/src/spec/common.rs
+@@ -56,7 +56,9 @@ pub proof fn lemma_wf_tree_path_inc(path: Seq<NodeId>, nid: NodeId)
+         }
+     }
+     assert(new_path.all(|n| NodeHelper::valid_nid(n))) by {
+-        assert forall|n: NodeId| new_path.contains(n) implies NodeHelper::valid_nid(n) by {
++        assert forall|n: NodeId| #[trigger] new_path.contains(n) implies NodeHelper::valid_nid(
++            n,
++        ) by {
+             if path.contains(n) {
+                 assert(path.all(|m| NodeHelper::valid_nid(m)));
+             } else {

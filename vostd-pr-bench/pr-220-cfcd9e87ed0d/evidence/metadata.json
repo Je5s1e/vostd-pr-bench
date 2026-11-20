@@ -1,0 +1,38 @@
+{
+  "number": 220,
+  "source_pr": "https://github.com/asterinas/vostd/pull/220",
+  "base_sha": "1c5f850814d95ccfdddf217d9def5f5a67e595e1",
+  "head_sha": "503ca46c41ce3d491323bc992721da0ffcb66ef1",
+  "files": {
+    "totalCount": 1,
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "MQ"
+    },
+    "nodes": [
+      {
+        "path": ".github/workflows/verus-update-test.yml",
+        "additions": 4,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ]
+  },
+  "diff": {
+    "ok": true,
+    "url": "https://patch-diff.githubusercontent.com/raw/asterinas/vostd/pull/220.diff",
+    "bytes": 1094,
+    "sha256": "143801b2d53ffe2b7edc45ab6abdfe798d1464a6e5c764874900052973ced743",
+    "fetched_at": "2026-11-13T21:12:43.056085+00:00",
+    "diff_file_sections": 1,
+    "expected_changed_files": 1
+  },
+  "patch": {
+    "ok": true,
+    "url": "https://api.github.com/repos/asterinas/vostd/pulls/220",
+    "accept": "application/vnd.github.patch",
+    "bytes": 3035,
+    "sha256": "7e16f54cf48e5cf57034e51276e55dda152d9c3a97387ccf6d27d30613e7533e",
+    "fetched_at": "2026-11-13T21:20:55.874353+00:00"
+  }
+}

@@ -7,7 +7,7 @@
       "id": "pr-395-6ae195e508a8:review-comment-3027624660",
       "original_label_id": null,
       "category": "semantic",
-      "description": "The successful write-to-upgradeable downgrade path constructs the new guard without performing the old write guard's release and wake-up side effects.",
+      "description": "The successful write-to-upgradeable downgrade returns the new guard without waking waiters that were blocked by the old write lock.",
       "locations": [
         {
           "version": "after",
@@ -16,11 +16,14 @@
           "end_line": 749
         }
       ],
-      "rationale": "The original implementation called drop(self) after compare_exchange succeeded. That drop path clears WRITER with fetch_and(!WRITER) and wakes queued waiters. This revision instead transfers the tracked resources and immediately returns RwMutexUpgradeableGuard after CAS changes the word to UPGRADEABLE_READER, without equivalent executable release or wake-up operations. The returned guard can therefore coexist with a stale WRITER bit and blocked waiters. Review 4050190316 requested changes for the missing drop, and later commits explicitly expand the release plus wake_all before returning.",
+      "rationale": "The successful compare_exchange(WRITER, UPGRADEABLE_READER) already replaces the WRITER bit with the upgradeable-reader bit: these are distinct bits at positions usize::BITS-1 and usize::BITS-2. Therefore this path does not retain a stale WRITER bit. The concrete regression is the missing wake-up: the original success path called drop(self), whose release path wakes the queue, while the selected try_downgrade immediately returns the upgradeable guard after CAS and never calls queue.wake_all(). Waiting readers that could now proceed are not notified by this downgrade. The explicit write-guard drop helper still contains wake_all at line 789. This narrows the historical missing-drop report to the executable side effect supported by the fixed source; no runtime concurrency test was executed.",
       "source_evidence": "after/ostd/src/sync/rwmutex.rs\n695:     fn try_downgrade(self) -> Result<RwMutexUpgradeableGuard<'a, T>, Self> {\n710:         let res = atomic_with_ghost!(\n711:             this.inner.lock => compare_exchange(WRITER, UPGRADEABLE_READER);\n738:         if res.is_ok() {\n739:             Ok(RwMutexUpgradeableGuard {\n740:                 inner: this.inner,\n741:                 v_token: Tracked(upgrade_guard_token.tracked_unwrap()),\n742:             })",
       "rule_ids": [],
       "review_url": "https://github.com/asterinas/vostd/pull/395#discussion_r3027624660",
-      "related_comment_ids": ["3027624660", "4050190316"],
+      "related_comment_ids": [
+        "3027624660",
+        "4050190316"
+      ],
       "sources": [
         {
           "kind": "review-comment",

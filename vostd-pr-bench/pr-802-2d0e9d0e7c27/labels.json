@@ -7,7 +7,7 @@
       "id": "pr-802-2d0e9d0e7c27:issue-4310053052",
       "original_label_id": "4310053052",
       "category": "guideline",
-      "description": "Read LayoutAdditionalSpecFns value receiver and two assume_specification functions: self_ plus explicit dereference repeats avoidable receiver mechanics. Current named rule explicitly prescribes role name l and method-call auto-deref; correct stable rule is name-assume-spec-receivers.",
+      "description": "The Layout external specifications use a generic self_ receiver and explicit dereferencing instead of a role-specific receiver name and method-call auto-dereferencing.",
       "locations": [
         {
           "version": "after",

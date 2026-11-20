@@ -7,7 +7,7 @@
       "id": "pr-636-b0d5450c6e0c:issue-3593301151",
       "original_label_id": "3593301151",
       "category": "guideline",
-      "description": "These two lines can be combined using `has_safe_slot`",
+      "description": "The tracked frame constructor repeats the physical-address alignment and upper-bound conjunction already provided by has_safe_slot.",
       "locations": [
         {
           "version": "after",
@@ -31,7 +31,7 @@
       "id": "pr-636-b0d5450c6e0c:issue-3593299813",
       "original_label_id": "3593299813",
       "category": "guideline",
-      "description": "Aggregate this with the previous line using the chaining operator, i.e., `1 <= parent_level < NR_LEVELS`.",
+      "description": "The tracked frame constructor splits the contiguous parent-level bound into separate clauses instead of the chained comparison 1 <= parent_level < NR_LEVELS.",
       "locations": [
         {
           "version": "after",

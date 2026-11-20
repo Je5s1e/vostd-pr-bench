@@ -7,7 +7,7 @@
       "id": "pr-723-d90d548c92ae:issue-3848925745",
       "original_label_id": "3848925745",
       "category": "guideline",
-      "description": "Is it better to name it as `tracked_borrow`?",
+      "description": "The proof helper borrow returns a tracked resource reference but lacks the required tracked_ ownership-role prefix.",
       "locations": [
         {
           "version": "after",
