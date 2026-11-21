@@ -1,0 +1,2081 @@
+[
+  {
+    "sample": "pr-100-3439712c4524",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "238e8f5e7ee97fc3833b9129d73dd6a6437f0e27748d3b42626f4edbef6e2ff7"
+  },
+  {
+    "sample": "pr-104-f3df1ab197d2",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4851779b2f7b73add5603a76a036606d23c8105f82ec4c2cef416d1a1e891d43"
+  },
+  {
+    "sample": "pr-119-0a0ec99c5b50",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b3bd9fc9bc34feff4004f420ac787d904e39caa56cf32c99addb836e0c175796"
+  },
+  {
+    "sample": "pr-122-aa2041448069",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "61dd46dffdf30fb22ab9464ba7cc815b321a4a9497095f8ad3200e69f63f7dda"
+  },
+  {
+    "sample": "pr-127-ac14d35923e4",
+    "version": "after",
+    "path": "xtask/src/main.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "69b1e5565996a920cb8f00803b8ad1c578ee04d4d9adabc800e28ce5fc7b3fac"
+  },
+  {
+    "sample": "pr-136-9483097409b4",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/cursor.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b11284831c09230fef5614e6cc5d64e7fde6b9d621b0f0f98ec633251e089d1f"
+  },
+  {
+    "sample": "pr-143-544fc49e7446",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rcu/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "e02462c964c667531a1c521396bf4ab3aa224c6d8e0e73ada9c2762a3ea77d20"
+  },
+  {
+    "sample": "pr-143-544fc49e7446",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rcu/node/stray.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "058a74e683edb4d6c19a16bc24aa00038bb8e95438ed2c9b302c9ed24b3130ae"
+  },
+  {
+    "sample": "pr-146-b4c63161c57b",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "74cf94804edddae72d8daf91de22d7263487a5c9ce227a8b51a197fdb0183247"
+  },
+  {
+    "sample": "pr-146-c6ea1a85e164",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "67062af6acad596e11dd0169df122d6a0b201d30363e8a1788f897ea96601189"
+  },
+  {
+    "sample": "pr-16-ace524111090",
+    "version": "after",
+    "path": "fvt1-mem-region-init/src/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1150380d8f0cc797449294a54ef9ba2784c0353a3680b3d227b4de975540590d"
+  },
+  {
+    "sample": "pr-161-1510b718eb7d",
+    "version": "after",
+    "path": "lock-protocol/src/spec/rcu/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "139e643687434ed0bd5f98e6fc5c9169dd1981d47531705e6b1c33afaabb5a9e"
+  },
+  {
+    "sample": "pr-17-30beab687be4",
+    "version": "after",
+    "path": "fvt13-vmspace-unmap-safety/src/spin/exec.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "73b1fce487f221eb730d2eb38e31164543a591272254d4655bb5ba1308978245"
+  },
+  {
+    "sample": "pr-17-30beab687be4",
+    "version": "after",
+    "path": "fvt13-vmspace-unmap-safety/src/tlb/cpu_local_queue/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "82e9144e7afdee05ba5432fe4327b6a6e0ef70abd15aa1993280d77b2e13345a"
+  },
+  {
+    "sample": "pr-171-6cc1b7bbb99b",
+    "version": "after",
+    "path": "lock-protocol/src/spec/rcu/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d55d0ab48fc5901b16dc6d0c17b8cc54cf737aa04941ca55a7db948fb545a8e3"
+  },
+  {
+    "sample": "pr-171-81a05f39c6ad",
+    "version": "after",
+    "path": "lock-protocol/src/spec/rcu/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1829cef31d3d64b9e192cc400eb8d2ff9e7817aae479e85bdb4bf3c9c38c3b60"
+  },
+  {
+    "sample": "pr-175-1be41f76acbd",
+    "version": "after",
+    "path": "lock-protocol/src/spec/rcu/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "fab01d44835be9cfacece6a9fb9e15519c35d4f46de648f79a452ca2a591bf22"
+  },
+  {
+    "sample": "pr-178-8d5d616a2605",
+    "version": "after",
+    "path": "xtask/src/main.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "99f7590b4a341cd16088636d1f7247e0f09af41f7f6ed2e636c2ad015b5b360b"
+  },
+  {
+    "sample": "pr-182-16d5d093ac90",
+    "version": "after",
+    "path": "lock-protocol/src/spec/utils.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "607cbfb9006b8aa76baf40ea1cafbc36515acfdf210eb91e26ad425455b0a98e"
+  },
+  {
+    "sample": "pr-183-fb3b9d0681b5",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ebe304b3105b729b0e81830526bfb06e9a2c69de5cbf72f1db40abb52f309c04"
+  },
+  {
+    "sample": "pr-183-fb3b9d0681b5",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c92fe9f9593be1042b8ec69500f9c058289bc8c503af4280fce66414da7d6e0a"
+  },
+  {
+    "sample": "pr-213-7de412d2a90e",
+    "version": "after",
+    "path": "specs/ostd/src/sync/abstract_lock.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d8e92f9eccc73b201e4793b986568639b1564c169f17afbebb32acacad501e1e"
+  },
+  {
+    "sample": "pr-213-9d72cec58996",
+    "version": "after",
+    "path": "specs/ostd/src/sync/abstract_lock.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ce8b7cfef10d608363a1f2850f3a8076f52a500d8607fe0e17fdc1f9e0d75117"
+  },
+  {
+    "sample": "pr-22-97523065e4c0",
+    "version": "after",
+    "path": "lock-protocol/src/spec/utils.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "239fcbd80dc6e47a5fe88c6f955128cce33c639061c4557a3c0819dd633fd67d"
+  },
+  {
+    "sample": "pr-220-1c5f850814d9",
+    "version": "after",
+    "path": ".github/workflows/verus-update-test.yml",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "fcd2b84fd5e85d72ce48475d269c3b5a5b5ac918f79be1ef8e8a3a5b455f3cb1"
+  },
+  {
+    "sample": "pr-220-cfcd9e87ed0d",
+    "version": "after",
+    "path": ".github/workflows/verus-update-test.yml",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d7d74c7aa786630b59db82901c90a39dec6d795fc0eaca08820ec49cfc39ad3f"
+  },
+  {
+    "sample": "pr-226-84f7a7f07d36",
+    "version": "after",
+    "path": "ostd/src/boot/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "38ff2c5c6764883373e7232e5b4f82832aa98f1507d9d539091f70513f7b0d37"
+  },
+  {
+    "sample": "pr-226-8c5c020ff2db",
+    "version": "after",
+    "path": "ostd/src/boot/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "91f59cbfff79fbb734171cd0bd9e719588e2b42c9a77c63d9e0271038b75e46b"
+  },
+  {
+    "sample": "pr-226-8c5c020ff2db",
+    "version": "after",
+    "path": "specs/ostd/src/memory_region_specs.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "259a7171a5da16caf6bdf09c135a47d827861b4bb20cb970e974385111aa95a0"
+  },
+  {
+    "sample": "pr-23-56d930eb5a67",
+    "version": "after",
+    "path": "xtask/src/main.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c9919bd95ec5fda8975371ed00a334d17569d6e328449d7d34f82040ef51c444"
+  },
+  {
+    "sample": "pr-233-9d89be46b390",
+    "version": "after",
+    "path": "lock-protocol-rcu/src/spec/utils.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8205805a7856ffee98f91df01ed54bf6d0ba6d0f0b3e05897443d1be959b5946"
+  },
+  {
+    "sample": "pr-235-627f20d8afad",
+    "version": "after",
+    "path": "lock-protocol-rcu/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "99b4b458663335f9309218d723e334a1211eb1e556be2299c02a20e56e74c3d6"
+  },
+  {
+    "sample": "pr-236-72a385b929f5",
+    "version": "after",
+    "path": "demo/Cargo.toml",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4882c24513f7ad6e7ea0e4f970079935182405da33383dad63eaf38d7c204f4f"
+  },
+  {
+    "sample": "pr-237-24bb220c7879",
+    "version": "after",
+    "path": "ostd/libs/align_ext/src/lib.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "fcbbc5720c170789245fccfb1fa907fb1261ee64a0fb1438d09d1610ff2182d8"
+  },
+  {
+    "sample": "pr-237-24bb220c7879",
+    "version": "after",
+    "path": "vstd_extra/src/arithmetic.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0763f82cfa9ae5ec33a3a24b55c49c3a353d4dcd1cb898c7902f03a5cbd17c46"
+  },
+  {
+    "sample": "pr-25-6479bc556a28",
+    "version": "after",
+    "path": "lock-protocol/src/spec/utils.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "99d641b53253294849fffbe4dd1450eca95cc1d07f0624a2bbb8ee47fe8368d6"
+  },
+  {
+    "sample": "pr-250-8224e4aee238",
+    "version": "after",
+    "path": "vstd_extra/src/temporal_logic/rules.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0fba5fb6c9981ef18ad69c14ffa572fa4c9b15e49ab60058bfe52dd0e6b84d1b"
+  },
+  {
+    "sample": "pr-26-2275e7c32b66",
+    "version": "after",
+    "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "87d43727f7f269cb6a62aec1d93becd93a42918e6d623176ed0138b02f90cda7"
+  },
+  {
+    "sample": "pr-26-5474cd472251",
+    "version": "after",
+    "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c5760cf2cdb1503e0a2c6c81a65e5db8da4c5a79b4db523da8746ccccd8a68fa"
+  },
+  {
+    "sample": "pr-296-899421ff5b69",
+    "version": "after",
+    "path": "vstd_extra/src/ghost_tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "92a53d12f3215fb999bab402136442f0d7bab198cbc3373dd4d62ed0a57a16ce"
+  },
+  {
+    "sample": "pr-3-df3e68c119ce",
+    "version": "after",
+    "path": "aster_common/src/page_table/page_table_mode.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "db31485808cb3332470be6e3810264fa7284f1cc78c48b9faae7c969cb944c5a"
+  },
+  {
+    "sample": "pr-3-df3e68c119ce",
+    "version": "after",
+    "path": "vstd_extra/src/ghost_tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "e2945298a33663fe2a01469291891c65b48896b8e6101b600182e4dde273fdcc"
+  },
+  {
+    "sample": "pr-33-715c00b43894",
+    "version": "after",
+    "path": "lock-protocol/src/test/rw_version/exec/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "71ee09e79cfcc5d6d767a1796781c4b62c3cd49fe302e37181cee14c6de9664d"
+  },
+  {
+    "sample": "pr-337-b6aa265c1a4a",
+    "version": "after",
+    "path": "ostd/src/sync/guard.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2419c64ae9b7f62213766ac4d0d059e800b16e281aaaff826d1a67b17e3485b7"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "version": "after",
+    "path": "lock-protocol/src/test/rw_version/spec/common.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b6272498561775a377cd14e4596b4c52716557ea8e1422813a1387bfd012d5cc"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "version": "after",
+    "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "fa128cbda644b098e0381e0f16beee14e7c8eb6816304a6287a7ba160330473a"
+  },
+  {
+    "sample": "pr-350-5cbda0832ce0",
+    "version": "after",
+    "path": "ostd/src/sync/rwarc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2aa9e91af8573394f4eb3d4f0b88c93db9d2a5b192ecc4bcff466876a5a5d4bc"
+  },
+  {
+    "sample": "pr-353-650ed55495ef",
+    "version": "after",
+    "path": "dv/src/doc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d56f8bbd88a68444a0f8757645717c51e87842912d1a38fedbdccb9ccc37bb7f"
+  },
+  {
+    "sample": "pr-355-2a3429fb0b20",
+    "version": "after",
+    "path": "ostd/src/sync/rwlock.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a15b6c6d9ee80b780ba66d29c5671c34898ab3a602901a775272027e9e53cd78"
+  },
+  {
+    "sample": "pr-382-045fa97a6577",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/cursor/locking.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "19b7a501470dd1d8400ad1f32c40cdeb7957cf2c40a36b20c50f5f29ff383cba"
+  },
+  {
+    "sample": "pr-382-6a84ab163da0",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "01f072cf21c585e33b4ce8ff67d5450c9a07f2d81f2da0bbeb6d44f7b1f16602"
+  },
+  {
+    "sample": "pr-382-6a84ab163da0",
+    "version": "after",
+    "path": "ostd/src/mm/vm_space.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f7b04a13c6124eced1c0de8aba09ddbbbac6c444c1caff0c49bf20c0df1686c0"
+  },
+  {
+    "sample": "pr-39-8777297fc95c",
+    "version": "after",
+    "path": "vstd_extra/src/manually_drop.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7c2a05f0b4d29acd32b9d84d5fc12f5b68c5cd95e9e07913a71a73da5cbc8a26"
+  },
+  {
+    "sample": "pr-390-ff234245b17b",
+    "version": "after",
+    "path": "ostd/src/mm/dma/dma_stream.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7e3e4a1ca9305d149d47bf5d13645c881ae6c5ee1d537f923953e092881781bd"
+  },
+  {
+    "sample": "pr-392-f30278a5973e",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ba27f053b06dfaeaa68a41f977a104e696d8e04966784a9a47c78a792f9fd485"
+  },
+  {
+    "sample": "pr-392-f30278a5973e",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/kvirt_area.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9fbb5b742ae04a3c7e96509cbd31eb9784f1b4171d74b0cd7ffb20baad910653"
+  },
+  {
+    "sample": "pr-395-6ae195e508a8",
+    "version": "after",
+    "path": "ostd/src/sync/rwmutex.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ee040ad1f20a6b3cf902db1aef344edd773b4a6d908ddff77415682853f41c60"
+  },
+  {
+    "sample": "pr-403-a1f2685897f4",
+    "version": "after",
+    "path": "vstd_extra/src/cast_ptr.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d0e3358433b3bef3e1f8eb71242945a1a13cdc6a382d5166b9231bd13808c66e"
+  },
+  {
+    "sample": "pr-403-a1f2685897f4",
+    "version": "before",
+    "path": "vstd_extra/src/cast_ptr.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "786e2320260c9eeb0156434db63f517ab95dd08aa09d97909568835eadf2c5dc"
+  },
+  {
+    "sample": "pr-419-e2a32e9a225f",
+    "version": "after",
+    "path": "vstd_extra/src/seq_extra.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "14d1998d4f67c0db6631f8941bb6a24c31ca997c4d620cb467fadd4da4f030b8"
+  },
+  {
+    "sample": "pr-424-2e7051b98235",
+    "version": "after",
+    "path": "vstd_extra/src/std_extra.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "dacf9c590d64c61ebec69107b98ba29ec9a0867fd9abfd26b4c10d92d79ffb78"
+  },
+  {
+    "sample": "pr-424-8d7b6621ed81",
+    "version": "after",
+    "path": "ostd/src/mm/dma/dma_stream.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1ec5c623028de09bebd97f66e07742d2ebb86c804e73f98b243f332b17a1de04"
+  },
+  {
+    "sample": "pr-424-8d7b6621ed81",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "309305502d703fda321fa4907670f67b68823a906960c1e200c3767c2119f821"
+  },
+  {
+    "sample": "pr-439-b083bbf05f58",
+    "version": "after",
+    "path": "ostd/src/lib.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b01f12614537beebf12bc0de46c761ffcd3bd2c1b3f503fe08c73dcb89ab9228"
+  },
+  {
+    "sample": "pr-439-b083bbf05f58",
+    "version": "after",
+    "path": "ostd/src/mm/io.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ffb4ad0df3893d2c052586141dff02a6b15c350118040d48e96c3e866cc7816d"
+  },
+  {
+    "sample": "pr-439-b083bbf05f58",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "309305502d703fda321fa4907670f67b68823a906960c1e200c3767c2119f821"
+  },
+  {
+    "sample": "pr-44-a75fa49663cc",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/cursor.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "e0a5294c3ce2a23c2707ccbdf50cc4249a8af8c55b1adfb60f739f023286c39d"
+  },
+  {
+    "sample": "pr-440-0ba029a82c8d",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/kvirt_area.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "eb869a371856557112fa805e11fdc4b940a85241ce375db06b5f092f531cca92"
+  },
+  {
+    "sample": "pr-45-a64f70e4ca48",
+    "version": "after",
+    "path": "fvt6-vmreader-and-vmwriter/src/io/specs.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "58775b99228040a1775b55873e4d086bc5a42fcf32b242246c10af68b511d1c1"
+  },
+  {
+    "sample": "pr-45-a64f70e4ca48",
+    "version": "after",
+    "path": "fvt6-vmreader-and-vmwriter/src/io/vmrw.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "26cc6288c2b6d189f72dc0beaa3c15a56b16fc9ec7b0c9f338dcc5bdc7e3f27a"
+  },
+  {
+    "sample": "pr-452-d834e11605c3",
+    "version": "after",
+    "path": "vstd_extra/src/external/int_specs.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a9a2991848dd33a2a2ed7e9e5af33a008c2e7077e716c7ecce386cc649d23e1f"
+  },
+  {
+    "sample": "pr-454-1db47ee9a94b",
+    "version": "after",
+    "path": "ostd/src/mm/frame/linked_list.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "056d85ffaf6a6b2e10f5456d1161ab93a9298120a2d91906c7ffa3fe6f155fc7"
+  },
+  {
+    "sample": "pr-456-6aa8a9b0ede4",
+    "version": "after",
+    "path": "ostd/src/mm/dma/dma_coherent.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ce335ab7017419111d8d11f21175288e66e586d0ae4b6bb7dbdb0bfe870260c4"
+  },
+  {
+    "sample": "pr-473-27c3210449d8",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "84111ad1b81467bdc6c3d22783362318cb3389da684e5f944760ebb14e734000"
+  },
+  {
+    "sample": "pr-474-a6fdca3a754f",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/kvirt_area.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9e5c71b665fefb8a095c60c1e84b5ac69e23409e6195b9943417b890f5397b6a"
+  },
+  {
+    "sample": "pr-485-6fac7bc837f6",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/meta_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7ceb4223cd4d08480a7faef5b7f5d80866e1db7f385f910d62ff63fe43852130"
+  },
+  {
+    "sample": "pr-487-5170c403b0d7",
+    "version": "after",
+    "path": "ostd/src/task/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b5ca8fe9fd863c2fb1b4b9187e079e1b339e452671f122b7618aa9cd1afe17b0"
+  },
+  {
+    "sample": "pr-492-e7a37a7d7080",
+    "version": "after",
+    "path": "verified_bitflags/src/lib.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0e5110e422fd74087e4467b1f0f88ecb7ceae6e14b36b9554837ced7a8e38d47"
+  },
+  {
+    "sample": "pr-499-2d320cbb55fc",
+    "version": "before",
+    "path": "ostd/specs/arch/x86_64/page_table_entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "82a343d2a661faefb960bac18228534e20e925a4e64541d41f492691462bc742"
+  },
+  {
+    "sample": "pr-499-2d320cbb55fc",
+    "version": "before",
+    "path": "ostd/src/arch/x86/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9da1b12dfee8b5601cd8d6a0ceb8f6fa73ab15fb90830cf24da0b190ec685c38"
+  },
+  {
+    "sample": "pr-499-2d320cbb55fc",
+    "version": "before",
+    "path": "verified_libs/vstd_extra/src/bit_mapping.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a48e0f32e71f3e0c8a493c046d9114dfe1a7a571d629db54b66bc4c7190ba744"
+  },
+  {
+    "sample": "pr-50-5d510a5352a3",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f24b56470ea16cb38d70c6d3cb772d84fb3c8adc3377f19a92150624f2648d5f"
+  },
+  {
+    "sample": "pr-500-5c863f079762",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/mapping.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8db612df93d1fda5dc9ae63cf0088c2bbb67e5e611450591976f14a29b75b23b"
+  },
+  {
+    "sample": "pr-500-6c26d6c45e16",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/mapping.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8c63c411330b9e00e4ffbc62d994184e12e3eb95048038b76a9886fcda7275fc"
+  },
+  {
+    "sample": "pr-500-6c26d6c45e16",
+    "version": "after",
+    "path": "ostd/src/mm/frame/meta.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0a98306649b2322fb474c779bea984d19b4a956241d88f0254587eee7db6e518"
+  },
+  {
+    "sample": "pr-500-e909aa15bb90",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/mapping.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "46b7e02ba34c8d6ec79617c3620fae0aa4c2e6771af5e8ab78ca6113830264a8"
+  },
+  {
+    "sample": "pr-501-5646c42516b4",
+    "version": "after",
+    "path": "ostd/src/mm/vm_space.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2feebeecb11ce8ae5ea18993937ad640cec8ed815f15d2418c0cf3ccbcad4180"
+  },
+  {
+    "sample": "pr-505-cb2be5a80af1",
+    "version": "after",
+    "path": "ostd/src/mm/heap/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1711b74f1720ded007965e53795fdfde50d9a3627bde2ae792061e166985974e"
+  },
+  {
+    "sample": "pr-505-cb2be5a80af1",
+    "version": "after",
+    "path": "ostd/src/mm/heap/slab.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "baacdef1ee226ca4ca7c52b2494da51af50523f5c6b1182766ce1a92dc2e324d"
+  },
+  {
+    "sample": "pr-505-cb2be5a80af1",
+    "version": "after",
+    "path": "ostd/src/mm/heap/slot.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "02de1a23e09e1cb5d10ea7cc0a98af694cd01ed88e7c0ebc3e99e098b8f038ce"
+  },
+  {
+    "sample": "pr-505-cb2be5a80af1",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4e1d8b2b0fde5ec926bf167caaa734aef8672b4bd54dea41013247085f3a51a2"
+  },
+  {
+    "sample": "pr-505-dffa7b932d72",
+    "version": "after",
+    "path": "ostd/src/mm/heap/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "daefa3c16b9028a91397c247357e1847f8ed405b3790d4ce8d18a1f4d9b87b31"
+  },
+  {
+    "sample": "pr-511-860ffa221455",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "be75223dc2914aaecebd80c338d0d885bdbe474707e3ced8942d4773db038c6b"
+  },
+  {
+    "sample": "pr-515-378590cc39ac",
+    "version": "after",
+    "path": "ostd/src/sync/rcu/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "e79335fe861dd115b1d8fc508b01709785f5fe6ea113e8a795ce1a98dc5f7cbb"
+  },
+  {
+    "sample": "pr-518-4cb9ee7caa9e",
+    "version": "after",
+    "path": "ostd/src/sync/rcu/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "77afc36334a9bfd25c704b033c8bb87d122482d0d25111381475cb47c29c9a05"
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0f860f68384fe43f0260dea8438fbff5817549878de57bb07985f101fd47288b"
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a963f00d4e72995ce56595cb036735399767f52c76e887c5ec0c9e8b6225a186"
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/test.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "cecd34ce2d51df439c18d61e8e68eaf97e9ee95f3a55a89e9f9a815597fec49b"
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "version": "after",
+    "path": "ostd/src/mm/vm_space.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1bf7cd7dda4644ab122a3c26b6212076bd6c91a3e1a1f29792e185d55189a8ce"
+  },
+  {
+    "sample": "pr-530-3574febda9d0",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "64b981c349c24c614b41f4a2e43e1451b14cc084829797ac450082bdf0dd03c3"
+  },
+  {
+    "sample": "pr-532-9200dd2fb210",
+    "version": "after",
+    "path": "ostd/specs/arch/x86/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "70464c48424a6783611b5a0b1113156bb49b8dabf21f686eaf1e725f3f63b5e6"
+  },
+  {
+    "sample": "pr-532-9200dd2fb210",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "867ff93246388af923c99422e3e12aa5fada37f84d960a5362a974254efdb719"
+  },
+  {
+    "sample": "pr-534-5ba756b22a68",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/kvirt_area.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "23f28b7c6aa86c8f84d79f864093764740a232035d388e7ac9cb6fc64f8b1649"
+  },
+  {
+    "sample": "pr-546-269c2b583824",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "96c84c4df13e0eec160962e9d89a241116e509000aed46674f77337335c74f57"
+  },
+  {
+    "sample": "pr-546-269c2b583824",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/segment.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2ec98f3429330f499f3d672362e81f77fe50627552cdd672e5afbfbdecb7624d"
+  },
+  {
+    "sample": "pr-547-4510bdeecf13",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a78d6c8e35b0a6cf9f1814a464a40bdd2d0964ccbd73d0798f3c2c5959c6c738"
+  },
+  {
+    "sample": "pr-562-581ce53261be",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/kvirt_area.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a563fb7007a97f25169875077f7c4e09a3bc9fbe2892a91bd75aa01f43a8d508"
+  },
+  {
+    "sample": "pr-577-94715eb8c48e",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/segment.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7115cd6fb3295d9391cbee2ea14df9f111e58b1bd48e2a83ef1c3c808bba5abe"
+  },
+  {
+    "sample": "pr-595-c34b8882f0e1",
+    "version": "after",
+    "path": "README.md",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3b9ee04fa8dad7aa11d812b5882c6c58d830d59f357ed02ddb685c9637759a51"
+  },
+  {
+    "sample": "pr-612-0886ccdd5411",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "abec15cf5438ee0d84e48f2ae5d5a429a93b0de81523b5cb2c65ebc673132660"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7de699c69f61244734a37754214726b9fef5ba0fe22a0ee868e69a2d127faae9"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c8609930b2d2130969406c373ea88c5e8a09492a5c27288cb104579e81ad091b"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2d0cf0bff37fbcd20785d432f21e44a8cb82d0c9886c991a5dea20c114ccc076"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f49dd8a09489f84863882009eb828a94dacbaefebf52fa1c16f8074f9ff0b568"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "171b1e170d2314f40be13627b70b45bfadf5eb460727a5daefcc14a487e5c7e4"
+  },
+  {
+    "sample": "pr-615-b995aae1ffdb",
+    "version": "after",
+    "path": "ostd/specs/mm/vm_space_embedding.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a855aa25bf93be0a1ea13ba370a9e67edce498a5d5e249c0be4769c843a6fdae"
+  },
+  {
+    "sample": "pr-616-bd8357d3afaa",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8ce57c279b8f40597f599a7d0fcd44530d7ebbb2300b2e233e7d101e4949c206"
+  },
+  {
+    "sample": "pr-617-a00a7b6fa954",
+    "version": "after",
+    "path": "ostd/src/mm/dma/dma_stream.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "6b317a46bd186bcaaeb0d96f98372950963a9e8c42dbb3d2b5ae3c33ba19e3b6"
+  },
+  {
+    "sample": "pr-626-cef66d9ffb91",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/cursor/locking.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8b4fa362eaf64e9da3969359f4b9622af98e34098135e7d1c57a6ca428d2abc1"
+  },
+  {
+    "sample": "pr-628-096c166e5ce6",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/list_store.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d62211280a4720cffa211381e3f0fb5a727c32cf1f7848ba57bef5fe38f2f76f"
+  },
+  {
+    "sample": "pr-63-742ee43ba12c",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3c5dc0d0f5318a725da7d01e96f18dd71387d77a6588159a9b0ad63c37a9386a"
+  },
+  {
+    "sample": "pr-63-742ee43ba12c",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/pte/page_table_flags.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "43716e017fb11a898eb41c1fa1fe5752230a9620b182246456d68747630ce03a"
+  },
+  {
+    "sample": "pr-632-1be8099780ff",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/meta_region_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "cde4f293dc50451f09e4fd91bccc7e9167b9d5516376ed36cdf252d50f12fcf1"
+  },
+  {
+    "sample": "pr-634-64d2718d5a4d",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/segment.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "fbad80459e2e89e230a155e2fff58e6906ddd96ee07a8a101a1104bea7161828"
+  },
+  {
+    "sample": "pr-636-b0d5450c6e0c",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8ea2ddcca8c0d87dd15841f464a77f5576912eb57853a53b47a1e95ba71519f7"
+  },
+  {
+    "sample": "pr-64-900e41671221",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/node/rwlock/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c5ba4496b86faade388cf286112cd2f78f31dcc9d8e4f53a5140267db6f412c8"
+  },
+  {
+    "sample": "pr-646-5053290d119e",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/owners.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "800e518fb7ee5b2e7d5e4a6011a0418c62feba2ab528fb611251d0d3437176e6"
+  },
+  {
+    "sample": "pr-65-625495f69559",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/pte/page_prop.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "092b2d6778d7f23a7b373d0d78851240c5ec4b505363a25ec9ecbb86f9d10d3b"
+  },
+  {
+    "sample": "pr-65-625495f69559",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_prop.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b893e346471e8dd371ed9233c0304563a044457f8a3d4172c0a6c685a2b9afc0"
+  },
+  {
+    "sample": "pr-651-4fe5602573ae",
+    "version": "after",
+    "path": "ostd/specs/mm/page_table/cursor/cursor_steps.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "de7ec1f98b574c79dde0cfd59210760c4390f442ff7ab41fc0c17a048a6fcccf"
+  },
+  {
+    "sample": "pr-656-ffafeb7a696a",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c9a10324b73181eca2cc6a04fc7d5c770ba4bf8070b21ad59564cc2f249669ef"
+  },
+  {
+    "sample": "pr-658-4f0076d7cb29",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/drop_tracking.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4a9ac02ca5a7eb2bba8482c8def1720d0ec389973dadf4fc7e0ef7919c3fb67e"
+  },
+  {
+    "sample": "pr-659-77c06f3ce196",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/io.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7669188bfafbd4dd11f3846a88d26dc0f7c188e72bb13fde991abf820b446536"
+  },
+  {
+    "sample": "pr-668-12d847140254",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/unique.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a2749b90539ce9c865b6e94e44306500470d49978f5fe25d561180d044cac25e"
+  },
+  {
+    "sample": "pr-674-fc2045c29e48",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1b5566e34c05f709accf6df970b729b4226b61274e1842bab0f0c99b8737ec99"
+  },
+  {
+    "sample": "pr-674-fc2045c29e48",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/array_ptr.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1ef06b095a504c440455a5e1b78d726ccdc5f19a6e0ddb26968161d8b4a71b3b"
+  },
+  {
+    "sample": "pr-675-6d0431e7ba0c",
+    "version": "after",
+    "path": "ostd/src/mm/frame/meta.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1ed8974d5abf9c1475644e0702c60c2baa4438f7a6d5c3df5a4fe3c4e600f80e"
+  },
+  {
+    "sample": "pr-677-1de689b269f2",
+    "version": "after",
+    "path": "ostd/src/mm/tlb.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f6c90237c2418a4e0be21bd25736f92e8e9b8fe94fcf2bc93143ff16d52c51ff"
+  },
+  {
+    "sample": "pr-679-f7dfb8525a55",
+    "version": "after",
+    "path": "ostd/src/mm/frame/linked_list.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "febd14f8528ee91ef624f1a266d702ac023e7aeca41ca0a29467dff63d959e56"
+  },
+  {
+    "sample": "pr-69-931cc78db2e3",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "90d79e7cb80d71d21f78474eaebbf02b230b81235ef53a407b914e19e566a246"
+  },
+  {
+    "sample": "pr-692-1c768aa6f173",
+    "version": "after",
+    "path": "ostd/src/timer/jiffies.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8d239bc8bb207c794a86aa9c16dd5716189e8684c211e174621275aea9aa06c3"
+  },
+  {
+    "sample": "pr-699-6f1ed3a06cce",
+    "version": "after",
+    "path": "ostd/src/util/range_alloc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3964e54d9324b4dbd0e6d3e36af5506fb1b61904e8b9728bb00e72e0b689301c"
+  },
+  {
+    "sample": "pr-70-ca8ef69001b0",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/common.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9bebcfe5bc05862a26df1cbd8f89259616e6204c3a43161befe7f053a45c62bb"
+  },
+  {
+    "sample": "pr-70-ca8ef69001b0",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/cursor.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4d9c875ed769db10328fcf2f77c3eace718696fccc348ca38be61bb2ec41473e"
+  },
+  {
+    "sample": "pr-70-ca8ef69001b0",
+    "version": "after",
+    "path": "lock-protocol/src/spec/utils.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "5758150ebbb358c97af1de46f07aa1d20340d7a6722b6545be190adf18b646e1"
+  },
+  {
+    "sample": "pr-701-a6a2b2dbee26",
+    "version": "after",
+    "path": "dv/src/verus.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d7f74609c001022c76b0e0d1fb480e7ff942d2f963294c8bf53124e5e406b2e9"
+  },
+  {
+    "sample": "pr-702-6288e960b7a1",
+    "version": "after",
+    "path": "ostd/src/sync/spin.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "79463f9715cb85bd28e0bd29e68e7e881e322220a0a0f6170c11a39d55003c67"
+  },
+  {
+    "sample": "pr-703-9481481143aa",
+    "version": "after",
+    "path": "ostd/src/util/range_alloc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2195dd70e0e64382b59c8f7295ac70612573af90a199242dd16cdb8f05f0c590"
+  },
+  {
+    "sample": "pr-704-0ae594a446f7",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/external/btree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "6d01e9a324776ede2d64816817ca840eb88071bad2634084e115de34b883c769"
+  },
+  {
+    "sample": "pr-706-3d7ea1276689",
+    "version": "after",
+    "path": "ostd/src/io/io_port/allocator.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c048728c1ce368be4d11794204ebef122455c06295df3f62cf17a5f9b5355cac"
+  },
+  {
+    "sample": "pr-71-ddd2e78f5931",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "97ae9eb172daafd4d579b687431ddbbe73691444ba5c5eb3baf2e3eae8ea47ff"
+  },
+  {
+    "sample": "pr-71-ddd2e78f5931",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "aa6a5466662b319ab683fd66340dc2871091f1f0a16c2fdf128cb931dedb155d"
+  },
+  {
+    "sample": "pr-710-81e3abfc0815",
+    "version": "after",
+    "path": "ostd/specs/arch/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "306cf7a7b92cad85b10fbb4c8e4f0316615087e9c73c3db4c0f8b58408c7c12e"
+  },
+  {
+    "sample": "pr-710-81e3abfc0815",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "34da00b35bbbb0d3fca6d979355163d007791f1082cc5aea98f0ea9e115b675b"
+  },
+  {
+    "sample": "pr-718-80dcb9bc16eb",
+    "version": "after",
+    "path": "ostd/src/util/ops.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1b1b41725a3ce71fb4df1318bb4fb79cb7d9a2f10c7356c21649e9b4b5b3ff66"
+  },
+  {
+    "sample": "pr-718-80dcb9bc16eb",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/range.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "5f35d54d71aedb9c9abce23b0a88ba56acfccaa58a66ca831963c056fbc8a030"
+  },
+  {
+    "sample": "pr-723-d90d548c92ae",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/rcu_read_lease.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "5abc77370a4c748649daf4cc30bcf3fda210b0a4953bc6c459efc92f77f8f368"
+  },
+  {
+    "sample": "pr-728-7e0d60333942",
+    "version": "after",
+    "path": "ostd/src/util/range_alloc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ade655f93f36bf05b2eed67b200370fd86071f115ce23a505d4736c1890e5957"
+  },
+  {
+    "sample": "pr-738-b759e2fe2adc",
+    "version": "after",
+    "path": "ostd/src/sync/rwlock.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a6b102df089c80da0278a32ad6d246516610364e22b7a302a4630e83f51f77d8"
+  },
+  {
+    "sample": "pr-739-c6323145118d",
+    "version": "after",
+    "path": "ostd/src/mm/kspace/kvirt_area.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b875300d9c089f6288f3d9f555b6356b8d6ffa5a40afd64eb69050ee040cabb7"
+  },
+  {
+    "sample": "pr-74-519268844721",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/common.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "fa8714e35358167128f4bbcf1b5557c1435d629a1d99d4c8653780e68e8f20f8"
+  },
+  {
+    "sample": "pr-742-32f28ee1260b",
+    "version": "after",
+    "path": "ostd/libs/id-alloc/src/lib.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f77f2ddb468b9234c5eb5e77d4724e2e22ee6404f352904f85fb5adc1e1ae910"
+  },
+  {
+    "sample": "pr-742-32f28ee1260b",
+    "version": "after",
+    "path": "ostd/specs/mm/embedding/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0bf5eb85796a8f756eb9e4553458a452b862acf3715fadcc1a7bb8a34584b73d"
+  },
+  {
+    "sample": "pr-75-0ff02a61dc17",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "aff10a11d8a682854808d8404817a28e4fa1f68759985c3d20725b16f252c8ea"
+  },
+  {
+    "sample": "pr-76-58c6aac4274b",
+    "version": "after",
+    "path": "vstd_extra/src/ghost_tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "5b4dfd83b46bae764f8ab8bdf6b8d35d7617a98650d53fb447ab39d16930cd62"
+  },
+  {
+    "sample": "pr-763-027c97275075",
+    "version": "before",
+    "path": "ostd/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "6570ed8f7e6c4ccfa7cefeefb9ae97c36814a95b8f6b7dafa8c3de3686468f65"
+  },
+  {
+    "sample": "pr-770-28ec70b8e3f2",
+    "version": "after",
+    "path": "ostd/src/cpu/set.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "49e47d730bfb4b6f24a1d8d863ffcfc04de5313694678903a7bd9c11f636c299"
+  },
+  {
+    "sample": "pr-775-d3b5ea030112",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/ghost_tree.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "70f43cb672e25c11e60dfd40cc3545d2fa976f229826280c96dad97ad5900e72"
+  },
+  {
+    "sample": "pr-778-994b5b0a00cf",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/memory_region_specs.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9cef6344ecc13016cc39449553fb283b9fd2d6f181ecb93b91987f8a63968b5d"
+  },
+  {
+    "sample": "pr-78-6082813ffdda",
+    "version": "after",
+    "path": "lock-protocol/src/exec/rw/cursor.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2326d2ae8f526da4e3bc34e7af0a719ac6af72fe5bfd69b53531db337e46816a"
+  },
+  {
+    "sample": "pr-782-0195dc456673",
+    "version": "after",
+    "path": "ostd/src/boot/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a2e8ce72074d92a1be5603ea052ac0baede080fd759ba75deb6046297af98f42"
+  },
+  {
+    "sample": "pr-782-1a8ec593d670",
+    "version": "after",
+    "path": "ostd/src/boot/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "365117569df534911e0b8911e93ecb6a49654a8e700064592dc0553385b557f7"
+  },
+  {
+    "sample": "pr-782-4f44ff343670",
+    "version": "after",
+    "path": "ostd/src/boot/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3c60ba6302fd001a1f368f1a18cf82a180c97300729dfdbfa48c3a47c0559fe5"
+  },
+  {
+    "sample": "pr-789-8943e8f25420",
+    "version": "after",
+    "path": "ostd/src/arch/x86/kernel/acpi/remapping.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "be1652fb6c4d6f652fe765cb08703432aa8f61e68a537d30072b36074acd5c03"
+  },
+  {
+    "sample": "pr-797-07c694bbca2a",
+    "version": "after",
+    "path": "ostd/src/boot/memory_region.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "98e12a14a31c647283a31ce0db03a040be0565fd943e6b34d7aca5fb4a5a0813"
+  },
+  {
+    "sample": "pr-802-2d0e9d0e7c27",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/external/layout.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3d507a5dcfd1866e0eb26a6eee4e34173b6e5244552f52f59fcbb41f3a03c39f"
+  },
+  {
+    "sample": "pr-809-9d1b88dd7b02",
+    "version": "after",
+    "path": "ostd/src/util/range_alloc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "378e673806ed28ecba1553c5fb3db003f06ec0ccd6a0f508636733c5aa61d2eb"
+  },
+  {
+    "sample": "pr-812-4121eb1c32b0",
+    "version": "after",
+    "path": "ostd/src/task/scheduler/info.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a3ba2d9af77ac35f6eb37975bf88a6f752efa4ed154ddda1e598a9cf3d5cf3b3"
+  },
+  {
+    "sample": "pr-819-15e19d347120",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/external/ptr.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "83bcaa93cfba29121f69440543bb0b54d3d9adaafcafc3012f4167f5e9202dbc"
+  },
+  {
+    "sample": "pr-82-7861acbd2ab1",
+    "version": "after",
+    "path": "vstd_extra/src/extra_num.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "e4421fa870cfc2abd1404939516c376f88287df03ceaad1d6e18306e3eae894d"
+  },
+  {
+    "sample": "pr-820-23c7625612f0",
+    "version": "after",
+    "path": "ostd/specs/arch/x86/irq.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "17e031e45b2c90e814708accf27bd092aacc2b7bb33488eac848fc68af4b43dd"
+  },
+  {
+    "sample": "pr-847-deb42343023f",
+    "version": "after",
+    "path": "ostd/src/arch/riscv/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3dde9b4ebd71290473b3b5a399e0164780779b0ad16658ebc4ec8b962582d731"
+  },
+  {
+    "sample": "pr-847-deb42343023f",
+    "version": "after",
+    "path": "ostd/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9e0ca5ec4a01007ac6471f11f3a0d54c4981ea5ce25646f327ba99f1855c6a5e"
+  },
+  {
+    "sample": "pr-855-5c9e493bb78b",
+    "version": "after",
+    "path": "ostd/src/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d9dee4daad5c4c0a6145cda0e5ceae487d3ff8014e4a71695286d4e376174ced"
+  },
+  {
+    "sample": "pr-856-619ad58877f8",
+    "version": "after",
+    "path": "ostd/src/mm/dma/dma_coherent.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "60deb44be1e6eb79064e5a8f55e75c63653043629a2f3d56c802096da0c1de1f"
+  },
+  {
+    "sample": "pr-857-51bb973322ec",
+    "version": "after",
+    "path": "ostd/src/mm/vm_space.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "30aaf0e95488dc6b164022d6a693f99152ab84c726ffc01b45dc7f7d222f5001"
+  },
+  {
+    "sample": "pr-857-51bb973322ec",
+    "version": "after",
+    "path": "ostd/src/sync/wait.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "3a52925f4180e01a61c7ef1691e54b4e952d9349cf3f88b89cc0fa1950173038"
+  },
+  {
+    "sample": "pr-860-a4749f699922",
+    "version": "after",
+    "path": "ostd/specs/sync/rcu/atomic.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d62bc2be1c0a048f55318094a396cac8e389c1bd30d1e4d5a25e55f22a72c359"
+  },
+  {
+    "sample": "pr-860-a4749f699922",
+    "version": "after",
+    "path": "ostd/specs/sync/rcu/cpu.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "885631fa9bd9a0c440bc710aca3a9dcf2d6c08bf8bfe7899a0a7e09957dfd9e2"
+  },
+  {
+    "sample": "pr-860-a4749f699922",
+    "version": "after",
+    "path": "ostd/src/sync/rcu/irc11.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f3b4195ea6985e0bbfee312ff077c9880b684275512311d0678d02b1f61abcb7"
+  },
+  {
+    "sample": "pr-860-a4749f699922",
+    "version": "after",
+    "path": "ostd/src/sync/rcu/weak_monitor.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "9498657ecce27930cf4ffa09e2217dd6cadd885decc3491ded5ae079a6390d73"
+  },
+  {
+    "sample": "pr-862-637c0417fccd",
+    "version": "before",
+    "path": "verified_libs/vstd_extra/src/set_extra.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8c58abeb425bce57c937479891f38808f765f5a9019aea12193874a80c9879d0"
+  },
+  {
+    "sample": "pr-865-f93f960594be",
+    "version": "after",
+    "path": "ostd/specs/arch/loongarch/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "6d4698c14a8d4e5b3aaed9044082cfdc8a38062dabdddae675be6025c49b17ec"
+  },
+  {
+    "sample": "pr-865-f93f960594be",
+    "version": "after",
+    "path": "ostd/src/arch/loongarch/mm/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8bf1c8f176b0cd11339247108ee66eebc37023b5a62ca47484fa42f6f4e1adad"
+  },
+  {
+    "sample": "pr-868-c4d83ca80c61",
+    "version": "after",
+    "path": "ostd/src/mm/frame/linked_list.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "b8947738603c397f0cc3612843259b37ac18d58d70732940215f33cd83f2a8b1"
+  },
+  {
+    "sample": "pr-870-d808e2c9c911",
+    "version": "after",
+    "path": "ostd/src/arch/x86/task/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "1008bf8528d5ba09f1149e96a55d0c1145a984501190b96371d436e14dda6885"
+  },
+  {
+    "sample": "pr-871-61c301b7f35d",
+    "version": "after",
+    "path": ".github/workflows/ci.yml",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4f8d626b5e0a7e3146f3f0278d1875149176b6dcfbe97a77047fd5ac8b0ae151"
+  },
+  {
+    "sample": "pr-879-902b28e19560",
+    "version": "after",
+    "path": "ostd/specs/task/irq.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a45e7b4db13be3439573e339ae1f9ad2e592e6b0f2ae5c6b3c20c59f4f05b900"
+  },
+  {
+    "sample": "pr-886-fe5eb7f3e6aa",
+    "version": "after",
+    "path": "ostd/src/arch/x86/ex_table.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f658d625c9531cd2a20492e3a04d8fd92fdf7e2c92bc16460e507d3f41be9583"
+  },
+  {
+    "sample": "pr-887-431e3c7c0000",
+    "version": "after",
+    "path": "ostd/src/arch/x86/cpu/context/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "ad339aed7e7ca495e0865a464af7044f3a85f463da63e5087a60d897f5f9f408"
+  },
+  {
+    "sample": "pr-887-431e3c7c0000",
+    "version": "after",
+    "path": "ostd/src/user.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "d449f878d65740a266ea8e4b079ee04042f002e89be1c38e4dfcfc54d628a2a7"
+  },
+  {
+    "sample": "pr-890-5b1e96c2ec18",
+    "version": "after",
+    "path": "ostd/src/util/ops.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a570fb0456c73104ae86ff1e62cea2223d05b6ef1c85387ddedd241c1f81ea92"
+  },
+  {
+    "sample": "pr-892-34407c0508d2",
+    "version": "after",
+    "path": "ostd/specs/mm/frame/frame_specs.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "748ed75df975afc4d5ea05873484b2efaf04234129883020da3c0ddb69bde8ab"
+  },
+  {
+    "sample": "pr-895-910070850974",
+    "version": "after",
+    "path": "ostd/src/bus/pci/capability/msix.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "c8f318237e5d742362e50d6ac62847a425ca1f770c0a51e9cb471cce4b952c73"
+  },
+  {
+    "sample": "pr-897-657bce05372e",
+    "version": "after",
+    "path": "ostd/src/mm/frame/frame_ref.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "6c52af9e741badaaa29429a62c325ac1c62992c2584832b1fe70aa92a18966f8"
+  },
+  {
+    "sample": "pr-900-d5d5a579f00c",
+    "version": "after",
+    "path": "ostd/specs/task/cpu_core.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8aab54c58c1cd4baa1a7f8d5d841e44a52006720b29127e9343333f0615a7d86"
+  },
+  {
+    "sample": "pr-900-d5d5a579f00c",
+    "version": "after",
+    "path": "ostd/src/task/preempt/guard.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "127223c4813060d79e52a53aecec274841b5ff37288b580bf7f98fcc24332e27"
+  },
+  {
+    "sample": "pr-905-b62614ee989e",
+    "version": "after",
+    "path": "ostd/src/arch/x86/kernel/tsc.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "e2b4fe20c4d9ba858f7633733783b409ee3054cfe463afd4effb5121fc76dcca"
+  },
+  {
+    "sample": "pr-906-f6e33f374ccc",
+    "version": "after",
+    "path": "ostd/src/task/stack_size.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8945639e0fcf9dac11b4f5e792804e76e94c9ec960af7feda9f0504196c4ed0e"
+  },
+  {
+    "sample": "pr-909-a2d5bf577533",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/external/nonnull.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "df746068c86416a3345d7af2c71f5e00609334677fc55ce1877e0ac26cadfb17"
+  },
+  {
+    "sample": "pr-915-7a42b67bb385",
+    "version": "after",
+    "path": "ostd/libs/linux-bzimage/builder/src/mapping.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "faeb179d44f2777409105e04a42116f7253f3b5240e73e86a755b6fbfd6f97b4"
+  },
+  {
+    "sample": "pr-916-d7cdf470b297",
+    "version": "after",
+    "path": "ostd/libs/linux-bzimage/builder/src/pe_header.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "5dad84b60a3b54ae492011de8531b2f132d6f95fa6c41b79bb83991f83c08304"
+  },
+  {
+    "sample": "pr-92-8fe6908fea09",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4900272af7ce1f7823e1c0a3058247cf1d362258d4729242c0e103d503c51611"
+  },
+  {
+    "sample": "pr-92-8fe6908fea09",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "51b9ca02d8994d42f15f0fff7598f56b2d3634a1040e7b97902c6f1409b66c9e"
+  },
+  {
+    "sample": "pr-92-8fe6908fea09",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "339b44e9a657a0ae77329bcb60110541ca095ece2fbb8dc8eff01f84afa06e11"
+  },
+  {
+    "sample": "pr-920-1358fc9ae842",
+    "version": "after",
+    "path": "ostd/src/arch/x86/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "cf5550fff3f05865acc3cde78574d62bfba0c79d9d424a1dceaa21c5d47aca67"
+  },
+  {
+    "sample": "pr-920-d5764dad33a5",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/external/x86.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "a8ec594d39ee937a89af97572f804cbe7f29d0276ce140781aa631b1b1f55880"
+  },
+  {
+    "sample": "pr-921-26e8809aa407",
+    "version": "after",
+    "path": "ostd/src/task/kernel_stack.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "801f958acb3f7996307394aa0f21d1c07f4366c4e11f177b98dbbaa945c6ee55"
+  },
+  {
+    "sample": "pr-923-1f20b6eda2bb",
+    "version": "after",
+    "path": "ostd/src/mm/heap/slot.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "2429533e15948f3e2699ee46a5c3321188c742f99fe474eef3c4d03c5d85bba4"
+  },
+  {
+    "sample": "pr-923-1f20b6eda2bb",
+    "version": "after",
+    "path": "ostd/src/mm/heap/slot_list.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "11b87f972a7d2329d38344db6f7fadfa59571a78780eae408760aa393e9eb5fe"
+  },
+  {
+    "sample": "pr-923-229645379886",
+    "version": "after",
+    "path": "ostd/src/mm/heap/slot.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4ebd0c850bd754b19ec4247af00b2e8c53acbbbdf842b806250228b53b8619c1"
+  },
+  {
+    "sample": "pr-924-fa4046a6b4ba",
+    "version": "after",
+    "path": "ostd/src/mm/test.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "af597dbd50bccd927ad65de7a4a1055e75e5795840379aa8fb49197a74c0a7a6"
+  },
+  {
+    "sample": "pr-924-fa4046a6b4ba",
+    "version": "before",
+    "path": "ostd/src/mm/test.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "97d6cdd8c229ea9ca124c682f4eadc5f22db646d4bc7d28ae996a81c9e1e2832"
+  },
+  {
+    "sample": "pr-927-cd548f6f2503",
+    "version": "after",
+    "path": "ostd/src/mm/io.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "0ffd6cb8dbc01610726751ed9019cf02e5ae96235901de0319b96acbdd7f5a7d"
+  },
+  {
+    "sample": "pr-927-cd548f6f2503",
+    "version": "after",
+    "path": "verified_libs/vstd_extra/src/external/vec.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "4f11055e59219e6eed7c38fa447b6c5c41e024978109ecd6ae7784cbcee3eab1"
+  },
+  {
+    "sample": "pr-93-7fd1bdf5bd01",
+    "version": "after",
+    "path": "fvt5-lifecycle-safety/src/page/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "69c00ed30ba1d250f41d9c2e0e34632aa4163e532a33283d1c5e8141d3dea974"
+  },
+  {
+    "sample": "pr-931-79810bc1eeb5",
+    "version": "after",
+    "path": "ostd/libs/linux-bzimage/builder/src/lib.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "f457d9b555288e399c1ee38ac4d34546644fbc97d120cf7a66785990f3dc8bd9"
+  },
+  {
+    "sample": "pr-96-d6659b1d4f5f",
+    "version": "after",
+    "path": "xtask/src/main.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "7b7638caf58f0ba72e6d8e3b5dda2221429c94d9a3feb7be5700e3986967ba1f"
+  },
+  {
+    "sample": "pr-97-d67afbc9e914",
+    "version": "after",
+    "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "070a90542a4abe558f752a2842e55ddca3a86dcd1bbbdd0893a5a8bfa82df1fe"
+  },
+  {
+    "sample": "pr-99-08de0794bf8f",
+    "version": "after",
+    "path": "lock-protocol/src/exec/mod.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "8d6b262c4988ad331fb4f4377a3b5737ebb056acde9d8bb066e3fa425dcdd6af"
+  },
+  {
+    "sample": "pr-99-08de0794bf8f",
+    "version": "after",
+    "path": "lock-protocol/src/exec/test_map.rs",
+    "test_exists": true,
+    "bench_exists": true,
+    "equal": true,
+    "sha256": "6a66b3681386e4a9f6f848da641f7ab4509cb27796304181e2a6c64c6c0456c7"
+  }
+]

@@ -1,0 +1,330 @@
+diff --git a/ostd/specs/mm/frame/unique.rs b/ostd/specs/mm/frame/unique.rs
+index 1b4de21afe7629fb1a921584e62a7eb4867c294d..d98a753b5173ef5925377c468941f8aa655c54f0 100644
+--- a/ostd/specs/mm/frame/unique.rs
++++ b/ostd/specs/mm/frame/unique.rs
+@@ -4,6 +4,7 @@ use vstd_extra::drop_tracking::*;
+ use vstd_extra::ownership::*;
+ 
+ use super::meta_owners::*;
++use super::meta_owners::REF_COUNT_UNIQUE;
+ use crate::mm::frame::*;
+ use crate::specs::arch::kspace::FRAME_METADATA_RANGE;
+ use crate::specs::arch::mm::{MAX_NR_PAGES, MAX_PADDR, PAGE_SIZE};
+@@ -85,11 +86,47 @@ impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrameOwner<M> {
+     }
+ 
+     pub proof fn from_raw_owner(
+-        owner: M::Owner,
++        tracked owner: M::Owner,
+         index: Ghost<usize>,
+-        perm: PointsTo<MetaSlot, Metadata<M>>,
+-    ) -> Self {
+-        UniqueFrameOwner::<M> { meta_own: owner, meta_perm: perm, slot_index: index@ }
++        tracked perm: PointsTo<MetaSlot, Metadata<M>>,
++    ) -> (tracked res: Self)
++    requires
++        owner.inv(),
++        perm.is_init(),
++        perm.wf(&perm.inner_perms),
++        perm.addr() == meta_addr(index@),
++        index@ < max_meta_slots(),
++        <M as OwnerOf>::wf(perm.value().metadata, owner),
++    ensures
++        res.meta_perm == perm,
++        res.slot_index == index@,
++        res.meta_own == owner,
++        <M as OwnerOf>::wf(perm.value().metadata, res.meta_own),
++    returns
++        (UniqueFrameOwner::<M> { meta_own: owner, meta_perm: perm, slot_index: *index }),
++    {
++        UniqueFrameOwner::<M> { meta_own: owner, meta_perm: perm, slot_index: *index }
++    }
++
++    pub proof fn aligns_with_regions(
++        frame: UniqueFrame<M>,
++        owner: Self,
++        regions: MetaRegionOwners,
++    )
++    requires
++        frame.wf(owner),
++        owner.inv(),
++        owner.global_inv(regions),
++        regions.inv(),
++        regions.slot_owners.contains_key(frame_to_index(meta_to_frame(frame.ptr.addr()))),
++        regions.slot_owners[frame_to_index(meta_to_frame(frame.ptr.addr()))].inner_perms.ref_count
++            .value() == REF_COUNT_UNIQUE,
++    ensures
++        regions.slot_owners[frame_to_index(meta_to_frame(frame.ptr.addr()))].inner_perms
++            == owner.meta_perm.inner_perms,
++        regions.slot_owners[frame_to_index(meta_to_frame(frame.ptr.addr()))].self_addr
++            == owner.meta_perm.addr(),
++    {
+     }
+ 
+     pub open spec fn from_unused_owner_spec(
+diff --git a/ostd/src/arch/loongarch/mm/mod.rs b/ostd/src/arch/loongarch/mm/mod.rs
+index 4174dff953906e652480c44e5d48c4cb7bbd7f61..50316cb849488799f45154f10ff58550093396ae 100644
+--- a/ostd/src/arch/loongarch/mm/mod.rs
++++ b/ostd/src/arch/loongarch/mm/mod.rs
+@@ -277,7 +277,6 @@ impl PageTableEntryTrait for PageTableEntry {
+ 
+     proof fn set_prop_properties(self, prop: PageProperty)
+     {
+-        admit();
+     }
+ 
+     fn is_last(&self, level: PagingLevel) -> bool {
+diff --git a/ostd/src/mm/frame/mod.rs b/ostd/src/mm/frame/mod.rs
+index 23f58c9bb47d5f748a0f83c27c4c3ebf6a896596..0d0e1e4370b4225c4ae5518176cfc940385d02be 100644
+--- a/ostd/src/mm/frame/mod.rs
++++ b/ostd/src/mm/frame/mod.rs
+@@ -45,6 +45,7 @@ mod test;
+ use vstd::atomic::PermissionU64;
+ use vstd::prelude::*;
+ use vstd::simple_pptr::{self, PPtr};
++use vstd::std_specs::convert::FromSpecImpl;
+ 
+ use vstd_extra::cast_ptr;
+ 
+@@ -180,6 +181,16 @@ impl<M: AnyFrameMeta> Frame<M> {
+     }
+ }
+ 
++impl<M: AnyUFrameMeta> FromSpecImpl<Frame<M>> for UFrame {
++    open spec fn obeys_from_spec() -> bool {
++        true
++    }
++
++    open spec fn from_spec(v: Frame<M>) -> UFrame {
++        Frame::<MetaSlotStorage> { ptr: v.ptr, _marker: PhantomData }
++    }
++}
++
+ #[verus_verify]
+ impl<'a, M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> Frame<M> {
+     /// Gets a [`Frame`] with a specific usage from a raw, unused page.
+@@ -610,6 +621,9 @@ pub(in crate::mm) fn inc_frame_ref_count(paddr: Paddr)
+         old(regions).inv(),
+         old(regions).slots.contains_key(frame_to_index(paddr)),
+         has_safe_slot(paddr),
++        0 < old(regions).slot_owners[frame_to_index(paddr)].inner_perms.ref_count.value(),
++        old(regions).slot_owners[frame_to_index(paddr)].inner_perms.ref_count.value() + 1
++            < REF_COUNT_MAX,
+         !MetaSlot::inc_ref_count_panic_cond(
+             old(regions).slot_owners[frame_to_index(paddr)].inner_perms.ref_count,
+         ),
+@@ -638,7 +652,6 @@ pub(in crate::mm) fn inc_frame_ref_count(paddr: Paddr)
+     slot.borrow(Tracked(perm)).inc_ref_count();
+ 
+     proof {
+-        admit();
+         slot_own.sync_inner(&inner_perms);
+         regions.slot_owners.tracked_insert(frame_to_index(paddr), slot_own);
+     }
+@@ -745,4 +758,4 @@ impl<M: AnyUFrameMeta> From<Frame<M>> for UFrame {
+         // SAFETY: The metadata is coerceable and the struct is transmutable.
+         unsafe { core::mem::transmute(frame) }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/ostd/src/mm/frame/segment.rs b/ostd/src/mm/frame/segment.rs
+index 383290347fbf948eb5f98909daf486b8a41a39d6..aa52021dc3842df7bc1eb6b32a6233cbaf459542 100644
+--- a/ostd/src/mm/frame/segment.rs
++++ b/ostd/src/mm/frame/segment.rs
+@@ -54,7 +54,6 @@ impl<M: AnyFrameMeta + ?Sized> TrackDrop for Segment<M> {
+     }
+ 
+     proof fn constructor_spec(self, tracked s: &mut Self::State) {
+-        admit()
+     }
+ 
+     open spec fn drop_requires(self, s: Self::State) -> bool {
+@@ -66,7 +65,6 @@ impl<M: AnyFrameMeta + ?Sized> TrackDrop for Segment<M> {
+     }
+ 
+     proof fn drop_spec(self, tracked s: &mut Self::State) {
+-        admit()
+     }
+ }
+ 
+diff --git a/ostd/src/mm/frame/unique.rs b/ostd/src/mm/frame/unique.rs
+index d99da09930f1bcf321e8afd5d56874872d2ed726..5c0a2c31dbd75b6692b0e80cc23ca4654f7dbe89 100644
+--- a/ostd/src/mm/frame/unique.rs
++++ b/ostd/src/mm/frame/unique.rs
+@@ -108,62 +108,78 @@ impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+     /// and represents that the caller has exclusive ownership of the frame.
+     #[verus_spec(res =>
+         with Tracked(owner): Tracked<UniqueFrameOwner<M>>,
++            Tracked(new_meta_own): Tracked<M1::Owner>,
+             Tracked(regions): Tracked<&mut MetaRegionOwners>
+         -> new_owner: Tracked<UniqueFrameOwner<M1>>
+         requires
+             self.wf(owner),
+             owner.inv(),
++            owner.global_inv(*old(regions)),
++            new_meta_own.inv(),
++            metadata.wf(new_meta_own),
+             old(regions).slot_owners.contains_key(frame_to_index(meta_to_frame(self.ptr.addr()))),
+             old(regions).slot_owners[frame_to_index(meta_to_frame(self.ptr.addr()))].inner_perms.ref_count.value() == REF_COUNT_UNIQUE,
+             old(regions).inv(),
+         ensures
+             res.wf(new_owner@),
+             new_owner@.meta_perm.value().metadata == metadata,
++            new_owner@.meta_own == new_meta_own,
+             regions.inv(),
+     )]
+     pub fn repurpose<M1: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf>(
+         self,
+         metadata: M1,
+     ) -> UniqueFrame<M1> {
+-        let tracked mut slot_own = regions.slot_owners.tracked_remove(
+-            frame_to_index(meta_to_frame(self.ptr.addr())),
+-        );
++        /* // SAFETY: We are the sole owner and the metadata is initialized.
++        unsafe { self.slot().drop_meta_in_place() };
++        // SAFETY: We are the sole owner.
++        unsafe { self.slot().write_meta(metadata) };
++        // SAFETY: The metadata is initialized with type `M1`.
++        unsafe { core::mem::transmute(self) } */
++
++        let ghost idx = frame_to_index(meta_to_frame(self.ptr.addr()));
++        proof {
++            UniqueFrameOwner::<M>::aligns_with_regions(self, owner, *old(regions));
++        }
++        let tracked mut slot_own = regions.slot_owners.tracked_remove(idx);
+ 
+         #[verus_spec(with Tracked(&owner.meta_perm.points_to))]
+         let slot = self.slot();
+ 
+         assert(slot_own.inv()) by {
+-            admit();
++            assert(slot_own.inner_perms == owner.meta_perm.inner_perms);
++            assert(slot_own.self_addr == owner.meta_perm.addr());
+         }
+ 
+         // SAFETY: We are the sole owner and the metadata is initialized.
+         #[verus_spec(with Tracked(&mut slot_own))]
+         slot.drop_meta_in_place();
+ 
++        let tracked mut inner_perms = slot_own.take_inner_perms();
++
++        // SAFETY: We are the sole owner.
++        #[verus_spec(
++            with Tracked(&mut inner_perms.storage), Tracked(&mut inner_perms.vtable_ptr)
++        )]
++        slot.write_meta(metadata);
++
+         let Tracked(meta_perm) = MetaSlot::cast_perm::<M1>(
+             self.ptr.addr(),
+             Tracked(owner.meta_perm.points_to),
+-            Tracked(owner.meta_perm.inner_perms),
++            Tracked(inner_perms),
+         );
+ 
+         proof_decl! {
+-            let tracked mut new_owner = UniqueFrameOwner::<M1>::from_unused_owner(
+-                regions,
+-                meta_to_frame(self.ptr.addr()),
++            let tracked new_owner = UniqueFrameOwner::<M1>::from_raw_owner(
++                new_meta_own,
++                Ghost(idx),
+                 meta_perm,
+             );
+         }
+ 
+-        // SAFETY: We are the sole owner.
+-        //        #[verus_spec(with Tracked(&mut new_owner.meta_perm.inner_perms.storage))]
+-        //        slot.write_meta(metadata);
+-
+         proof {
+-            regions.slot_owners.tracked_insert(
+-                frame_to_index(meta_to_frame(self.ptr.addr())),
+-                slot_own,
+-            );
+-            admit();
++            slot_own.sync_inner(&new_owner.meta_perm.inner_perms);
++            regions.slot_owners.tracked_insert(idx, slot_own);
+         }
+ 
+         // SAFETY: The metadata is initialized with type `M1`.
+diff --git a/ostd/src/mm/kspace/kvirt_area.rs b/ostd/src/mm/kspace/kvirt_area.rs
+index 0891626cfcffd1e3108c67a8a0f7e2e1a8633f2f..b2e1d584cb1ca511ae7155c95c688916bf4b7439 100644
+--- a/ostd/src/mm/kspace/kvirt_area.rs
++++ b/ostd/src/mm/kspace/kvirt_area.rs
+@@ -46,15 +46,13 @@ pub open spec fn frame_as_dynframe<T: AnyFrameMeta>(frame: Frame<T>) -> DynFrame
+     DynFrame { ptr: frame.ptr, _marker: PhantomData }
+ }
+ 
+-/// Converts `Frame<T>` to `DynFrame`, with a spec postcondition connecting the result
+-/// to the spec function `frame_as_dynframe`. The `Into` impl uses `transmute`, which is
+-/// `external_body`, so the equality is admitted.
+-/// TODO: use the conversions in `frame/mod.rs`
++/// Converts `Frame<T>` to `DynFrame`, while exposing the corresponding spec equality
++/// for verification. The exec `Into` conversion is opaque here, so this wrapper
++/// bridges it to `frame_as_dynframe` for proofs.
+ fn frame_into_dynframe<T: AnyUFrameMeta>(frame: Frame<T>) -> (res: DynFrame)
+     ensures
+         res == frame_as_dynframe(frame),
+ {
+-    proof { admit(); }
+     frame.into()
+ }
+ 
+@@ -449,6 +447,8 @@ impl KVirtArea {
+                 forall |i: int, j: int| 0 <= i < j < it.elements.len() - it.pos ==>
+                     (#[trigger]entry_owners[i]).frame.unwrap().mapped_pa != (#[trigger] entry_owners[j]).frame.unwrap().mapped_pa,
+         {
++            // unsafe { cursor.map(MappedItem::Tracked(frame.into(), prop)) }
++            //     .expect("Failed to map frame in a new `KVirtArea`");
+             proof {
+                 assert(entry_owners.contains(entry_owners[0]));
+                 assert(cursor.map_cursor_requires(cursor_owner, *guards));
+@@ -471,6 +471,16 @@ impl KVirtArea {
+             let ghost old_cursor_model: CursorView<KernelPtConfig> = cursor.inner.model(cursor_owner);
+             let ghost old_cursor_owner_va = cursor_owner.va;
+             proof {
++                let cur_idx = frame_to_index_spec(cur_mapped_pa);
++                let tracked slot_perm = EntryOwner::<KernelPtConfig>::placeholder_slot_perm(
++                    cur_mapped_pa,
++                    &*regions,
++                );
++                regions.slots.tracked_insert(cur_idx, slot_perm);
++                regions_before_map.frame_slot_perm_insert_preserves_inv(cur_idx, slot_perm, *regions);
++                cursor_owner.relate_region_slot_owners_preserved(regions_before_map, *regions);
++                assert(cursor.inner.invariants(cursor_owner, *regions, *guards));
++
+                 cursor_owner.view_preserves_inv(); // old_cursor_model.inv()
+                 cursor_owner.va.reflect_prop(cursor.inner.va);
+                 let (pa, level, prop_from_item) = KernelPtConfig::item_into_raw_spec(item);
+@@ -485,13 +495,20 @@ impl KVirtArea {
+                 vstd::arithmetic::power::lemma_pow0(2int);
+ 
+                 KernelPtConfig::item_into_raw_spec_tracked_level(item);
++                assert(item == MappedItem::Tracked(frame_as_dynframe(it.elements.index(it.pos as int)), prop));
++                assert(pa == cur_pa_from_wf);
++                assert(cur_pa_from_wf == cur_mapped_pa);
++                assert(pa == cur_mapped_pa);
++                assert(regions.slots.contains_key(cur_idx));
++                assert(regions.slot_owners[cur_idx].inner_perms.ref_count.value()
++                    != crate::specs::mm::frame::meta_owners::REF_COUNT_UNUSED);
+             }
+ 
+             // SAFETY: The constructor of the `KVirtArea` has already ensured
+             // that this mapping does not affect kernel's memory safety.
+             assert(CursorMut::<'a, KernelPtConfig, A>::item_slot_in_regions(
+                 item, *regions,
+-            )) by { admit() };
++            ));
+             #[verus_spec(with Tracked(&mut cursor_owner), Tracked(entry_owner), Tracked(regions), Tracked(guards))]
+             let res = cursor.map(item);
+ 
+@@ -678,7 +695,7 @@ impl KVirtArea {
+                 // SAFETY: The caller of `map_untracked_frames` has ensured the safety of this mapping.
+                 assert(CursorMut::<'a, KernelPtConfig, A>::item_slot_in_regions(
+                     item, *regions,
+-                )) by { admit() };
++                ));
+                 #[verus_spec(with Tracked(&mut cursor_owner), Tracked(entry_owner), Tracked(regions), Tracked(guards))]
+                 let _ = cursor.map(item);
+ 

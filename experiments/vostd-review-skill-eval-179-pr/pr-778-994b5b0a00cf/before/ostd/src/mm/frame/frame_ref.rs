@@ -1,0 +1,209 @@
+// SPDX-License-Identifier: MPL-2.0
+use core::{marker::PhantomData, mem::ManuallyDrop, ops::Deref, ptr::NonNull};
+
+use vstd::prelude::*;
+use vstd::simple_pptr::{PPtr, PointsTo};
+use vstd_extra::cast_ptr::Repr;
+use vstd_extra::prelude::*;
+
+use crate::mm::frame::meta::mapping::frame_to_meta;
+
+use crate::specs::{
+    arch::valid_frame_paddr,
+    mm::frame::{
+        mapping::meta_to_index,
+        meta_owners::{FracMetadataPerm, MetaSlotStorage},
+        meta_region_owners::MetaRegionOwners,
+    },
+};
+
+use super::{
+    Frame,
+    meta::{AnyFrameMeta, MetaSlot},
+};
+use crate::mm::Paddr;
+
+verus! {
+
+/// A struct that can work as `&'a Frame<M>`.
+// FIXME: field visibility
+pub struct FrameRef<'a, M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage>> {
+    pub inner: ManuallyDrop<Frame<M>>,
+    pub _marker: PhantomData<&'a Frame<M>>,
+}
+
+#[verus_verify]
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage>> FrameRef<'_, M> {
+    /// Borrows the [`Frame`] at the physical address as a [`FrameRef`].
+    ///
+    /// # Safety
+    /// The caller's typed frame handle supplies the metadata type; the borrow
+    /// remains tied to the lifetime of that handle.
+    #[verus_spec(r =>
+        with
+            Tracked(slot_perm): Tracked<&'static PointsTo<MetaSlot>>,
+            Tracked(metadata_perm): Tracked<&FracMetadataPerm>
+        requires
+            valid_frame_paddr(raw),
+            MetaSlot::perms_related(*slot_perm,metadata_perm.resource()),
+            slot_perm.pptr().addr() == frame_to_meta(raw),
+            slot_perm.is_init(),
+        ensures
+            r.inner@.ptr.addr() == frame_to_meta(raw),
+            r.inner@.ptr_inv(),
+            r.inner@.tracked_slot_perm@ == slot_perm,
+            r.inner@.tracked_metadata_perm@ is None,
+            MetaSlot::perms_related(r.inner@.slot_perm(), metadata_perm.resource()),
+    )]
+    pub(in crate::mm) unsafe fn borrow_paddr(raw: Paddr) -> Self {
+        proof_with!{ tracked_slot_perm: Tracked(slot_perm), tracked_metadata_perm: Tracked(None)}
+        let frame = Frame::<M> {
+            ptr: PPtr::<MetaSlot>::from_addr(frame_to_meta(raw)),
+            _marker: PhantomData,
+        };
+
+        let inner = ManuallyDrop::new(frame);
+
+        Self { inner, _marker: PhantomData }
+    }
+}
+
+impl<M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage>> Deref for FrameRef<'_, M> {
+    type Target = Frame<M>;
+
+    #[verus_spec(r => ensures *r == self.inner@)]
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+// TODO: I moved this here to avoid having to pull the rest of `sync` into the verification.
+// Once it is pulled in, we should delete this one.
+/// A trait that abstracts non-null pointers.
+///
+/// All common smart pointer types such as `Box<T>`,  `Arc<T>`, and `Weak<T>`
+/// implement this trait as they can be converted to and from the raw pointer
+/// type of `*const T`.
+///
+/// # Safety
+///
+/// This trait must be implemented correctly (according to the doc comments for
+/// each method). Types like [`Rcu`] rely on this assumption to safely use the
+/// raw pointers.
+///
+/// [`Rcu`]: super::Rcu
+pub unsafe trait NonNullPtr: 'static + Sized {
+    /// The target type that this pointer refers to.
+    // TODO: Support `Target: ?Sized`.
+    type Target;
+
+    /// A type that behaves just like a shared reference to the `NonNullPtr`.
+    type Ref<'a>;
+
+    /// The power of two of the pointer alignment.
+    const ALIGN_BITS: u32;
+
+    /// Converts to a raw pointer.
+    ///
+    /// Each call to `into_raw` must be paired with a call to `from_raw`
+    /// in order to avoid memory leakage.
+    ///
+    /// The lower [`Self::ALIGN_BITS`] of the raw pointer is guaranteed to
+    /// be zero. In other words, the pointer is guaranteed to be aligned to
+    /// `1 << Self::ALIGN_BITS`.
+    fn into_raw(self, Tracked(regions): Tracked<&mut MetaRegionOwners>) -> PPtr<Self::Target>;
+
+    /// Converts back from a raw pointer.
+    ///
+    /// # Safety
+    ///
+    /// 1. The raw pointer must have been previously returned by a call to
+    ///    `into_raw`.
+    /// 2. The raw pointer must not be used after calling `from_raw`.
+    ///
+    /// Note that the second point is a hard requirement: Even if the
+    /// resulting value has not (yet) been dropped, the pointer cannot be
+    /// used because it may break Rust aliasing rules (e.g., `Box<T>`
+    /// requires the pointer to be unique and thus _never_ aliased).
+    unsafe fn from_raw(
+        ptr: PPtr<Self::Target>,
+        Tracked(regions): Tracked<&mut MetaRegionOwners>,
+    ) -> Self
+        requires
+            old(regions).inv(),
+            old(regions).contains(meta_to_index(ptr.addr())),
+    ;
+
+    /// Obtains a shared reference to the original pointer.
+    ///
+    /// # Safety
+    ///
+    /// The original pointer must outlive the lifetime parameter `'a`, and during `'a`
+    /// no mutable references to the pointer will exist.
+    unsafe fn raw_as_ref<'a>(
+        raw: PPtr<Self::Target>,
+        Tracked(regions): Tracked<&mut MetaRegionOwners>,
+    ) -> Self::Ref<'a>
+        requires
+            old(regions).inv(),
+            old(regions).contains(meta_to_index(raw.addr())),
+    ;
+
+    /// Converts a shared reference to a raw pointer.
+    fn ref_as_raw(ptr_ref: Self::Ref<'_>) -> PPtr<Self::Target>;
+}
+
+// SAFETY: `Frame` is essentially a `*const MetaSlot` that could be used as a non-null
+// `*const` pointer.
+unsafe impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + 'static> NonNullPtr for Frame<M> {
+    type Target = PhantomData<Self>;
+
+    type Ref<'a> = FrameRef<'a, M>;
+
+    #[verifier::external_body]
+    const ALIGN_BITS: u32 = core::mem::align_of::<MetaSlot>().trailing_zeros();
+
+    fn into_raw(self, Tracked(regions): Tracked<&mut MetaRegionOwners>) -> PPtr<Self::Target> {
+        let ptr = self.ptr;
+        let _ = ManuallyDrop::new(self);
+        PPtr::<Self::Target>::from_addr(ptr.addr())
+    }
+
+    unsafe fn from_raw(
+        raw: PPtr<Self::Target>,
+        Tracked(regions): Tracked<&mut MetaRegionOwners>,
+    ) -> Self {
+        let tracked slot_perm = regions.slots.tracked_borrow(meta_to_index(raw.addr()));
+        Self {
+            ptr: PPtr::<MetaSlot>::from_addr(raw.addr()),
+            _marker: PhantomData,
+            #[cfg(verus_keep_ghost_body)]
+            tracked_slot_perm: Tracked(slot_perm),
+            #[cfg(verus_keep_ghost_body)]
+            tracked_metadata_perm: Tracked(None),
+        }
+    }
+
+    unsafe fn raw_as_ref<'a>(
+        raw: PPtr<Self::Target>,
+        Tracked(regions): Tracked<&mut MetaRegionOwners>,
+    ) -> Self::Ref<'a> {
+        let tracked slot_perm = regions.slots.tracked_borrow(meta_to_index(raw.addr()));
+        let frame = Frame::<M> {
+            ptr: PPtr::<MetaSlot>::from_addr(raw.addr()),
+            _marker: PhantomData,
+            #[cfg(verus_keep_ghost_body)]
+            tracked_slot_perm: Tracked(slot_perm),
+            #[cfg(verus_keep_ghost_body)]
+            tracked_metadata_perm: Tracked(None),
+        };
+        let dropped = ManuallyDrop::<Frame<M>>::new(frame);
+        Self::Ref { inner: dropped, _marker: PhantomData }
+    }
+
+    fn ref_as_raw(ptr_ref: Self::Ref<'_>) -> PPtr<Self::Target> {
+        PPtr::from_addr(ptr_ref.inner.ptr.addr())
+    }
+}
+
+} // verus!

@@ -1,0 +1,630 @@
+diff --git a/ostd/specs/arch/mod.rs b/ostd/specs/arch/mod.rs
+index b59a70cb0d584746bb427bd8d13ae80bb8d44797..0fc2a8f263504b9955ffaad7d3bebcc3bccac149 100644
+--- a/ostd/specs/arch/mod.rs
++++ b/ostd/specs/arch/mod.rs
+@@ -43,11 +43,6 @@ mod loongarch;
+ pub use loongarch::*;
+ verus! {
+ 
+-// Asterinas is designed for 64-bit architectures.
+-global size_of usize == 8;
+-
+-global size_of isize == 8;
+-
+ /// The architecture selected by the current verification target.
+ #[cfg(target_arch = "x86_64")]
+ pub type CurrentArch = x86::X86Arch;
+diff --git a/ostd/specs/layout.rs b/ostd/specs/layout.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..934606b55a825467cb8246a66e41059fc3a51824
+--- /dev/null
++++ b/ostd/specs/layout.rs
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: MPL-2.0
++//! Shared integer layouts, checked for the target during code generation.
++use vstd::{
++    layout::{align_of, size_of},
++    prelude::*,
++};
++
++verus! {
++
++// Asterinas is designed for 64-bit architectures.
++global size_of usize == 8;
++
++global size_of isize == 8;
++
++global layout u16 is size == 2, align == 2;
++
++global layout u32 is size == 4, align == 4;
++
++/// Establishes the shared integer layouts.
++pub proof fn lemma_primitive_layout()
++    ensures
++        size_of::<u16>() == 2,
++        align_of::<u16>() == 2,
++        size_of::<u32>() == 4,
++        align_of::<u32>() == 4,
++        core::mem::size_of::<u16>() == 2,
++        core::mem::size_of::<u32>() == 4,
++{
++    broadcast use {VERUS_layout_of_u16, VERUS_layout_of_u32};
++
++}
++
++} // verus!
+diff --git a/ostd/specs/mod.rs b/ostd/specs/mod.rs
+index f316bf9016a296f4653b694d63df1da5afcc105c..69e6c9e39655b8413b8e612a97e8ebc188fecdcc 100644
+--- a/ostd/specs/mod.rs
++++ b/ostd/specs/mod.rs
+@@ -1,4 +1,6 @@
+ #![allow(non_snake_case)]
++pub mod layout;
++
+ #[allow(unused_parens)]
+ #[allow(unused_braces)]
+ #[allow(rustdoc::invalid_rust_codeblocks)]
+diff --git a/ostd/src/arch/x86/kernel/apic/xapic.rs b/ostd/src/arch/x86/kernel/apic/xapic.rs
+index dda16a7745735ab3334d16740b5352e6e4b4f9a7..d098e87bb3ecdcb23bdb758a5190841c0c65a364 100644
+--- a/ostd/src/arch/x86/kernel/apic/xapic.rs
++++ b/ostd/src/arch/x86/kernel/apic/xapic.rs
+@@ -4,6 +4,8 @@
+ use vstd::{arithmetic::div_mod::lemma_small_mod, prelude::*, raw_ptr::axiom_ptr_mut_from_data};
+ use vstd_extra::{debug_assert, external::ptr};
+ 
++use crate::specs::layout::lemma_primitive_layout;
++
+ use x86::apic::xapic;
+ 
+ use super::ApicTimer;
+@@ -12,9 +14,6 @@ use crate::mm;
+ verus! {
+ 
+ broadcast use axiom_ptr_mut_from_data;
+-// `align_of` has no primitive axiom; pin it (compiler-checked, not trusted).
+-
+-global layout u32 is size == 4, align == 4;
+ 
+ const IA32_APIC_BASE_MSR: u32 = 0x1B;
+ 
+@@ -94,6 +93,7 @@ impl XApic {
+         let index = offset as usize / 4;
+         debug_assert!(index < 256);
+         proof! {
++            lemma_primitive_layout();
+             use_type_invariant(self);
+             lemma_small_mod(
+                 (self.mmio_start.addr() + index * size_of::<u32>()) as nat,
+@@ -120,6 +120,7 @@ impl XApic {
+         let index = offset as usize / 4;
+         debug_assert!(index < 256);
+         proof! {
++            lemma_primitive_layout();
+             use_type_invariant(self);
+             lemma_small_mod(
+                 (self.mmio_start.addr() + index * size_of::<u32>()) as nat,
+diff --git a/ostd/src/sync/rcu/non_null/either.rs b/ostd/src/sync/rcu/non_null/either.rs
+index 5bac2be2551fff98c550f427f53e71004d31a09f..605e3fec56507f338d8a8d090bc3376a19df2bc1 100644
+--- a/ostd/src/sync/rcu/non_null/either.rs
++++ b/ostd/src/sync/rcu/non_null/either.rs
+@@ -33,6 +33,14 @@ unsafe impl<L: NonNullPtr, R: NonNullPtr> NonNullPtr for Either<L, R> {
+         "`L` and `R` alignments should be at least 2 to pack `Either` into one pointer",
+     );
+ 
++    open spec fn align_bits_inv() -> bool {
++        Self::ALIGN_BITS == if L::ALIGN_BITS < R::ALIGN_BITS {
++            L::ALIGN_BITS - 1
++        } else {
++            R::ALIGN_BITS - 1
++        }
++    }
++
+     #[verifier::spinoff_prover]
+     fn into_raw(self) -> (ret: (NonNull<Self::Target>, Tracked<Self::Permission>)) {
+         proof_decl!{
+@@ -497,58 +505,183 @@ proof fn lemma_aligned_addr_clears_tag_bit(
+ }
+ 
+ } // verus!
+-#[cfg(ktest)]
++#[cfg(any(ktest, verus_keep_ghost))]
+ mod test {
++    use vstd::layout::layout_of_primitives;
++
++    use crate::specs::layout::lemma_primitive_layout;
++
+     use alloc::{boxed::Box, sync::Arc};
+ 
+     use super::*;
+-    use crate::{prelude::ktest, sync::RcuOption};
++    #[cfg(ktest)]
++    use crate::{prelude::ktest, sync::rcu::RcuOption};
+ 
+     type Either32 = Either<Arc<u32>, Box<u32>>;
+     type Either16 = Either<Arc<u32>, Box<u16>>;
+ 
++    verus! {
++
++broadcast use {
++    group_nonull_axioms,
++    group_nonzero_axioms,
++    group_raw_ptr_axioms,
++    layout_of_primitives,
++};
++
++} // verus!
++    #[cfg(ktest)]
+     #[ktest]
+     fn alignment() {
+         assert_eq!(<Either32 as NonNullPtr>::ALIGN_BITS, 1);
+         assert_eq!(<Either16 as NonNullPtr>::ALIGN_BITS, 0);
+     }
+ 
+-    #[ktest]
++    #[cfg_attr(ktest, ktest)]
++    #[verus_spec]
+     fn left_pointer() {
++        proof! {
++            lemma_primitive_layout();
++            assert(vstd::layout::size_of::<u32>() == 4);
++            <Arc<u32> as NonNullPtr>::lemma_align_bits_range();
++            <Box<u16> as NonNullPtr>::lemma_align_bits_range();
++            Either16::lemma_align_bits_range();
++            let left_bits = <Arc<u32> as NonNullPtr>::ALIGN_BITS;
++            let right_bits = <Box<u16> as NonNullPtr>::ALIGN_BITS;
++            assert(left_bits == 2) by (bit_vector)
++                requires left_bits < usize::BITS, 1usize << left_bits == 4usize;
++            assert(right_bits == 1) by (bit_vector)
++                requires right_bits < usize::BITS, 1usize << right_bits == 2usize;
++            assert(Either16::ALIGN_BITS == 0);
++            let either_bits = Either16::ALIGN_BITS;
++            assert(1usize << either_bits == 1usize) by (bit_vector)
++                requires either_bits == 0;
++        }
+         let val: Either16 = Either::Left(Arc::new(123));
+ 
+-        let ptr = NonNullPtr::into_raw(val);
++        /* Retain the ownership permission.
++         * Origin Rust: let ptr = NonNullPtr::into_raw(val);
++         */
++        let (ptr, perm) = NonNullPtr::into_raw(val);
++        proof! {
++            assert(Either16::ALIGN_BITS == 0);
++            assert(perm@ is Left);
++            assert(Either16::ptr_perm_match(ptr.as_ptr(), perm@));
++            assert(ptr.as_ptr().addr() & (1usize << Either16::ALIGN_BITS) == 0);
++            assert(ptr.as_ptr().addr() & 1usize == 0);
++            lemma_addr_view_eq_as_ptr(ptr);
++        }
+         assert_eq!(ptr.addr().get() & 1, 0);
+ 
+-        let ref_ = unsafe { <Either16 as NonNullPtr>::raw_as_ref(ptr) };
++        proof_decl! {
++            let tracked ref_perm = <Either16 as NonNullPtr>::tracked_borrow_perm_as_ref_perm(perm.borrow());
++        }
++        /* Pass the borrowed permission.
++         * Origin Rust: let ref_ = unsafe { <Either16 as NonNullPtr>::raw_as_ref(ptr) };
++         */
++        let ref_ = unsafe {
++            verus_exec_expr! { <Either16 as NonNullPtr>::raw_as_ref(ptr, Tracked(ref_perm)) }
++        };
+         assert!(matches!(ref_, Either::Left(ref r) if ***r == 123));
+ 
+-        let ptr2 = <Either16 as NonNullPtr>::ref_as_raw(ref_);
++        /* Receive the reading permission.
++         * Origin Rust: let ptr2 = <Either16 as NonNullPtr>::ref_as_raw(ref_);
++         */
++        let (ptr2, _) = <Either16 as NonNullPtr>::ref_as_raw(ref_);
+         assert_eq!(ptr, ptr2);
+ 
+-        let val = unsafe { <Either16 as NonNullPtr>::from_raw(ptr) };
++        /* Consume the ownership permission.
++         * Origin Rust: let val = unsafe { <Either16 as NonNullPtr>::from_raw(ptr) };
++         */
++        let val = unsafe { <Either16 as NonNullPtr>::from_raw(ptr, perm) };
+         assert!(matches!(val, Either::Left(ref r) if **r == 123));
+-        drop(val);
++        /* Unsupported explicit drop; use the same scope-exit drop.
++         * Origin Rust: drop(val);
++         */
+     }
+ 
+-    #[ktest]
++    #[cfg_attr(ktest, ktest)]
++    #[verus_spec]
+     fn right_pointer() {
++        proof! {
++            lemma_primitive_layout();
++            assert(vstd::layout::size_of::<u32>() == 4);
++            <Arc<u32> as NonNullPtr>::lemma_align_bits_range();
++            <Box<u16> as NonNullPtr>::lemma_align_bits_range();
++            Either16::lemma_align_bits_range();
++            let left_bits = <Arc<u32> as NonNullPtr>::ALIGN_BITS;
++            let right_bits = <Box<u16> as NonNullPtr>::ALIGN_BITS;
++            assert(left_bits == 2) by (bit_vector)
++                requires left_bits < usize::BITS, 1usize << left_bits == 4usize;
++            assert(right_bits == 1) by (bit_vector)
++                requires right_bits < usize::BITS, 1usize << right_bits == 2usize;
++            assert(Either16::ALIGN_BITS == 0);
++            let either_bits = Either16::ALIGN_BITS;
++            assert(1usize << either_bits == 1usize) by (bit_vector)
++                requires either_bits == 0;
++        }
+         let val: Either16 = Either::Right(Box::new(456));
+ 
+-        let ptr = NonNullPtr::into_raw(val);
++        /* Retain the ownership permission.
++         * Origin Rust: let ptr = NonNullPtr::into_raw(val);
++         */
++        let (ptr, perm) = NonNullPtr::into_raw(val);
++        proof! {
++            assert(Either16::ALIGN_BITS == 0);
++            assert(perm@ is Right);
++            assert(Either16::ptr_perm_match(ptr.as_ptr(), perm@));
++            assert(ptr.as_ptr().addr() & (1usize << Either16::ALIGN_BITS) == (1usize << Either16::ALIGN_BITS));
++            assert(ptr.as_ptr().addr() & 1usize == 1);
++            lemma_addr_view_eq_as_ptr(ptr);
++        }
+         assert_eq!(ptr.addr().get() & 1, 1);
+ 
+-        let ref_ = unsafe { <Either16 as NonNullPtr>::raw_as_ref(ptr) };
+-        assert!(matches!(ref_, Either::Right(ref r) if ***r == 456));
+-
+-        let ptr2 = <Either16 as NonNullPtr>::ref_as_raw(ref_);
++        proof_decl! {
++            let tracked ref_perm = <Either16 as NonNullPtr>::tracked_borrow_perm_as_ref_perm(perm.borrow());
++        }
++        /* Pass the borrowed permission.
++         * Origin Rust: let ref_ = unsafe { <Either16 as NonNullPtr>::raw_as_ref(ptr) };
++         */
++        let ref_ = unsafe {
++            verus_exec_expr! { <Either16 as NonNullPtr>::raw_as_ref(ptr, Tracked(ref_perm)) }
++        };
++        /* Use deref_target instead of the unsupported transmute-based Deref.
++         * Origin Rust: assert!(matches!(ref_, Either::Right(ref r) if ***r == 456));
++         */
++        assert!(matches!(ref_, Either::Right(ref r) if *r.deref_target() == 456));
++
++        /* Receive the reading permission.
++         * Origin Rust: let ptr2 = <Either16 as NonNullPtr>::ref_as_raw(ref_);
++         */
++        proof_decl! { let ghost ref_value = ref_; }
++        let (ptr2, ref_perm2) = <Either16 as NonNullPtr>::ref_as_raw(ref_);
++        proof! {
++            assert(ref_perm2@ is Right);
++            assert(Either16::ref_rel_perm(ref_value, ref_perm2@));
++            assert(Either16::ptr_perm_match(ptr2.as_ptr(), Either16::ref_perm_view_permission(ref_perm2@)));
++            let addr = ptr.as_ptr().addr();
++            let addr2 = ptr2.as_ptr().addr();
++            assert(addr & !1usize == addr2 & !1usize);
++            assert(addr == addr2) by (bit_vector)
++                requires
++                    addr & 1usize == 1,
++                    addr2 & 1usize == 1,
++                    addr & !1usize == addr2 & !1usize,
++            ;
++        }
+         assert_eq!(ptr, ptr2);
+ 
+-        let val = unsafe { <Either16 as NonNullPtr>::from_raw(ptr) };
++        /* Consume the ownership permission.
++         * Origin Rust: let val = unsafe { <Either16 as NonNullPtr>::from_raw(ptr) };
++         */
++        let val = unsafe { <Either16 as NonNullPtr>::from_raw(ptr, perm) };
+         assert!(matches!(val, Either::Right(ref r) if **r == 456));
+-        drop(val);
++        /* Unsupported explicit drop; use the same scope-exit drop.
++         * Origin Rust: drop(val);
++         */
+     }
+ 
++    #[cfg(ktest)]
+     #[ktest]
+     fn rcu_store_load() {
+         let rcu: RcuOption<Either32> = RcuOption::new_none();
+diff --git a/ostd/src/sync/rcu/non_null/mod.rs b/ostd/src/sync/rcu/non_null/mod.rs
+index 067f9fa6f7bf20db1ff8f71dae5716f676b53cf3..957ffc3fc23b5ec75845b79ff7eb0a8e4198e0ab 100644
+--- a/ostd/src/sync/rcu/non_null/mod.rs
++++ b/ostd/src/sync/rcu/non_null/mod.rs
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! This module provides a trait and some auxiliary types to help abstract and
+ //! work with non-null pointers.
++use vstd::modes::tracked_static_ref;
+ use vstd::prelude::*;
+ use vstd::raw_ptr::*;
+ #[cfg(feature = "irc11")]
+@@ -55,6 +56,11 @@ pub unsafe trait NonNullPtr: Inv + Sized + 'static {
+     /// The power of two of the pointer alignment.
+     const ALIGN_BITS: u32;
+ 
++    /// Optional implementation-specific alignment facts.
++    open spec fn align_bits_inv() -> bool {
++        true
++    }
++
+     /// Converts to a raw pointer.
+     ///
+     /// Each call to `into_raw` must be paired with a call to `from_raw`
+@@ -105,10 +111,11 @@ pub unsafe trait NonNullPtr: Inv + Sized + 'static {
+     /// A specification function that relates the original smart pointer and the permission.
+     spec fn rel_perm(self, perm: Self::Permission) -> bool;
+ 
+-    /// The ALIGN_BITS must be less than usize::BITS.
++    /// Establishes ALIGN_BITS bounds and implementation-specific facts.
+     proof fn lemma_align_bits_range()
+         ensures
+             Self::ALIGN_BITS < usize::BITS,
++            Self::align_bits_inv(),
+     ;
+ 
+     /// The RefPermission must be able to be viewed as the owned Permission.
+@@ -222,6 +229,10 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+     #[verifier::external_body]
+     const ALIGN_BITS: u32 = core::mem::align_of::<T>().trailing_zeros();
+ 
++    open spec fn align_bits_inv() -> bool {
++        1usize << Self::ALIGN_BITS == vstd::layout::align_of::<T>()
++    }
++
+     #[verus_spec]
+     fn into_raw(self) -> (NonNull<Self::Target>, Tracked<Self::Permission>) {
+         proof_decl! {
+@@ -237,7 +248,7 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+                 perm: PointsTowithDealloc::new(perm.0, perm.1),
+             };
+         }
+-        assume(ptr.addr() % (1usize << Self::ALIGN_BITS) == 0);
++        proof! { Self::lemma_align_bits_range(); }
+ 
+         // [VERIFIED] SAFETY: The pointer representing a `Box` can never be NULL.
+         (unsafe { NonNull::new_unchecked(ptr) }, Tracked(box_points_to))
+@@ -270,6 +281,7 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+         perm.view_target() == *self
+     }
+ 
++    // Trusted relation between external ALIGN_BITS and Rust type alignment.
+     axiom fn lemma_align_bits_range();
+ 
+     open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {
+@@ -300,7 +312,7 @@ unsafe impl<T: 'static> NonNullPtr for Box<T> {
+     ) {
+         proof!{
+             use_type_invariant(&ptr_ref);
+-            assume(ptr_ref.ptr().addr() % (1usize << Self::ALIGN_BITS) == 0);
++            Self::lemma_align_bits_range();
+         }
+         // [VERIFIED] SAFETY: The pointer representing a `Box` can never be NULL.
+         (unsafe { NonNull::new_unchecked(ptr_ref.inner) }, ptr_ref.tracked_perm)
+@@ -334,8 +346,7 @@ impl<'a, T> BoxRef<'a, T> {
+ 
+ } // verus!
+ /// A type that represents `&'a Arc<T>`.
+-///
+-/// Note there is no verification-only permission field, because `ArcRef` uses `Arc` instead of a raw pointer internally.
++/// TODO: Borrowed construction and raw-pointer round-trip identity remain unproved.
+ #[verus_verify]
+ #[derive(Debug)]
+ pub struct ArcRef<'a, T: 'static> {
+@@ -379,20 +390,22 @@ unsafe impl<T: 'static> NonNullPtr for Arc<T> {
+ 
+     type Ref<'a> = ArcRef<'a, T>;
+ 
+-    type RefPermission<'a> = ArcPointsTo<T>;
++    type RefPermission<'a> = &'a ArcPointsTo<T>;
+ 
+     #[verifier::external_body]
+     const ALIGN_BITS: u32 = core::mem::align_of::<T>().trailing_zeros();
+ 
++    open spec fn align_bits_inv() -> bool {
++        1usize << Self::ALIGN_BITS == vstd::layout::align_of::<T>()
++    }
++
+     #[verus_spec]
+     fn into_raw(self) -> (NonNull<Self::Target>, Tracked<Self::Permission>) {
+-        proof_decl!{
+-            let tracked perm: ArcPointsTo<T>;
+-        }
++        proof_decl! { let tracked perm: ArcPointsTo<T>; }
+         // let ptr = Arc::into_raw(self).cast_mut();
+         let ptr = (#[verus_spec(with => Tracked(perm))]
+         arc_into_raw(self)).cast_mut();
+-        assume(ptr.addr() % (1usize << Self::ALIGN_BITS) == 0);
++        proof! { Self::lemma_align_bits_range(); }
+ 
+         // [VERIFIED] SAFETY: The pointer representing an `Arc` can never be NULL.
+         (unsafe { NonNull::new_unchecked(ptr) }, Tracked(perm))
+@@ -420,34 +433,31 @@ unsafe impl<T: 'static> NonNullPtr for Arc<T> {
+         perm.view_target() == *self
+     }
+ 
++    // Same trusted alignment relation as Box.
+     axiom fn lemma_align_bits_range();
+ 
+     open spec fn ref_perm_view_permission<'a>(perm: Self::RefPermission<'a>) -> Self::Permission {
+-        perm
++        *perm
+     }
+ 
+     open spec fn ref_rel_perm<'a>(r: Self::Ref<'a>, perm: Self::RefPermission<'a>) -> bool {
+-        perm.view_target() == *r@
++        // Arc's value model does not identify allocations; see arc_into_raw.
++        (*perm).view_target() == *r@
+     }
+ 
+     proof fn tracked_borrow_perm_as_ref_perm<'a>(
+         tracked perm: &'a Self::Permission,
+     ) -> tracked Self::RefPermission<'a> {
+-        ArcPointsTo { perm: perm.perm }
++        perm
+     }
+ 
+     unsafe fn raw_as_ref<'a>(
+         raw: NonNull<Self::Target>,
+-        perm: Tracked<Self::RefPermission<'a>>,
++        Tracked(perm): Tracked<Self::RefPermission<'a>>,
+     ) -> Self::Ref<'a> {
+         unsafe {
+-            ArcRef {
+-                inner: ManuallyDrop::new(
+-                    #[verus_spec(with perm)]
+-                    arc_from_raw(raw.as_ptr()),
+-                ),
+-                _marker: PhantomData,
+-            }
++            // TODO: Model borrowed construction; arc_from_raw requires an owning token.
++            ArcRef { inner: ManuallyDrop::new(arc_from_raw(raw.as_ptr())), _marker: PhantomData }
+         }
+     }
+ 
+@@ -455,11 +465,18 @@ unsafe impl<T: 'static> NonNullPtr for Arc<T> {
+         NonNull<Self::Target>,
+         Tracked<Self::RefPermission<'a>>,
+     ) {
+-        NonNullPtr::into_raw(ManuallyDrop::into_inner(ptr_ref.inner))
++        proof! {
++            Self::lemma_align_bits_range();
++        }
++        proof_decl! { let tracked owned_perm: ArcPointsTo<T>; }
++        let ptr = (#[verus_spec(with => Tracked(owned_perm))]
++        arc_into_raw(ManuallyDrop::into_inner(ptr_ref.inner))).cast_mut();
++        // Retain only read permission; this conversion must not create an owner.
++        proof_decl! { let tracked perm = tracked_static_ref(owned_perm); }
++        (unsafe { NonNull::new_unchecked(ptr) }, Tracked(perm))
+     }
+ }
+ 
+-// ArcRef stores a Rust-owned Arc and has no additional validity condition.
+ impl<T> Inv for ArcRef<'_, T> {
+     open spec fn inv(self) -> bool {
+         true
+diff --git a/verified_libs/vstd_extra/src/external/nonnull.rs b/verified_libs/vstd_extra/src/external/nonnull.rs
+index 37e6c32a03bc45ffc3b750c0ab7cf2e4f954cb8d..598287f07ead2cb340a6829bffe19db3e49d322d 100644
+--- a/verified_libs/vstd_extra/src/external/nonnull.rs
++++ b/verified_libs/vstd_extra/src/external/nonnull.rs
+@@ -7,6 +7,16 @@ use vstd::std_specs::{cmp::*, nonzero::*, ptr::*};
+ 
+ verus! {
+ 
++/// Rust 1.99.1 core/src/ptr/non_null.rs: equality compares addresses and metadata.
++pub assume_specification<T: PointeeSized>[ <NonNull<T> as core::cmp::PartialEq>::eq ](
++    left: &NonNull<T>,
++    right: &NonNull<T>,
++) -> bool
++    returns
++        left.as_ptr().addr() == right.as_ptr().addr() && left.as_ptr()@.metadata
++            == right.as_ptr()@.metadata,
++;
++
+ pub trait NonNullAdditionalFns<T: PointeeSized> {
+     /// Specification for `NonNull::cast`.
+     spec fn cast_spec<U>(self) -> NonNull<U>;
+diff --git a/verified_libs/vstd_extra/src/external/smart_ptr.rs b/verified_libs/vstd_extra/src/external/smart_ptr.rs
+index d80f1e954fe52e8ed87fb1c8c28dc9fae501bdb9..41434402acaef50e3bc7d02cd8769a4c12f93743 100644
+--- a/verified_libs/vstd_extra/src/external/smart_ptr.rs
++++ b/verified_libs/vstd_extra/src/external/smart_ptr.rs
+@@ -44,11 +44,11 @@ impl<T> PtrPointsToTrait for ArcPointsTo<T> {
+     type Target = T;
+ 
+     open spec fn ptr(self) -> *mut T {
+-        self.perm.ptr()
++        self.perm().ptr()
+     }
+ 
+     open spec fn view_target(self) -> T {
+-        self.perm.value()
++        self.perm().value()
+     }
+ }
+ 
+@@ -58,11 +58,15 @@ pub tracked struct BoxPointsTo<T> {
+     pub perm: PointsTowithDealloc<T>,
+ }
+ 
+-/// For `Arc<T>`, the `into_raw` method gives shared access to the memory, and the reference count is not decreased,
+-/// so the value will not be deallocated until we convert back to `Arc<T>` and drop it.
+-/// See <https://doc.rust-lang.org/src/alloc/sync.rs.html#1480>.
++/// Owns one outstanding strong reference transferred by Arc::into_raw.
+ pub tracked struct ArcPointsTo<T: 'static> {
+-    pub perm: &'static PointsTo<T>,
++    perm: &'static PointsTo<T>,
++}
++
++impl<T> Inv for &ArcPointsTo<T> {
++    open spec fn inv(self) -> bool {
++        Inv::inv(*self)
++    }
+ }
+ 
+ // Raw-memory ownership is global state and does not depend on a thread's
+@@ -130,12 +134,12 @@ impl<T> BoxPointsTo<T> {
+ }
+ 
+ impl<T> ArcPointsTo<T> {
+-    pub open spec fn perm(self) -> &'static PointsTo<T> {
++    pub closed spec fn perm(self) -> &'static PointsTo<T> {
+         self.perm
+     }
+ 
+     pub open spec fn ptr(self) -> *mut T {
+-        self.perm.ptr()
++        self.perm().ptr()
+     }
+ 
+     pub open spec fn addr(self) -> usize {
+@@ -143,16 +147,16 @@ impl<T> ArcPointsTo<T> {
+     }
+ 
+     pub open spec fn is_init(self) -> bool {
+-        self.perm.is_init()
++        self.perm().is_init()
+     }
+ 
+     pub open spec fn value(self) -> T {
+-        self.perm.value()
++        self.perm().value()
+     }
+ 
+-    pub proof fn tracked_borrow_points_to(tracked &self) -> (tracked ret: &'static PointsTo<T>)
++    pub proof fn tracked_borrow_points_to<'a>(tracked &'a self) -> (tracked ret: &'a PointsTo<T>)
+         returns
+-            self.perm,
++            self.perm(),
+     {
+         self.perm
+     }
+@@ -182,7 +186,7 @@ impl<T> Inv for ArcPointsTo<T> {
+     open spec fn inv(self) -> bool {
+         &&& self.addr() != 0
+         &&& self.addr() as int % vstd::layout::align_of::<T>() as int == 0
+-        &&& self.perm.is_init()
++        &&& self.is_init()
+     }
+ }
+ 
+@@ -258,11 +262,13 @@ pub unsafe fn box_from_raw<T>(ptr: *mut T) -> Box<T> {
+     unsafe { Box::from_raw(ptr) }
+ }
+ 
+-/// A wrapper around `Arc::into_raw` that also returns the permission to access the memory.
++/// A wrapper around `Arc::into_raw` that returns an owning raw-pointer permission.
+ ///
+-/// Soundness: the soundness concern is similar to `box_into_raw`.
+-// VERUS LIMITATION: can not add ghost parameter in external specification yet, sp we wrap it in an external_body function
+-// `Arc::into_raw` will not decrease the reference count, so the memory will keep valid until we convert back to Arc<T> and drop it.
++/// VERUS LIMITATION: Arc is modeled by its pointee value, not allocation identity.
++/// A from_raw/into_raw round trip therefore preserves the value, but its pointer
++/// equality is not exposed by these contracts. An uninterpreted Arc::ptr() would
++/// incorrectly identify distinct allocations with equal values.
++// VERUS LIMITATION: external specifications cannot yet carry ghost parameters.
+ #[verifier::external_body]
+ #[verus_spec(ret =>
+     with
+@@ -281,6 +287,7 @@ pub fn arc_into_raw<T>(p: Arc<T>) -> *const T {
+ 
+ /// According to the documentation, [`Arc::from_raw`](<https://doc.rust-lang.org/std/sync/struct.Arc.html#method.from_raw>) allows transmuting between different types as long as the pointer has the same size and alignment.
+ /// In verification this responsibility is dispatched to casting the `PointsTo<T>` appropriately, which is not handled here.
++/// Consumes the owning permission; allocation identity is not represented in the returned Arc's model.
+ #[verifier::external_body]
+ #[verus_spec(ret =>
+     with

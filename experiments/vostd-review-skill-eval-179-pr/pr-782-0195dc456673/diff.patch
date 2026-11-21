@@ -1,0 +1,43 @@
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index 8b36d1a02159e296eb3d4396087c929d084ec51c..dbcb9e28ff387277a0deda21184767f67e4a98a2 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -236,6 +236,13 @@ impl<const LEN: usize> Inv for MemoryRegionArray<LEN> {
+     }
+ }
+ 
++impl<const LEN: usize> MemoryRegionArray<LEN> {
++    #[verifier::type_invariant]
++    closed spec fn type_inv(self) -> bool {
++        self.count <= LEN
++    }
++}
++
+ impl<const LEN: usize> View for MemoryRegionArray<LEN> {
+     type V = MemoryRegionArrayModel<LEN>;
+ 
+@@ -261,14 +268,22 @@ impl<const LEN: usize> Default for MemoryRegionArray<LEN> {
+         Self::new()
+     }
+ }
+-/*
++#[verus_verify]
+ impl<const LEN: usize> Deref for MemoryRegionArray<LEN> {
+     type Target = [MemoryRegion];
+ 
++    #[verus_spec(ret =>
++        ensures
++            ret@.len() == self@.regions.len(),
++            forall|i: int| 0 <= i < ret@.len() ==> (#[trigger] ret@[i])@ == self@.regions[i],
++    )]
+     fn deref(&self) -> &Self::Target {
++        proof! {
++            use_type_invariant(self);
++        }
+         &self.regions[..self.count]
+     }
+-}*/
++}
+ #[verus_verify]
+ impl<const LEN: usize> MemoryRegionArray<LEN> {
+     /// Constructs an empty set.

@@ -1,0 +1,204 @@
+{
+  "source_directory": "analysis/review-eval-20261121",
+  "files": [
+    {
+      "source": "metrics.json",
+      "destination": "data/metrics.json",
+      "source_sha256": "a202e4d186fc7e4d846d78f722de3756c93005dc2d7a743373caf49e5745e951",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "cases.json",
+      "destination": "data/cases.json",
+      "source_sha256": "9a21b98368ba4824daeffe31c274c7e4443e3c534404d1067971216d44878a5e",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "cases.csv",
+      "destination": "data/cases.csv",
+      "source_sha256": "14370abec60ebfd85161bff95a8290ee2e5d97dbb77c7fefe97393a2e4520f31",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "findings.json",
+      "destination": "data/findings.json",
+      "source_sha256": "00e2ae8d331b971766898bd1a3314451032090e9aa9c435e0ca1f1a4e0fa7a4d",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "findings.csv",
+      "destination": "data/findings.csv",
+      "source_sha256": "e194e180625fc8cf650a86828860e6a36873086a2d6e2000a060539cf692b7f6",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "label_matches.json",
+      "destination": "data/label_matches.json",
+      "source_sha256": "8f168c3d28d3c4d3579b062d4f81aa99ff82357a671615af42cb6d6cffb856ca",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "label_matches.csv",
+      "destination": "data/label_matches.csv",
+      "source_sha256": "93370b6c846bdc77cabc0b02c4c7ce7431effa7a25e805de1d7a60f8287bbfe0",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "rule_metrics.csv",
+      "destination": "data/rule_metrics.csv",
+      "source_sha256": "750127383ffcd17db54649dc0f8489418d491b87964989e8fcb5665dc5164ef2",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "snapshot.json",
+      "destination": "evidence/snapshot.json",
+      "source_sha256": "16dea2593687ce5a812257fb2e54c386ab8e51ca1fc4434bae8f7ba213c969f1",
+      "transformation": "public_copy_adaptation; see provenance/README.md and export_changes.json"
+    },
+    {
+      "source": "skill_sources.json",
+      "destination": "evidence/skill_sources.json",
+      "source_sha256": "d4a7e010fe0a4fb0ec53e17fd4643be1d275aec5705bcd43c0aa14728a1bb25b",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "additional_judgments.txt",
+      "destination": "evidence/additional_judgments.txt",
+      "source_sha256": "463e675ebeaa5600484eca002553b1e167af3060ab41a77f177732b3e5fec8e0",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "input_manifest.json",
+      "destination": "provenance/input_manifest.json",
+      "source_sha256": "270cb73157a4bcc72f0412970e793268162bff8ef2690bc300e828d2bf5a4623",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "context_integrity.json",
+      "destination": "provenance/context_integrity.json",
+      "source_sha256": "3b0681d23a319d9edb6f26548b156679cdc18aa5378a20158a949541c47de667",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "input_exposure_audit.json",
+      "destination": "provenance/input_exposure_audit.json",
+      "source_sha256": "847689a2cb2d2d459809fc18fa362b30340546574d28f247ce46d59ab9714c4d",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "validation.json",
+      "destination": "provenance/validation.json",
+      "source_sha256": "39881c3884262d88ebcb67cdfed70dcd69bcb48d94d2a2b1923c20481a9646fa",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "逐条匹配.md",
+      "destination": "reports/label-matches.md",
+      "source_sha256": "62d1511b0bb7fffbfab5928ff6d626d83b30c88493656e2d835c5f81a7d3de7c",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "分析报告.md",
+      "destination": "reports/analysis.md",
+      "source_sha256": "70057db50f72559346732f7a1e823c1db8cabb271442a5a9dbdbdb7d3194bc0d",
+      "transformation": "public_copy_adaptation; see provenance/README.md and export_changes.json"
+    },
+    {
+      "source": "总结与改进建议.md",
+      "destination": "reports/summary.md",
+      "source_sha256": "7896cfaec7d557a11ff6bf4ac12bd1a75ec363e4e5e042a915f5ac4b95c26404",
+      "transformation": "public_copy_adaptation; see provenance/README.md and export_changes.json"
+    },
+    {
+      "source": "evaluate.py",
+      "destination": "scripts/evaluate.py",
+      "source_sha256": "23290f671fae53f2821ec50dcc03112d5ebadd8cd93bd13a1201e38616cf112e",
+      "transformation": "public_copy_adaptation; see provenance/README.md and export_changes.json"
+    },
+    {
+      "source": "baseline-96/cases.csv",
+      "destination": "archive/baseline-96/cases.csv",
+      "source_sha256": "195978b7b867091a162280306926cb67a9063b35a77b8d71e292d087c471a8d4",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/cases.json",
+      "destination": "archive/baseline-96/cases.json",
+      "source_sha256": "888e90b4541f831d284b05861abedba58810e5e8757e4ccb81cbade8575e4b2e",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/context_integrity.json",
+      "destination": "archive/baseline-96/context_integrity.json",
+      "source_sha256": "19d9d8536a1272fb39a3c924fc25a687090d507795808fe82ac57c59915a9444",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/evaluate.py",
+      "destination": "archive/baseline-96/evaluate.py",
+      "source_sha256": "61dd8f8079b34f9023964d5c62f524786a11bcba6e27b42a2f6be15da40069bb",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/findings.csv",
+      "destination": "archive/baseline-96/findings.csv",
+      "source_sha256": "2d59cace5d0bb41b7918bbd597f91561b9f1a960b90a980140508ea1b5d34de7",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/findings.json",
+      "destination": "archive/baseline-96/findings.json",
+      "source_sha256": "a8d67777aff1a0b1d7659bcadad6e4bfe2d52b164b821b90227154511dad3247",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/label_matches.csv",
+      "destination": "archive/baseline-96/label_matches.csv",
+      "source_sha256": "709fcdd8b2a4ec11dd0d9f58c2f7b386adda20ea2cb39b8f45aa520e742a4eaa",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/label_matches.json",
+      "destination": "archive/baseline-96/label_matches.json",
+      "source_sha256": "9a75d7e1ed37f201fa5bd9a5ae213001468edbefd9714477272dd5cbba4d08cb",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/metrics.json",
+      "destination": "archive/baseline-96/metrics.json",
+      "source_sha256": "7b2ec84ad74a8a4b2eae06681c29be802669a512b058496990374aa033b392b0",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/skill_sources.json",
+      "destination": "archive/baseline-96/skill_sources.json",
+      "source_sha256": "d4a7e010fe0a4fb0ec53e17fd4643be1d275aec5705bcd43c0aa14728a1bb25b",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/snapshot.json",
+      "destination": "archive/baseline-96/snapshot.json",
+      "source_sha256": "1f6e7bc5570fb9c92e5a6bb5ab2bee51510749929e303e0d6d3fcf82622b89ec",
+      "transformation": "public_copy_adaptation; see provenance/README.md and export_changes.json"
+    },
+    {
+      "source": "baseline-96/validation.json",
+      "destination": "archive/baseline-96/validation.json",
+      "source_sha256": "dcdd37aaef27c96ee9eac2a1555ea9197a6a5bf3a62ab794d3ed87bfef8d9bb1",
+      "transformation": "byte_identical_copy"
+    },
+    {
+      "source": "baseline-96/分析报告.md",
+      "destination": "archive/baseline-96/分析报告.md",
+      "source_sha256": "ea3a0b220a1f25f095e196b6945dccd9142e410248784d7422923c56b709db01",
+      "transformation": "public_copy_adaptation; see provenance/README.md and export_changes.json"
+    },
+    {
+      "source": "baseline-96/逐条匹配.md",
+      "destination": "archive/baseline-96/逐条匹配.md",
+      "source_sha256": "e7ce4018b3027fe23f6163e9067078b5e62e449e7e202045dbc1a03a40255523",
+      "transformation": "byte_identical_copy"
+    }
+  ],
+  "note": "源文件哈希采集于整理开始；原目录未修改。"
+}

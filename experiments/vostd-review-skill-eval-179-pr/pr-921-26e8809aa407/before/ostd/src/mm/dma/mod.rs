@@ -1,0 +1,209 @@
+// SPDX-License-Identifier: MPL-2.0
+use vstd::prelude::*;
+#[cfg(feature = "irc11")]
+use vstd::thread_view::Objective;
+use vstd_extra::{
+    atomic_data::AtomicDataWithOwner,
+    once::Once,
+    resource_invariant::{SimpleResourceInvariant, TrivialResourceInvariant},
+};
+
+mod dma_coherent;
+pub use dma_coherent::DmaCoherent;
+mod dma_stream;
+#[cfg(ktest)]
+mod test;
+
+use crate::sync::{PreemptDisabled, SpinLock, SpinLockGuard};
+use alloc::collections::BTreeSet;
+
+use super::Paddr;
+
+verus! {
+
+pub tracked struct DmaMappingSetOwner {}
+
+// This empty owner carries no subjective weak-memory observations.
+#[cfg(feature = "irc11")]
+unsafe impl Objective for DmaMappingSetOwner {
+
+}
+
+pub ghost struct DmaMappingSetInvariant;
+
+impl SimpleResourceInvariant<
+    SpinLock<BTreeSet<Paddr>, PreemptDisabled>,
+> for DmaMappingSetInvariant {
+    type Resource = DmaMappingSetOwner;
+
+    open spec fn inv(
+        v: SpinLock<BTreeSet<Paddr>, PreemptDisabled>,
+        _resource: DmaMappingSetOwner,
+    ) -> bool {
+        v.type_inv()
+    }
+}
+
+/// Set of all physical addresses with dma mapping.
+exec static DMA_MAPPING_SET: Once<
+    SpinLock<BTreeSet<Paddr>, PreemptDisabled>,
+    DmaMappingSetInvariant,
+    TrivialResourceInvariant,
+>
+    ensures
+        DMA_MAPPING_SET.wf(),
+{
+    Once::new(Ghost(TrivialResourceInvariant))
+}
+
+#[inline(always)]
+pub fn init() {
+    let lock = SpinLock::new(BTreeSet::new(), Ghost(()), Tracked(()));
+
+    proof {
+        use_type_invariant(&lock);
+    }
+
+    let tracked owner = DmaMappingSetOwner {  };
+    let data = AtomicDataWithOwner::new(lock, Tracked(owner), Ghost(DmaMappingSetInvariant));
+
+    DMA_MAPPING_SET.init(data);
+}
+
+/// The device address.
+///
+/// If a device performs DMA to read or write system
+/// memory, the addresses used by the device are device addresses.
+/// Daddr can distinguish the address space used by cpu side and
+/// the address space used by device side.
+pub type Daddr = usize;
+
+#[derive(PartialEq)]
+pub enum DmaType {
+    Direct,
+    Iommu,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum DmaError {
+    InvalidArgs,
+    AlreadyMapped,
+}
+
+/// A trait for types that have mapped address in the device address space.
+pub trait HasDaddr {
+    /// Gets the base address of the mapping in the
+    /// device address space.
+    fn daddr(&self) -> Daddr;
+}
+
+#[verifier::inline]
+pub open spec fn is_valid_daddr(d: Daddr) -> bool {
+    true
+}
+
+/// Checks whether the physical addresses has dma mapping.
+/// Fail if they have been mapped, otherwise insert them.
+#[verus_spec(
+    requires
+        start_paddr + num_pages * crate::mm::PAGE_SIZE <= usize::MAX,
+)]
+fn check_and_insert_dma_mapping(start_paddr: Paddr, num_pages: usize) -> bool {
+    match DMA_MAPPING_SET.get() {
+        None => false,
+        Some(mapping_set) => {
+            let mut mapping_set = mapping_set.lock();
+            for i in 0..num_pages
+                invariant
+                    start_paddr + num_pages * crate::mm::PAGE_SIZE <= usize::MAX,
+            {
+                let paddr = start_paddr + (i * crate::mm::PAGE_SIZE);
+                if mapping_set.contains(&paddr) {
+                    return false;
+                }
+            }
+
+            for i in 0..num_pages
+                invariant
+                    start_paddr + num_pages * crate::mm::PAGE_SIZE <= usize::MAX,
+            {
+                let paddr = start_paddr + (i * crate::mm::PAGE_SIZE);
+                // Failure: complex arguments to $mut parameters are currently unsupported
+                // mapping_set.insert(paddr);
+            }
+
+            true
+        },
+    }
+}
+
+#[verifier::external_body]
+pub fn dma_type() -> DmaType {
+    unimplemented!()
+}
+
+} // verus!
+/*
+use alloc::collections::BTreeSet;
+
+pub use dma_coherent::DmaCoherent;
+pub use dma_stream::{DmaDirection, DmaStream, DmaStreamSlice};
+use inherit_methods_macro::inherit_methods;
+use spin::Once;
+
+use super::Paddr;
+use crate::{arch::iommu::has_dma_remapping, mm::PAGE_SIZE, sync::SpinLock};
+
+
+
+
+#[inherit_methods(from = "(**self)")]
+impl<T: HasDaddr> HasDaddr for &T {
+    fn daddr(&self) -> Daddr;
+}
+
+/// Set of all physical addresses with dma mapping.
+static DMA_MAPPING_SET: Once<SpinLock<BTreeSet<Paddr>>> = Once::new();
+
+pub fn dma_type() -> DmaType {
+    if has_dma_remapping() {
+        DmaType::Iommu
+    } else {
+        DmaType::Direct
+    }
+}
+
+pub fn init() {
+    DMA_MAPPING_SET.call_once(|| SpinLock::new(BTreeSet::new(), Ghost(()), Tracked(())));
+}
+
+/// Checks whether the physical addresses has dma mapping.
+/// Fail if they have been mapped, otherwise insert them.
+fn check_and_insert_dma_mapping(start_paddr: Paddr, num_pages: usize) -> bool {
+    let mut mapping_set = DMA_MAPPING_SET.get().unwrap().disable_irq().lock();
+    // Ensure that the addresses used later will not overflow
+    start_paddr.checked_add(num_pages * PAGE_SIZE).unwrap();
+    for i in 0..num_pages {
+        let paddr = start_paddr + (i * PAGE_SIZE);
+        if mapping_set.contains(&paddr) {
+            return false;
+        }
+    }
+    for i in 0..num_pages {
+        let paddr = start_paddr + (i * PAGE_SIZE);
+        mapping_set.insert(paddr);
+    }
+    true
+}
+
+/// Removes a physical address from the dma mapping set.
+fn remove_dma_mapping(start_paddr: Paddr, num_pages: usize) {
+    let mut mapping_set = DMA_MAPPING_SET.get().unwrap().disable_irq().lock();
+    // Ensure that the addresses used later will not overflow
+    start_paddr.checked_add(num_pages * PAGE_SIZE).unwrap();
+    for i in 0..num_pages {
+        let paddr = start_paddr + (i * PAGE_SIZE);
+        mapping_set.remove(&paddr);
+    }
+}
+*/

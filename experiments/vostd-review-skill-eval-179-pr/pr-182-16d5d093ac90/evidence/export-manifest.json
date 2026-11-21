@@ -1,0 +1,46 @@
+{
+  "before": {
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "674c7500ec1a4f283fcf60cd44a5d4ceb3b27f28"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    },
+    "lock-protocol/src/spec/rcu/tree_refines_atomic.rs": {
+      "mode": "100644",
+      "git_blob": "6fed275f43762a97cb679bd08f35b9a1827be382"
+    },
+    "lock-protocol/src/spec/rw/atomic.rs": {
+      "mode": "100644",
+      "git_blob": "e13a3cedcaae7dc59eb93b8c06f522f5c031e887"
+    },
+    "lock-protocol/src/spec/utils.rs": {
+      "mode": "100644",
+      "git_blob": "0eb5ebe7a121c9599958312ad682886a665b5fb4"
+    }
+  },
+  "after": {
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "674c7500ec1a4f283fcf60cd44a5d4ceb3b27f28"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    },
+    "lock-protocol/src/spec/rcu/tree_refines_atomic.rs": {
+      "mode": "100644",
+      "git_blob": "624bb2d1bc0de71fe093424b4bfc553738bc288a"
+    },
+    "lock-protocol/src/spec/rw/atomic.rs": {
+      "mode": "100644",
+      "git_blob": "98c25aed0f2f3e8eb0fde19e95ca6ae4196ed4b1"
+    },
+    "lock-protocol/src/spec/utils.rs": {
+      "mode": "100644",
+      "git_blob": "e87901a5a13b0f0c7fa04c39df998962c3bade7a"
+    }
+  }
+}

@@ -1,0 +1,278 @@
+# root 1 direct repair
+# problem_or_parent: 16d5d093ac90ba94baa5f82bb07f95b32657e29a
+# repair_commit: 27231bec4b98f6c9d842390e7108e36e9001ff92
+
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index e87901a5a13b0f0c7fa04c39df998962c3bade7a..d286f959009f7212ffe0185194ea083bf47f3324 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -1670,13 +1670,10 @@ impl NodeHelper {
+         ensures
+             Self::get_child(Self::get_parent(nid), Self::get_offset(nid)) == nid,
+     {
+-        broadcast use {
+-            NodeHelper::lemma_get_parent_sound,
+-            NodeHelper::lemma_get_offset_sound,
+-            NodeHelper::lemma_get_child_sound,
+-        };
++        broadcast use {NodeHelper::lemma_nid_to_trace_sound, NodeHelper::lemma_trace_to_nid_sound};
+ 
+-        admit();
++        let trace = Self::nid_to_trace(nid);
++        assert(trace.drop_last().push(trace.last()) == trace);
+     }
+ 
+     pub proof fn lemma_brothers_have_different_offset(nid1: NodeId, nid2: NodeId)
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index c9a406f2629482fe55c7c9bb6156dcd746a4cb8c..fcf5b184371b0653a951f4dfc863c0418e710d95 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -59,7 +59,7 @@ pub broadcast proof fn lemma_value_filter_finite<K, V>(m: Map<K, V>, f: spec_fn(
+     ensures
+         #[trigger] value_filter(m, f).dom().finite(),
+ {
+-    assert(value_filter(m, f).dom() =~= m.dom().filter(|s| f(m[s])));
++    assert(value_filter(m, f).dom() == m.dom().filter(|s| f(m[s])));
+     m.dom().lemma_len_filter(|s| f(m[s]));
+ }
+ 
+@@ -317,9 +317,9 @@ pub broadcast proof fn lemma_forall_map_insert<K, V>(
+ {
+     assert(m.insert(k, v).contains_key(k));
+     if m.contains_key(k) {
+-        assert(m.insert(k, v) =~= m.remove(k).insert(k, v));
++        assert(m.insert(k, v) == m.remove(k).insert(k, v));
+     } else {
+-        assert(m.insert(k, v) =~= m.insert(k, v));
++        assert(m.insert(k, v) == m.insert(k, v));
+     }
+     if forall_map(m.insert(k, v), f) {
+         if m.contains_key(k) {
+@@ -346,9 +346,9 @@ pub broadcast proof fn lemma_forall_map_values_insert<K, V>(
+ {
+     assert(m.insert(k, v).contains_key(k));
+     if m.contains_key(k) {
+-        assert(m.insert(k, v) =~= m.remove(k).insert(k, v));
++        assert(m.insert(k, v) == m.remove(k).insert(k, v));
+     } else {
+-        assert(m.insert(k, v) =~= m.insert(k, v));
++        assert(m.insert(k, v) == m.insert(k, v));
+     }
+     if forall_map_values(m.insert(k, v), f) {
+         if m.contains_key(k) {
+@@ -368,9 +368,9 @@ pub broadcast proof fn lemma_forall_map_remove<K, V>(m: Map<K, V>, f: spec_fn(K,
+         )),
+ {
+     if m.contains_key(k) {
+-        assert(m =~= m.remove(k).insert(k, m[k]));
++        assert(m == m.remove(k).insert(k, m[k]));
+     } else {
+-        assert(m =~= m.remove(k));
++        assert(m == m.remove(k));
+     }
+ }
+ 
+@@ -386,9 +386,9 @@ pub broadcast proof fn lemma_forall_map_values_remove<K, V>(
+         m.contains_key(k) ==> f(m[k])),
+ {
+     if m.contains_key(k) {
+-        assert(m =~= m.remove(k).insert(k, m[k]));
++        assert(m == m.remove(k).insert(k, m[k]));
+     } else {
+-        assert(m =~= m.remove(k));
++        assert(m == m.remove(k));
+     }
+ 
+ }
+@@ -444,12 +444,23 @@ pub proof fn lemma_project_first_key_value_filter_empty<K1, K2, V>(
+     f: spec_fn(V) -> bool,
+ )
+     requires
++        m.dom().finite(),
+         value_filter(project_first_key(m, k1), f).len() == 0,
+     ensures
+         forall|k2: K2| #[trigger]
+             project_first_key(m, k1).contains_key(k2) ==> !f(project_first_key(m, k1)[k2]),
+ {
+-    admit();
++    assert forall|k2: K2| #[trigger] project_first_key(m, k1).contains_key(k2) implies !f(
++        project_first_key(m, k1)[k2],
++    ) by {
++        if f(project_first_key(m, k1)[k2]) {
++            assert(value_filter(project_first_key(m, k1), f).dom().contains(k2));
++            lemma_project_first_key_finite(m, k1);
++            lemma_value_filter_finite(project_first_key(m, k1), f);
++            Set::lemma_len0_is_empty(value_filter(project_first_key(m, k1), f).dom());
++            assert(false);
++        }
++    }
+ }
+ 
+ /// If the original map is finite, then the projected map is also finite.
+@@ -458,8 +469,22 @@ pub proof fn lemma_project_first_key_finite<K1, K2, V>(m: Map<(K1, K2), V>, k1:
+         m.dom().finite(),
+     ensures
+         project_first_key(m, k1).dom().finite(),
++    decreases m.dom().len(),
+ {
+-    admit();
++    if m.dom().len() == 0 {
++        assert(project_first_key(m, k1).dom() == Set::<K2>::empty());
++    } else {
++        let pair = m.dom().choose();
++        lemma_project_first_key_finite(m.remove(pair), k1);
++        if pair.0 != k1 {
++            assert(project_first_key(m, k1) == project_first_key(m.remove(pair), k1));
++        } else {
++            assert(project_first_key(m, k1).dom() == project_first_key(
++                m.remove(pair),
++                k1,
++            ).dom().insert(pair.1));
++        }
++    }
+ }
+ 
+ } // verus!
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index f14774923e2328ff3d48d02202998fd6925b157c..4a8f2d3ba2d5590b3ea6fd0007af8539b3e34408 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -171,7 +171,7 @@ pub broadcast proof fn lemma_forall_seq_drop_last<T>(s: Seq<T>, f: spec_fn(int,
+             s.last(),
+         ),
+ {
+-    assert(s =~= s.drop_last().push(s.last()));
++    assert(s == s.drop_last().push(s.last()));
+ }
+ 
+ /// `s.all(f)` is equivalent to `s.drop_last().all(f)` and `f(s.last())`.
+@@ -181,7 +181,7 @@ pub broadcast proof fn lemma_seq_all_drop_last<T>(s: Seq<T>, f: spec_fn(T) -> bo
+     ensures
+         s.all(f) <==> #[trigger] s.drop_last().all(f) && f(s.last()),
+ {
+-    assert(s =~= s.drop_last().push(s.last()));
++    assert(s == s.drop_last().push(s.last()));
+ }
+ 
+ pub broadcast proof fn lemma_seq_all_add<T>(s1: Seq<T>, s2: Seq<T>, f: spec_fn(T) -> bool)
+@@ -192,16 +192,16 @@ pub broadcast proof fn lemma_seq_all_add<T>(s1: Seq<T>, s2: Seq<T>, f: spec_fn(T
+ 
+ {
+     if s2.len() == 0 {
+-        assert(s1 + s2 =~= s1);
++        assert(s1 + s2 == s1);
+     } else {
+-        // Induction step: assume the lemma holds for s2.drop_last() and show that s2=~=s2.drop_last().push(s2.last()).
++        // Induction step: assume the lemma holds for s2.drop_last() and show that s2==s2.drop_last().push(s2.last()).
+         lemma_seq_all_add(s1, s2.drop_last(), f);
+         if s1.all(f) && s2.all(f) {
+             assert((s1 + s2).all(f));
+         }
+         if (s1 + s2).all(f) {
+-            assert((s1 + s2).drop_last() =~= s1 + s2.drop_last());
+-            assert(s2 =~= s2.drop_last().push(s2.last()));
++            assert((s1 + s2).drop_last() == s1 + s2.drop_last());
++            assert(s2 == s2.drop_last().push(s2.last()));
+             assert((s1 + s2).last() == s2.last());
+         }
+     }
+diff --git a/vstd_extra/src/set_extra.rs b/vstd_extra/src/set_extra.rs
+index fa91eb8c6507126b1bb9774d80430881dfb41cb7..e9f224d33edc97f89b12f2b04b7420fe7b361bfa 100644
+--- a/vstd_extra/src/set_extra.rs
++++ b/vstd_extra/src/set_extra.rs
+@@ -57,10 +57,12 @@ pub proof fn lemma_nat_range_finite(l: nat, r: nat)
+     decreases r - l,
+ {
+     if l == r {
+-        assert(Set::new(|p: nat| l <= p < r) =~= Set::empty());
++        assert(Set::new(|p: nat| l <= p < r) == Set::<nat>::empty());
+     } else {
+         lemma_nat_range_finite(l, (r - 1) as nat);
+-        assert(Set::new(|p| l <= p < r - 1).insert((r - 1) as nat) =~= Set::new(|p| l <= p < r));
++        assert(Set::new(|p| l <= p < r - 1).insert((r - 1) as nat) == Set::new(
++            |p: nat| l <= p < r,
++        ));
+     }
+ }
+ 
+@@ -76,17 +78,17 @@ pub proof fn lemma_set_separation<T>(s: Set<T>, f: spec_fn(T) -> bool)
+     decreases s.len(),
+ {
+     if s.is_empty() {
+-        assert(s.filter(f) =~= Set::empty());
+-        assert(s.filter(|x| !f(x)) =~= Set::empty());
++        assert(s.filter(f) == Set::<T>::empty());
++        assert(s.filter(|x| !f(x)) == Set::<T>::empty());
+     } else {
+         let x = s.choose();
+         lemma_set_separation(s.remove(x), f);
+         if f(x) {
+-            assert(s.filter(f) =~= s.remove(x).filter(f).insert(x));
+-            assert(s.filter(|x| !f(x)) =~= s.remove(x).filter(|x| !f(x)));
++            assert(s.filter(f) == s.remove(x).filter(f).insert(x));
++            assert(s.filter(|x| !f(x)) == s.remove(x).filter(|x| !f(x)));
+         } else {
+-            assert(s.filter(f) =~= s.remove(x).filter(f));
+-            assert(s.filter(|x| !f(x)) =~= s.remove(x).filter(|x| !f(x)).insert(x));
++            assert(s.filter(f) == s.remove(x).filter(f));
++            assert(s.filter(|x| !f(x)) == s.remove(x).filter(|x| !f(x)).insert(x));
+         }
+     }
+ }
+@@ -150,7 +152,7 @@ pub open spec fn is_partition<A>(s: Set<A>, parts: Set<Set<A>>) -> bool {
+         // Parts are pairwise disjoint
+         pairwise_disjoint(parts) &&
+         // Union of parts is s
+-        s =~= parts.flatten()
++        s == parts.flatten()
+ }
+ 
+ /// If `parts` is a finite set of finite, pairwise-disjoint sets,
+@@ -166,25 +168,19 @@ pub proof fn lemma_flatten_cardinality_under_disjointness<A>(parts: Set<Set<A>>)
+     decreases parts.len(),
+ {
+     if parts.is_empty() {
+-        assert(parts.flatten() =~= Set::empty());
++        assert(parts.flatten() == Set::<A>::empty());
+         lemma_fold_empty(0nat, |acc: nat, p: Set<A>| acc + p.len());
+     } else {
+         let p = parts.choose();
+         let rest = parts.remove(p);
+-        assert(parts =~= rest.insert(p));
++        assert(parts == rest.insert(p));
+         lemma_flatten_cardinality_under_disjointness(rest);
+         assert(rest.flatten().len() == rest.fold(0nat, |acc: nat, p: Set<A>| acc + p.len()));
+-        assert(parts.flatten() =~= rest.flatten().union(p));
++        assert(parts.flatten() == rest.flatten().union(p));
+         assert(parts.flatten().len() == rest.flatten().len() + p.len()) by {
+             lemma_set_disjoint_lens(rest.flatten(), p);
+         }
+-
+-        assert(parts.fold(0nat, |acc: nat, p: Set<A>| acc + p.len()) == rest.fold(
+-            0nat,
+-            |acc: nat, p: Set<A>| acc + p.len(),
+-        ) + p.len()) by {
+-            lemma_fold_insert(rest, 0nat, |acc: nat, p: Set<A>| acc + p.len(), p);
+-        }
++        lemma_fold_insert(rest, 0nat, |acc: nat, p: Set<A>| acc + p.len(), p);
+     }
+ }
+ 
+@@ -201,13 +197,13 @@ pub proof fn lemma_flatten_cardinality_under_disjointness_same_length<A>(parts:
+     decreases parts.len(),
+ {
+     if parts.is_empty() {
+-        assert(parts.flatten() =~= Set::empty());
++        assert(parts.flatten() == Set::<A>::empty());
+     } else {
+         let p = parts.choose();
+         let rest = parts.remove(p);
+-        assert(parts =~= rest.insert(p));
++        assert(parts == rest.insert(p));
+         lemma_flatten_cardinality_under_disjointness_same_length(rest, c);
+-        assert(parts.flatten() =~= rest.flatten().union(p));
++        assert(parts.flatten() == rest.flatten().union(p));
+         assert(parts.flatten().len() == rest.flatten().len() + p.len()) by {
+             lemma_set_disjoint_lens(rest.flatten(), p);
+         }
+

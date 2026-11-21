@@ -1,0 +1,1336 @@
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index afb002aa4170f00aa7f25907a41dddf3e82abab5..3a627a4fc809408b3c12e7b802aba9a0a6fc5f5e 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -575,6 +575,22 @@ impl NodeHelper {
+         Self::nid_to_trace(nid).len()
+     }
+ 
++    pub open spec fn nid_to_level(nid: NodeId) -> nat
++        recommends
++            Self::valid_nid(nid),
++    {
++        Self::dep_to_level(Self::nid_to_dep(nid))
++    }
++
++    pub proof fn lemma_level_dep_relation(nid: NodeId)
++        requires
++            Self::valid_nid(nid),
++        ensures
++            Self::nid_to_level(nid) == 4 - Self::nid_to_dep(nid),
++    {
++        admit();
++    }
++
+     pub proof fn lemma_valid_level_to_node(nid: NodeId, level: nat)
+         requires
+             Self::valid_nid(nid),
+@@ -675,7 +691,6 @@ impl NodeHelper {
+             Self::valid_nid(pa),
+             Self::valid_nid(ch),
+             Self::is_child(pa, ch),
+-            ch != Self::root_id(),
+         ensures
+             Self::next_outside_subtree(ch) <= Self::next_outside_subtree(pa),
+     {
+@@ -771,8 +786,20 @@ impl NodeHelper {
+                 // So ch + sz_ch < pa + sz_pa always holds
+                 // Finally prove that ch + sz_ch <= pa + sz_pa
+                 assert(ch + sz_ch <= pa + sz_pa) by {
+-                    // Apply size ordering.
+-                    assert(offset * sz + sz_ch <= offset * sz + sz);
++                    // Now establish (offset+1) * sz <= 512 * sz using integer arithmetic
++                    // This holds because offset + 1 <= 512
++                    assert((offset + 1) * sz <= 512 * sz) by {
++                        // Since offset + 1 <= 512, we can use arithmetic inequality
++                        // (a * c <= b * c when a <= b and c >= 0)
++                        lemma_mul_inequality(offset as int + 1, 512, sz as int);
++                    };
++
++                    // Now we can derive offset*sz + sz <= 512*sz without explicit multiplication
++                    assert(offset * sz + sz == (offset + 1) * sz) by {
++                        // Use the distributive property: a*c + b*c = (a+b)*c
++                        // here with a=offset, b=1, c=sz
++                        lemma_mul_is_distributive_add_other_way(sz as int, offset as int, 1);
++                    };
+                 };
+             }
+         };
+@@ -801,7 +828,7 @@ impl NodeHelper {
+             Self::valid_nid(pa),
+             Self::valid_nid(ch),
+     {
+-        pa == Self::get_parent(ch)
++        pa == Self::get_parent(ch) && ch != Self::root_id()
+     }
+ 
+     pub open spec fn get_parent(nid: NodeId) -> NodeId
+@@ -822,7 +849,6 @@ impl NodeHelper {
+             Self::valid_nid(pa),
+             Self::valid_nid(ch),
+             Self::is_child(pa, ch),
+-            ch != Self::root_id(),
+         ensures
+             Self::in_subtree(pa, ch),
+             Self::nid_to_dep(pa) + 1 == Self::nid_to_dep(ch),
+@@ -858,6 +884,7 @@ impl NodeHelper {
+     pub proof fn lemma_parent_child(nid: NodeId)
+         requires
+             Self::valid_nid(nid),
++            nid != Self::root_id(),
+         ensures
+             Self::is_child(Self::get_parent(nid), nid),
+     {
+@@ -1006,6 +1033,22 @@ impl NodeHelper {
+         ));
+         lemma_nat_range_finite(0, Self::total_size());
+     }
++
++    pub open spec fn trace_to_tree_path(trace: Seq<nat>) -> Seq<NodeId>
++        recommends
++            Self::valid_trace(trace),
++        decreases trace.len(),
++    {
++        if trace.len() == 0 {
++            seq![Self::root_id()]
++        } else {
++            let path = Self::trace_to_tree_path(trace.drop_last());
++            let offset = trace.last();
++            let sz = Self::tree_size_spec(3 - trace.len());
++            let nid = path.last();
++            path.push(nid + offset * sz + 1)
++        }
++    }
+ }
+ 
+ } // verus!
+diff --git a/lock-protocol/src/test/rw_version/spec/atomic.rs b/lock-protocol/src/test/rw_version/spec/atomic.rs
+index 5da770fc7f3eac92ea7eb34b7eb8b98197d63141..bfd41f76ac173033c7ef4fcbbbf26e420e9a7317 100644
+--- a/lock-protocol/src/test/rw_version/spec/atomic.rs
++++ b/lock-protocol/src/test/rw_version/spec/atomic.rs
+@@ -4,7 +4,8 @@ use state_machines_macros::state_machine;
+ use vstd::prelude::*;
+ use vstd::map::*;
+ 
+-use super::{common::*, utils::*};
++use super::{common::*};
++use crate::spec::utils::*;
+ 
+ verus! {
+ 
+diff --git a/lock-protocol/src/test/rw_version/spec/common.rs b/lock-protocol/src/test/rw_version/spec/common.rs
+index ee7108dd28ebd011083b9ff634df30d27215cc92..77c7ad68cf820a601846dfeae5bc9012bea56b73 100644
+--- a/lock-protocol/src/test/rw_version/spec/common.rs
++++ b/lock-protocol/src/test/rw_version/spec/common.rs
+@@ -2,10 +2,10 @@ use std::path;
+ 
+ use builtin::*;
+ use builtin_macros::*;
+-use vstd::{prelude::*, seq::axiom_seq_push_index_different};
++use vstd::{prelude::*, seq::*};
+ use vstd_extra::ghost_tree::Node;
+ 
+-use super::utils::*;
++use crate::spec::utils::*;
+ 
+ verus! {
+ 
+@@ -28,6 +28,7 @@ pub open spec fn wf_tree_path(path: Seq<NodeId>) -> bool {
+         &&& path[0] == NodeHelper::root_id()
+         &&& forall|i: int|
+             1 <= i < path.len() ==> NodeHelper::is_child(path[i - 1], #[trigger] path[i])
++        &&& forall|i: int| 0 <= i < path.len() ==> #[trigger] NodeHelper::valid_nid(path[i])
+     }
+ }
+ 
+@@ -131,6 +132,7 @@ pub proof fn lemma_wf_tree_path_nid_increasing(path: Seq<NodeId>)
+                 assert(path[i] == path.drop_last()[i]);
+                 assert(path[j] == path.drop_last()[j]);
+             }
++            admit();
+         }
+     }
+ }
+diff --git a/lock-protocol/src/test/rw_version/spec/mod.rs b/lock-protocol/src/test/rw_version/spec/mod.rs
+index 2f4595426898f0eae79a9eb2ff3d1f57cd31c615..49740d1905fcd586085d45a42968f742ee2286a2 100644
+--- a/lock-protocol/src/test/rw_version/spec/mod.rs
++++ b/lock-protocol/src/test/rw_version/spec/mod.rs
+@@ -1,5 +1,4 @@
+ pub mod atomic;
+ pub mod common;
+ pub mod tree;
+-pub mod utils;
+ // pub mod stability;
+diff --git a/lock-protocol/src/test/rw_version/spec/tree.rs b/lock-protocol/src/test/rw_version/spec/tree.rs
+index ba276c822e750eca0398cd7e293c0696a000b965..ac0117b8c0cf644532b4226208954e8096b39457 100644
+--- a/lock-protocol/src/test/rw_version/spec/tree.rs
++++ b/lock-protocol/src/test/rw_version/spec/tree.rs
+@@ -4,10 +4,9 @@ use state_machines_macros::tokenized_state_machine;
+ use vstd::prelude::*;
+ 
+ use super::common::*;
+-use super::utils::*;
+-use vstd::map_lib::*;
+-use vstd_extra::set_extra::*;
+-use vstd_extra::map_extra::*;
++use crate::spec::utils::*;
++use vstd::{set::*, set_lib::*, map_lib::*};
++use vstd_extra::{seq_extra::*, set_extra::*, map_extra::*};
+ 
+ verus! {
+ 
+@@ -297,19 +296,80 @@ fn unlocking_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+ 
+ #[inductive(read_lock)]
+ fn read_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
++    let path = pre.cursors[cpu].get_read_lock_path();
++    assert(post.cursors== pre.cursors.insert(cpu, CursorState::ReadLocking(path.push(nid))));
+     assert(post.rc_cursors_relation()) by {
+-        assert forall |nid: NodeId| #[trigger] post.reader_counts.contains_key(nid) implies
+-        post.reader_counts[nid] == value_filter(
++        assert forall |id: NodeId| #[trigger] post.reader_counts.contains_key(id) implies
++        post.reader_counts[id] == value_filter(
+             post.cursors,
+-            |cursor: CursorState| cursor.hold_read_lock(nid),
++            |cursor: CursorState| cursor.hold_read_lock(id),
+         ).len() by {
+-                admit();
+-        }
+-    }
++                let f = |cursor: CursorState| cursor.hold_read_lock(id);
++                lemma_wf_tree_path_push_inversion(path, nid);
++                if id!=nid {
++                    assert(post.cursors[cpu].hold_read_lock(id) == pre.cursors[cpu].hold_read_lock(id)) by {
++                        lemma_push_contains_different(path, nid, id);
++                    }
++                    lemma_insert_value_filter_same_len(
++                        pre.cursors, f, cpu, CursorState::ReadLocking(path.push(nid))
++                    );
++                    }
++                else{
++                    assert(!pre.cursors[cpu].hold_read_lock(nid));
++                    assert(post.cursors[cpu].hold_read_lock(nid)) by {
++                        lemma_push_contains_same(path, nid);
++                    }
++                    lemma_insert_value_filter_different_len(
++                        pre.cursors, f, cpu, CursorState::ReadLocking(path.push(nid))
++                    );
++                }
++        };
++
++    };
+  }
+ 
+ #[inductive(read_unlock)]
+-fn read_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
++fn read_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
++    let path = pre.cursors[cpu].get_read_lock_path();
++    assert(post.cursors== pre.cursors.insert(cpu, CursorState::ReadLocking(path.drop_last())));
++    assert(post.inv_cursors()) by {
++        assert forall |cpu0: CpuId| #[trigger] post.cursors.contains_key(cpu0) implies
++        post.rc_positive(post.cursors[cpu0].get_read_lock_path()) by {
++            let path0 = post.cursors[cpu0].get_read_lock_path();
++            if cpu0 == cpu {
++                assert(post.cursors[cpu].get_read_lock_path() == path.drop_last());
++                admit();
++            } else {
++                assert(post.cursors[cpu0].get_read_lock_path() == pre.cursors[cpu0].get_read_lock_path());
++                admit();
++            }
++        /*assert forall |id: NodeId| #[trigger] post.cursors.contains_key(id) implies
++        post.cursors[id].inv() by {
++            assert(post.cursors[cpu].hold_read_lock(id) == pre.cursors[cpu].hold_read_lock(id)) by {
++                lemma_push_contains_different(path, nid, id);
++            }
++        }*/
++    };
++}
++    assert(post.rc_cursors_relation()) by {
++        admit();
++    }
++    /*assert(post.rc_cursors_relation()) by {
++        assert forall |id: NodeId| #[trigger] post.reader_counts.contains_key(id) implies
++        post.reader_counts[id] == value_filter(
++            post.cursors,
++            |cursor: CursorState| cursor.hold_read_lock(id),
++        ).len() by {
++                let f = |cursor: CursorState| cursor.hold_read_lock(id);
++                lemma_remove_value_filter_true(
++                    pre.cursors, f, cpu
++                );
++                lemma_insert_value_filter_same_len(
++                    pre.cursors.remove(cpu), f, cpu, CursorState::ReadLocking(path.drop_last())
++                );
++            }
++    }*/
++ }
+ 
+ #[inductive(write_lock)]
+ fn write_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+@@ -334,7 +394,30 @@ ensures
+     lemma_nat_range_finite(0, cpu_num);
+ }
+ 
+-
++proof fn lemma_rc_cursors_relation_implies_rc_positive(
++    s: Self, cpu: CpuId, path: Seq<NodeId>
++)
++requires
++    s.inv_cursors(),
++    s.rc_cursors_relation(),
++    s.cursors[cpu] is ReadLocking,
++    s.cursors[cpu].get_read_lock_path() == path,
++ensures
++    s.rc_positive(path),
++{
++    /*assert forall |i| 0 <= i < path.len() implies
++        #[trigger]s.reader_counts[path[i]] > 0 by {
++            assert(s.reader_counts.contains_key(path[i]));
++            assert(s.cursors[cpu].hold_read_lock(path[i]));
++            assert(s.reader_counts[path[i]] == value_filter(
++                s.cursors,
++                |cursor: CursorState| cursor.hold_read_lock(path[i]),
++            ).len());
++            assert(s.cursors[cpu].hold_read_lock(path[i]));
++        }
++    }*/
++    admit();
++}
+ }
+ 
+ 
+diff --git a/lock-protocol/src/test/rw_version/spec/utils.rs b/lock-protocol/src/test/rw_version/spec/utils.rs
+deleted file mode 100644
+index e3ded39e42d574a32fa188dcdbca45299cdc81b5..0000000000000000000000000000000000000000
+--- a/lock-protocol/src/test/rw_version/spec/utils.rs
++++ /dev/null
+@@ -1,841 +0,0 @@
+-use builtin::*;
+-use builtin_macros::*;
+-use vstd::prelude::*;
+-use vstd::arithmetic::power::*;
+-use vstd::arithmetic::div_mod::*;
+-use vstd::arithmetic::mul::*;
+-
+-use super::common::*;
+-
+-verus! {
+-
+-pub struct NodeHelper;
+-
+-impl NodeHelper {
+-    pub open spec fn level_to_dep(level: nat) -> nat
+-        recommends
+-            1 <= level <= 4,
+-    {
+-        (4 - level) as nat
+-    }
+-
+-    pub open spec fn dep_to_level(dep: nat) -> nat
+-        recommends
+-            0 <= dep < 4,
+-    {
+-        (4 - dep) as nat
+-    }
+-
+-    pub proof fn lemma_level_to_dep(level: nat)
+-        requires
+-            1 <= level <= 4,
+-        ensures
+-            Self::dep_to_level(Self::level_to_dep(level)) == level,
+-    {
+-    }
+-
+-    pub proof fn lemma_dep_to_level(dep: nat)
+-        requires
+-            0 <= dep < 4,
+-        ensures
+-            Self::level_to_dep(Self::dep_to_level(dep)) == dep,
+-    {
+-    }
+-
+-    pub open spec fn size_at_dep(dep: nat) -> nat
+-        recommends
+-            0 <= dep < 4,
+-    {
+-        pow(512, dep) as nat
+-    }
+-
+-    pub proof fn lemma_size_at_dep()
+-        ensures
+-            Self::size_at_dep(0) == 1,
+-            Self::size_at_dep(1) == 512,
+-            Self::size_at_dep(2) == 262144,
+-            Self::size_at_dep(3) == 134217728,
+-    {
+-    }
+-
+-    pub open spec fn tree_size_spec(max_dep: int) -> nat
+-        recommends
+-            0 <= max_dep < 4,
+-        decreases max_dep,
+-    {
+-        let cur_dep = max_dep as nat;
+-        if max_dep == 0 {
+-            Self::size_at_dep(cur_dep)
+-        } else if max_dep > 0 {
+-            Self::size_at_dep(cur_dep) + Self::tree_size_spec(max_dep - 1)
+-        } else {
+-            arbitrary()
+-        }
+-    }
+-
+-    pub proof fn lemma_tree_size_spec()
+-        ensures
+-            Self::tree_size_spec(0) == 1,
+-            Self::tree_size_spec(1) == 513,
+-            Self::tree_size_spec(2) == 262657,
+-            Self::tree_size_spec(3) == 134480385,
+-    {
+-    }
+-
+-    pub open spec fn tree_size_weighted_spec(k: int) -> nat
+-        recommends
+-            1 <= k < 4,
+-    {
+-        511 * Self::tree_size_spec(k) + 1
+-    }
+-
+-    pub open spec fn tree_size_weighted_sum_spec(k: int) -> nat
+-        recommends
+-            0 <= k < 4,
+-        decreases k,
+-    {
+-        if k <= 0 {
+-            0
+-        } else {
+-            Self::tree_size_weighted_spec(k - 1) + Self::tree_size_weighted_sum_spec(k - 1)
+-        }
+-    }
+-
+-    pub open spec fn tree_size_relation_spec(k: int) -> bool {
+-        Self::tree_size_weighted_sum_spec(k) + 1 == Self::tree_size_spec(k)
+-    }
+-
+-    pub proof fn lemma_tree_size_relation()
+-        ensures
+-            Self::tree_size_relation_spec(0),
+-            Self::tree_size_relation_spec(1),
+-            Self::tree_size_relation_spec(2),
+-            Self::tree_size_relation_spec(3),
+-    {
+-        Self::lemma_tree_size_spec();
+-    }
+-
+-    pub open spec fn total_size() -> nat {
+-        Self::tree_size_spec(3)
+-    }
+-
+-    pub open spec fn valid_nid(nid: NodeId) -> bool {
+-        0 <= nid < Self::total_size()
+-    }
+-
+-    pub open spec fn root_id() -> NodeId {
+-        0
+-    }
+-
+-    pub proof fn lemma_root_id()
+-        ensures
+-            Self::valid_nid(Self::root_id()),
+-    {
+-        Self::lemma_tree_size_spec();
+-    }
+-
+-    pub open spec fn nid_to_trace_rec(nid: NodeId, cur_level: nat, cur_rt: NodeId) -> Seq<nat>
+-        decreases cur_level,
+-    {
+-        if cur_level == 0 {
+-            Seq::empty()
+-        } else {
+-            let sz = Self::tree_size_spec(cur_level - 1);
+-            let offset = ((nid - cur_rt - 1) / sz as int) as nat;
+-            let new_rt = cur_rt + offset * sz + 1;
+-            if new_rt == nid {
+-                seq![offset]
+-            } else {
+-                seq![offset].add(Self::nid_to_trace_rec(nid, (cur_level - 1) as nat, new_rt))
+-            }
+-        }
+-    }
+-
+-    pub open spec fn nid_to_trace(nid: NodeId) -> Seq<nat>
+-        recommends
+-            Self::valid_nid(nid),
+-    {
+-        if nid == Self::root_id() {
+-            Seq::empty()
+-        } else {
+-            Self::nid_to_trace_rec(nid, 3, Self::root_id())
+-        }
+-    }
+-
+-    pub open spec fn valid_trace(trace: Seq<nat>) -> bool {
+-        &&& 0 <= trace.len() < 4
+-        &&& forall|i| #![trigger trace[i]] 0 <= i < trace.len() ==> 0 <= trace[i] < 512
+-    }
+-
+-    pub open spec fn trace_to_nid(trace: Seq<nat>, cur_rt: NodeId, cur_level: int) -> NodeId
+-        recommends
+-            Self::valid_trace(trace),
+-            Self::valid_nid(cur_rt),
+-            0 <= cur_level <= 3,
+-    {
+-        trace.fold_left_alt(
+-            (cur_rt, cur_level as int),
+-            |param: (NodeId, int), offset: nat|
+-                {
+-                    let nid = param.0;
+-                    let cur_level = param.1;
+-                    let sz = Self::tree_size_spec(cur_level - 1);
+-                    (nid + offset * sz + 1, cur_level - 1)
+-                },
+-        ).0
+-    }
+-
+-    pub proof fn lemma_trace_to_nid_inductive(trace: Seq<nat>, cur_rt: NodeId, cur_level: int)
+-        requires
+-            Self::valid_trace(trace),
+-            Self::valid_nid(cur_rt),
+-            0 <= cur_level <= 3,
+-        ensures
+-            if trace.len() > 0 {
+-                Self::trace_to_nid(trace, cur_rt, cur_level) == Self::trace_to_nid(
+-                    trace.subrange(1, trace.len() as int),
+-                    cur_rt + trace[0] * Self::tree_size_spec(cur_level - 1) + 1,
+-                    cur_level - 1,
+-                )
+-            } else {
+-                true
+-            },
+-    {
+-    }
+-
+-    pub open spec fn trace_to_nid_upperbound_spec(max_dep: nat) -> nat
+-        decreases max_dep,
+-    {
+-        let cur_dep = max_dep;
+-        let level = Self::dep_to_level(max_dep);
+-        if cur_dep == 0 {
+-            0
+-        } else {
+-            Self::tree_size_weighted_spec(level - 1) + Self::trace_to_nid_upperbound_spec(
+-                (max_dep - 1) as nat,
+-            )
+-        }
+-    }
+-
+-    pub proof fn lemma_trace_to_nid_upperbound_spec(max_dep: nat)
+-        requires
+-            0 <= max_dep < 4,
+-        ensures
+-            Self::trace_to_nid_upperbound_spec(max_dep) == Self::tree_size_spec(3)
+-                - Self::tree_size_spec(3 - max_dep),
+-        decreases max_dep,
+-    {
+-        Self::lemma_tree_size_relation();
+-        if max_dep > 0 {
+-            Self::lemma_trace_to_nid_upperbound_spec((max_dep - 1) as nat);
+-            assert(Self::trace_to_nid_upperbound_spec(max_dep)
+-                == Self::trace_to_nid_upperbound_spec((max_dep - 1) as nat)
+-                + Self::tree_size_weighted_spec(3 - max_dep));
+-        }
+-    }
+-
+-    pub proof fn lemma_trace_to_nid_inner(trace: Seq<nat>)
+-        requires
+-            Self::valid_trace(trace),
+-        ensures
+-            trace.fold_left_alt(
+-                (0, 3),
+-                |param: (NodeId, int), offset: nat|
+-                    {
+-                        let nid = param.0;
+-                        let cur_level = param.1;
+-                        let sz = Self::tree_size_spec(cur_level - 1);
+-                        (nid + offset * sz + 1, cur_level - 1)
+-                    },
+-            ).0 <= Self::trace_to_nid_upperbound_spec(trace.len()),
+-            trace.fold_left_alt(
+-                (0, 3),
+-                |param: (NodeId, int), offset: nat|
+-                    {
+-                        let nid = param.0;
+-                        let cur_level = param.1;
+-                        let sz = Self::tree_size_spec(cur_level - 1);
+-                        (nid + offset * sz + 1, cur_level - 1)
+-                    },
+-            ).1 == 3 - trace.len(),
+-        decreases trace.len(),
+-    {
+-        let func = |param: (NodeId, int), offset: nat|
+-            {
+-                let nid = param.0;
+-                let cur_level = param.1;
+-                let sz = Self::tree_size_spec(cur_level - 1);
+-                (nid + offset * sz + 1, cur_level - 1)
+-            };
+-
+-        if trace.len() != 0 {
+-            let new_trace = trace.drop_last();
+-            assert(new_trace.len() + 1 == trace.len());
+-            Self::lemma_trace_to_nid_inner(new_trace);
+-            lemma_mul_inequality(
+-                trace.last() as int,
+-                511,
+-                Self::tree_size_spec(3 - trace.len()) as int,
+-            );
+-            trace.lemma_fold_left_alt((0, 3), func);
+-            new_trace.lemma_fold_left_alt((0, 3), func);
+-        }
+-    }
+-
+-    pub open spec fn trace_to_nid_increment_spec(trace: Seq<nat>, offset: nat) -> bool {
+-        let nid1 = Self::trace_to_nid_from_root(trace);
+-        let nid2 = Self::trace_to_nid_from_root(trace.push(offset));
+-        let level = 3 - trace.len();
+-        let sz = Self::tree_size_spec(level - 1);
+-        nid2 == nid1 + offset * sz + 1
+-    }
+-
+-    pub proof fn lemma_trace_to_nid_increment(trace: Seq<nat>, offset: nat)
+-        requires
+-            0 <= offset < 512,
+-            Self::valid_trace(trace.push(offset)),
+-        ensures
+-            Self::trace_to_nid_increment_spec(trace, offset),
+-    {
+-        assert(Self::valid_trace(trace)) by {
+-            assert(trace.is_prefix_of(trace.push(offset)));
+-        };
+-
+-        let func = |param: (NodeId, int), offset: nat|
+-            {
+-                let nid = param.0;
+-                let cur_level = param.1;
+-                let sz = Self::tree_size_spec(cur_level - 1);
+-                (nid + offset * sz + 1, cur_level - 1)
+-            };
+-
+-        assert(trace.push(offset).drop_last() =~= trace);
+-        assert(func(trace.fold_left_alt((0, 3), func), offset) == trace.push(offset).fold_left_alt(
+-            (0, 3),
+-            func,
+-        )) by {
+-            trace.lemma_fold_left_alt((0, 3), func);
+-            trace.push(offset).lemma_fold_left_alt((0, 3), func);
+-        };
+-        assert(trace.fold_left_alt((0, 3), func).1 == 3 - trace.len()) by {
+-            Self::lemma_trace_to_nid_inner(trace);
+-        };
+-    }
+-
+-    pub proof fn lemma_trace_to_nid_split(
+-        trace1: Seq<nat>,
+-        trace2: Seq<nat>,
+-        cur_rt: NodeId,
+-        cur_level: int,
+-    ) -> (nid: NodeId)
+-        requires
+-            Self::valid_trace(trace1.add(trace2)),
+-            cur_rt == Self::trace_to_nid_from_root(trace1),
+-            cur_level == Self::level_to_dep(trace1.len()) - 1,
+-        ensures
+-            nid == Self::trace_to_nid(trace2, cur_rt, cur_level),
+-            nid == Self::trace_to_nid_from_root(trace1.add(trace2)),
+-        decreases trace2.len(),
+-    {
+-        if trace2.len() == 0 {
+-            assert(trace1.add(trace2) =~= trace1);
+-
+-            cur_rt
+-        } else {
+-            let new_trace1 = trace1.push(trace2[0]);
+-            let new_trace2 = trace2.subrange(1, trace2.len() as int);
+-            assert(new_trace1.add(new_trace2) =~= trace1.add(trace2));
+-            let new_rt = cur_rt + trace2[0] * Self::tree_size_spec(cur_level - 1) + 1;
+-            assert(new_rt == Self::trace_to_nid_from_root(new_trace1)) by {
+-                assert(trace1.is_prefix_of(trace1.add(trace2)));
+-                assert(trace2.is_suffix_of(trace1.add(trace2)));
+-                Self::lemma_trace_to_nid_increment(trace1, trace2[0]);
+-            };
+-            Self::lemma_trace_to_nid_split(new_trace1, new_trace2, new_rt, cur_level - 1)
+-        }
+-    }
+-
+-    pub open spec fn trace_to_nid_from_root(trace: Seq<nat>) -> NodeId
+-        recommends
+-            Self::valid_trace(trace),
+-    {
+-        Self::trace_to_nid(trace, 0, 3)
+-    }
+-
+-    pub proof fn lemma_nid_to_trace_rec(nid: NodeId, cur_level: nat, cur_rt: NodeId) -> (trace: Seq<
+-        nat,
+-    >)
+-        requires
+-            Self::valid_nid(nid),
+-            Self::valid_nid(cur_rt),
+-            0 <= cur_level <= 3,
+-            cur_rt < nid < cur_rt + Self::tree_size_spec(cur_level as int),
+-        ensures
+-            trace =~= Self::nid_to_trace_rec(nid, cur_level, cur_rt),
+-            trace.len() <= cur_level,
+-            Self::valid_trace(trace),
+-            nid == Self::trace_to_nid(trace, cur_rt, cur_level as int),
+-        decreases cur_level,
+-    {
+-        if cur_level == 0 {
+-            Seq::empty()
+-        } else {
+-            assert(1 <= cur_level <= 3);
+-            assert(Self::tree_size_spec(cur_level - 1) * 512 + 1 == Self::tree_size_spec(
+-                cur_level as int,
+-            )) by { Self::lemma_tree_size_spec() };
+-
+-            let sz = Self::tree_size_spec(cur_level - 1);
+-            let offset = ((nid - cur_rt - 1) / sz as int) as nat;
+-            assert(0 <= offset < 512) by {
+-                assert(cur_rt < nid < cur_rt + Self::tree_size_spec(cur_level as int));
+-                assert(0 <= nid - cur_rt - 1 < Self::tree_size_spec(cur_level as int) - 1);
+-                assert(nid - cur_rt - 1 < sz * 512);
+-                assert(offset * sz <= nid - cur_rt - 1) by { admit() };
+-                assert(offset < 512) by {
+-                    lemma_div_by_multiple_is_strongly_ordered(
+-                        offset * sz as int,
+-                        512 * sz as int,
+-                        512,
+-                        sz as int,
+-                    );
+-                    lemma_div_multiples_vanish(offset as int, sz as int);
+-                    lemma_div_multiples_vanish(512, sz as int);
+-                };
+-            };
+-
+-            let new_rt = cur_rt + offset * sz + 1;
+-            assert(new_rt <= nid) by {
+-                assert(offset * sz <= nid - cur_rt - 1) by { admit() };
+-            };
+-            assert(nid < new_rt + sz) by {
+-                assert(nid - cur_rt - 1 < offset * sz + sz) by { admit() };
+-            };
+-
+-            if new_rt == nid {
+-                let trace = seq![offset];
+-                assert(Self::trace_to_nid(trace, cur_rt, cur_level as int) == nid) by {
+-                    Self::lemma_trace_to_nid_inductive(trace, cur_rt, cur_level as int);
+-                };
+-                trace
+-            } else {
+-                let _trace = Self::lemma_nid_to_trace_rec(nid, (cur_level - 1) as nat, new_rt);
+-                let trace = seq![offset].add(_trace);
+-                assert(Self::trace_to_nid(_trace, new_rt, cur_level - 1) == nid);
+-                assert(new_rt == cur_rt + offset * sz + 1);
+-                assert(Self::trace_to_nid(trace, cur_rt, cur_level as int) == nid) by {
+-                    Self::lemma_trace_to_nid_inductive(trace, cur_rt, cur_level as int);
+-                    assert(_trace =~= trace.subrange(1, trace.len() as int));
+-                };
+-                trace
+-            }
+-        }
+-    }
+-
+-    pub proof fn lemma_nid_to_trace(nid: NodeId) -> (trace: Seq<nat>)
+-        requires
+-            Self::valid_nid(nid),
+-        ensures
+-            trace =~= Self::nid_to_trace(nid),
+-            Self::valid_trace(trace),
+-            Self::trace_to_nid_from_root(trace) == nid,
+-    {
+-        if nid != Self::root_id() {
+-            Self::lemma_nid_to_trace_rec(nid, 3, 0)
+-        } else {
+-            Seq::empty()
+-        }
+-    }
+-
+-    #[verifier::spinoff_prover]
+-    pub proof fn lemma_trace_to_nid_rec(trace: Seq<nat>, cur_rt: NodeId, cur_level: int) -> (nid:
+-        NodeId)
+-        requires
+-            Self::valid_trace(trace),
+-            Self::valid_nid(cur_rt),
+-            cur_rt + Self::tree_size_spec(cur_level) <= Self::total_size(),
+-            0 <= cur_level <= 3,
+-            trace.len() <= cur_level,
+-        ensures
+-            nid == Self::trace_to_nid(trace, cur_rt, cur_level),
+-            cur_rt <= nid < cur_rt + Self::tree_size_spec(cur_level),
+-            nid == cur_rt <==> trace.len() == 0,
+-            trace.len() != 0 ==> trace =~= Self::nid_to_trace_rec(nid, cur_level as nat, cur_rt),
+-        decreases trace.len(),
+-    {
+-        if trace.len() == 0 {
+-            assert(Self::tree_size_spec(cur_level) > 0) by { Self::lemma_tree_size_spec() };
+-
+-            cur_rt
+-        } else {
+-            let new_trace = trace.subrange(1, trace.len() as int);
+-            assert(new_trace.len() == trace.len() - 1) by { admit() };
+-
+-            let new_rt = cur_rt + trace[0] * Self::tree_size_spec(cur_level - 1) + 1;
+-            assert({
+-                &&& Self::valid_nid(new_rt)
+-                &&& new_rt + Self::tree_size_spec(cur_level - 1) <= Self::total_size()
+-            }) by {
+-                assert(Self::tree_size_spec(cur_level - 1) * 512 + 1 == Self::tree_size_spec(
+-                    cur_level,
+-                )) by { Self::lemma_tree_size_spec() };
+-                assert(Self::tree_size_spec(cur_level) - 1 - trace[0] * Self::tree_size_spec(
+-                    cur_level - 1,
+-                ) == (512 - trace[0]) * Self::tree_size_spec(cur_level - 1)) by {
+-                    lemma_mul_is_distributive_sub_other_way(
+-                        Self::tree_size_spec(cur_level - 1) as int,
+-                        512,
+-                        trace[0] as int,
+-                    );
+-                };
+-                assert(512 - trace[0] >= 1);
+-                assert(new_rt + (512 - trace[0]) * Self::tree_size_spec(cur_level - 1)
+-                    <= Self::total_size());
+-                assert(Self::tree_size_spec(cur_level - 1) <= (512 - trace[0])
+-                    * Self::tree_size_spec(cur_level - 1)) by {
+-                    lemma_mul_inequality(
+-                        1,
+-                        512 - trace[0],
+-                        Self::tree_size_spec(cur_level - 1) as int,
+-                    )
+-                };
+-                assert(Self::tree_size_spec(cur_level - 1) > 0) by { Self::lemma_tree_size_spec() };
+-            };
+-
+-            let new_level = cur_level - 1;
+-
+-            let nid = Self::lemma_trace_to_nid_rec(new_trace, new_rt, new_level);
+-            assert(nid == Self::trace_to_nid(trace, cur_rt, cur_level));
+-
+-            let sz = Self::tree_size_spec(cur_level - 1);
+-            assert(new_rt <= nid < new_rt + sz);
+-            assert(cur_rt + trace[0] * sz + 1 <= nid < cur_rt + trace[0] * sz + sz + 1);
+-            assert(cur_rt <= nid < cur_rt + Self::tree_size_spec(cur_level)) by {
+-                assert(trace[0] < 512);
+-                assert(trace[0] * sz + sz <= 512 * sz) by {
+-                    lemma_mul_is_distributive_add_other_way(sz as int, trace[0] as int, 1);
+-                    lemma_mul_inequality((trace[0] + 1) as int, 512, sz as int);
+-                };
+-            };
+-
+-            let offset = ((nid - cur_rt - 1) / sz as int) as nat;
+-            assert(trace[0] == offset) by {
+-                assert(trace[0] * sz <= (nid - cur_rt - 1) < (trace[0] + 1) * sz) by {
+-                    lemma_mul_is_distributive_add_other_way(sz as int, trace[0] as int, 1);
+-                };
+-                assert(trace[0] <= offset < trace[0] + 1) by {
+-                    lemma_div_is_ordered(
+-                        (trace[0] * sz) as int,
+-                        (nid - cur_rt - 1) as int,
+-                        sz as int,
+-                    );
+-                    lemma_div_by_multiple_is_strongly_ordered(
+-                        (nid - cur_rt - 1) as int,
+-                        ((trace[0] + 1) * sz) as int,
+-                        (trace[0] + 1) as int,
+-                        sz as int,
+-                    );
+-                    lemma_div_by_multiple(trace[0] as int, sz as int);
+-                    lemma_div_by_multiple((trace[0] + 1) as int, sz as int);
+-                };
+-            }
+-            assert(trace =~= seq![offset].add(new_trace));
+-
+-            let _trace = Self::nid_to_trace_rec(nid, cur_level as nat, cur_rt);
+-            assert(_trace =~= seq![offset].add(new_trace));
+-
+-            nid
+-        }
+-    }
+-
+-    pub proof fn lemma_trace_to_nid_from_root(trace: Seq<nat>) -> (nid: NodeId)
+-        requires
+-            Self::valid_trace(trace),
+-        ensures
+-            nid == Self::trace_to_nid_from_root(trace),
+-            Self::valid_nid(nid),
+-            trace =~= Self::nid_to_trace(nid),
+-    {
+-        Self::lemma_tree_size_spec();
+-        Self::lemma_trace_to_nid_rec(trace, 0, 3)
+-    }
+-
+-    pub open spec fn nid_to_dep(nid: NodeId) -> nat
+-        recommends
+-            Self::valid_nid(nid),
+-    {
+-        Self::nid_to_trace(nid).len()
+-    }
+-
+-    pub open spec fn nid_to_level(nid: NodeId) -> nat
+-        recommends
+-            Self::valid_nid(nid),
+-    {
+-        Self::dep_to_level(Self::nid_to_dep(nid))
+-    }
+-
+-    pub proof fn lemma_level_dep_relation(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+-        ensures
+-            Self::nid_to_level(nid) == 4 - Self::nid_to_dep(nid),
+-    {
+-        admit();
+-    }
+-
+-    pub proof fn lemma_valid_level_to_node(nid: NodeId, level: nat)
+-        requires
+-            Self::valid_nid(nid),
+-            level == Self::dep_to_level(Self::nid_to_dep(nid)),
+-        ensures
+-            nid + Self::tree_size_spec(level - 1) <= Self::total_size(),
+-    {
+-        let trace = Self::lemma_nid_to_trace(nid);
+-        assert(nid == Self::trace_to_nid_from_root(trace)) by {
+-            Self::lemma_nid_to_trace(nid);
+-        };
+-        assert(nid <= Self::trace_to_nid_upperbound_spec(trace.len())) by {
+-            Self::lemma_trace_to_nid_inner(trace);
+-        };
+-        assert(Self::trace_to_nid_upperbound_spec(trace.len()) == Self::tree_size_spec(3)
+-            - Self::tree_size_spec(3 - trace.len())) by {
+-            Self::lemma_trace_to_nid_upperbound_spec(trace.len())
+-        };
+-    }
+-
+-    pub open spec fn sub_tree_size(nid: NodeId) -> nat
+-        recommends
+-            Self::valid_nid(nid),
+-    {
+-        let dep = Self::nid_to_dep(nid);
+-        let level = Self::dep_to_level(dep);
+-        Self::tree_size_spec(level - 1)
+-    }
+-
+-    pub proof fn lemma_sub_tree_size_lowerbound(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+-        ensures
+-            Self::sub_tree_size(nid) >= 1,
+-    {
+-        Self::lemma_tree_size_spec();
+-        Self::lemma_nid_to_trace(nid);
+-    }
+-
+-    pub proof fn lemma_sub_tree_size_bounded(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+-        ensures
+-            nid + Self::sub_tree_size(nid) <= Self::total_size(),
+-    {
+-        let level = Self::dep_to_level(Self::nid_to_dep(nid));
+-        Self::lemma_valid_level_to_node(nid, level);
+-    }
+-
+-    pub open spec fn next_outside_subtree(nid: NodeId) -> NodeId
+-        recommends
+-            Self::valid_nid(nid),
+-    {
+-        nid + Self::sub_tree_size(nid)
+-    }
+-
+-    pub proof fn lemma_next_outside_subtree_bounded(nid: NodeId) -> (nxt: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+-        ensures
+-            nxt == Self::next_outside_subtree(nid),
+-            nxt <= Self::total_size(),
+-    {
+-        Self::lemma_sub_tree_size_bounded(nid);
+-        nid + Self::sub_tree_size(nid)
+-    }
+-
+-    pub open spec fn in_subtree(rt: NodeId, nd: NodeId) -> bool
+-        recommends
+-            Self::valid_nid(rt),
+-            Self::valid_nid(nd),
+-    {
+-        let sz = Self::sub_tree_size(rt);
+-        rt <= nd < rt + sz
+-    }
+-
+-    pub proof fn lemma_in_subtree_0(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+-        ensures
+-            Self::in_subtree(nid, nid),
+-    {
+-        Self::lemma_sub_tree_size_lowerbound(nid);
+-    }
+-
+-    pub proof fn lemma_in_subtree(rt: NodeId, nd: NodeId)
+-        requires
+-            Self::valid_nid(rt),
+-            Self::valid_nid(nd),
+-            Self::in_subtree(rt, nd),
+-        ensures
+-            rt <= nd < Self::next_outside_subtree(rt),
+-    {
+-    }
+-
+-    pub proof fn lemma_in_subtree_bounded_is_child(pa: NodeId, ch: NodeId)
+-        requires
+-            Self::valid_nid(pa),
+-            Self::valid_nid(ch),
+-            Self::is_child(pa, ch),
+-        ensures
+-            Self::next_outside_subtree(ch) <= Self::next_outside_subtree(pa),
+-    {
+-        admit()
+-    }
+-
+-    pub proof fn lemma_in_subtree_bounded(rt: NodeId, nd: NodeId)
+-        requires
+-            Self::valid_nid(rt),
+-            Self::valid_nid(nd),
+-            Self::in_subtree(rt, nd),
+-        ensures
+-            Self::next_outside_subtree(nd) <= Self::next_outside_subtree(rt),
+-        decreases Self::nid_to_dep(nd) - Self::nid_to_dep(rt),
+-    {
+-        // if rt != nd {
+-        //     let pa = Self::get_parent(nd);
+-        //     assert(Self::nid_to_dep(pa) + 1 == Self::nid_to_dep(nd));
+-        //     Self::lemma_in_subtree_bounded(rt, pa);
+-        //     Self::lemma_in_subtree_bounded_is_child(pa, nd);
+-        // }
+-        admit();
+-    }
+-
+-    pub open spec fn is_child(pa: NodeId, ch: NodeId) -> bool
+-        recommends
+-            Self::valid_nid(pa),
+-            Self::valid_nid(ch),
+-    {
+-        &&& Self::in_subtree(pa, ch)
+-        &&& Self::nid_to_dep(pa) + 1 == Self::nid_to_dep(ch)
+-    }
+-
+-    pub open spec fn get_parent(nid: NodeId) -> NodeId
+-        recommends
+-            Self::valid_nid(nid),
+-            nid != Self::root_id(),
+-    {
+-        if nid == Self::root_id() {
+-            arbitrary()
+-        } else {
+-            let trace = Self::nid_to_trace(nid);
+-            Self::trace_to_nid_from_root(trace.drop_last())
+-        }
+-    }
+-
+-    pub proof fn lemma_parent_child(nid: NodeId)
+-        requires
+-            Self::valid_nid(nid),
+-            nid != Self::root_id(),
+-        ensures
+-            Self::is_child(Self::get_parent(nid), nid),
+-    {
+-        let trace = Self::nid_to_trace(nid);
+-        assert(Self::valid_trace(trace)) by {
+-            Self::lemma_nid_to_trace(nid);
+-        };
+-        let pa = Self::get_parent(nid);
+-        assert(pa == Self::trace_to_nid_from_root(trace.drop_last()));
+-        let pa_trace = Self::nid_to_trace(pa);
+-        assert(pa_trace =~= trace.drop_last()) by {
+-            Self::lemma_trace_to_nid_from_root(trace.drop_last());
+-        };
+-        assert(pa_trace.len() + 1 == trace.len());
+-        assert(Self::nid_to_dep(pa) + 1 == Self::nid_to_dep(nid));
+-
+-        let pa_level = Self::dep_to_level(pa_trace.len());
+-        let _nid = Self::lemma_trace_to_nid_split(pa_trace, seq![trace.last()], pa, pa_level - 1);
+-        assert(_nid == nid) by {
+-            assert(pa_trace.add(seq![trace.last()]) =~= trace);
+-            assert(_nid == Self::trace_to_nid_from_root(trace));
+-            Self::lemma_nid_to_trace(nid);
+-        };
+-        assert(Self::valid_nid(pa)) by {
+-            Self::lemma_trace_to_nid_from_root(trace.drop_last());
+-        };
+-        assert(pa + Self::tree_size_spec(pa_level - 1) <= Self::total_size()) by {
+-            Self::lemma_valid_level_to_node(pa, pa_level)
+-        };
+-        Self::lemma_trace_to_nid_rec(seq![trace.last()], pa, pa_level - 1);
+-    }
+-
+-    pub open spec fn get_offset(nid: NodeId) -> nat
+-        recommends
+-            Self::valid_nid(nid),
+-            nid != Self::root_id(),
+-    {
+-        if nid == Self::root_id() {
+-            arbitrary()
+-        } else {
+-            let trace = Self::nid_to_trace(nid);
+-            trace.last()
+-        }
+-    }
+-
+-    pub proof fn lemma_get_offset(nid: NodeId) -> (offset: nat)
+-        requires
+-            Self::valid_nid(nid),
+-            nid != Self::root_id(),
+-        ensures
+-            offset == Self::get_offset(nid),
+-            valid_pte_offset(offset),
+-    {
+-        let trace = Self::lemma_nid_to_trace(nid);
+-        trace.last()
+-    }
+-
+-    pub open spec fn get_child(nid: NodeId, offset: nat) -> NodeId
+-        recommends
+-            Self::valid_nid(nid),
+-            Self::nid_to_dep(nid) < 3,
+-            valid_pte_offset(offset),
+-    {
+-        let level = Self::dep_to_level(Self::nid_to_dep(nid));
+-        let sz = Self::tree_size_spec(level - 2);
+-        nid + offset * sz + 1
+-    }
+-
+-    pub proof fn lemma_get_child(nid: NodeId, offset: nat)
+-        requires
+-            Self::valid_nid(nid),
+-            Self::nid_to_dep(nid) < 3,
+-            valid_pte_offset(offset),
+-        ensures
+-            Self::valid_nid(Self::get_child(nid, offset)),
+-            nid == Self::get_parent(Self::get_child(nid, offset)),
+-            offset == Self::get_offset(Self::get_child(nid, offset)),
+-    {
+-        admit();
+-    }
+-
+-    pub open spec fn is_not_leaf(nid: NodeId) -> bool
+-        recommends
+-            Self::valid_nid(nid),
+-    {
+-        Self::nid_to_dep(nid) < 3
+-    }
+-
+-    pub open spec fn trace_to_tree_path(trace: Seq<nat>) -> Seq<NodeId>
+-        recommends
+-            Self::valid_trace(trace),
+-        decreases trace.len(),
+-    {
+-        if trace.len() == 0 {
+-            seq![Self::root_id()]
+-        } else {
+-            let path = Self::trace_to_tree_path(trace.drop_last());
+-            let offset = trace.last();
+-            let sz = Self::tree_size_spec(3 - trace.len());
+-            let nid = path.last();
+-            path.push(nid + offset * sz + 1)
+-        }
+-    }
+-}
+-
+-} // verus!
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index a27d6287b675b31aa594eda54a61af49f9a8f07c..da75131613bb5a648bb2ac56fcd8ea01981bc487 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -1,11 +1,60 @@
+ use vstd::prelude::*;
++use vstd::{set::*, map::*};
+ 
+ verus! {
+ 
++pub proof fn lemma_map_insert_len<K, V>(m: Map<K, V>, k: K, v: V)
++    requires
++        m.dom().finite(),
++    ensures
++        #[trigger] m.insert(k, v).len() == m.len() + (if m.contains_key(k) {
++            0int
++        } else {
++            1
++        }),
++{
++    axiom_map_insert_domain(m, k, v)
++}
++
++pub proof fn lemma_map_remove_len<K, V>(m: Map<K, V>, k: K)
++    requires
++        m.dom().finite(),
++    ensures
++        m.len() == #[trigger] m.remove(k).len() + (if m.contains_key(k) {
++            1
++        } else {
++            0int
++        }),
++{
++    axiom_map_remove_domain(m, k)
++}
++
+ pub open spec fn value_filter<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool) -> Map<K, V> {
+     m.restrict(m.dom().filter(|s| f(m[s])))
+ }
+ 
++pub proof fn lemma_value_filter_finite<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
++    requires
++        m.dom().finite(),
++    ensures
++        value_filter(m, f).dom().finite(),
++{
++    assert(value_filter(m, f).dom() =~= m.dom().filter(|s| f(m[s])));
++    m.dom().lemma_len_filter(|s| f(m[s]));
++}
++
++pub proof fn lemma_value_filter_contains<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
++    requires
++        m.contains_key(k),
++    ensures
++        if f(m[k]) {
++            value_filter(m, f).contains_key(k)
++        } else {
++            !value_filter(m, f).contains_key(k)
++        },
++{
++}
++
+ pub proof fn lemma_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
+     requires
+         forall|k: K| m.contains_key(k) ==> !#[trigger] f(m[k]),
+@@ -16,7 +65,6 @@ pub proof fn lemma_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
+ 
+ pub proof fn lemma_remove_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
+     requires
+-        m.contains_key(k),
+         f(m[k]),
+     ensures
+         value_filter(m.remove(k), f) =~= value_filter(m, f).remove(k),
+@@ -25,7 +73,6 @@ pub proof fn lemma_remove_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) ->
+ 
+ pub proof fn lemma_remove_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
+     requires
+-        m.contains_key(k),
+         !f(m[k]),
+     ensures
+         value_filter(m.remove(k), f) =~= value_filter(m, f),
+@@ -34,7 +81,6 @@ pub proof fn lemma_remove_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -
+ 
+ pub proof fn lemma_insert_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K, v: V)
+     requires
+-        !m.contains_key(k),
+         f(v),
+     ensures
+         value_filter(m.insert(k, v), f) =~= value_filter(m, f).insert(k, v),
+@@ -43,11 +89,65 @@ pub proof fn lemma_insert_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) ->
+ 
+ pub proof fn lemma_insert_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K, v: V)
+     requires
+-        !m.contains_key(k),
+         !f(v),
+     ensures
+-        value_filter(m.insert(k, v), f) =~= value_filter(m, f),
++        value_filter(m.insert(k, v), f) =~= if m.contains_key(k) {
++            value_filter(m, f).remove(k)
++        } else {
++            value_filter(m, f)
++        },
++{
++}
++
++pub proof fn lemma_insert_value_filter_same_len<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++    v: V,
++)
++    requires
++        m.dom().finite(),
++        m.contains_key(k),
++        f(m[k]) == f(v),
++    ensures
++        value_filter(m.insert(k, v), f).len() == value_filter(m, f).len(),
++{
++    lemma_value_filter_finite(m, f);
++    if f(v) {
++        lemma_insert_value_filter_true(m, f, k, v);
++        lemma_map_insert_len(value_filter(m, f), k, v);
++    } else {
++        lemma_insert_value_filter_false(m, f, k, v);
++        lemma_map_remove_len(value_filter(m, f), k);
++    }
++}
++
++pub proof fn lemma_insert_value_filter_different_len<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++    v: V,
++)
++    requires
++        m.dom().finite(),
++        m.contains_key(k),
++        f(m[k]) != f(v),
++    ensures
++        value_filter(m.insert(k, v), f).len() == value_filter(m, f).len() + if f(v) {
++            1
++        } else {
++            -1
++        },
+ {
++    lemma_value_filter_finite(m, f);
++    if (f(v)) {
++        lemma_insert_value_filter_true(m, f, k, v);
++        lemma_map_insert_len(m, k, v);
++    } else {
++        lemma_insert_value_filter_false(m, f, k, v);
++        assert(value_filter(m.insert(k, v), f).len() == value_filter(m, f).remove(k).len());
++        lemma_map_remove_len(value_filter(m, f), k);
++    }
+ }
+ 
+ } // verus!
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index e6aa5b6937563d657020351191141df75790b6d6..82b5b7df09684f86d4cd0cb4797e5c5bf1c68215 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -82,3 +82,26 @@ pub broadcast group group_seq_extra_lemmas {
+ }
+ 
+ } // verus!
++verus! {
++
++pub proof fn lemma_push_contains_same<T>(s: Seq<T>, needle: T)
++    ensures
++        #[trigger] s.push(needle).contains(needle),
++{
++    assert(s.push(needle).last() == needle);
++}
++
++pub proof fn lemma_push_contains_different<T>(s: Seq<T>, new_elem: T, needle: T)
++    requires
++        new_elem != needle,
++    ensures
++        #[trigger] s.push(new_elem).contains(needle) == s.contains(needle),
++{
++    if (s.contains(needle)) {
++        let i = choose|i: int| 0 <= i < s.len() && s[i] == needle;
++        axiom_seq_push_index_different(s, needle, i);
++        assert(0 <= i < s.push(new_elem).len() && s.push(new_elem)[i] == needle);
++    }
++}
++
++} // verus!

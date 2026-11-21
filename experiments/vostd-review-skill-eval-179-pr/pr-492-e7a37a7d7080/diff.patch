@@ -1,0 +1,129 @@
+diff --git a/ostd/src/mm/frame/linked_list.rs b/ostd/src/mm/frame/linked_list.rs
+index d3ab9db6d61660106c19b9bb39579174e7a8225c..41e8a8f5a0598b4b08f281021c4b70fc3a0ec3fa 100644
+--- a/ostd/src/mm/frame/linked_list.rs
++++ b/ostd/src/mm/frame/linked_list.rs
+@@ -958,7 +958,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<'a, M> {
+         proof {
+             assert(regions.slots.dom() =~= regions0.slots.dom());
+             assert(regions.slot_owners[idx].raw_count == regions0.slot_owners[idx].raw_count - 1);
+-            assert forall|j: usize| j != idx implies {
++            assert forall|j: usize| #![trigger regions.slot_owners[j]] j != idx implies {
+                 &&& regions.slot_owners[j].raw_count == regions0.slot_owners[j].raw_count
+                 &&& regions.slot_owners[j].usage == regions0.slot_owners[j].usage
+                 &&& regions.slot_owners[j].self_addr == regions0.slot_owners[j].self_addr
+@@ -996,7 +996,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<'a, M> {
+                 assert(regions.slot_owners[idx].raw_count == regions0.slot_owners[idx].raw_count
+                     - 1);
+                 assert(regions.slots.dom() =~= regions0.slots.dom());
+-                assert forall|j: usize| j != idx implies {
++                assert forall|j: usize| #![trigger regions.slot_owners[j]] j != idx implies {
+                     &&& regions.slot_owners[j].raw_count == regions0.slot_owners[j].raw_count
+                     &&& regions.slot_owners[j].usage == regions0.slot_owners[j].usage
+                     &&& regions.slot_owners[j].self_addr == regions0.slot_owners[j].self_addr
+@@ -1014,7 +1014,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<'a, M> {
+                 assert(regions.slot_owners[idx].raw_count == regions0.slot_owners[idx].raw_count
+                     - 1);
+                 assert(regions.slots.dom() =~= regions0.slots.dom());
+-                assert forall|j: usize| j != idx implies {
++                assert forall|j: usize| #![trigger regions.slot_owners[j]] j != idx implies {
+                     &&& regions.slot_owners[j].raw_count == regions0.slot_owners[j].raw_count
+                     &&& regions.slot_owners[j].usage == regions0.slot_owners[j].usage
+                     &&& regions.slot_owners[j].self_addr == regions0.slot_owners[j].self_addr
+@@ -1046,7 +1046,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<'a, M> {
+                 assert(regions.slot_owners[idx].raw_count == regions0.slot_owners[idx].raw_count
+                     - 1);
+                 assert(regions.slots.dom() =~= regions0.slots.dom());
+-                assert forall|j: usize| j != idx implies {
++                assert forall|j: usize| #![trigger regions.slot_owners[j]] j != idx implies {
+                     &&& regions.slot_owners[j].raw_count == regions0.slot_owners[j].raw_count
+                     &&& regions.slot_owners[j].usage == regions0.slot_owners[j].usage
+                     &&& regions.slot_owners[j].self_addr == regions0.slot_owners[j].self_addr
+@@ -1066,7 +1066,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<'a, M> {
+                 assert(regions.slot_owners[idx].raw_count == regions0.slot_owners[idx].raw_count
+                     - 1);
+                 assert(regions.slots.dom() =~= regions0.slots.dom());
+-                assert forall|j: usize| j != idx implies {
++                assert forall|j: usize| #![trigger regions.slot_owners[j]] j != idx implies {
+                     &&& regions.slot_owners[j].raw_count == regions0.slot_owners[j].raw_count
+                     &&& regions.slot_owners[j].usage == regions0.slot_owners[j].usage
+                     &&& regions.slot_owners[j].self_addr == regions0.slot_owners[j].self_addr
+@@ -1095,7 +1095,7 @@ impl<'a, M: AnyFrameMeta + Repr<MetaSlotSmall>> CursorMut<'a, M> {
+             assert(regions.slots.dom() =~= regions0.slots.dom());
+             assert(regions.slot_owners[idx].raw_count == regions0.slot_owners[idx].raw_count - 1);
+             assert(regions.slot_owners[idx].paths_in_pt == regions0.slot_owners[idx].paths_in_pt);
+-            assert forall|j: usize| j != idx implies {
++            assert forall|j: usize| #![trigger regions.slot_owners[j]] j != idx implies {
+                 &&& regions.slot_owners[j].raw_count == regions0.slot_owners[j].raw_count
+                 &&& regions.slot_owners[j].usage == regions0.slot_owners[j].usage
+                 &&& regions.slot_owners[j].self_addr == regions0.slot_owners[j].self_addr
+diff --git a/ostd/src/mm/frame/meta.rs b/ostd/src/mm/frame/meta.rs
+index 0795b106d1ffcb001d26933065a7f3b7339f9414..d7e503739a79bf377672cb8281f0a8d00b0a4f6e 100644
+--- a/ostd/src/mm/frame/meta.rs
++++ b/ostd/src/mm/frame/meta.rs
+@@ -800,7 +800,7 @@ impl MetaSlot {
+             final(vtable_perm).is_init(),
+             Metadata::<M>::metadata_from_inner_perms(*final(meta_perm)) == metadata,
+     )]
+-    pub(super) fn write_meta<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf>(
++    pub(super) unsafe fn write_meta<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf>(
+         &self,
+         metadata: M,
+     ) {
+@@ -905,7 +905,7 @@ impl MetaSlot {
+             final(slot_own).paths_in_pt == old(slot_own).paths_in_pt,
+     )]
+     #[verifier::external_body]
+-    pub(super) fn drop_meta_in_place(&self) {
++    pub(super) unsafe fn drop_meta_in_place(&self) {
+         // Smoke test for the dyn-dispatch shape — body kept `external_body`
+         // because (a) the args bundle isn't threaded through the call chain
+         // yet (Tracked::assume_new forges it here), (b) `VmReader`,
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 457b10d0c4dd85e8e2a39332ff8e01b42405ac10..bbe9e61fff6b17627c49656f309b20e2ae7fffba 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -3468,6 +3468,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+                     owner_before_replace.level);
+                 };
+                 assert forall|mm: Mapping|
++                    #![trigger owner_final@.mappings.contains(mm)]
+                     owner_final@.mappings.contains(mm) implies mm.va_range.start != sv by {
+                     if mm.va_range.start == sv {
+                         assert(owner_before_replace@.mappings.contains(mm));
+diff --git a/verified_bitflags/src/lib.rs b/verified_bitflags/src/lib.rs
+index 8309d8501e46e3d2bec048eb2d8aa6854de895bb..9aadb4b1223a846eae22df15e9a01a59fa079ac9 100644
+--- a/verified_bitflags/src/lib.rs
++++ b/verified_bitflags/src/lib.rs
+@@ -90,7 +90,7 @@ macro_rules! bitflags {
+             $vis struct $name {
+                 /// The raw bits backing this flags value.
+                 bits: $T,
+-                flags: ::vstd::prelude::Ghost<::vstd::set::Set<[< __ghost $name >]>>,
++                ghost flags: ::vstd::prelude::Ghost<::vstd::set::Set<[< __ghost $name >]>>,
+             }
+ 
+             impl ::core::clone::Clone for $name {
+@@ -105,7 +105,7 @@ macro_rules! bitflags {
+                     }
+                     Self {
+                         bits: self.bits,
+-                        flags: self.flags,
++                        flags: Ghost(Self::flags_from_bits(self.bits)),
+                     }
+                 }
+             }
+@@ -183,7 +183,13 @@ macro_rules! bitflags {
+                         Self::from_bits_unchecked(bits),
+                 {
+                     use ::vstd::prelude::Ghost;
+-                    Self { bits, flags: Ghost(Self::flags_from_bits(bits)) }
++                    Self {
++                        bits,
++                        #[cfg(all(verus_keep_ghost, not(doc)))]
++                        flags: Ghost(Self::flags_from_bits(bits)),
++                        #[cfg(any(not(verus_keep_ghost), doc))]
++                        flags: Ghost::assume_new(),
++                    }
+                 }
+ 
+                 $(

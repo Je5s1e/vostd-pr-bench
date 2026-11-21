@@ -1,0 +1,144 @@
+use vstd::prelude::*;
+use vstd_extra::{cast_ptr::*, ownership::*, prelude::*, raw_ptr::ExposedPointsTo};
+
+use crate::specs::{
+    arch::MAX_NR_PAGES,
+    mm::{
+        Paddr, Vaddr,
+        frame::{frame_specs::valid_slot_vaddr, mapping::*, meta_region_owners::MetaRegionOwners},
+    },
+};
+
+use super::meta_owners::*;
+use crate::mm::frame::{
+    meta::{
+        AnyFrameMeta, MetaSlot, REF_COUNT_MAX, REF_COUNT_UNIQUE, REF_COUNT_UNUSED,
+        mapping::{frame_to_meta, meta_to_frame},
+    },
+    unique::UniqueFrame,
+    *,
+};
+
+verus! {
+
+impl<M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+    #[verifier::inline]
+    pub open spec fn slot_vaddr(self) -> Vaddr {
+        self.ptr.addr()
+    }
+
+    #[verifier::inline]
+    pub open spec fn start_paddr_spec(self) -> Paddr {
+        meta_to_frame(self.slot_vaddr())
+    }
+
+    pub open spec fn index(self) -> int {
+        frame_to_index(self.start_paddr_spec())
+    }
+
+    /// The complete metadata permission carried by this unique handle.
+    #[verifier::inline]
+    pub open spec fn metadata_perm(self) -> MetadataPerm {
+        self.tracked_metadata_perm@->0
+    }
+
+    /// The metadata-slot permission carried by this unique handle.
+    pub open spec fn slot_perm(self) -> ExposedPointsTo<MetaSlot> {
+        *self.tracked_slot_perm@
+    }
+
+    #[verifier::inline]
+    pub open spec fn ptr_inv(self) -> bool {
+        &&& valid_slot_vaddr(self.slot_vaddr())
+        &&& self.slot_perm().ptr() == self.ptr
+        &&& self.slot_perm().is_init()
+    }
+}
+
+impl<M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage> + OwnerOf> Inv for UniqueFrame<M> {
+    open spec fn inv(self) -> bool {
+        &&& self.ptr_inv()
+        &&& self.tracked_metadata_perm@ is Some
+        &&& MetaSlot::perms_related(self.slot_perm(), self.metadata_perm())
+    }
+}
+
+//FIXME: why do we need a index here?
+pub tracked struct UniqueFrameOwner<M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage> + OwnerOf> {
+    pub meta_own: M::Owner,
+    pub ghost slot_index: int,
+}
+
+impl<M: AnyFrameMeta + ?Sized + Repr<MetaSlotStorage> + OwnerOf> Inv for UniqueFrameOwner<M> {
+    open spec fn inv(self) -> bool {
+        &&& 0 <= self.slot_index < MAX_NR_PAGES
+        &&& self.slot_index < max_meta_slots()
+    }
+}
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> OwnerOf for UniqueFrame<M> {
+    type Owner = UniqueFrameOwner<M>;
+
+    open spec fn wf(self, owner: Self::Owner) -> bool {
+        &&& self.slot_vaddr() == index_to_meta(owner.slot_index)
+    }
+}
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrame<M> {
+    pub open spec fn meta_wf(self, owner: UniqueFrameOwner<M>) -> bool {
+        typed_meta_wf::<M>(self.slot_perm(), self.metadata_perm())
+    }
+
+    pub open spec fn meta_value(self, owner: UniqueFrameOwner<M>) -> M {
+        typed_meta_value::<M>(self.metadata_perm())
+    }
+
+    /// Cross-object validity of a live UNIQUE handle against the region map —
+    /// the [`UniqueFrame`] analog of [`Frame::wf_with_region`] (which covers
+    /// the SHARED state).
+    pub open spec fn wf_with_region(self, owner: UniqueFrameOwner<M>, s: MetaRegionOwners) -> bool {
+        let idx = owner.slot_index;
+        let so = s.slot_owners[idx];
+        &&& self.wf(owner)
+        &&& s.contains(idx)
+        &&& self.tracked_slot_perm@ == s.slots[idx]
+        &&& self.meta_wf(owner)
+        &&& self.meta_value(owner).wf(owner.meta_own)
+        &&& so.metadata_perm.is_resource_vacant()
+        &&& so.ref_count() == REF_COUNT_UNIQUE
+        &&& so.usage == self.metadata_perm().usage()
+        &&& so.paths_in_pt.is_empty()
+    }
+}
+
+impl<M: AnyFrameMeta + Repr<MetaSlotStorage> + OwnerOf> UniqueFrameOwner<M> {
+    pub open spec fn meta_wf(self, regions: MetaRegionOwners) -> bool {
+        typed_meta_wf::<M>(
+            *regions.slots[self.slot_index],
+            regions.slot_owners[self.slot_index].metadata_perm.resource(),
+        )
+    }
+
+    pub open spec fn meta_value(self, regions: MetaRegionOwners) -> M {
+        typed_meta_value::<M>(regions.slot_owners[self.slot_index].metadata_perm.resource())
+    }
+
+    pub open spec fn global_inv(self, regions: MetaRegionOwners) -> bool {
+        &&& regions.contains(self.slot_index)
+        &&& self.meta_wf(regions)
+        &&& regions.slots[self.slot_index].addr() == index_to_meta(self.slot_index)
+        &&& self.meta_value(regions).wf(self.meta_own)
+        &&& regions.slot_owners[self.slot_index].metadata_perm.is_resource_vacant()
+        &&& regions.slot_owners[self.slot_index].metadata_perm.resource().storage_perm.id()
+            == regions.slots[self.slot_index].value().storage.id()
+        &&& regions.slot_owners[self.slot_index].metadata_perm.resource().vtable_ptr_perm.pptr()
+            == regions.slots[self.slot_index].value().vtable_ptr
+        &&& regions.slot_owners[self.slot_index].metadata_perm.resource().vtable_ptr_perm.is_init()
+        &&& regions.slot_owners[self.slot_index].slot_vaddr == index_to_meta(self.slot_index)
+        &&& regions.ref_count(self.slot_index) == REF_COUNT_UNIQUE
+        &&& regions.slot_owners[self.slot_index].usage
+            == regions.slot_owners[self.slot_index].metadata_perm().usage()
+    }
+}
+
+} // verus!

@@ -1,0 +1,30 @@
+{
+  "before": {
+    ".github/workflows/verus-update-test.yml": {
+      "mode": "100644",
+      "git_blob": "3943ca73da5815c6fd026bd16423cdaa0903e411"
+    },
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "674c7500ec1a4f283fcf60cd44a5d4ceb3b27f28"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    }
+  },
+  "after": {
+    ".github/workflows/verus-update-test.yml": {
+      "mode": "100644",
+      "git_blob": "179db31f89ea8315949f66001c55e29c9587f366"
+    },
+    "COPYRIGHT": {
+      "mode": "100644",
+      "git_blob": "674c7500ec1a4f283fcf60cd44a5d4ceb3b27f28"
+    },
+    "LICENSE-MPL": {
+      "mode": "100644",
+      "git_blob": "dbdb0fa8e51735c6e5d11c708e10dd7326b3b119"
+    }
+  }
+}

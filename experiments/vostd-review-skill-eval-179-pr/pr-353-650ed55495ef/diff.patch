@@ -1,0 +1,639 @@
+diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
+index 6d1e666cab5ef4e8315faa5c00856dba14fd80cc..0422ff367d06f932c66975542d671709120ca35f 100644
+--- a/ostd/src/arch/x86/irq.rs
++++ b/ostd/src/arch/x86/irq.rs
+@@ -1,6 +1,8 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Interrupts.
+-use spin::Once;
++use vstd::prelude::*;
++
++/* use spin::Once;
+ use x86_64::registers::rflags::{self, RFlags};
+ 
+ use super::iommu::{alloc_irt_entry, has_interrupt_remapping, IrtEntryHandle};
+@@ -79,18 +81,20 @@ pub(crate) fn enable_local_and_halt() {
+         // interrupts won't occur between enabling the local IRQs and halting the CPU.
+         core::arch::asm!("sti", "hlt", options(nomem, nostack, preserves_flags),)
+     };
+-}
++} */
+ 
+ pub(crate) fn disable_local() {
+-    x86_64::instructions::interrupts::disable();
++    // x86_64::instructions::interrupts::disable();
++    unimplemented!()
+ }
+ 
+ pub(crate) fn is_local_enabled() -> bool {
+-    (rflags::read_raw() & RFlags::INTERRUPT_FLAG.bits()) != 0
++    // (rflags::read_raw() & RFlags::INTERRUPT_FLAG.bits()) != 0
++    unimplemented!()
+ }
+ 
+ // ####### Inter-Processor Interrupts (IPIs) #######
+-
++/* 
+ /// Hardware-specific, architecture-dependent CPU ID.
+ ///
+ /// This is the Local APIC ID in the x86_64 architecture.
+@@ -131,4 +135,4 @@ pub(crate) unsafe fn send_ipi(hw_cpu_id: HwCpuId, irq_num: u8, guard: &dyn PinCu
+     // SAFETY: The ICR is valid to generate the request IPI. Generating the request IPI is safe
+     // as guaranteed by the caller.
+     unsafe { apic.send_ipi(icr) };
+-}
++} */
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index 5a047fa7a7861edc5fff07990088e8a9b8c3f32b..5d98702b5db91003d9e65b8b9fe062ea6a0193ed 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -5,9 +5,9 @@ pub(crate) mod cpu;
+ pub mod device;
+ pub(crate) mod ex_table;
+ pub(crate) mod io;
+-pub(crate) mod iommu;
++pub(crate) mod iommu;*/
+ pub(crate) mod irq;
+-pub(crate) mod kernel;*/
++/* pub(crate) mod kernel; */
+ pub(crate) mod mm;
+ /*pub(crate) mod pci;
+ pub mod qemu;
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 5f82bf1356ebe231a25fa6f644f13da4f4b4d2b2..58fcedcee5c9631aa855c9a0b9ab27938ac62e09 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -53,9 +53,9 @@ pub mod prelude;
+ pub mod smp;*/
+ pub mod sync;
+ pub mod task;
+-/* pub mod timer;
++// pub mod timer;
+ pub mod trap;
+-pub mod user;*/
++// pub mod user;
+ #[path = "../specs/lib.rs"]
+ pub mod specs;
+ pub mod util;
+diff --git a/ostd/src/sync/guard.rs b/ostd/src/sync/guard.rs
+index 97063a3ef9da4ca23fef888eee2962f69d337a7f..227bf69c6a27977b98c264b5b7e7e27c29e9dd48 100644
+--- a/ostd/src/sync/guard.rs
++++ b/ostd/src/sync/guard.rs
+@@ -3,7 +3,7 @@ use vstd::prelude::*;
+ 
+ use crate::{
+     task::{/* atomic_mode::AsAtomicModeGuard, */ disable_preempt, DisabledPreemptGuard},
+-    //trap::irq::{disable_local, DisabledLocalIrqGuard},
++    trap::irq::{disable_local, DisabledLocalIrqGuard},
+ };
+ 
+ /// A guardian that denotes the guard behavior for holding a spin-based lock.
+@@ -76,14 +76,17 @@ pub enum LocalIrqDisabled {}
+ #[verifier::external_body]
+ pub struct ExLocalIrqDisabled(LocalIrqDisabled);
+ 
+-/*
++#[verus_verify]
++#[verifier::external]
+ impl SpinGuardian for LocalIrqDisabled {
+     type Guard = DisabledLocalIrqGuard;
+     type ReadGuard = DisabledLocalIrqGuard;
+ 
++    #[verifier::external_body]
+     fn guard() -> Self::Guard {
+         disable_local()
+     }
++    #[verifier::external_body]
+     fn read_guard() -> Self::Guard {
+         disable_local()
+     }
+@@ -101,17 +104,24 @@ impl SpinGuardian for LocalIrqDisabled {
+ ///
+ /// [`RwLock`]: super::RwLock
+ /// [`SpinLock`]: super::SpinLock
++#[verifier::external]
+ pub enum WriteIrqDisabled {}
+ 
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExWriteIrqDisabled(WriteIrqDisabled);
++
++#[verus_verify]
+ impl SpinGuardian for WriteIrqDisabled {
+     type Guard = DisabledLocalIrqGuard;
+     type ReadGuard = DisabledPreemptGuard;
+ 
++    #[verifier::external_body]
+     fn guard() -> Self::Guard {
+         disable_local()
+     }
++    #[verifier::external_body]
+     fn read_guard() -> Self::ReadGuard {
+         disable_preempt()
+     }
+ }
+-*/
+diff --git a/ostd/src/sync/mod.rs b/ostd/src/sync/mod.rs
+index 968d10989fd73ccd694bb313d2edf7f7afc780a5..c578c8bb0f59d2341fdec8dac0048c61cba9c32b 100644
+--- a/ostd/src/sync/mod.rs
++++ b/ostd/src/sync/mod.rs
+@@ -20,7 +20,7 @@ pub use self::{
+                                                                                      RwMutexReadGuard, RwMutexUpgradeableGuard, RwMutexWriteGuard,
+                                                                                  },*/
+     spin::{SpinLock, SpinLockGuard},
+-    //wait::{WaitQueue, Waiter, Waker},
++    wait::{WaitQueue, Waiter, Waker},
+ };
+ /*
+ pub(crate) fn init() {
+diff --git a/ostd/src/sync/spin.rs b/ostd/src/sync/spin.rs
+index 45f1905737b77b4302924cc90ae1377d43dcb0b8..c7265adf071d1e8b352090743cf822655c830e5d 100644
+--- a/ostd/src/sync/spin.rs
++++ b/ostd/src/sync/spin.rs
+@@ -445,14 +445,17 @@ impl<T: /*?Sized*/, G: SpinGuardian> Deref for SpinLockGuard<'_, T, G> {
+ }
+ }
+ 
+-/*
+-impl<T: ?Sized, G: SpinGuardian> DerefMut for SpinLockGuard<'_, T, G> {
++impl<T: /* ?Sized */, G: SpinGuardian> DerefMut for SpinLockGuard<'_, T, G> {
+     fn deref_mut(&mut self) -> &mut Self::Target {
+-        unsafe { &mut *self.lock.inner.val.get() }
++        // unsafe { &mut *self.lock.inner.val.get() }
++        unsafe {
++            let ucell: *const UnsafeCell<T> = (&self.lock.inner.val as *const PCell<T>).cast();
++            &mut *(*ucell).get()
++        }
+     }
+ }
+ 
+-impl<T: ?Sized, G: SpinGuardian> Drop for SpinLockGuard<'_, T, G> {
++/* impl<T: ?Sized, G: SpinGuardian> Drop for SpinLockGuard<'_, T, G> {
+     fn drop(&mut self) {
+         self.lock.release_lock();
+     }
+diff --git a/ostd/src/sync/wait.rs b/ostd/src/sync/wait.rs
+index 48096dc4e7ad8a1e5fff105dd74af97466be3107..548f1832c176d894ce86e32f1a8a084d19fcd4ca 100644
+--- a/ostd/src/sync/wait.rs
++++ b/ostd/src/sync/wait.rs
+@@ -1,9 +1,11 @@
+ // SPDX-License-Identifier: MPL-2.0
++use vstd::prelude::*;
++
+ use alloc::{collections::VecDeque, sync::Arc};
+ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+ 
+ use super::{LocalIrqDisabled, SpinLock};
+-use crate::task::{/*scheduler,*/ Task};
++use crate::task::{scheduler, Task};
+ 
+ // # Explanation on the memory orders
+ //
+@@ -33,6 +35,8 @@ use crate::task::{/*scheduler,*/ Task};
+ // Note that dropping a waiter must be treated as a `wait()` with zero timeout, because we need to
+ // make sure that the wake event isn't lost in this case.
+ 
++verus! {
++
+ /// A wait queue.
+ ///
+ /// One may wait on a wait queue to put its executing thread to sleep.
+@@ -44,9 +48,10 @@ pub struct WaitQueue {
+     num_wakers: AtomicU32,
+     wakers: SpinLock<VecDeque<Arc<Waker>>, LocalIrqDisabled>,
+ }
+-/*
++
+ impl WaitQueue {
+     /// Creates a new, empty wait queue.
++    #[verifier::external_body]
+     pub const fn new() -> Self {
+         WaitQueue {
+             num_wakers: AtomicU32::new(0),
+@@ -65,6 +70,7 @@ impl WaitQueue {
+     /// By taking a condition closure, this wait-wakeup mechanism becomes
+     /// more efficient and robust.
+     #[track_caller]
++    #[verifier::external_body]
+     pub fn wait_until<F, R>(&self, mut cond: F) -> R
+     where
+         F: FnMut() -> Option<R>,
+@@ -85,6 +91,7 @@ impl WaitQueue {
+ 
+     /// Wakes up one waiting thread, if there is one at the point of time when this method is
+     /// called, returning whether such a thread was woken up.
++    #[verifier::external_body]
+     pub fn wake_one(&self) -> bool {
+         // Fast path
+         if self.is_empty() {
+@@ -107,6 +114,7 @@ impl WaitQueue {
+     }
+ 
+     /// Wakes up all waiting threads, returning the number of threads that were woken up.
++    #[verifier::external_body]
+     pub fn wake_all(&self) -> usize {
+         // Fast path
+         if self.is_empty() {
+@@ -132,6 +140,7 @@ impl WaitQueue {
+         num_woken
+     }
+ 
++    #[verifier::external_body]
+     fn is_empty(&self) -> bool {
+         // On x86-64, this generates `mfence; mov`, which is exactly the right way to implement
+         // atomic loading with `Ordering::Release`. It performs much better than naively
+@@ -141,6 +150,7 @@ impl WaitQueue {
+ 
+     /// Enqueues the input [`Waker`] to the wait queue.
+     #[doc(hidden)]
++    #[verifier::external_body]
+     pub fn enqueue(&self, waker: Arc<Waker>) {
+         let mut wakers = self.wakers.lock();
+         wakers.push_back(waker);
+@@ -149,11 +159,11 @@ impl WaitQueue {
+ }
+ 
+ impl Default for WaitQueue {
++    #[verifier::external_body]
+     fn default() -> Self {
+         Self::new()
+     }
+ }
+-*/
+ 
+ /// A waiter that can put the current thread to sleep until it is woken up by the associated
+ /// [`Waker`].
+@@ -175,13 +185,15 @@ pub struct Waker {
+     has_woken: AtomicBool,
+     task: Arc<Task>,
+ }
+-/*
++
+ impl Waiter {
+     /// Creates a waiter and its associated [`Waker`].
++    #[verifier::external_body]
+     pub fn new_pair() -> (Self, Arc<Waker>) {
+         let waker = Arc::new(Waker {
+             has_woken: AtomicBool::new(false),
+-            task: Task::current().unwrap().cloned(),
++            // task: Task::current().unwrap().cloned(),
++            task: Arc::new(Task {}),
+         });
+         let waiter = Self {
+             waker: waker.clone(),
+@@ -196,6 +208,7 @@ impl Waiter {
+     /// to this method (or since the waiter was created, if this method has not been called
+     /// before). Otherwise, it puts the current thread to sleep until the waiter is woken up.
+     #[track_caller]
++    #[verifier::external_body]
+     pub fn wait(&self) {
+         self.waker.do_wait();
+     }
+@@ -206,6 +219,7 @@ impl Waiter {
+     /// if the cancel condition returns `Err(_)`. In this situation, this method will return the `Err(_)`
+     /// generated by the cancel condition.
+     #[track_caller]
++    #[verifier::external_body]
+     pub fn wait_until_or_cancelled<F, R, FCancel, E>(
+         &self,
+         mut cond: F,
+@@ -231,18 +245,24 @@ impl Waiter {
+     }
+ 
+     /// Gets the associated [`Waker`] of the current waiter.
++    #[verifier::external_body]
+     pub fn waker(&self) -> Arc<Waker> {
+         self.waker.clone()
+     }
+ 
+     /// Returns the task that the associated waker will attempt to wake up.
++    #[verifier::external_body]
+     pub fn task(&self) -> &Arc<Task> {
+         &self.waker.task
+     }
+ }
+ 
+ impl Drop for Waiter {
+-    fn drop(&mut self) {
++    #[verifier::external_body]
++    fn drop(&mut self)
++        opens_invariants none
++        no_unwind
++    {
+         // When dropping the waiter, we need to close the waker to ensure that if someone wants to
+         // wake up the waiter afterwards, they will perform a no-op.
+         self.waker.close();
+@@ -259,6 +279,7 @@ impl Waker {
+     /// Note that if this method returns `true`, it implies that the wake event will be properly
+     /// delivered, _or_ that the waiter will be dropped after being woken. It's up to the caller to
+     /// handle the latter case properly to avoid missing the wake event.
++    #[verifier::external_body]
+     pub fn wake_up(&self) -> bool {
+         if self.has_woken.swap(true, Ordering::Release) {
+             return false;
+@@ -269,12 +290,14 @@ impl Waker {
+     }
+ 
+     #[track_caller]
++    #[verifier::external_body]
+     fn do_wait(&self) {
+         while !self.has_woken.swap(false, Ordering::Acquire) {
+             scheduler::park_current(|| self.has_woken.load(Ordering::Acquire));
+         }
+     }
+ 
++    #[verifier::external_body]
+     fn close(&self) {
+         // This must use `Ordering::Acquire`, although we do not care about the return value. See
+         // the memory order explanation at the top of the file for details.
+@@ -282,6 +305,8 @@ impl Waker {
+     }
+ }
+ 
++} // verus!
++
+ #[cfg(ktest)]
+ mod test {
+     use super::*;
+@@ -398,4 +423,3 @@ mod test {
+         assert!(cond2.load(Ordering::Relaxed));
+     }
+ }
+-*/
+diff --git a/ostd/src/task/mod.rs b/ostd/src/task/mod.rs
+index 2600e69c0343628db99bcf0ba45f1d8afa4eb4e7..305b6b3c548edf6762c2dd4c4a26d2583d36d46c 100644
+--- a/ostd/src/task/mod.rs
++++ b/ostd/src/task/mod.rs
+@@ -5,9 +5,9 @@ use vstd::prelude::*;
+ /* pub mod atomic_mode;
+ mod kernel_stack; */
+ mod preempt;
+-/* mod processor;
++// mod processor;
+ pub mod scheduler;
+-mod utils;
++/* mod utils;
+ 
+ use core::{
+     any::Any,
+@@ -19,10 +19,9 @@ use core::{
+ };
+ 
+ use kernel_stack::KernelStack;
+-use processor::current_task;
++use processor::current_task;*/
+ use spin::Once;
+-use utils::ForceSync;
+-*/
++// use utils::ForceSync;
+ pub use self::{
+     preempt::{disable_preempt, DisabledPreemptGuard},
+     /* scheduler::info::{AtomicCpuId, TaskScheduleInfo}, */
+diff --git a/ostd/src/task/scheduler/mod.rs b/ostd/src/task/scheduler/mod.rs
+index 4a4fc4cbc6c5b5693bed296d335274f3f13e65ec..b5d04f51296a2d3666b383c03a916240aab43c9e 100644
+--- a/ostd/src/task/scheduler/mod.rs
++++ b/ostd/src/task/scheduler/mod.rs
+@@ -63,25 +63,28 @@
+ //! Violating this invariant—e.g., running the same task on two CPUs concurrently—
+ //! can have catastrophic consequences,
+ //! as the task's stack and internal state may be corrupted by concurrent modifications.
+-mod fifo_scheduler;
+-pub mod info;
++// mod fifo_scheduler;
++// pub mod info;
+ 
++use alloc::sync::Arc;
+ use spin::Once;
+ 
+-use super::{preempt::cpu_local, processor, Task};
+-use crate::{
+-    cpu::{CpuId, CpuSet, PinCurrentCpu},
+-    prelude::*,
+-    task::disable_preempt,
+-    timer,
+-};
++// use super::{preempt::cpu_local, processor, Task};
++use super::Task;
++// use crate::{
++//     cpu::{CpuId, CpuSet, PinCurrentCpu},
++//     prelude::*,
++//     task::disable_preempt,
++//     timer,
++// };
++use crate::specs::mm::cpu::CpuId;
+ 
+ /// Injects a custom implementation of task scheduler into OSTD.
+ ///
+ /// This function can only be called once and must be called during the initialization phase of kernel,
+ /// before any [`Task`]-related APIs are invoked.
+ pub fn inject_scheduler(scheduler: &'static dyn Scheduler<Task>) {
+-    SCHEDULER.call_once(|| scheduler);
++    /* SCHEDULER.call_once(|| scheduler);
+ 
+     timer::register_callback(|| {
+         SCHEDULER.get().unwrap().mut_local_rq_with(&mut |local_rq| {
+@@ -90,7 +93,7 @@ pub fn inject_scheduler(scheduler: &'static dyn Scheduler<Task>) {
+                 cpu_local::set_need_preempt();
+             }
+         })
+-    });
++    }); */
+ }
+ 
+ static SCHEDULER: Once<&'static dyn Scheduler<Task>> = Once::new();
+@@ -380,6 +383,7 @@ pub enum UpdateFlags {
+ /// Preempts the current task.
+ #[track_caller]
+ pub(crate) fn might_preempt() {
++    /*
+     if !cpu_local::should_preempt() {
+         return;
+     }
+@@ -391,6 +395,7 @@ pub(crate) fn might_preempt() {
+             ReschedAction::DoNothing
+         }
+     })
++    */
+ }
+ 
+ /// Blocks the current task unless `has_unparked()` returns `true`.
+@@ -447,7 +452,7 @@ pub(crate) fn unpark_target(runnable: Arc<Task>) {
+         .unwrap()
+         .enqueue(runnable, EnqueueFlags::Wake);
+     if let Some(preempt_cpu_id) = preempt_cpu {
+-        set_need_preempt(preempt_cpu_id);
++        // set_need_preempt(preempt_cpu_id);
+     }
+ }
+ 
+@@ -455,6 +460,7 @@ pub(crate) fn unpark_target(runnable: Arc<Task>) {
+ ///
+ /// Note that the new task is not guaranteed to run at once.
+ #[track_caller]
++/*
+ pub(super) fn run_new_task(runnable: Arc<Task>) {
+     // FIXME: remove this check for `SCHEDULER`.
+     // Currently OSTD cannot know whether its user has injected a scheduler.
+@@ -472,7 +478,9 @@ pub(super) fn run_new_task(runnable: Arc<Task>) {
+ 
+     might_preempt();
+ }
++*/
+ 
++/*
+ fn set_need_preempt(cpu_id: CpuId) {
+     let preempt_guard = disable_preempt();
+ 
+@@ -484,11 +492,13 @@ fn set_need_preempt(cpu_id: CpuId) {
+         });
+     }
+ }
++*/
+ 
+ /// Dequeues the current task from its runqueue.
+ ///
+ /// This should only be called if the current is to exit.
+ #[track_caller]
++/*
+ pub(super) fn exit_current() -> ! {
+     let mut is_first_try = true;
+ 
+@@ -511,9 +521,11 @@ pub(super) fn exit_current() -> ! {
+ 
+     unreachable!()
+ }
++*/
+ 
+ /// Yields execution.
+ #[track_caller]
++/*
+ pub(super) fn yield_now() {
+     reschedule(|local_rq| {
+         let should_pick_next = local_rq.update_current(UpdateFlags::Yield);
+@@ -525,6 +537,7 @@ pub(super) fn yield_now() {
+         }
+     })
+ }
++*/
+ 
+ /// Do rescheduling by acting on the scheduling decision (`ReschedAction`) made by a
+ /// user-given closure.
+@@ -537,7 +550,7 @@ where
+ {
+     // Even if the decision below is `DoNothing`, we should clear this flag. Meanwhile, to avoid
+     // race conditions, we should do this before making the decision.
+-    cpu_local::clear_need_preempt();
++    // cpu_local::clear_need_preempt();
+ 
+     let next_task = loop {
+         let mut action = ReschedAction::DoNothing;
+@@ -564,7 +577,7 @@ where
+     // FIXME: The scheduler decision and context switching are not atomic, which can lead to some
+     // strange behavior even if the scheduler is implemented correctly. See "Problem 2" at
+     // <https://github.com/asterinas/asterinas/issues/1633> for details.
+-    processor::switch_to_task(next_task);
++    // processor::switch_to_task(next_task);
+ }
+ 
+ /// Possible actions of a rescheduling.
+diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
+index aebd1821e9a971f640700549f0598ed19aa1147d..96a52e4d7b5f15b17a517c53144a840ab86771dc 100644
+--- a/ostd/src/trap/irq.rs
++++ b/ostd/src/trap/irq.rs
+@@ -1,21 +1,23 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! IRQ line and IRQ guards.
++use vstd::prelude::*;
++
+ use core::{fmt::Debug, ops::Deref};
+ 
+-use id_alloc::IdAlloc;
+-use spin::Once;
++// use id_alloc::IdAlloc;
++// use spin::Once;
+ 
+ use crate::{
+     arch::{
+-        irq::{self, IrqRemapping, IRQ_NUM_MAX, IRQ_NUM_MIN},
+-        trap::TrapFrame,
++        irq::{self/* , IrqRemapping, IRQ_NUM_MAX, IRQ_NUM_MIN */},
++        /* trap::TrapFrame, */
+     },
+     prelude::*,
+-    sync::{GuardTransfer, RwLock, SpinLock, WriteIrqDisabled},
+-    task::atomic_mode::InAtomicMode,
+-    Error,
++    sync::{GuardTransfer, RwLock, SpinLock, /* WriteIrqDisabled */},
++    // task::atomic_mode::InAtomicMode,
++    // Error,
+ };
+-
++/*
+ /// A type alias for the IRQ callback function.
+ pub type IrqCallbackFunction = dyn Fn(&TrapFrame) + Sync + Send + 'static;
+ 
+@@ -189,10 +191,10 @@ pub(super) fn process_top_half(trap_frame: &TrapFrame, irq_num: usize) {
+     for callback in &*inner.callbacks.read() {
+         callback(trap_frame);
+     }
+-}
++}*/
+ 
+ // ####### IRQ Guards #######
+-
++verus! {
+ /// Disables all IRQs on the current CPU (i.e., locally).
+ ///
+ /// This function returns a guard object, which will automatically enable local IRQs again when
+@@ -230,9 +232,9 @@ impl !Send for DisabledLocalIrqGuard {}
+ 
+ // SAFETY: The guard disables local IRQs, which meets the first
+ // sufficient condition for atomic mode.
+-unsafe impl InAtomicMode for DisabledLocalIrqGuard {}
+-
++/* unsafe impl InAtomicMode for DisabledLocalIrqGuard {} */
+ impl DisabledLocalIrqGuard {
++    #[verifier::external_body]
+     fn new() -> Self {
+         let was_enabled = irq::is_local_enabled();
+         if was_enabled {
+@@ -243,20 +245,21 @@ impl DisabledLocalIrqGuard {
+ }
+ 
+ impl GuardTransfer for DisabledLocalIrqGuard {
++    #[verifier::external_body]
+     fn transfer_to(&mut self) -> Self {
+         let was_enabled = self.was_enabled;
+         self.was_enabled = false;
+         Self { was_enabled }
+     }
+ }
+-
+-impl Drop for DisabledLocalIrqGuard {
++}
++/*impl Drop for DisabledLocalIrqGuard {
+     fn drop(&mut self) {
+         if self.was_enabled {
+             irq::enable_local();
+         }
+     }
+-}
++} */
+ 
+ #[cfg(ktest)]
+ mod test {
+diff --git a/ostd/src/trap/mod.rs b/ostd/src/trap/mod.rs
+index 272768c31f3027ca85800f0966a4a913a689e6cd..7e42cbcf36a6184fdbd5cf418682fbeb0a2cf28e 100644
+--- a/ostd/src/trap/mod.rs
++++ b/ostd/src/trap/mod.rs
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Handles trap across kernel and user space.
+-mod handler;
++// mod handler;
+ pub mod irq;
+ 
+-pub(crate) use handler::call_irq_callback_functions;
+-pub use handler::{in_interrupt_context, register_bottom_half_handler};
++// pub(crate) use handler::call_irq_callback_functions;
++// pub use handler::{in_interrupt_context, register_bottom_half_handler};

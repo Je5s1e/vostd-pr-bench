@@ -1,0 +1,19 @@
+[package]
+name = "ostd-test"
+version = "0.16.0"
+edition = "2021"
+description = "The kernel mode unit testing framework of OSTD"
+license = "MPL-2.0"
+repository ="https://github.com/asterinas/asterinas"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+vstd = { workspace = true }
+vstd_extra = { path = "../../../verified_libs/vstd_extra" }
+
+[package.metadata.verus]
+verify = true
+
+[lints]
+workspace = true

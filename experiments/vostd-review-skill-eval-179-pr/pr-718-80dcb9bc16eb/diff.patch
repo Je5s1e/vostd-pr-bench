@@ -1,0 +1,455 @@
+diff --git a/ostd/src/util/mod.rs b/ostd/src/util/mod.rs
+index 03282f0c88bfcce6be4d7a6a6ddc405f01142f9c..2c6cadffe15c3c3ca45849593b76659c0d2f94df 100644
+--- a/ostd/src/util/mod.rs
++++ b/ostd/src/util/mod.rs
+@@ -2,7 +2,7 @@
+ //! Utility types and methods.
+ mod either;
+ //mod macros;
+-//pub(crate) mod ops;
++pub(crate) mod ops;
+ pub(crate) mod range_alloc;
+ 
+ pub use either::Either;
+diff --git a/ostd/src/util/ops.rs b/ostd/src/util/ops.rs
+index 5a8611523eab1a405f6ac753cf45dac6607358b8..e9f01f6dcaf1582d94dae4330878bf5f1b48763b 100644
+--- a/ostd/src/util/ops.rs
++++ b/ostd/src/util/ops.rs
+@@ -1,4 +1,21 @@
+ // SPDX-License-Identifier: MPL-2.0
++use vstd::{
++    laws_cmp::{obeys_cmp, obeys_cmp_ord, obeys_cmp_partial_ord},
++    prelude::*,
++    set_lib::FiniteRange,
++    std_specs::{
++        cmp::PartialOrdIs,
++        iter::{IteratorSpec, filter_keep, filter_postcondition},
++    },
++};
++use vstd_extra::{
++    external::{iter::*, range::*},
++    range::{
++        finite_range_matches_ord, lemma_range_difference_set, lemma_range_difference_sorted_at,
++        range_as_set, range_difference_seq, seq_range_union, spec_ord_max, spec_ord_min,
++    },
++};
++
+ use core::ops::Range;
+ 
+ /// Calculates the [difference] of two [`Range`]s, i.e., `a - b`.
+@@ -8,19 +25,104 @@ use core::ops::Range;
+ /// will be sorted in ascending order.
+ ///
+ /// [difference]: https://en.wikipedia.org/wiki/Set_(mathematics)#Set_difference
+-pub fn range_difference<T: Ord + Copy>(
++///
++/// # Verified Properties
++///
++/// ## Safety
++///
++/// This function contains no unsafe code. Its proof relies on the trusted
++/// `vstd_extra` specifications for owned-array iteration and [`Range::is_empty`].
++///
++/// ## Functional Correctness
++///
++/// When the upstream filter model reports completion, the iterator's remaining
++/// sequence contains at most two non-empty, sorted ranges whose union is exactly
++/// the set difference `a - b`.
++///
++/// ## Preconditions
++///
++/// `T` must have a finite range whose model agrees with its Verus ordering model.
++///
++/// ## Postconditions
++///
++/// Subject to the upstream iterator model's law and termination predicates, the
++/// returned sequence matches [`range_difference_seq`] and satisfies the
++/// functional-correctness properties above. The contract does not claim that
++/// comparisons cannot panic.
++#[verus_verify(spinoff_prover, rlimit(50))]
++#[verus_spec(ret =>
++    requires
++        obeys_cmp::<T>(),
++        finite_range_matches_ord::<T>(),
++    ensures
++        ret.obeys_prophetic_iter_laws() && ret.will_return_none() ==> {
++            &&& ret.remaining() == range_difference_seq(*a, *b)
++            &&& ret.remaining().len() <= 2
++            &&& forall|i: int|
++                0 <= i < ret.remaining().len() ==> (
++                #[trigger] ret.remaining()[i]).start.is_lt(&ret.remaining()[i].end)
++            &&& forall|i: int|
++                0 <= i < ret.remaining().len() - 1 ==> (
++                #[trigger] ret.remaining()[i]).end.is_le(&ret.remaining()[i + 1].start)
++            &&& seq_range_union(ret.remaining()) == range_as_set(*a).difference(range_as_set(*b))
++        },
++)]
++pub fn range_difference<T: Ord + Copy + FiniteRange>(
+     a: &Range<T>,
+     b: &Range<T>,
+ ) -> impl Iterator<Item = Range<T>> {
+-    use core::cmp::{max, min};
+-
++    proof! {
++        reveal(obeys_cmp_partial_ord);
++        reveal(obeys_cmp_ord);
++    }
+     let r = if b.is_empty() {
+         [a.clone(), b.clone()]
+     } else {
+-        [a.start..min(a.end, b.start), max(a.start, b.end)..a.end]
++        // `Ord::{min,max}` are the specified equivalents of `core::cmp::{min,max}`.
++        [a.start..a.end.min(b.start), a.start.max(b.end)..a.end]
+     };
+ 
+-    r.into_iter().filter(|v| !v.is_empty())
++    proof! {
++        reveal_with_fuel(Seq::filter, 3);
++    }
++    // Original execution: `r.into_iter().filter(|v| !v.is_empty())`.
++    // Bind its operands so the upstream filter axiom can refer to them.
++    let iter = r.into_iter();
++    let pred = #[verus_spec(keep: bool =>
++        ensures
++            keep == v.start.is_lt(&v.end),
++    )]
++    |v: &Range<T>| !v.is_empty();
++    let ret = iter.filter(pred);
++    proof! {
++        filter_postcondition(iter, pred, ret);
++        if ret.will_return_none() {
++            let keep = filter_keep(ret);
++
++            assert forall|j: int| #![auto] 0 <= j < keep.len() implies keep[j] ==
++                iter.remaining()[j].start.is_lt(&iter.remaining()[j].end) by {}
++            assert(iter.remaining().take(keep.len() as int).filter_index(|j: int| keep[j]) ==
++                iter.remaining().filter(|v: Range<T>| v.start.is_lt(&v.end))) by {
++                reveal_with_fuel(Seq::filter_index, 3);
++                reveal_with_fuel(Seq::filter, 3);
++            }
++            assert(ret.remaining() == range_difference_seq(*a, *b)) by {
++                reveal(range_difference_seq);
++                reveal(spec_ord_min);
++                reveal(spec_ord_max);
++            }
++            assert forall|i: int|
++                0 <= i < ret.remaining().len() - 1 implies (
++                #[trigger] ret.remaining()[i]).end.is_le(&ret.remaining()[i + 1].start) by {
++                lemma_range_difference_sorted_at(*a, *b, i);
++            }
++            assert(seq_range_union(ret.remaining()) ==
++                range_as_set(*a).difference(range_as_set(*b))) by {
++                lemma_range_difference_set(*a, *b);
++            }
++        }
++    }
++    ret
+ }
+ 
+ #[cfg(ktest)]
+diff --git a/verified_libs/vstd_extra/src/external/iter.rs b/verified_libs/vstd_extra/src/external/iter.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..6513ceac366e0d52b7db8b14469661fb5fa33bad
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/iter.rs
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: MPL-2.0
++//! Specification for owned-array iteration not yet modeled by `vstd`.
++//!
++//! The array iterator contract follows Rust 1.97.1's
++//! `library/core/src/array/iter.rs` implementation, which initializes an
++//! iterator over the array in left-to-right order.
++//!
++//! # Verified Properties
++//!
++//! The trusted contract records the iterator's element order, termination,
++//! remaining length, and prophetic iterator laws.
++use vstd::{prelude::*, std_specs::iter::IteratorSpec};
++
++verus! {
++
++/// Verus proxy for the standard library's array `IntoIter`.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++#[verifier::reject_recursive_types(T)]
++pub struct ExArrayIntoIter<T, const N: usize>(core::array::IntoIter<T, N>);
++
++/// The array iterator yields the array view from left to right and terminates.
++pub assume_specification<T, const N: usize>[ <[T; N] as IntoIterator>::into_iter ](
++    array: [T; N],
++) -> (iter: <[T; N] as IntoIterator>::IntoIter)
++    ensures
++        IteratorSpec::obeys_prophetic_iter_laws(&iter),
++        IteratorSpec::will_return_none(&iter),
++        IteratorSpec::remaining(&iter) == array@,
++        IteratorSpec::decrease(&iter) == Some(N as nat),
++    opens_invariants none
++    no_unwind
++;
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index f4071583be31c52546ef98873d2e8ab52d9e0d41..e61c8b930b75a2a4c10e15aaa871c0ef145532f0 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -7,6 +7,7 @@ pub mod convert;
+ pub mod deref;
+ pub mod ilog2;
+ pub mod int_specs;
++pub mod iter;
+ pub mod nonnull;
+ pub mod ptr;
+ pub mod range;
+@@ -17,6 +18,7 @@ pub mod time;
+ pub use btree::*;
+ pub use ilog2::*;
+ pub use int_specs::*;
++pub use iter::*;
+ pub use nonnull::*;
+ pub use ptr::*;
+ pub use range::*;
+diff --git a/verified_libs/vstd_extra/src/external/range.rs b/verified_libs/vstd_extra/src/external/range.rs
+index 9703a16cb4fd4c886f009526d0570045edaa7345..ea3fdb300bd3c3a51acb4f83e5e48316a49fabfd 100644
+--- a/verified_libs/vstd_extra/src/external/range.rs
++++ b/verified_libs/vstd_extra/src/external/range.rs
+@@ -1,5 +1,9 @@
++use vstd::{
++    prelude::*,
++    std_specs::cmp::{PartialOrdIs, PartialOrdSpec},
++};
++
+ use core::ops::{Range, RangeInclusive};
+-use vstd::prelude::*;
+ 
+ verus! {
+ 
+@@ -45,6 +49,17 @@ pub fn range_usize_is_empty(r: &Range<usize>) -> (ret: bool)
+     !(r.start < r.end)
+ }
+ 
++/// Trusted specification of `Range::is_empty` from Rust 1.97.1's
++/// `core::ops::range::Range` implementation: a range is empty when its start
++/// is not less than its end. The result is related to Verus's comparison model
++/// only when the `PartialOrd` implementation obeys that model. This contract
++/// does not promise `no_unwind` because the user-provided comparison may panic.
++pub assume_specification<Idx: PartialOrd<Idx>>[ Range::<Idx>::is_empty ](r: &Range<Idx>) -> (res:
++    bool) where Idx: PartialOrd<Idx>
++    ensures
++        <Idx as PartialOrdSpec<Idx>>::obeys_partial_cmp_spec() ==> res == !r.start.is_lt(&r.end),
++;
++
+ pub assume_specification<Idx>[ RangeInclusive::start ](r: &RangeInclusive<Idx>) -> (ret: &Idx)
+     ensures
+         *ret == r@.start,
+diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
+index 91fe86a5990608aa3d59b61380e086b28bf341d7..9fa4726839c8b728b122beb805e130368066bbc8 100644
+--- a/verified_libs/vstd_extra/src/lib.rs
++++ b/verified_libs/vstd_extra/src/lib.rs
+@@ -37,6 +37,7 @@ pub mod trans_macros;
+ pub mod map_extra;
+ 
+ pub mod prelude;
++pub mod range;
+ pub mod raw_ptr_extra;
+ pub mod rcu_read_lease;
+ pub mod resource_invariant;
+diff --git a/verified_libs/vstd_extra/src/range.rs b/verified_libs/vstd_extra/src/range.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..6571a8da6cc945743d68ec8d0b026cadaa5d75e4
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/range.rs
+@@ -0,0 +1,194 @@
++// SPDX-License-Identifier: MPL-2.0
++//! Finite-set models and proof lemmas for half-open ranges.
++//!
++//! # Verified Properties
++//!
++//! This module relates range difference to finite set difference and proves that
++//! the resulting ranges are ordered when the element type obeys its comparison
++//! specification.
++use vstd::{
++    laws_cmp::{
++        obeys_cmp, obeys_cmp_ord, obeys_cmp_partial_ord, obeys_partial_cmp_spec_properties,
++    },
++    laws_eq::obeys_eq_spec_properties,
++    prelude::*,
++    set_lib::{FiniteRange, range_set_properties},
++    std_specs::cmp::{OrdSpec, PartialOrdIs},
++};
++
++use core::{cmp::Ordering, ops::Range};
++
++verus! {
++
++/// Returns `y` when it compares less than `x`, and returns `x` otherwise.
++pub open spec fn spec_ord_min<T: Ord>(x: T, y: T) -> T {
++    match y.cmp_spec(&x) {
++        Ordering::Less => y,
++        Ordering::Equal => x,
++        Ordering::Greater => x,
++    }
++}
++
++/// Returns `x` when `y` compares less than it, and returns `y` otherwise.
++pub open spec fn spec_ord_max<T: Ord>(x: T, y: T) -> T {
++    match y.cmp_spec(&x) {
++        Ordering::Less => x,
++        Ordering::Equal => y,
++        Ordering::Greater => y,
++    }
++}
++
++/// The finite set denoted by a half-open range.
++pub open spec fn range_as_set<T: FiniteRange>(r: Range<T>) -> Set<T> {
++    T::range_set(r.start, r.end)
++}
++
++/// The union of the sets denoted by a sequence of ranges.
++pub open spec fn seq_range_union<T: FiniteRange>(s: Seq<Range<T>>) -> Set<T> {
++    s.map_values(|r: Range<T>| range_as_set(r)).to_set().flatten()
++}
++
++/// Whether the finite-range model agrees with the ordering model.
++pub open spec fn finite_range_matches_ord<T: FiniteRange + Ord>() -> bool {
++    forall|x: T, lo: T, hi: T| T::in_range(x, lo, hi) <==> lo.is_le(&x) && x.is_lt(&hi)
++}
++
++/// Operational spec of `range_difference`: the two candidate ranges,
++/// dropping any empty ones, matching the executable control flow.
++pub open spec fn range_difference_seq<T: Ord>(a: Range<T>, b: Range<T>) -> Seq<Range<T>> {
++    let left = if !b.start.is_lt(&b.end) {
++        a
++    } else {
++        Range { start: a.start, end: spec_ord_min(a.end, b.start) }
++    };
++    let right = if !b.start.is_lt(&b.end) {
++        b
++    } else {
++        Range { start: spec_ord_max(a.start, b.end), end: a.end }
++    };
++    if left.start.is_lt(&left.end) {
++        if right.start.is_lt(&right.end) {
++            seq![left, right]
++        } else {
++            seq![left]
++        }
++    } else if right.start.is_lt(&right.end) {
++        seq![right]
++    } else {
++        Seq::empty()
++    }
++}
++
++proof fn lemma_seq_range_union_contains<T: FiniteRange>(s: Seq<Range<T>>, x: T)
++    ensures
++        seq_range_union(s).contains(x) <==> exists|i: int|
++            #![trigger range_as_set(s[i]).contains(x)]
++            0 <= i < s.len() && range_as_set(s[i]).contains(x),
++{
++    broadcast use {Seq::to_set_ensures, Set::lemma_flatten_contains};
++
++    let range_sets = s.map_values(|r: Range<T>| range_as_set(r));
++    if seq_range_union(s).contains(x) {
++        range_sets.to_set().lemma_flatten_contains(x);
++        let range_set = choose|range_set: Set<T>|
++            #![trigger range_sets.to_set().contains(range_set)]
++            range_sets.to_set().contains(range_set) && range_set.contains(x);
++        let i = choose|i: int| 0 <= i < range_sets.len() && range_sets[i] == range_set;
++    } else if exists|i: int|
++        #![trigger range_as_set(s[i]).contains(x)]
++        0 <= i < s.len() && range_as_set(s[i]).contains(x) {
++        let i = choose|i: int|
++            #![trigger range_as_set(s[i]).contains(x)]
++            0 <= i < s.len() && range_as_set(s[i]).contains(x);
++        assert(range_sets.to_set().contains(range_sets[i]));
++        range_sets.to_set().lemma_flatten_contains(x);
++    }
++}
++
++proof fn lemma_seq_range_union_small<T: FiniteRange>(s: Seq<Range<T>>)
++    requires
++        s.len() <= 2,
++    ensures
++        s.len() == 0 ==> seq_range_union(s) == Set::<T>::empty(),
++        s.len() == 1 ==> seq_range_union(s) == range_as_set(s[0]),
++        s.len() == 2 ==> seq_range_union(s) == range_as_set(s[0]).union(range_as_set(s[1])),
++{
++    if s.len() == 0 {
++        assert forall|x: T| !seq_range_union(s).contains(x) by {
++            lemma_seq_range_union_contains(s, x);
++        }
++    }
++    if s.len() == 1 {
++        assert forall|x: T|
++            #![trigger seq_range_union(s).contains(x)]
++            seq_range_union(s).contains(x) <==> range_as_set(s[0]).contains(x) by {
++            lemma_seq_range_union_contains(s, x);
++        }
++    }
++    if s.len() == 2 {
++        assert forall|x: T|
++            #![trigger seq_range_union(s).contains(x)]
++            seq_range_union(s).contains(x) <==> range_as_set(s[0]).union(
++                range_as_set(s[1]),
++            ).contains(x) by {
++            lemma_seq_range_union_contains(s, x);
++        }
++    }
++}
++
++/// Proves that two adjacent ranges produced by [`range_difference_seq`] are ordered.
++///
++/// # Preconditions
++///
++/// The element comparison obeys its specification, and `i` identifies two
++/// adjacent output ranges.
++///
++/// # Postconditions
++///
++/// The first range ends at or before the second range starts.
++pub proof fn lemma_range_difference_sorted_at<T: Ord>(a: Range<T>, b: Range<T>, i: int)
++    requires
++        obeys_cmp::<T>(),
++        0 <= i < range_difference_seq(a, b).len() - 1,
++    ensures
++        range_difference_seq(a, b)[i].end.is_le(&range_difference_seq(a, b)[i + 1].start),
++{
++    reveal(obeys_partial_cmp_spec_properties);
++    reveal(obeys_cmp_partial_ord);
++    reveal(obeys_cmp_ord);
++    reveal(obeys_eq_spec_properties);
++}
++
++/// Proves that [`range_difference_seq`] denotes the finite set difference `a - b`.
++///
++/// # Preconditions
++///
++/// The element comparison obeys its specification, and the finite-range model
++/// agrees with that ordering.
++///
++/// # Postconditions
++///
++/// The union of the output ranges equals the elements in `a` that are not in `b`.
++pub proof fn lemma_range_difference_set<T: FiniteRange + Ord>(a: Range<T>, b: Range<T>)
++    requires
++        obeys_cmp::<T>(),
++        finite_range_matches_ord::<T>(),
++    ensures
++        seq_range_union(range_difference_seq(a, b)) == range_as_set(a).difference(range_as_set(b)),
++{
++    broadcast use range_set_properties;
++
++    reveal(obeys_partial_cmp_spec_properties);
++    reveal(obeys_cmp_partial_ord);
++    reveal(obeys_cmp_ord);
++    reveal(obeys_eq_spec_properties);
++    let s = range_difference_seq(a, b);
++    lemma_seq_range_union_small(s);
++    assert forall|x: T|
++        #![trigger range_as_set(a).contains(x)]
++        seq_range_union(s).contains(x) <==> range_as_set(a).difference(range_as_set(b)).contains(
++            x,
++        ) by {}
++}
++
++} // verus!

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "pr_number": 143,
+  "sample_id": "pr-143-544fc49e7446",
+  "comparison_base_sha": "d888930f85df1e81da67cb4f5580d183a4115f1e",
+  "problem_commit_sha": "544fc49e744600241357a7f66e3e54ea9b8bb6ca",
+  "repair_commit_sha": "f486ec9ac7695f3ca8b82c611386341c44d3c381",
+  "primary_reviewer": "/root/audit_pr_143_147",
+  "second_reviewer": "/root/audit_pr_117_122",
+  "second_review_verdict": "approved",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "The external-body lemma lacks same-instance and exact parent-PTE ownership constraints; its direct child deletes it and requires tracked evidence for the exact live parent entry and child address.",
+  "claim_scope": "semantic_contract_error",
+  "repair_evidence": "Direct repair diff independently checked from the fixed historical Git object store; commit URL is recorded in labels.json."
+}

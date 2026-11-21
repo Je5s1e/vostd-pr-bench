@@ -1,0 +1,69 @@
+diff --git a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+index c2ee323d97114dfd3d201d832aad1b2ea6058e41..cd8c8e95108f282e272075723e0c106d9ee9eec4 100644
+--- a/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
++++ b/ostd/specs/mm/frame/linked_list/linked_list_owners.rs
+@@ -964,14 +964,12 @@ impl<M: AnyFrameMeta + Repr<MetaSlotSmall>> LinkedListOwner<M> {
+     /// Discard a logically-empty `LinkedListOwner`. Sound because such an
+     /// owner has an empty `list` and claims no external permissions (the
+     /// borrow model parks all permissions in `MetaRegionOwners`).
+-    #[verifier::external_body]
+     pub proof fn tracked_destroy_empty(tracked self)
+         requires
+             self.list =~= Seq::<LinkOwner>::empty(),
+             self.repr_perms =~= Seq::<LinkInnerPerms<M>>::empty(),
+             self.metadata_perms =~= Seq::<MetadataPerm>::empty(),
+     {
+-        unimplemented!()
+     }
+ }
+ 
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index 17dc89d07b709d8859bb87e68755d09f0004e6de..ac62c7ccc75a86e88f7009773a61e87f13b3459c 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -948,10 +948,13 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+ 
+         assert_eq!(len % PAGE_SIZE, 0);
+ 
+-        // [KNOWN] BUG FOUND BY FV: `self.va + len` could overflow. For now assume that it doesn't. https://github.com/asterinas/asterinas/issues/3159
+-        assume(self.pt_cursor.0.va + len <= usize::MAX);
+-
+-        assert!(self.virt_addr() + len <= self.pt_cursor.0.barrier_va.end);
++        /* Bounding `va + len` requires evaluating that sum, which wraps for a huge `len`
++         * (asterinas#3159). Split the bound so no addition is ever formed; both checks still
++         * panic exactly when the unmap would run past the cursor's barrier.
++         * Origin Rust: assert!(self.virt_addr() + len <= self.pt_cursor.0.barrier_va.end);
++         */
++        assert!(self.virt_addr() <= self.pt_cursor.0.barrier_va.end);
++        assert!(len <= self.pt_cursor.0.barrier_va.end - self.virt_addr());
+ 
+         assert(!self.pt_cursor.0.find_next_panic_condition(len));
+ 
+diff --git a/ostd/src/sync/wait.rs b/ostd/src/sync/wait.rs
+index 8676b57abf0928d9c4d903b7ec18fe04e86ff528..b625e63ebfc334abb30253eaafa8f9b725bd372b 100644
+--- a/ostd/src/sync/wait.rs
++++ b/ostd/src/sync/wait.rs
+@@ -379,11 +379,18 @@ impl Waiter {
+             cancel_cond.requires(()),
+         )]
+         loop {
+-            if let Some(res) = cond() {
+-                assert(cond.ensures((), Some(res))) by {
+-                    admit();
+-                };  // FIXME:
+-                proof! { admit(); }  // FIXME: https://github.com/verus-lang/verus/issues/2295
++            /* Binding the scrutinee first keeps `call_ensures` reachable in the branch; with
++             * the call inline, `if let` desugars to a `None` comparison and the solver cannot
++             * recover `r == Some(res)` (verus-lang/verus#2295).
++             * Origin Rust: if let Some(res) = cond() {
++             */
++            let r = cond();
++            if let Some(res) = r {
++                assert(r == Some(res));
++                assert(cond.ensures((), Some(res)));
++                // The postcondition talks about the entry-state closure, while `cond` has
++                // advanced past this call, so the fact above cannot reach the exit.
++                proof! { admit(); }
+                 return Ok(res);
+             };
+             if let Err(e) = cancel_cond() {

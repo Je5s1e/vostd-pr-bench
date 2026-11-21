@@ -1,0 +1,213 @@
+//! Tree-predicate lifting, tree entry level constraints, and tree membership
+//! lemmas for `CursorContinuation` and `CursorOwner`.
+use vstd::prelude::*;
+use vstd_extra::{ghost_tree::*, ownership::*};
+
+use crate::specs::{
+    arch::{NR_ENTRIES, NR_LEVELS, PAGE_SIZE},
+    mm::page_table::{
+        cursor::owners::{CursorContinuation, CursorOwner},
+        node::entry_owners::EntryOwner,
+        owners::*,
+    },
+};
+
+use crate::mm::{Paddr, PagingLevel, Vaddr, page_prop::PageProperty, page_size, page_table::*};
+use core::ops::Range;
+
+verus! {
+
+// ─── Tree predicate lifting (CursorContinuation) ───────────────────
+impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+    /// Lift map_children(f) to map_children(g) when implies(f, g).
+    pub proof fn map_children_lift(
+        self,
+        f: spec_fn(EntryOwner<C>, TreePath<NR_ENTRIES>) -> bool,
+        g: spec_fn(EntryOwner<C>, TreePath<NR_ENTRIES>) -> bool,
+    )
+        requires
+            self.inv(),
+            self.map_children(f),
+            OwnerSubtree::implies(f, g),
+        ensures
+            self.map_children(g),
+    {
+        reveal(CursorContinuation::map_children);
+        assert forall|j: int|
+            #![auto]
+            0 <= j < self.children.len()
+                && self.children[j] is Some implies self.children[j].unwrap().subtree_satisfies(
+            self.path().push_tail(j),
+            g,
+        ) by {
+            self.lemma_inv_children_unroll(j);
+            OwnerSubtree::lemma_subtree_satisfies_implies(
+                self.children[j].unwrap(),
+                self.path().push_tail(j),
+                f,
+                g,
+            );
+        };
+    }
+
+    /// Lift map_children from f to g when siblings (j != idx) come from
+    /// cont0 which had map_children(f), and the child at idx (if present)
+    /// already satisfies g.
+    pub proof fn map_children_lift_skip_idx(
+        self,
+        cont0: Self,
+        idx: int,
+        f: spec_fn(EntryOwner<C>, TreePath<NR_ENTRIES>) -> bool,
+        g: spec_fn(EntryOwner<C>, TreePath<NR_ENTRIES>) -> bool,
+    )
+        requires
+            0 <= idx < NR_ENTRIES,
+            OwnerSubtree::implies(f, g),
+            cont0.inv(),
+            cont0.map_children(f),
+            self.path() == cont0.path(),
+            self.children.len() == cont0.children.len(),
+            forall|j: int|
+                #![auto]
+                0 <= j < NR_ENTRIES && j != idx ==> self.children[j] == cont0.children[j],
+            self.children[idx] is Some ==> self.children[idx]->0.subtree_satisfies(
+                self.path().push_tail(idx as int),
+                g,
+            ),
+        ensures
+            self.map_children(g),
+    {
+        reveal(CursorContinuation::map_children);
+        assert forall|j: int|
+            #![auto]
+            0 <= j < self.children.len()
+                && self.children[j] is Some implies self.children[j].unwrap().subtree_satisfies(
+            self.path().push_tail(j),
+            g,
+        ) by {
+            if j != idx {
+                cont0.lemma_inv_children_unroll(j);
+                OwnerSubtree::lemma_subtree_satisfies_implies(
+                    cont0.children[j].unwrap(),
+                    cont0.path().push_tail(j),
+                    f,
+                    g,
+                );
+            }
+        };
+    }
+
+    pub proof fn as_subtree_restore(self, child: Self)
+        requires
+            self.inv(),
+            child.inv(),
+            self.all_but_index_some(),
+            child.all_some(),
+        ensures
+            self.restore(child).0.as_subtree() == self.put_child(child.as_subtree()).as_subtree(),
+    {
+        assert(self.put_child(child.as_subtree()).children == self.children.update(
+            self.idx as int,
+            Some(child.as_subtree()),
+        ));
+    }
+}
+
+// ─── Tree predicate lifting (CursorOwner) ──────────────────────────
+impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+    pub proof fn map_children_implies(
+        self,
+        f: spec_fn(EntryOwner<C>, TreePath<NR_ENTRIES>) -> bool,
+        g: spec_fn(EntryOwner<C>, TreePath<NR_ENTRIES>) -> bool,
+    )
+        requires
+            self.inv(),
+            OwnerSubtree::implies(f, g),
+            forall|i: int|
+                #![trigger self.continuations[i]]
+                self.level - 1 <= i < NR_LEVELS ==> self.continuations[i].map_children(f),
+        ensures
+            forall|i: int|
+                #![trigger self.continuations[i]]
+                self.level - 1 <= i < NR_LEVELS ==> self.continuations[i].map_children(g),
+    {
+        assert forall|i: int|
+            #![trigger self.continuations[i]]
+            self.level - 1 <= i < NR_LEVELS implies self.continuations[i].map_children(g) by {
+            reveal(CursorContinuation::map_children);
+            let cont = self.continuations[i];
+            reveal(CursorContinuation::inv_children);
+            assert forall|j: int|
+                #![trigger cont.children[j]]
+                0 <= j < cont.children.len()
+                    && cont.children[j] is Some implies cont.children[j].unwrap().subtree_satisfies(
+                cont.path().push_tail(j),
+                g,
+            ) by {
+                cont.lemma_inv_children_unroll(j);
+                OwnerSubtree::lemma_subtree_satisfies_implies(
+                    cont.children[j].unwrap(),
+                    cont.path().push_tail(j),
+                    f,
+                    g,
+                );
+            }
+        }
+    }
+
+    // ─── Tree entry level constraints ──────────────────────────
+    pub proof fn cur_entry_node_implies_level_gt_1(self)
+        requires
+            self.inv(),
+            self.cur_entry_owner().is_node(),
+        ensures
+            self.level > 1,
+    {
+        self.lemma_cur_subtree_inv();
+    }
+
+    /// A frame entry at the cursor's current level that doesn't fit the aligned range
+    /// `[cur_va, end)` must be at level > 1.
+    /// Justification: At level 1, `page_size(1) == BASE_PAGE_SIZE`. Since the cursor VA
+    /// and `end` are BASE_PAGE_SIZE-aligned and `cur_va < end`, we have
+    /// `cur_va + page_size(1) <= end`, so a level-1 frame always fits. Therefore
+    /// `!cur_entry_fits_range` implies `level > 1`.
+    #[verifier::spinoff_prover]
+    pub proof fn frame_not_fits_implies_level_gt_1(
+        self,
+        cur_entry_fits_range: bool,
+        cur_va: Vaddr,
+        end: Vaddr,
+    )
+        requires
+            self.inv(),
+            self.cur_entry_owner().is_frame(),
+            !cur_entry_fits_range,
+            cur_va < end,
+            // cur_va is the cursor's current VA (from the call site: cur_va == self.va).
+            cur_va == self.cur_va(),
+            // Definition: cur_entry_fits_range iff cur_va is at start of entry AND entry end <= end.
+            cur_entry_fits_range == (cur_va == self.cur_va_range().start.to_vaddr()
+                && self.cur_va_range().end.to_vaddr() <= end),
+            // cur_va and end are PAGE_SIZE-aligned
+            cur_va as nat % PAGE_SIZE as nat == 0,
+            end as nat % PAGE_SIZE as nat == 0,
+        ensures
+            self.level > 1,
+    {
+        // At level 1, page_size(1) == PAGE_SIZE. cursor inv gives va.offset == 0,
+        // so align_down(va, PAGE_SIZE) == va. The range is [va, va + PAGE_SIZE).
+        // cur_va == va (precondition) and cur_va + PAGE_SIZE <= end (from alignment
+        // and cur_va < end). Hence cur_entry_fits_range == true, contradicting
+        // !cur_entry_fits_range.
+        if self.level == 1 {
+            crate::specs::mm::page_table::cursor::page_size_lemmas::lemma_page_size_spec_level1();
+            self.va.align_down_concrete(1);
+            // cur_va is PAGE_SIZE-aligned and cur_va < end, so cur_va + PAGE_SIZE <= end <= usize::MAX.
+            self.va.aligned_align_up_advances(1);
+            // align_up(1).to_vaddr() == self.va.to_vaddr() + PAGE_SIZE.
+        }
+    }
+}
+
+} // verus!

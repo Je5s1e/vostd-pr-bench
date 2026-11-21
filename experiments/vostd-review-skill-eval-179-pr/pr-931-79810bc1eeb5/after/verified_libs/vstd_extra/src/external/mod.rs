@@ -1,0 +1,54 @@
+//! Specifications for functions from Rust standard library but not specified in `vstd`.
+//!
+//! These specifications are determined with careful inspection of the std library source code and documentation, and trusted as TCB.
+//! They are subject to change if `vstd` covers more cases in the future.
+pub mod acpi;
+pub mod bits;
+mod bitvec;
+pub mod bytemuck;
+pub mod cmp;
+pub mod convert;
+pub mod fmt;
+pub mod ilog2;
+pub mod int_specs;
+pub mod iter;
+pub mod nonnull;
+pub mod ptr;
+pub mod range;
+pub mod slice;
+pub mod smallvec;
+pub mod smart_ptr;
+pub mod str;
+pub mod time;
+pub mod vec;
+#[cfg(target_arch = "x86_64")]
+pub mod x86;
+pub mod xmas_elf;
+
+pub use acpi::*;
+pub use bitvec::*;
+pub use cmp::*;
+pub use ilog2::*;
+pub use int_specs::*;
+pub use iter::*;
+pub use nonnull::*;
+pub use ptr::*;
+pub use range::*;
+pub use slice::*;
+pub use smallvec::*;
+pub use smart_ptr::*;
+pub use str::*;
+pub use time::*;
+#[cfg(target_arch = "x86_64")]
+pub use x86::*;
+
+use vstd::prelude::*;
+
+verus! {
+
+pub assume_specification[ core::hint::spin_loop ]()
+    opens_invariants none
+    no_unwind
+;
+
+} // verus!

@@ -1,0 +1,128 @@
+# sample suffix | group/status[:finding ids] | 逐标签理由（同一快照多行按 labels.issues 原顺序）
+646-5053290d119e | G/M | 报告无finding；未检查局部broadcast与模块group已激活事实的重复。
+65-625495f69559 | C/M | F1/F2讨论allocate_pt输入与层级契约，未识别两个RW的when_used_as_spec错误指向X_spec。
+651-4fe5602573ae | G/M | 唯一意见是segment文档引用已删除raw_count；不是单调用tracked_pop_level_owner的抽象边界问题。
+656-ffafeb7a696a | H/M | 报告检查了CursorEntry字段模式，但未指出CursorKind枚举本身缺ghost分类。
+658-4f0076d7cb29 | R/M | F1是into_inner恢复账本权限问题，未指出包装器value:T会执行自动drop；同属ManuallyDrop不等于同根因。
+659-77c06f3ce196 | G/M | F3要求修改同一helper的命名前缀，未指出其空体、单调用和冗余边界；F1/F2为其他契约问题。
+668-12d847140254 | O/M | 报告聚焦运行时unimplemented和Repr布局，未识别tracked_from_unused_owner无前提保持slots却断言regions.inv的矛盾。
+674-fc2045c29e48 | G/F:3 | F3明确要求将同一个AtomicUsize::from_ptr通用外部规格迁至共享层，根因与位置一致。
+674-fc2045c29e48 | C/M | F1讨论E布局、atomic对齐及写入关系；提到as_mut_ptr缺布局保证，但未指出返回指针与tracked数组元素之间缺后置关系。
+675-6d0431e7ba0c | O/M | F1是into_raw忘记抑制原Frame析构，未指出drop_meta_in_place用另一slot owner证明receiver独占性。
+677-1de689b269f2 | H/M | 唯一意见是enqueue新增运行时clone；未指出相邻verus块可合并。
+679-f7dfb8525a55 | H/M | 报告定位同一helper但只要求去掉nn参数，未指出insert_before_slot_distinct缺lemma_前缀。
+69-931cc78db2e3 | C/M | 报告讨论new_pt执行表达式重排，未指出PHYS_ADDR_MASK保留52至62位的错误。
+692-1c768aa6f173 | H/M | 报告关注timer执行代码删除和Duration规格上游化，未指出from_spec重复全限定路径。
+699-6f1ed3a06cce | H/M | 未指出同crate验证imports拆分；其他意见是状态不变量、前置条件和执行代码变化。
+699-6f1ed3a06cce | H/M | F2批评范围前提过强，未要求将四端点写为链式比较；语义限制与表达规范不同。
+70-ca8ef69001b0 | T/M | 唯一意见是PTE地址掩码后的可信roundtrip矛盾，未指出guard-level lemma的admit。
+70-ca8ef69001b0 | T/M | 未指出va_range_get_tree_path的路径有效性及长度保证由admit导出。
+70-ca8ef69001b0 | T/M | 未指出lemma_is_child_level_relation的父子层级证明缺口。
+70-ca8ef69001b0 | T/M | 未指出lemma_va_level_to_nid_inc的地址轨迹与child关系证明缺口。
+701-a6a2b2dbee26 | B/M | 报告无finding且只核对DV参数传播，未检查子模块升级与根Cargo.lock同步。
+702-6288e960b7a1 | H/M | 报告关注WaitQueue计数溢出assume，未指出tracked struct重复字段mode。
+703-9481481143aa | H/M | F1引用了ghost字段声明，但未将重复ghost标记作为问题。
+703-9481481143aa | G/M | F1要求扩展状态模型，未指出两端点自定义模型可复用Range<int>。
+704-0ae594a446f7 | G/M | 两条意见针对借用键比较与cursor.wf，不是None分支逐字段相等可合并为整体相等。
+706-3d7ea1276689 | H/M | 未指出allocator索引上下界应使用链式比较。
+706-3d7ea1276689 | H/M | 未指出MAX_IO_PORT在新契约中反复使用全限定路径。
+71-ddd2e78f5931 | O/M | 报告把assume换assert视为改进且无finding，未发现Entry::new_at/cur_entry缺node身份后置关系。
+710-81e3abfc0815 | B/M | F1是泛型trait无条件获取CPU常量，未指出CurrentArch/x86导出缺target_arch条件。
+710-81e3abfc0815 | G/M | 未指出spec helper绕过公共双模式API直接调用生成的_spec名称。
+718-80dcb9bc16eb | H/M | 未指出序列存在量词可使用Seq::any。
+718-80dcb9bc16eb | H/M | 未指出非空range的逐元素全称量词可使用Seq::all；不将其他iterator契约意见算命中。
+718-80dcb9bc16eb | G/M | 未指出lemma_seq_range_union_small只有一个调用者、应局部化。
+723-d90d548c92ae | H/M | F1是wf改Inv，F2是辅助lemma布局；未指出borrow应有tracked_前缀。
+728-7e0d60333942 | H/M | 报告讨论分配资源的真实性，未指出FreelistConstant/FreelistInvariant应为ghost模型类型。
+728-7e0d60333942 | H/M | 未指出target_node的Some载荷重复投影可绑定一次。
+738-b759e2fe2adc | E/F:1 | F1明确指出同一as_ptr执行替换缺表示依据，并要求使用实际cell accessor、保留原get行为；计入原保存/解释根因，不据此确认其条件性运行时后果。
+739-c6323145118d | E/M | 报告明确肯定inline returns；未识别既有exec getter应以verus_spec附加契约的约定。
+74-519268844721 | T/M | 报告是MetaSlotPerm全局归属变弱，未指出pte_index九位掩码界限仍由admit证明。
+742-32f28ee1260b | G/M | 未指出embedding函数内old_store未使用。
+742-32f28ee1260b | H/M | 未指出BitVec原始import分组被改变。
+742-32f28ee1260b | G/M | 未指出lemma_first_zero_seq_ext_equal除自身递归外无调用。
+75-0ff02a61dc17 | O/M | 唯一意见是旧prototype删除后留下imports；未指出map路径假设unused-PTE token存在再消费。
+76-58c6aac4274b | I/M | 报告仅讨论执行表示/API变化，未指出recursive_trace重复child及空路径长度定理错误。
+76-58c6aac4274b | C/M | 未指出seek_trace_next缺路径、child、深度与索引前提。
+76-58c6aac4274b | I/M | 未指出允许重复child值时删除后全子树不存在定理不成立。
+763-027c97275075 | E/M | 报告认为删除的原始debug_assert/路径更新注释无问题，未识别迁移来源记录丢失；before定位是被删除证据，不是已修复标签。
+770-28ec70b8e3f2 | H/M | 未指出zero构造后置条件的forall可用Seq::all。
+770-28ec70b8e3f2 | G/M | 未指出private CpuSet辅助证明插入公共模型/API区。
+775-d3b5ea030112 | G/M | 报告明确将private single-purpose helper视为合理，未指出单外部调用的递归构造helper应局部化。
+778-994b5b0a00cf | G/M | 唯一意见是as_aligned排除短range，未指出contains helper无消费者。
+778-994b5b0a00cf | G/M | 未指出overlaps helper无消费者；不因同一模型文件而匹配。
+78-6082813ffdda | B/F:1 | F1准确枚举6处GuardInPath::None残留，并区分合法Option::None；与标签根因和修复一致。
+782-0195dc456673 | G/F:1 | F1除元素有效性主论点外，明确指出type_inv与Inv重复count谓词、存在漂移并要求唯一规范定义；匹配此子声明，不为额外元素论点背书。
+782-1a8ec593d670 | G/M | 报告明确保留inv兼容别名且无finding；未指出其无必要消费者。
+782-4f44ff343670 | H/M | 报告是push排除满数组Err输入，未指出Deref逐点等式可改model整体等式。
+789-8943e8f25420 | G/M | 未指出重复header length accessor应生成；F2建议生成共享device_scopes accessor不是同一根因。
+789-8943e8f25420 | C/F:1 | F1准确识别valid_device_scopes为public closed且无引入lemma，调用者无法证明输入前提。
+797-07c694bbca2a | C/M | F1引用aligned_regions作参数，但未指出其自身闭合造成输入归一化模型不透明；不能用泛称predicates覆盖未点出的模型。
+797-07c694bbca2a | C/F:1 | F1明确指出closed is_partition无法导出contiguous/aligned事实，建议公开characterization。
+797-07c694bbca2a | G/M | 未指出region_boundaries私有证明辅助项打断公共API区。
+797-07c694bbca2a | C/F:1 | F1明确指出closed coalesced无法导出相邻类型不同，并提出对应公开lemma。
+797-07c694bbca2a | C/F:1 | F1明确指出preserves_types及selected_type不透明，无法得到覆盖地址类型；与另两条子声明分别匹配。
+802-2d0e9d0e7c27 | H/M | 未指出Layout规格receiver应使用角色名及自动解引用；上游化建议不等于命名规范命中。
+809-9d1b88dd7b02 | G/M | 未指出同类型Range逐字段重建冗余。
+809-9d1b88dd7b02 | H/M | 未指出FreelistResource字段不必要的父模块可见性。
+809-9d1b88dd7b02 | H/M | 未指出同一Ok载荷在多个implication中重复绑定。
+812-4121eb1c32b0 | H/M | F2批评Ok/Err语义方向缺失，但未指出is_ok应改为spec的is Ok；两者不是同一义务。
+819-15e19d347120 | H/F:3 | F3明确覆盖ptr.rs115-143的ptr@.addr，要求使用addr()，包含volatile read。
+819-15e19d347120 | H/F:3 | F3明确覆盖同一区域的指针address accessor，包含独立volatile write；共享报告项记录两个具体操作位置。
+82-7861acbd2ab1 | C/F:1 | F1准确指出unsigned ilog2(0) panic与缺nonzero前置条件，并给出x>0修复。
+820-23c7625612f0 | G/M | 唯一意见是map_isa_pin_to未导出映射性质，未指出lemma_nonempty_isa_overrides_without_timer无调用。
+820-23c7625612f0 | G/M | 未指出lemma_empty_isa_overrides无调用。
+820-23c7625612f0 | G/M | 未指出lemma_isa_override_origin无调用。
+847-deb42343023f | R/M | 报告讨论架构执行模块删除及satp状态模型，未指出set_prop给absent PTE置VALID。
+855-5c9e493bb78b | C/F:1 | F1准确对比CPU四级与IOMMU三级，识别将全局等式移入泛型trait义务的限制；不据匹配额外确认所有不健全性措辞。
+856-619ad58877f8 | H/F:1 | F1定位同一两条vstd import并提出分组合并，明确保留cfg import独立。
+857-51bb973322ec | E/M | 报告没有指出unmap先改本地overflow检查而未先修upstream的流程问题。
+857-51bb973322ec | E/M | F1指出残留admit及closure状态差异，但未将无收益的Option执行重写作为问题；不因同一分支而匹配。
+860-a4749f699922 | H/M | 未指出weak_monitor验证imports分组顺序。
+860-a4749f699922 | H/M | 未指出parent.info的重复Some载荷投影。
+860-a4749f699922 | H/M | 未指出complete的精确布尔结果应使用returns。
+860-a4749f699922 | G/M | 未指出singleton choice私有lemma应后置。
+860-a4749f699922 | H/M | 未指出report_covers为未使用的free predicate import。
+860-a4749f699922 | G/M | 未指出cpu/retirement重复record-observation谓词。
+860-a4749f699922 | G/M | F1讨论compare_exchange失败返回缺接受关系，未指出前提应复用self.root.accepts(value)。
+862-637c0417fccd | I/X | 标签只定位before；diff把pairwise_disjoint和union equality移出forall，after已排除空parts划分非空s。报告在Evidence中正确解释修复，不应要求其作为after缺陷报告。
+865-f93f960594be | H/M | 未指出LoongArch exec header验证imports与原imports混杂。
+865-f93f960594be | H/M | 未指出vaddr_range_proofs模块import无引用。
+865-f93f960594be | H/M | 未指出lemma2_to64已导入却仍用全限定路径。
+865-f93f960594be | G/M | 未指出公共跨模块lemma与私有尾部辅助证明混排。
+865-f93f960594be | C/M | 唯一意见是架构执行模块删除，未检查set_prop清IS_BASIC造成bit12/GLOBAL限制。
+868-c4d83ca80c61 | O/M | 报告无真实finding（Low表格None只是占位）；未指出pop消费list owner却未返回剩余list权限。
+870-d808e2c9c911 | G/M | 报告要求还原构造体执行排版，未指出同一literal在spec/exec重复、应使用dual_spec。
+871-61c301b7f35d | B/M | 报告识别统计脚本及workflow其他问题，但未指出verus:false使干净runner缺line_count源码manifest。
+879-902b28e19560 | G/M | 报告无finding，并检查了嵌套恢复lemma的内容；未发现lemma_nested_restore没有消费者。
+886-fe5eb7f3e6aa | H/M | 未指出Some保证已蕴含None等价式的一个方向；意见为信任边界和import。
+887-431e3c7c0000 | E/M | F1是删除生产执行路径，未识别bitflags实现替换缺独立Origin标记。
+887-431e3c7c0000 | H/M | 未指出四个getter应以returns表达精确结果。
+890-5b1e96c2ec18 | B/P:1 | F1命中lemma_filter_laws缺iter形参与调用arity不一致，但漏掉更早的verus!开块缺失/孤立闭括号；标签组合两个helper引入缺陷，仅部分覆盖。
+892-34407c0508d2 | G/M | 报告无finding；未指出from_raw_spec的paddr参数未使用。
+895-910070850974 | H/M | 报告讨论PCI执行代码删除，未指出verus_verify与dual_spec属性重复。
+897-657bce05372e | G/M | 未指出FrameRawPermsRef与View/Inv定义在使用它的公共impl之后。
+897-657bce05372e | O/F:1 | F1明确定位Frame ref_rel_perm的反向implication，指出泛型raw_as_ref不能导出reference inv；匹配机制，不要求采用报告较宽的修复。
+900-d5d5a579f00c | R/M | F1是IRQ guard非LIFO析构导致提前开中断；虽提及preempt包装IRQ guard，未把禁抢占改禁中断的执行语义变化作为问题。
+900-d5d5a579f00c | G/M | 未指出tracked_transfer原样返回self，是多余identity move API。
+905-b62614ee989e | E/M | F1是checked_mul引入None，未指出CPUID叶说明及频率公式注释被改写；建议恢复rustdoc不足以匹配具体注释根因。
+906-f6e33f374ccc | E/F:1 | F1准确指出parser迁至stack_size新模块、扩大可见性并改变call path，要求原位验证。
+909-a2d5bf577533 | G/M | F3仅建议NonNull::eq上游化，没有发现已存在raw-pointer PartialEq规格可复用。
+915-7a42b67bb385 | C/P:1 | F1注意到结果为条件式并要求成功时精确后置，但主张改变构造域、删除assume；没有识别标签在既有信任政策下可直接导出无条件等式，只记相关子义务。
+916-d7cdf470b297 | G/M | 未指出零data-directory构造literal重复及dual_spec复用。
+916-d7cdf470b297 | C/P:1 | F1完整指出valid_setup_elf前提不透明，但未指出pe_coff_bytes_spec结果模型同样closed；此标签包含输入和输出两项义务。
+92-8fe6908fea09 | I/M | 唯一意见是from_raw_paddr地址界限，未指出present分支假设absent及replace相反前提形成矛盾。
+920-1358fc9ae842 | E/M | 报告肯定已有Origin记录与wrapper，未指出应保留core intrinsic调用及原注释、为原API加规格。
+920-d5764dad33a5 | H/M | 唯一意见是CPUID规格上游化，未指出CpuModel名称过宽。
+921-26e8809aa407 | E/M | 未指出verification说明拆在公共rustdoc和Origin块两处；F2是另一组import注释问题。
+923-1f20b6eda2bb | E/M | 未指出exec heap APIs应迁至verus_spec attribute模式；执行模块删除意见不是该历史迁移约定。
+923-229645379886 | E/M | 唯一意见是core import树保存，未指出HeapSlot三字段pub(super)扩大可见性。
+924-fa4046a6b4ba | E/P:1 | F1指出多个原运行时值断言被删除并要求保留，覆盖标签一部分；未识别构造/调用改写使用无理由的Origin标记，故不记完整命中。
+924-fa4046a6b4ba | E/M | 未指出未改变的vmspace模块应直接包裹，而非插入迁移说明。
+927-cd548f6f2503 | C/M | 未指出read_val/write_val/collect成功后置条件缺失；Pod问题为不同根因。
+927-cd548f6f2503 | C/M | F3只建议Vec::index_mut规格上游化，未指出缺SliceIndex bounds-admissibility。
+93-7fd1bdf5bd01 | B/F:1 | F1准确指出被删ManuallyDrop axiom仍由FVT5 broadcast use引用，构建/证明名称解析断裂。
+931-79810bc1eeb5 | E/M | 唯一意见是slice/Vec规格上游化，未指出原zero-fill注释被改写。
+96-d6659b1d4f5f | B/M | 报告质疑root路径推断，未指出环境路径优先级应低于仓库工具；共享locator不等于同根因。
+97-d67afbc9e914 | R/M | F1是level>1提前结束、F2是replace返回值契约，未指出move_forward空操作及三处逐字节补偿。
+99-08de0794bf8f | O/M | F2关注mutation中的perms/invariant assume，未识别初始化根frame未插入permission以及frame index/paddr键混用；相关资源问题不算具体初始化根因命中。

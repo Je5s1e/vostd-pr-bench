@@ -1,0 +1,177 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/183",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 183,
+    "title": "Verify Cursor::move_forward",
+    "body": "Verified `Cursor::move_forward`.\r\n\r\nAdded two alternative `spec fn` for `pte_index` that doesn't use bit arithmetics and some properties for the `page_size` function.\r\n\r\nFixed a typo in `lemma_aligned_pte_index_unchanged`.",
+    "bodyHTML": "<p dir=\"auto\">Verified <code class=\"notranslate\">Cursor::move_forward</code>.</p>\n<p dir=\"auto\">Added two alternative <code class=\"notranslate\">spec fn</code> for <code class=\"notranslate\">pte_index</code> that doesn't use bit arithmetics and some properties for the <code class=\"notranslate\">page_size</code> function.</p>\n<p dir=\"auto\">Fixed a typo in <code class=\"notranslate\">lemma_aligned_pte_index_unchanged</code>.</p>",
+    "url": "https://github.com/asterinas/vostd/pull/183",
+    "state": "MERGED",
+    "createdAt": "2025-08-08T14:30:47Z",
+    "updatedAt": "2025-09-10T06:48:12Z",
+    "closedAt": "2025-08-09T10:28:26Z",
+    "mergedAt": "2025-08-09T10:28:26Z",
+    "author": {
+      "login": "Deophius"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "fe9835da9d23028bd6f70181ed99d9eca466f147",
+    "headRefName": "add-page-size",
+    "headRefOid": "2bba7152be3c1f098cb2a3c2b61d23f3670990c9",
+    "changedFiles": 3,
+    "additions": 605,
+    "deletions": 182,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 2
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 3,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Mw"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/mm/mod.rs",
+          "additions": 127,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+          "additions": 154,
+          "deletions": 58,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/mm/page_table/mod.rs",
+          "additions": 324,
+          "deletions": 123,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [
+    {
+      "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3170576210",
+      "html_url": "https://github.com/asterinas/vostd/pull/183#issuecomment-3170576210",
+      "issue_url": "https://api.github.com/repos/asterinas/vostd/issues/183",
+      "id": 3170576210,
+      "node_id": "IC_kwDONtWm_c68-ydS",
+      "user": {
+        "login": "zouyonghao",
+        "id": 7647081,
+        "node_id": "MDQ6VXNlcjc2NDcwODE=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7647081?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/zouyonghao",
+        "html_url": "https://github.com/zouyonghao",
+        "followers_url": "https://api.github.com/users/zouyonghao/followers",
+        "following_url": "https://api.github.com/users/zouyonghao/following{/other_user}",
+        "gists_url": "https://api.github.com/users/zouyonghao/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/zouyonghao/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/zouyonghao/subscriptions",
+        "organizations_url": "https://api.github.com/users/zouyonghao/orgs",
+        "repos_url": "https://api.github.com/users/zouyonghao/repos",
+        "events_url": "https://api.github.com/users/zouyonghao/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/zouyonghao/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2025-08-09T10:28:13Z",
+      "updated_at": "2025-08-09T10:28:13Z",
+      "body_html": "<p dir=\"auto\">Thank you! This is very impressive.</p>",
+      "body_text": "Thank you! This is very impressive.",
+      "body": "Thank you! This is very impressive.",
+      "author_association": "COLLABORATOR",
+      "reactions": {
+        "url": "https://api.github.com/repos/asterinas/vostd/issues/comments/3170576210/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": null,
+      "minimized": null
+    }
+  ],
+  "review_comments": [],
+  "review_dismissals": []
+}

@@ -1,0 +1,638 @@
+{
+  "captured_at": "2026-11-21T09:04:41.975490+00:00",
+  "sample_count": 179,
+  "distinct_pr_count": 164,
+  "total_samples": 179,
+  "completed_rate": 1.0,
+  "issue_stats": {
+    "n": 244,
+    "full": 58,
+    "partial": 7,
+    "miss": 176,
+    "fixed_in_after": 3,
+    "strict_recall": 0.23770491803278687,
+    "lenient_recall": 0.26639344262295084
+  },
+  "by_category": {
+    "semantic": {
+      "n": 133,
+      "full": 47,
+      "partial": 5,
+      "miss": 78,
+      "fixed_in_after": 3,
+      "strict_recall": 0.3533834586466165,
+      "lenient_recall": 0.39097744360902253
+    },
+    "guideline": {
+      "n": 111,
+      "full": 11,
+      "partial": 2,
+      "miss": 98,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0990990990990991,
+      "lenient_recall": 0.11711711711711711
+    }
+  },
+  "by_group": {
+    "显式admit/external_body证明缺口": {
+      "n": 27,
+      "full": 15,
+      "partial": 2,
+      "miss": 10,
+      "fixed_in_after": 0,
+      "strict_recall": 0.5555555555555556,
+      "lenient_recall": 0.6296296296296297
+    },
+    "所有权、资源守恒与对象身份": {
+      "n": 17,
+      "full": 3,
+      "partial": 0,
+      "miss": 13,
+      "fixed_in_after": 1,
+      "strict_recall": 0.17647058823529413,
+      "lenient_recall": 0.17647058823529413
+    },
+    "状态机、不变量与模型语义": {
+      "n": 14,
+      "full": 4,
+      "partial": 0,
+      "miss": 8,
+      "fixed_in_after": 2,
+      "strict_recall": 0.2857142857142857,
+      "lenient_recall": 0.2857142857142857
+    },
+    "API契约、泛型与边界": {
+      "n": 28,
+      "full": 10,
+      "partial": 3,
+      "miss": 15,
+      "fixed_in_after": 0,
+      "strict_recall": 0.35714285714285715,
+      "lenient_recall": 0.4642857142857143
+    },
+    "构建、工具链与证明可接受性": {
+      "n": 30,
+      "full": 8,
+      "partial": 1,
+      "miss": 21,
+      "fixed_in_after": 0,
+      "strict_recall": 0.26666666666666666,
+      "lenient_recall": 0.3
+    },
+    "运行时行为与生命周期": {
+      "n": 18,
+      "full": 7,
+      "partial": 0,
+      "miss": 11,
+      "fixed_in_after": 0,
+      "strict_recall": 0.3888888888888889,
+      "lenient_recall": 0.3888888888888889
+    },
+    "规范复用、放置与闲置helper": {
+      "n": 41,
+      "full": 3,
+      "partial": 0,
+      "miss": 38,
+      "fixed_in_after": 0,
+      "strict_recall": 0.07317073170731707,
+      "lenient_recall": 0.07317073170731707
+    },
+    "命名、模式、导入与局部风格": {
+      "n": 49,
+      "full": 5,
+      "partial": 0,
+      "miss": 44,
+      "fixed_in_after": 0,
+      "strict_recall": 0.10204081632653061,
+      "lenient_recall": 0.10204081632653061
+    },
+    "执行代码保留/放置": {
+      "n": 18,
+      "full": 3,
+      "partial": 1,
+      "miss": 14,
+      "fixed_in_after": 0,
+      "strict_recall": 0.16666666666666666,
+      "lenient_recall": 0.2222222222222222
+    },
+    "验证文档": {
+      "n": 2,
+      "full": 0,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    }
+  },
+  "after_only_sensitivity": {
+    "n": 241,
+    "full": 58,
+    "partial": 7,
+    "miss": 176,
+    "fixed_in_after": 0,
+    "strict_recall": 0.24066390041493776,
+    "lenient_recall": 0.2697095435684647
+  },
+  "findings": 300,
+  "finding_status": {
+    "unmatched_not_adjudicated_false": 237,
+    "full_match": 56,
+    "partial_match": 7
+  },
+  "severity": {
+    "High": 124,
+    "Medium": 135,
+    "Low": 41
+  },
+  "cases_any_full": 48,
+  "cases_all_full": 41,
+  "cases_no_full": 131,
+  "cases_no_findings": 24,
+  "diff_equal": true,
+  "evaluator_version": "20261121-full-v2",
+  "judgment_source": "single_agent_semantic_assessment",
+  "sample_macro_recall": 0.2474860335195531,
+  "pr_balanced_macro_recall": 0.23760162601626014,
+  "pr_macro_definition": "先对每PR的有标签快照recall取均值，再对PR等权平均；未做跨快照根因去重",
+  "zero_label_samples": 0,
+  "by_batch": {
+    "baseline_96": {
+      "samples": 96,
+      "issues": {
+        "n": 117,
+        "full": 42,
+        "partial": 3,
+        "miss": 70,
+        "fixed_in_after": 2,
+        "strict_recall": 0.358974358974359,
+        "lenient_recall": 0.38461538461538464
+      },
+      "by_category": {
+        "semantic": {
+          "n": 91,
+          "full": 38,
+          "partial": 3,
+          "miss": 48,
+          "fixed_in_after": 2,
+          "strict_recall": 0.4175824175824176,
+          "lenient_recall": 0.45054945054945056
+        },
+        "guideline": {
+          "n": 26,
+          "full": 4,
+          "partial": 0,
+          "miss": 22,
+          "fixed_in_after": 0,
+          "strict_recall": 0.15384615384615385,
+          "lenient_recall": 0.15384615384615385
+        }
+      },
+      "findings": 174
+    },
+    "remaining_83": {
+      "samples": 83,
+      "issues": {
+        "n": 127,
+        "full": 16,
+        "partial": 4,
+        "miss": 106,
+        "fixed_in_after": 1,
+        "strict_recall": 0.12598425196850394,
+        "lenient_recall": 0.15748031496062992
+      },
+      "by_category": {
+        "semantic": {
+          "n": 42,
+          "full": 9,
+          "partial": 2,
+          "miss": 30,
+          "fixed_in_after": 1,
+          "strict_recall": 0.21428571428571427,
+          "lenient_recall": 0.2619047619047619
+        },
+        "guideline": {
+          "n": 85,
+          "full": 7,
+          "partial": 2,
+          "miss": 76,
+          "fixed_in_after": 0,
+          "strict_recall": 0.08235294117647059,
+          "lenient_recall": 0.10588235294117647
+        }
+      },
+      "findings": 126
+    }
+  },
+  "by_rule": {
+    "api-postconditions": {
+      "n": 9,
+      "full": 4,
+      "partial": 2,
+      "miss": 3,
+      "fixed_in_after": 0,
+      "strict_recall": 0.4444444444444444,
+      "lenient_recall": 0.6666666666666666
+    },
+    "api-preconditions": {
+      "n": 3,
+      "full": 1,
+      "partial": 1,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.3333333333333333,
+      "lenient_recall": 0.6666666666666666
+    },
+    "attach-broadcast-axioms-once": {
+      "n": 1,
+      "full": 0,
+      "partial": 0,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "avoid-redundant-as-int-casts": {
+      "n": 1,
+      "full": 0,
+      "partial": 0,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "avoid-redundant-mode-markers": {
+      "n": 4,
+      "full": 0,
+      "partial": 0,
+      "miss": 4,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "avoid-unused-spec-helpers": {
+      "n": 10,
+      "full": 0,
+      "partial": 0,
+      "miss": 10,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "bind-option-payloads": {
+      "n": 2,
+      "full": 0,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "canonical-spec-models": {
+      "n": 4,
+      "full": 0,
+      "partial": 0,
+      "miss": 4,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "centralize-trusted-boundaries": {
+      "n": 3,
+      "full": 0,
+      "partial": 0,
+      "miss": 3,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "defer-auxiliary-proof-functions": {
+      "n": 5,
+      "full": 0,
+      "partial": 0,
+      "miss": 5,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "document-verified-apis": {
+      "n": 2,
+      "full": 0,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "generate-repeated-spec-helpers": {
+      "n": 1,
+      "full": 0,
+      "partial": 0,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "group-imports-by-crate": {
+      "n": 6,
+      "full": 1,
+      "partial": 0,
+      "miss": 5,
+      "fixed_in_after": 0,
+      "strict_recall": 0.16666666666666666,
+      "lenient_recall": 0.16666666666666666
+    },
+    "implement-inv-for-models": {
+      "n": 1,
+      "full": 1,
+      "partial": 0,
+      "miss": 0,
+      "fixed_in_after": 0,
+      "strict_recall": 1.0,
+      "lenient_recall": 1.0
+    },
+    "inline-single-use-proof-helpers": {
+      "n": 4,
+      "full": 0,
+      "partial": 0,
+      "miss": 4,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "match-enum-results": {
+      "n": 3,
+      "full": 0,
+      "partial": 0,
+      "miss": 3,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "name-assume-spec-receivers": {
+      "n": 1,
+      "full": 0,
+      "partial": 0,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "name-proof-roles": {
+      "n": 9,
+      "full": 2,
+      "partial": 0,
+      "miss": 7,
+      "fixed_in_after": 0,
+      "strict_recall": 0.2222222222222222,
+      "lenient_recall": 0.2222222222222222
+    },
+    "narrow-lint-suppressions": {
+      "n": 1,
+      "full": 0,
+      "partial": 0,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "organize-proof-imports": {
+      "n": 6,
+      "full": 0,
+      "partial": 0,
+      "miss": 6,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "pair-exec-helpers-with-spec-models": {
+      "n": 5,
+      "full": 1,
+      "partial": 0,
+      "miss": 4,
+      "fixed_in_after": 0,
+      "strict_recall": 0.2,
+      "lenient_recall": 0.2
+    },
+    "prefer-ghost-model-structs": {
+      "n": 2,
+      "full": 0,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "preserve-exec-code": {
+      "n": 21,
+      "full": 5,
+      "partial": 1,
+      "miss": 15,
+      "fixed_in_after": 0,
+      "strict_recall": 0.23809523809523808,
+      "lenient_recall": 0.2857142857142857
+    },
+    "quantifiers-and-triggers": {
+      "n": 4,
+      "full": 0,
+      "partial": 0,
+      "miss": 4,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "reuse-existing-specifications": {
+      "n": 8,
+      "full": 0,
+      "partial": 0,
+      "miss": 8,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "right-size-spec-placement": {
+      "n": 1,
+      "full": 1,
+      "partial": 0,
+      "miss": 0,
+      "fixed_in_after": 0,
+      "strict_recall": 1.0,
+      "lenient_recall": 1.0
+    },
+    "separate-verus-modes": {
+      "n": 1,
+      "full": 0,
+      "partial": 0,
+      "miss": 1,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "use-addr-for-pointers": {
+      "n": 2,
+      "full": 2,
+      "partial": 0,
+      "miss": 0,
+      "fixed_in_after": 0,
+      "strict_recall": 1.0,
+      "lenient_recall": 1.0
+    },
+    "use-chained-comparisons": {
+      "n": 3,
+      "full": 0,
+      "partial": 0,
+      "miss": 3,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    },
+    "use-returns-for-exact-results": {
+      "n": 2,
+      "full": 0,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    }
+  },
+  "unmatched_raw_finding_rate": 0.79,
+  "full_aligned_raw_finding_rate": 0.18666666666666668,
+  "known_prior_exposure_prs": [
+    628,
+    632,
+    770,
+    856,
+    886,
+    931
+  ],
+  "not_measured": {
+    "finding_precision": null,
+    "confirmed_false_positives_per_pr": null,
+    "unresolved_atomic_rate": null,
+    "atomic_duplicate_rate": null,
+    "recall_at_k": null,
+    "executable_oracle_recall": null,
+    "tokens": null,
+    "tool_calls": null,
+    "latency": null
+  },
+  "limitations": [
+    "标签匹配是单agent判断，未人工校准",
+    "finding为原始报告项，未完整原子化或独立真伪裁决",
+    "未匹配不等于误报",
+    "全快照汇总，未跨快照根因去重或依赖组隔离",
+    "fast静态配置，缺runner原始prompt/trace与成本",
+    "未运行历史Verus/编译/测试",
+    "before/after不是bug/fix配对",
+    "目录名pr-test不代表封存测试划分"
+  ],
+  "declared_prior_exposure_sensitivity": {
+    "n": 237,
+    "full": 57,
+    "partial": 7,
+    "miss": 170,
+    "fixed_in_after": 3,
+    "strict_recall": 0.24050632911392406,
+    "lenient_recall": 0.270042194092827
+  },
+  "finding_rule_mentions": {
+    "api-postconditions": {
+      "raw_findings": 64,
+      "unmatched": 53
+    },
+    "api-preconditions": {
+      "raw_findings": 34,
+      "unmatched": 29
+    },
+    "avoid-redundant-as-int-casts": {
+      "raw_findings": 1,
+      "unmatched": 1
+    },
+    "avoid-unused-spec-helpers": {
+      "raw_findings": 5,
+      "unmatched": 5
+    },
+    "canonical-spec-models": {
+      "raw_findings": 1,
+      "unmatched": 1
+    },
+    "centralize-trusted-boundaries": {
+      "raw_findings": 75,
+      "unmatched": 48
+    },
+    "complete-external-contracts": {
+      "raw_findings": 41,
+      "unmatched": 37
+    },
+    "defer-auxiliary-proof-functions": {
+      "raw_findings": 2,
+      "unmatched": 1
+    },
+    "document-real-proof-debt": {
+      "raw_findings": 10,
+      "unmatched": 9
+    },
+    "document-verified-apis": {
+      "raw_findings": 5,
+      "unmatched": 5
+    },
+    "group-imports-by-crate": {
+      "raw_findings": 2,
+      "unmatched": 1
+    },
+    "implement-inv-for-models": {
+      "raw_findings": 13,
+      "unmatched": 9
+    },
+    "inline-single-use-proof-helpers": {
+      "raw_findings": 3,
+      "unmatched": 1
+    },
+    "name-proof-roles": {
+      "raw_findings": 4,
+      "unmatched": 2
+    },
+    "narrow-lint-suppressions": {
+      "raw_findings": 3,
+      "unmatched": 3
+    },
+    "organize-proof-imports": {
+      "raw_findings": 3,
+      "unmatched": 3
+    },
+    "pair-exec-helpers-with-spec-models": {
+      "raw_findings": 1,
+      "unmatched": 1
+    },
+    "preserve-exec-code": {
+      "raw_findings": 60,
+      "unmatched": 46
+    },
+    "restrict-generic-trusted-models": {
+      "raw_findings": 4,
+      "unmatched": 3
+    },
+    "reuse-existing-specifications": {
+      "raw_findings": 15,
+      "unmatched": 11
+    },
+    "upstream-reusable-specs": {
+      "raw_findings": 16,
+      "unmatched": 15
+    },
+    "use-addr-for-pointers": {
+      "raw_findings": 1,
+      "unmatched": 0
+    },
+    "use-chained-comparisons": {
+      "raw_findings": 1,
+      "unmatched": 1
+    },
+    "use-returns-for-exact-results": {
+      "raw_findings": 1,
+      "unmatched": 1
+    }
+  },
+  "finding_rule_mentions_definition": "按报告原文出现的规则ID计数，非互斥，未出现ID的同类意见不推断归类；不是规则执行率或问题真伪裁决"
+}

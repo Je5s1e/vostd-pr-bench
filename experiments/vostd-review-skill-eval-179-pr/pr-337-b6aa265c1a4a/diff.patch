@@ -1,0 +1,213 @@
+diff --git a/ostd/src/sync/guard.rs b/ostd/src/sync/guard.rs
+index a4e283d68f05fac8369be37b41dd591640f3c088..b10262526b89c05d6c46869e59df9e2592981d03 100644
+--- a/ostd/src/sync/guard.rs
++++ b/ostd/src/sync/guard.rs
+@@ -30,22 +30,29 @@ pub trait GuardTransfer {
+     /// The original guard must be dropped immediately after calling this method.
+     fn transfer_to(&mut self) -> Self;
+ }
+-
++*/
+ /// A guardian that disables preemption while holding a lock.
+-pub enum PreemptDisabled {}
++#[verus_verify]
++// pub enum PreemptDisabled {}
++pub struct PreemptDisabled;
+ 
++#[verus_verify]
+ impl SpinGuardian for PreemptDisabled {
+-    type Guard = DisabledPreemptGuard;
+-    type ReadGuard = DisabledPreemptGuard;
++    // type Guard = DisabledPreemptGuard;
++    // type ReadGuard = DisabledPreemptGuard;
++    type Guard = ();
++    type ReadGuard = ();
+ 
+     fn guard() -> Self::Guard {
+-        disable_preempt()
++        // disable_preempt()
++        ()
+     }
+     fn read_guard() -> Self::Guard {
+-        disable_preempt()
++        // disable_preempt()
++        ()
+     }
+ }
+-*/
++
+ /// A guardian that disables IRQs while holding a lock.
+ ///
+ /// This guardian would incur a certain time overhead over
+diff --git a/ostd/src/sync/mod.rs b/ostd/src/sync/mod.rs
+index c303ccc64958a4454af7be5229bcc8ddced5ef2c..208ba3e09c89813ba59ea1da4c96e842a127edeb 100644
+--- a/ostd/src/sync/mod.rs
++++ b/ostd/src/sync/mod.rs
+@@ -3,7 +3,7 @@
+ mod guard;
+ //mod mutex;
+ mod rcu;
+-//mod rwarc;
++mod rwarc;
+ mod rwlock;
+ //mod rwmutex;
+ mod spin;
+@@ -12,11 +12,11 @@ mod wait;
+ pub use self::{
+     guard::{
+         /*GuardTransfer,*/
+-        LocalIrqDisabled, /*, PreemptDisabled, SpinGuardian, WriteIrqDisabled*/
++        LocalIrqDisabled, PreemptDisabled, /*SpinGuardian, WriteIrqDisabled*/
+     },
+     //mutex::{ArcMutexGuard, Mutex, MutexGuard},
+     rcu::{non_null /*, Rcu, RcuDrop, RcuOption, RcuOptionReadGuard, RcuReadGuard*/},
+-    /*rwarc::{RoArc, RwArc},*/
++    rwarc::{RoArc, RwArc},
+     rwlock::{RwLock, RwLockReadGuard, RwLockUpgradeableGuard, RwLockWriteGuard},/*
+     rwmutex::{
+         ArcRwMutexReadGuard, ArcRwMutexUpgradeableGuard, ArcRwMutexWriteGuard, RwMutex,
+diff --git a/ostd/src/sync/rwarc.rs b/ostd/src/sync/rwarc.rs
+index 7f4e31aadea26eaebbf0ee03d3ee34dc9e6354d6..96c46d0b82a5d07f6c91ee760faadbccda6ecac6 100644
+--- a/ostd/src/sync/rwarc.rs
++++ b/ostd/src/sync/rwarc.rs
+@@ -2,8 +2,11 @@
+ use alloc::sync::Arc;
+ use core::sync::atomic::{fence, AtomicUsize, Ordering};
+ 
++use vstd::prelude::*;
++
+ use super::{PreemptDisabled, RwLock, RwLockReadGuard, RwLockWriteGuard};
+ 
++verus! {
+ /// A reference-counting pointer with read-write capabilities.
+ ///
+ /// This is essentially `Arc<RwLock<T>>`, so it can provide read-write capabilities through
+@@ -25,12 +28,13 @@ pub struct RwArc<T>(Arc<Inner<T>>);
+ pub struct RoArc<T>(Arc<Inner<T>>);
+ 
+ struct Inner<T> {
+-    data: RwLock<T>,
++    data: RwLock<T, PreemptDisabled>,
+     num_rw: AtomicUsize,
+ }
+ 
+ impl<T> RwArc<T> {
+     /// Creates a new `RwArc<T>`.
++    #[verifier::external_body]
+     pub fn new(data: T) -> Self {
+         let inner = Inner {
+             data: RwLock::new(data),
+@@ -40,11 +44,13 @@ impl<T> RwArc<T> {
+     }
+ 
+     /// Acquires the read lock for immutable access.
++    #[verifier::external_body]
+     pub fn read(&self) -> RwLockReadGuard<T, PreemptDisabled> {
+         self.0.data.read()
+     }
+ 
+     /// Acquires the write lock for mutable access.
++    #[verifier::external_body]
+     pub fn write(&self) -> RwLockWriteGuard<T, PreemptDisabled> {
+         self.0.data.write()
+     }
+@@ -58,6 +64,7 @@ impl<T> RwArc<T> {
+     ///   accessing the unique `RwArc` instance for the particular allocation.
+     /// - There may be any number of [`RoArc`]s pointing to the same allocation, but they may only
+     ///   produce immutable references to the underlying data.
++    #[verifier::external_body]
+     pub fn get(&mut self) -> Option<&T> {
+         if self.0.num_rw.load(Ordering::Relaxed) > 1 {
+             return None;
+@@ -74,12 +81,15 @@ impl<T> RwArc<T> {
+     }
+ 
+     /// Clones a [`RoArc`] that points to the same allocation.
++    #[verifier::external_body]
+     pub fn clone_ro(&self) -> RoArc<T> {
+         RoArc(self.0.clone())
+     }
+ }
+ 
++// #[verifier::external]
+ impl<T> Clone for RwArc<T> {
++    #[verifier::external_body]
+     fn clone(&self) -> Self {
+         let inner = self.0.clone();
+ 
+@@ -92,13 +102,18 @@ impl<T> Clone for RwArc<T> {
+ }
+ 
+ impl<T> Drop for RwArc<T> {
+-    fn drop(&mut self) {
++    #[verifier::external_body]
++    fn drop(&mut self) 
++        opens_invariants none
++        no_unwind
++    {
+         self.0.num_rw.fetch_sub(1, Ordering::Release);
+     }
+ }
+ 
+ impl<T: Clone> RwArc<T> {
+     /// Returns the contained value by cloning it.
++    #[verifier::external_body]
+     pub fn get_cloned(&self) -> T {
+         let guard = self.read();
+         guard.clone()
+@@ -107,12 +122,14 @@ impl<T: Clone> RwArc<T> {
+ 
+ impl<T> RoArc<T> {
+     /// Acquires the read lock for immutable access.
++    #[verifier::external_body]
+     pub fn read(&self) -> RwLockReadGuard<T, PreemptDisabled> {
+         self.0.data.read()
+     }
+ }
++}
+ 
+-#[cfg(ktest)]
++/* #[cfg(ktest)]
+ mod test {
+     use super::*;
+     use crate::prelude::*;
+@@ -131,4 +148,4 @@ mod test {
+         drop(rw2);
+         assert_eq!(rw1.get(), Some(1).as_ref());
+     }
+-}
++} */
+diff --git a/ostd/src/sync/rwlock.rs b/ostd/src/sync/rwlock.rs
+index a93cc884b6c9a8594e69b09cdb952ab19b383c3b..2325060aedd1fd6ef5ee4ddac7dd9789bb05f577 100644
+--- a/ostd/src/sync/rwlock.rs
++++ b/ostd/src/sync/rwlock.rs
+@@ -534,12 +534,12 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+     }
+ } // verus!
+ 
+-/*
+ impl<T, G: SpinGuardian> RwLock<T, G> {
+     /// Returns a mutable reference to the underlying data.
+     ///
+     /// This method is zero-cost: By holding a mutable reference to the lock, the compiler has
+     /// already statically guaranteed that access to the data is exclusive.
++    #[verifier::external]
+     pub fn get_mut(&mut self) -> &mut T {
+         // self.val.get_mut()
+         // `PCell<T>` is implemented using an `UnsafeCell<T>` internally; we do an unchecked
+@@ -554,6 +554,7 @@ impl<T, G: SpinGuardian> RwLock<T, G> {
+     ///
+     /// This method is safe, but it's up to the caller to ensure that access to the data behind it
+     /// is still safe.
++    #[verifier::external_body]
+     pub(super) fn as_ptr(&self) -> *mut T {
+         // self.val.get()
+         unsafe {
+@@ -562,7 +563,6 @@ impl<T, G: SpinGuardian> RwLock<T, G> {
+         }
+     }
+ }
+-*/
+ 
+ /* the trait `core::fmt::Debug` is not implemented for `vstd::cell::pcell::PCell<T>`
+ impl<T: ?Sized + fmt::Debug, G> fmt::Debug for RwLock<T, G> {

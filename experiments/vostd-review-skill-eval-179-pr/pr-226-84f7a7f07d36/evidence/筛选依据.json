@@ -1,0 +1,40 @@
+{
+  "number": 226,
+  "title": "PhaseII verified: Add proofs about `memory_region`",
+  "selected": true,
+  "category": "证明与规约",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "PhaseII verified: Add proofs about `memory region`",
+      "category": "证明与规约"
+    },
+    {
+      "location": "标题",
+      "excerpt": "PhaseII verified: Add proofs about `memory region`",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/226",
+      "excerpt": "Merge some proofs from `fvt1` but with the new attribute syntax. This PR can not be merged because of a Verus bug, we are working on it.",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "specs/ostd/src/lib.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "改动文件",
+      "excerpt": "specs/ostd/src/memory_region_specs.rs",
+      "category": "规约或验证工具文件"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "use vstd::prelude::*; use vstd_extra::prelude::*; use aster_common::prelude::*; use ostd_specs::{MemRegionModel, MemoryRegionArrayModel}; use align_ext::Align",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 6
+}

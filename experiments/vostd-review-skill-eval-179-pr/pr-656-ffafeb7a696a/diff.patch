@@ -1,0 +1,127 @@
+diff --git a/ostd/specs/mm/embedding/cursor.rs b/ostd/specs/mm/embedding/cursor.rs
+index a6c7cf7a27e0cddff240b15ffa9d97f658ed34e3..72adf476793d805d5ebbf1b5d9257d18a056b84a 100644
+--- a/ostd/specs/mm/embedding/cursor.rs
++++ b/ostd/specs/mm/embedding/cursor.rs
+@@ -69,7 +69,7 @@ use crate::mm::{
+     vm_space::{UserPtConfig, vm_space_specs::VmSpaceOwner},
+ };
+ 
+-use super::{CursorEntry, CursorKind, VmSpaceId, axiom_cursor_entry_new};
++use super::{CursorEntry, CursorKind, VmSpaceId, tracked_cursor_entry_new};
+ 
+ verus! {
+ 
+@@ -714,7 +714,13 @@ pub(super) proof fn open_cursor_step<'a, 'rcu>(
+     let tracked owner_opt = vm_space_cursor_embedded(vm_space, regions, va);
+     match owner_opt {
+         Option::Some((owner, guards)) => {
+-            let tracked entry = axiom_cursor_entry_new(vs, CursorKind::ReadOnly, va, owner, guards);
++            let tracked entry = tracked_cursor_entry_new(
++                vs,
++                CursorKind::ReadOnly,
++                va,
++                owner,
++                guards,
++            );
+             Option::Some(entry)
+         },
+         Option::None => Option::None,
+@@ -760,7 +766,13 @@ pub(super) proof fn open_cursor_mut_step<'a, 'rcu>(
+     let tracked owner_opt = vm_space_cursor_mut_embedded(vm_space, regions, va);
+     match owner_opt {
+         Option::Some((owner, guards)) => {
+-            let tracked entry = axiom_cursor_entry_new(vs, CursorKind::Mutable, va, owner, guards);
++            let tracked entry = tracked_cursor_entry_new(
++                vs,
++                CursorKind::Mutable,
++                va,
++                owner,
++                guards,
++            );
+             Option::Some(entry)
+         },
+         Option::None => Option::None,
+diff --git a/ostd/specs/mm/embedding/io.rs b/ostd/specs/mm/embedding/io.rs
+index 2cd93f5d9395cc481ec6fc1f75acea221a376e54..2e70089ad15885f7bacf5d310e420ef4c0e095b8 100644
+--- a/ostd/specs/mm/embedding/io.rs
++++ b/ostd/specs/mm/embedding/io.rs
+@@ -152,24 +152,26 @@ pub axiom fn vm_reader_read_embedded(
+ ///
+ /// Exec only mutates the handle's `end` field (no owner mutation), so
+ /// owner state is fully preserved.
+-pub axiom fn vm_reader_limit_embedded(tracked owner: &mut VmIoOwner, max_remain: usize)
++pub proof fn lemma_vm_reader_limit_embedded(tracked owner: &mut VmIoOwner, max_remain: usize)
+     requires
+         old(owner).inv(),
+     ensures
+         final(owner).inv(),
+         *final(owner) == *old(owner),
+-;
++{
++}
+ 
+ /// Mirror of [`crate::mm::io::VmReader::skip`].
+ ///
+ /// Exec only mutates the handle's `cursor` field (no owner mutation).
+-pub axiom fn vm_reader_skip_embedded(tracked owner: &mut VmIoOwner, nbytes: usize)
++pub proof fn lemma_vm_reader_skip_embedded(tracked owner: &mut VmIoOwner, nbytes: usize)
+     requires
+         old(owner).inv(),
+     ensures
+         final(owner).inv(),
+         *final(owner) == *old(owner),
+-;
++{
++}
+ 
+ /// Mirror of [`crate::mm::io::VmWriter::write`] (Infallible).
+ ///
+@@ -319,8 +321,8 @@ pub(super) proof fn vm_io_method_step(tracked entry: &mut VmIoEntry, method: VmI
+         final(entry).inv(),
+ {
+     match method {
+-        VmIoMethod::ReaderLimit(max) => vm_reader_limit_embedded(&mut entry.owner, max),
+-        VmIoMethod::ReaderSkip(n) => vm_reader_skip_embedded(&mut entry.owner, n),
++        VmIoMethod::ReaderLimit(max) => lemma_vm_reader_limit_embedded(&mut entry.owner, max),
++        VmIoMethod::ReaderSkip(n) => lemma_vm_reader_skip_embedded(&mut entry.owner, n),
+         VmIoMethod::WriterFillZeros(len) => vm_writer_fill_zeros_embedded(&mut entry.owner, len),
+         VmIoMethod::WriterLimit(max) => lemma_vm_writer_limit_embedded(&mut entry.owner, max),
+         VmIoMethod::WriterSkip(n) => lemma_vm_writer_skip_embedded(&mut entry.owner, n),
+diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
+index 722965d1e850b2f8486d0f8e6d9d211e16075d72..fa48964338bca374bb787f7197bbd1435f02ce1d 100644
+--- a/ostd/specs/mm/embedding/mod.rs
++++ b/ostd/specs/mm/embedding/mod.rs
+@@ -544,9 +544,9 @@ pub enum CursorKind {
+ /// cursor holds locked; mirrors what the exec `Cursor` carries via
+ /// `path: [Option<PageTableGuard<'rcu, C>>; NR_LEVELS]`.
+ pub tracked struct CursorEntry<'rcu> {
+-    pub vm_space: VmSpaceId,
+-    pub kind: CursorKind,
+-    pub va: Range<Vaddr>,
++    pub ghost vm_space: VmSpaceId,
++    pub ghost kind: CursorKind,
++    pub ghost va: Range<Vaddr>,
+     pub owner: CursorOwner<'rcu, UserPtConfig>,
+     pub guards: Guards<'rcu>,
+ }
+@@ -5368,7 +5368,7 @@ pub proof fn lemma_fresh_frame_id_not_in_dom(m: Map<FrameId, FrameEntry>)
+ }
+ 
+ /// Tracked constructor for [`CursorEntry`].
+-pub axiom fn axiom_cursor_entry_new<'rcu>(
++pub proof fn tracked_cursor_entry_new<'rcu>(
+     vm_space: VmSpaceId,
+     kind: CursorKind,
+     va: Range<Vaddr>,
+@@ -5381,7 +5381,10 @@ pub axiom fn axiom_cursor_entry_new<'rcu>(
+         res.va == va,
+         res.owner == owner,
+         res.guards == guards,
+-;
++{
++    let tracked res = CursorEntry { vm_space, kind, va, owner, guards };
++    res
++}
+ 
+ /// Tracked constructor for [`VmIoEntry`].
+ pub proof fn tracked_vm_io_entry_new<'a>(

@@ -1,0 +1,917 @@
+// SPDX-License-Identifier: MPL-2.0
+//! Kernel virtual memory allocation
+use vstd::{prelude::*, set_lib::FiniteRange};
+use vstd_extra::{
+    arithmetic::nat_align_down,
+    assert,
+    cast_ptr::Repr,
+    ownership::{InvView, OwnerOf},
+    panic::may_panic,
+    prelude::Inv,
+};
+
+use crate::specs::{
+    arch::*,
+    mm::{
+        frame::{
+            mapping::frame_to_index,
+            meta_owners::{MetaSlotStorage, PageUsage},
+            meta_region_owners::MetaRegionOwners,
+        },
+        page_table::{
+            cursor::{CursorOwner, CursorView},
+            is_valid_range_spec, *,
+        },
+    },
+    task::InAtomicMode,
+};
+
+use super::{
+    FRAME_METADATA_BASE_VADDR, KERNEL_BASE_VADDR, KERNEL_END_VADDR, KERNEL_PAGE_TABLE,
+    VMALLOC_VADDR_RANGE,
+};
+use crate::arch::mm::PagingConsts;
+use crate::mm::frame::DynFrame;
+use crate::mm::frame::meta::{REF_COUNT_MAX, REF_COUNT_UNUSED};
+use crate::mm::kspace::AnyFrameMeta;
+use crate::mm::nr_subpage_per_huge;
+use crate::mm::page_table::PageTableGuard;
+use crate::mm::{
+    PAGE_SIZE, Paddr, Vaddr,
+    frame::{Frame, Segment, untyped::AnyUFrameMeta},
+    kspace::{KernelPtConfig, MappedItem},
+    largest_pages,
+    page_prop::PageProperty,
+    page_size,
+    page_table::{Child, CursorMut, PageTable, PageTableConfig},
+};
+use crate::mm::{PagingConstsTrait, PagingLevel};
+use core::marker::PhantomData;
+use core::ops::Range;
+
+//static KVIRT_AREA_ALLOCATOR: RangeAllocator = RangeAllocator::new(VMALLOC_VADDR_RANGE);
+
+verus! {
+
+/// Spec representation of Frame<T> as DynFrame (used when the actual conversion is opaque).
+pub open spec fn frame_as_dynframe<T: AnyFrameMeta + Repr<MetaSlotStorage>>(
+    frame: Frame<T>,
+) -> DynFrame {
+    DynFrame {
+        ptr: frame.ptr,
+        _marker: PhantomData,
+        #[cfg(verus_keep_ghost_body)]
+        tracked_slot_perm: frame.tracked_slot_perm,
+        #[cfg(verus_keep_ghost_body)]
+        tracked_metadata_perm: frame.tracked_metadata_perm,
+    }
+}
+
+/// Converts `Frame<T>` to `DynFrame`, with a spec postcondition connecting the result
+/// to the spec function `frame_as_dynframe`.
+fn frame_into_dynframe<T: AnyUFrameMeta>(frame: Frame<T>) -> (res: DynFrame)
+    ensures
+        res == frame_as_dynframe(frame),
+{
+    /* frame.into() */
+    DynFrame {
+        ptr: frame.ptr,
+        _marker: PhantomData,
+        #[cfg(verus_keep_ghost_body)]
+        tracked_slot_perm: frame.tracked_slot_perm,
+        #[cfg(verus_keep_ghost_body)]
+        tracked_metadata_perm: frame.tracked_metadata_perm,
+    }
+}
+
+/// Spec function: the entry owner correctly matches the frame and property for mapping.
+#[allow(private_interfaces)]
+pub open spec fn frame_entry_wf<T: AnyFrameMeta + Repr<MetaSlotStorage>>(
+    frame: Frame<T>,
+    prop: PageProperty,
+    entry_owner: EntryOwner<KernelPtConfig>,
+) -> bool {
+    let frame_mss = DynFrame {
+        ptr: frame.ptr,
+        _marker: PhantomData,
+        #[cfg(verus_keep_ghost_body)]
+        tracked_slot_perm: frame.tracked_slot_perm,
+        #[cfg(verus_keep_ghost_body)]
+        tracked_metadata_perm: frame.tracked_metadata_perm,
+    };
+    let item = MappedItem::Tracked(frame_mss, prop);
+    let (pa, level, prop_from_item, _perm) = KernelPtConfig::item_into_raw(item);
+    &&& frame.inv()
+    &&& !prop.flags.contains(crate::mm::page_prop::PageFlags::AVAIL1())
+    &&& (entry_owner.is_absent() || Child::Frame(pa, level, prop_from_item).wf(entry_owner))
+}
+
+#[derive(Debug)]
+pub struct RangeAllocError;
+
+pub struct RangeAllocator;
+
+/// Phase A: caller-precludable model of allocator OOM. An uninterpreted
+/// spec predicate over the request size: `kvirt_alloc_spec(size) is Err
+/// <==> kvirt_alloc_oom_condition(size)`. The real allocator's state is
+/// not modeled in detail; the caller-side contract is "if you can prove
+/// no OOM, the alloc succeeds." Used to bridge `assert!(range_res.is_ok())`
+/// into a precise `map_frames_panic_condition` / `map_untracked_frames_panic_condition`
+/// disjunct.
+pub uninterp spec fn kvirt_alloc_oom_condition(size: usize) -> bool;
+
+#[verus_verify]
+impl RangeAllocator {
+    pub const fn new(_r: core::ops::Range<Vaddr>) -> Self {
+        Self
+    }
+
+    #[verifier::external_body]
+    #[verus_spec(res =>
+        ensures
+            res == kvirt_alloc_spec(size),
+            res is Err == kvirt_alloc_oom_condition(size),
+    )]
+    pub fn alloc(&self, size: usize) -> Result<core::ops::Range<Vaddr>, RangeAllocError> {
+        unimplemented!()
+    }
+}
+
+#[verifier::external_body]
+pub fn disable_preempt<'a, G: InAtomicMode + 'a>() -> &'a G {
+    unimplemented!()
+}
+
+exec static KVIRT_AREA_ALLOCATOR: RangeAllocator = RangeAllocator::new(VMALLOC_VADDR_RANGE);
+
+/// Total size (in bytes) of the pages `elems[from..to]`.
+pub open spec fn sum_page_sizes_spec(elems: Seq<(Paddr, u8)>, from: int, to: int) -> nat
+    decreases (to - from),
+    when from <= to
+{
+    if from >= to {
+        0nat
+    } else {
+        page_size::<PagingConsts>(elems[from].1) as nat + sum_page_sizes_spec(elems, from + 1, to)
+    }
+}
+
+/// `sum(from, to+1) == sum(from, to) + page_size(elems[to])`.
+proof fn lemma_sum_page_sizes_extend_right(elems: Seq<(Paddr, u8)>, from: int, to: int)
+    requires
+        0 <= from <= to < elems.len(),
+    ensures
+        sum_page_sizes_spec(elems, from, to + 1) == sum_page_sizes_spec(elems, from, to)
+            + page_size::<PagingConsts>(elems[to].1) as nat,
+    decreases to - from,
+{
+    if from < to {
+        lemma_sum_page_sizes_extend_right(elems, from + 1, to);
+        // Help Verus: unfold sum_page_sizes_spec(elems, from, to) and (from, to+1)
+    } else {
+        // from == to; explicitly unfold both sides
+        assert(sum_page_sizes_spec(elems, from + 1, to + 1) == 0nat);
+    }
+}
+
+/// `sum(from, to1) <= sum(from, to2)` when `to1 <= to2`.
+proof fn lemma_sum_page_sizes_mono(elems: Seq<(Paddr, u8)>, from: int, to1: int, to2: int)
+    requires
+        0 <= from <= to1 <= to2 <= elems.len(),
+    ensures
+        sum_page_sizes_spec(elems, from, to1) <= sum_page_sizes_spec(elems, from, to2),
+    decreases to2 - to1,
+{
+    if to1 < to2 {
+        lemma_sum_page_sizes_extend_right(elems, from, to2 - 1);
+        lemma_sum_page_sizes_mono(elems, from, to1, to2 - 1);
+    }
+}
+
+/// Collects the output of `largest_pages` into a `Vec` so that Verus can iterate
+/// over it with loop invariants (`impl Iterator` does not implement `ForLoopGhostIteratorNew`).
+///
+/// The postconditions reflect provable properties of every `(pa, level)` pair emitted by
+/// `largest_pages`:
+/// - PA alignment and level-validity follow from the loop guard in `largest_pages`.
+/// - The sum of page sizes equals `len` (the iterator covers exactly [pa, pa+len)).
+/// - At each step, the running VA is aligned to the current page size.
+#[verifier::external_body]
+#[verus_spec(res =>
+    ensures
+        forall|i: int| 0 <= i < res@.len() ==> {
+            &&& (#[trigger] res@[i]).0 % PAGE_SIZE == 0
+            &&&  res@[i].0 % page_size::<PagingConsts>(res@[i].1) == 0
+            &&& 1 <= res@[i].1 <= NR_LEVELS
+            &&& res@[i].1 <= KernelPtConfig::HIGHEST_TRANSLATION_LEVEL()
+            &&& res@[i].0 == pa + sum_page_sizes_spec(res@, 0, i)
+        },
+        sum_page_sizes_spec(res@, 0, res@.len() as int) == len,
+        forall|i: int|
+            0 <= i < res@.len() ==> (va as nat + #[trigger] sum_page_sizes_spec(res@, 0, i))
+                % page_size::<PagingConsts>(res@[i].1) as nat == 0,
+)]
+fn collect_largest_pages(va: Vaddr, pa: Paddr, len: usize) -> alloc::vec::Vec<(Paddr, u8)> {
+    largest_pages::<KernelPtConfig>(va, pa, len).collect()
+}
+
+#[verifier::external_body]
+#[verus_spec(res =>
+    with
+        Tracked(kernel_owner): Tracked<&mut Option<&PageTableOwner<KernelPtConfig>>>,
+        Tracked(regions): Tracked<&MetaRegionOwners>,
+        Tracked(guards): Tracked<&Guards>,
+    requires
+        regions.inv(),
+        old(kernel_owner)@ is Some ==> old(kernel_owner)@->0.inv(),
+        old(kernel_owner)@ is Some ==> old(kernel_owner)@->0.metaregion_sound(*regions),
+    ensures
+        final(kernel_owner)@ is Some,
+        final(kernel_owner)@->0.inv(),
+        (final(kernel_owner)@->0).0.value().is_node(),
+        res.root.ptr.addr() == (final(kernel_owner)@->0).0.value().node().slot_vaddr(),
+        old(kernel_owner)@ is Some ==> final(kernel_owner)@ == old(kernel_owner)@,
+        !PageTable::<KernelPtConfig>::create_user_pt_panic_condition(
+            (final(kernel_owner)@->0).0.value().node(),
+        ),
+        (final(kernel_owner)@->0).0.value().metaregion_sound(*regions),
+        final(kernel_owner)@->0.metaregion_sound(*regions),
+        res.relates_owner(*final(kernel_owner)@->0, *regions),
+        guards.unlocked((final(kernel_owner)@->0).0.value().node().slot_vaddr()),
+)]
+pub(crate) fn get_kernel_page_table<'rcu>() -> &'static PageTable<KernelPtConfig> {
+    KERNEL_PAGE_TABLE.get().unwrap()
+}
+
+// Axiomatized spec for alloc - cannot read exec static in proof mode.
+pub uninterp spec fn kvirt_alloc_spec(size: usize) -> Result<
+    core::ops::Range<Vaddr>,
+    RangeAllocError,
+>;
+
+pub axiom fn kvirt_alloc_range_bounds(
+    area_size: usize,
+    map_offset: usize,
+    r: core::ops::Range<Vaddr>,
+)
+    ensures
+        kvirt_alloc_spec(area_size) == Ok::<core::ops::Range<Vaddr>, RangeAllocError>(r) ==> r.start
+            <= r.end && (r.end - r.start) == area_size && map_offset <= r.end - r.start && r.start
+            + map_offset <= usize::MAX && r.start % PAGE_SIZE == 0 && r.end % PAGE_SIZE == 0
+            && KERNEL_BASE_VADDR <= r.start && r.end <= FRAME_METADATA_BASE_VADDR,
+;
+
+/// Kernel ranges within [KERNEL_BASE_VADDR, KERNEL_END_VADDR] with alignment are valid for
+/// KernelPtConfig (which uses sign-extended high-half addresses).
+pub proof fn lemma_kernel_range_valid(r: core::ops::Range<Vaddr>)
+    requires
+        KERNEL_BASE_VADDR <= r.start < r.end <= KERNEL_END_VADDR,
+        r.start % PAGE_SIZE == 0,
+        r.end % PAGE_SIZE == 0,
+    ensures
+        is_valid_range_spec::<KernelPtConfig>(r),
+{
+    lemma_vaddr_range_spec_kernel();
+    assert(KERNEL_BASE_VADDR == 0xFFFF_8000_0000_0000usize) by (compute_only);
+}
+
+/// Kernel virtual area.
+///
+/// A kernel virtual area manages a range of memory in [`VMALLOC_VADDR_RANGE`].
+/// It can map a portion or the entirety of its virtual memory pages to
+/// physical memory, whether tracked with metadata or not.
+///
+/// It is the caller's responsibility to ensure TLB coherence before using the
+/// mapped virtual address on a certain CPU.
+//
+// FIXME: This caller-ensured design is very error-prone. A good option is to
+// use a guard the pins the CPU and ensures TLB coherence while accessing the
+// `KVirtArea`. However, `IoMem` need some non trivial refactoring to support
+// being implemented on a `!Send` and `!Sync` guard.
+#[derive(Debug)]
+pub struct KVirtArea {
+    pub range: Range<Vaddr>,
+}
+
+#[allow(private_interfaces)]
+pub tracked struct KVirtAreaOwner {
+    pub pt_owner: PageTableOwner<KernelPtConfig>,
+}
+
+impl KVirtAreaOwner {
+    /// The [`CursorView`] at the page containing the given address, representing the kernel page
+    /// table's abstract state for query purposes.
+    #[allow(private_interfaces)]
+    pub closed spec fn cursor_view_at(self, addr: Vaddr) -> CursorView<KernelPtConfig> {
+        CursorView {
+            cur_va: nat_align_down(addr as nat, PAGE_SIZE as nat) as Vaddr,
+            mappings: self.pt_owner.view_rec(self.pt_owner.0.value().path),
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl Inv for KVirtArea {
+    open spec fn inv(self) -> bool {
+        &&& KERNEL_BASE_VADDR
+            <= self.range.start
+        // See `kvirt_alloc_range_bounds`: the real allocator draws from
+        // VMALLOC, whose upper bound is FRAME_METADATA_BASE_VADDR. This
+        // leaves `end + PAGE_SIZE <= KERNEL_END_VADDR` with plenty of
+        // margin, so a one-past-end cursor open stays sound.
+        &&& self.range.end
+            <= FRAME_METADATA_BASE_VADDR
+        // Page alignment: guaranteed by `kvirt_alloc_range_bounds` at
+        // construction, preserved by every operation (no op touches range).
+        &&& self.range.start % PAGE_SIZE == 0
+        &&& self.range.end % PAGE_SIZE == 0
+        &&& self.range.start <= self.range.end
+    }
+}
+
+impl Inv for KVirtAreaOwner {
+    open spec fn inv(self) -> bool {
+        self.pt_owner.inv()
+    }
+}
+
+#[verus_verify]
+impl KVirtArea {
+    /// Query panics outside the area or when cloning the resolved counted leaf overflows.
+    pub open spec fn query_panic_condition(
+        self,
+        owner: KVirtAreaOwner,
+        addr: Vaddr,
+        regions: MetaRegionOwners,
+    ) -> bool {
+        let va = nat_align_down(addr as nat, PAGE_SIZE as nat) as Vaddr;
+        ||| !(self.range.start <= addr < self.range.end)
+        ||| owner.pt_owner.query_leaf(va) matches Some(entry) && {
+            &&& entry.is_frame()
+            &&& entry.frame_is_tracked()
+            &&& regions.ref_count(frame_to_index(entry.frame().mapped_pa)) >= REF_COUNT_MAX
+        }
+    }
+
+    pub fn start(&self) -> Vaddr
+        returns
+            self.range.start,
+    {
+        self.range.start
+    }
+
+    pub fn end(&self) -> Vaddr
+        returns
+            self.range.end,
+    {
+        self.range.end
+    }
+
+    #[verus_spec(returns self.range)]
+    pub fn range(&self) -> Range<Vaddr> {
+        self.range.start..self.range.end
+    }
+
+    #[cfg(ktest)]
+    pub fn len(&self) -> usize {
+        self.range.len()
+    }
+
+    #[cfg(ktest)]
+    pub fn query(&self, addr: Vaddr) -> Option<super::MappedItem> {
+        use align_ext::AlignExt;
+
+        assert!(self.start() <= addr && self.end() >= addr);
+        let start = addr.align_down(PAGE_SIZE);
+        let vaddr = start..start + PAGE_SIZE;
+        let page_table = KERNEL_PAGE_TABLE.get().unwrap();
+        let preempt_guard = disable_preempt();
+        let mut cursor = page_table.cursor(&preempt_guard, &vaddr).unwrap();
+        cursor.query().unwrap().1
+    }
+
+    /// Caller-precludable *bounds* panic condition for [`Self::map_frames`]:
+    /// alignment + capacity. These are the documented `# Panics` bullets
+    /// that callers can always satisfy (and are required to). The
+    /// allocator-OOM disjunct is split out into
+    /// [`Self::map_frames_panic_condition`] (the full predicate) since OOM
+    /// is uninterpreted and typically not precludable by callers.
+    pub open spec fn map_frames_bounds_panic_condition(
+        area_size: usize,
+        map_offset: usize,
+        n_frames: usize,
+    ) -> bool {
+        ||| area_size % PAGE_SIZE != 0
+        ||| map_offset % PAGE_SIZE != 0
+        ||| map_offset >= area_size
+        ||| map_offset + n_frames * PAGE_SIZE > area_size
+    }
+
+    /// Full panic condition for [`Self::map_frames`] = bounds OR OOM.
+    /// Used in `ensures` to give callers a single negation guarantee on
+    /// the success path.
+    pub open spec fn map_frames_panic_condition(
+        area_size: usize,
+        map_offset: usize,
+        n_frames: usize,
+    ) -> bool {
+        ||| Self::map_frames_bounds_panic_condition(area_size, map_offset, n_frames)
+        ||| kvirt_alloc_oom_condition(area_size)
+    }
+
+    /// Create a kernel virtual area and map tracked pages into it.
+    ///
+    /// The created virtual area will have a size of `area_size`, and the pages
+    /// will be mapped starting from `map_offset` in the area.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if
+    ///  - the area size is not a multiple of [`PAGE_SIZE`];
+    ///  - the map offset is not aligned to [`PAGE_SIZE`];
+    ///  - the map offset plus the size of the pages exceeds the area size.
+    #[verus_spec(res =>
+        with Tracked(owner): Tracked<KVirtAreaOwner>,
+             Tracked(root_guard): Tracked<PageTableGuard<'a, KernelPtConfig>>,
+             Tracked(entry_owners): Tracked<&mut Map<Paddr, EntryOwner<KernelPtConfig>>>,
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards>,
+        requires
+            !prop.flags.contains(crate::mm::page_prop::PageFlags::AVAIL1()),
+            Self::map_frames_bounds_panic_condition(area_size, map_offset, frames.len())
+                ==> may_panic(),
+            kvirt_alloc_oom_condition(area_size) ==> may_panic(),
+            old(regions).inv(),
+            owner.inv(),
+            owner.pt_owner.metaregion_sound(*old(regions)),
+            owner.pt_owner.0.value().node().relate_guard(root_guard),
+            // For each frame, the map contains an appropriate owner keyed by
+            // that frame's paddr. Duplicates in `frames` share the same owner.
+            forall|i: int|
+                0 <= i < frames.len() ==> {
+                    let pa = #[trigger] crate::mm::frame::meta::mapping::meta_to_frame(
+                        frames[i].ptr.addr(),
+                    );
+                    &&& old(entry_owners).contains_key(pa)
+                    &&& old(entry_owners)[pa].inv()
+                    &&& frame_entry_wf(frames[i], prop, old(entry_owners)[pa])
+                },
+            // `Frame ↔ MetaRegionOwners` ownership obligation, hoisted as a precondition
+            // (rather than an axiom). Each owned `DynFrame` must have its slot allocated
+            // with `rc > 0` in the current regions. The runtime invariant of `Frame<M>`
+            // implies this; the caller is responsible for projecting it into spec form.
+            forall|i: int|
+                0 <= i < frames.len() ==> CursorMut::<'a, KernelPtConfig, A>::item_slot_in_regions(
+                    MappedItem::Tracked(#[trigger] frames[i], prop),
+                    *old(regions),
+                ),
+        ensures
+            final(regions).inv(),
+            res.inv(),
+            !Self::map_frames_panic_condition(area_size, map_offset, frames.len()),
+    )]
+    #[verifier::spinoff_prover]
+    #[allow(private_interfaces)]
+    pub fn map_frames<'a, A: InAtomicMode + 'a>(
+        area_size: usize,
+        map_offset: usize,
+        frames: alloc::vec::Vec<DynFrame>,
+        prop: PageProperty,
+    ) -> Self {
+        assert!(map_offset.is_multiple_of(PAGE_SIZE));
+
+        let range_res = KVIRT_AREA_ALLOCATOR.alloc(area_size);
+        assert!(range_res.is_ok());
+        let range = range_res.unwrap();
+
+        proof {
+            kvirt_alloc_range_bounds(area_size, map_offset, range);
+            assert(KERNEL_BASE_VADDR > 0) by (compute_only);
+        }
+
+        let cursor_range = range.start + map_offset..range.end;
+
+        proof {
+            // Bridge: FRAME_METADATA_BASE_VADDR < KERNEL_END_VADDR, so the allocator's
+            // tightened bound still satisfies lemma_kernel_range_valid's precondition.
+            if cursor_range.start < cursor_range.end {
+                assert(FRAME_METADATA_BASE_VADDR < KERNEL_END_VADDR) by (compute_only);
+                lemma_kernel_range_valid(cursor_range);
+            }
+        }
+
+        let page_table = {
+            proof_decl! {
+                let tracked mut kpt_owner = Some(&owner.pt_owner);
+            }
+            #[verus_spec(with Tracked(&mut kpt_owner), Tracked(regions), Tracked(guards))]
+            get_kernel_page_table()
+        };
+        let preempt_guard = disable_preempt::<A>();
+
+        let ghost pre_cursor_regions: MetaRegionOwners = *regions;
+
+        proof {
+            lemma_page_size_spec_values();
+            lemma_vaddr_range_spec_kernel();
+            lemma_arch_specific_consts_properties::<KernelPtConfig>();
+            assert(FRAME_METADATA_BASE_VADDR < 0xffff_ff80_0000_0000usize) by (compute_only);
+        }
+        #[verus_spec(with Tracked(owner.pt_owner), Ghost(root_guard), Tracked(regions), Tracked(guards))]
+        let cursor_res = page_table.cursor_mut(preempt_guard, &cursor_range);
+
+        assert!(cursor_res.is_ok());
+        let (mut cursor, Tracked(cursor_owner)) = cursor_res.unwrap();
+
+        proof {
+            CursorMut::<'a, KernelPtConfig, A>::lemma_all_item_slots_preserved(
+                pre_cursor_regions,
+                *regions,
+            );
+        }
+        for frame in it: frames.into_iter()
+            invariant
+                cursor.0.invariants(cursor_owner, *regions, *guards),
+                // Carry the requires implication into the loop body so
+                // that may_panic is derivable per-iteration when a guard
+                // implies the bounds-panic condition (mirrors jump's
+                // per-iteration `jump_panic_condition ==> may_panic()`).
+                Self::map_frames_bounds_panic_condition(area_size, map_offset, frames.len())
+                    ==> may_panic(),
+                // Cursor VA tracking (purely structural — no bounds).
+                // Lets the per-iter capacity assert below chain a
+                // `cursor.va >= barrier ⟹ map_offset + frames.len()*PAGE
+                // > area_size` derivation that fires `map_frames_bounds_panic_condition`'s
+                // capacity disjunct ⟹ `may_panic()` via the invariant.
+                it.seq().len() == frames.len(),
+                0 <= it.index() <= frames.len(),
+                cursor.0.barrier_va.start == range.start + map_offset,
+                cursor.0.barrier_va.end == range.end,
+                cursor.0.va <= cursor.0.barrier_va.end,
+                range.end - range.start == area_size,
+                cursor.0.va == range.start + map_offset + it.index() * PAGE_SIZE,
+                // For each remaining frame, the map contains a wf owner at its paddr.
+                // Duplicates among remaining frames are fine — one key, one owner.
+                forall|i: int|
+                    it.index() <= i < it.seq().len() ==> {
+                        let pa = #[trigger] crate::mm::frame::meta::mapping::meta_to_frame(
+                            it.seq()[i].ptr.addr(),
+                        );
+                        &&& entry_owners.contains_key(pa)
+                        &&& entry_owners[pa].inv()
+                        &&& frame_entry_wf(it.seq()[i], prop, entry_owners[pa])
+                    },
+                forall|i: int|
+                    it.index() <= i < it.seq().len() ==> CursorMut::<
+                        'a,
+                        KernelPtConfig,
+                        A,
+                    >::item_slot_in_regions(
+                        MappedItem::Tracked(#[trigger] it.seq()[i], prop),
+                        *regions,
+                    ),
+        {
+            let ghost cur_mapped_pa: usize = crate::mm::frame::meta::mapping::meta_to_frame(
+                frame.ptr.addr(),
+            );
+
+            let ghost cur_path = entry_owners[cur_mapped_pa].path;
+            let ghost cur_parent_level = entry_owners[cur_mapped_pa].parent_level;
+            let tracked mut entry_owner = entry_owners.tracked_remove(cur_mapped_pa);
+
+            // Now Verus knows: dynframe == frame_as_dynframe(it.seq()[it.index()])
+            let item = MappedItem::Tracked(frame, prop);
+            let ghost regions_before_map = *regions;
+            let ghost old_cursor_model: CursorView<KernelPtConfig> = cursor_owner@;
+            proof {
+                cursor_owner.view_preserves_inv();  // old_cursor_model.inv()
+                let (pa, level, prop_from_item, _perm) = KernelPtConfig::item_into_raw(item);
+                vstd::arithmetic::power::lemma_pow0(2int);
+            }
+
+            // SAFETY: The constructor of the `KVirtArea` has already ensured
+            // that this mapping does not affect kernel's memory safety.
+            // `item_slot_in_regions` for the current item is delivered by the
+            // loop invariant (instantiated at i = it.index()), itself established by
+            // the function precondition.
+            let res = unsafe {
+                #[verus_spec(with Tracked(&mut cursor_owner), Tracked(entry_owner), Tracked(regions), Tracked(guards))]
+                cursor.map(item)
+            };
+
+            // `item_slot_in_regions` preservation for the remaining frames
+            // follows from cursor.map's strengthened ensures: ref_count is
+            // preserved at non-mapped non-UNUSED indices, and at the mapped
+            // index ref_count > 0 is preserved (covers duplicates). slots
+            // keys are monotonic across map.
+            proof {
+                let cur_idx = frame_to_index(cur_mapped_pa);
+                assert forall|i: int| it.index() + 1 <= i < it.seq().len() implies CursorMut::<
+                    'a,
+                    KernelPtConfig,
+                    A,
+                >::item_slot_in_regions(
+                    MappedItem::Tracked(#[trigger] it.seq()[i], prop),
+                    *regions,
+                ) by {
+                    let remaining = MappedItem::Tracked(it.seq()[i], prop);
+                    CursorMut::<'a, KernelPtConfig, A>::lemma_item_slot_in_regions_facts(
+                        remaining,
+                        regions_before_map,
+                    );
+                    CursorMut::<'a, KernelPtConfig, A>::lemma_item_slot_in_regions_preserved(
+                        remaining,
+                        regions_before_map,
+                        *regions,
+                    );
+                };
+
+                let (pa, level, prop_, _perm) = KernelPtConfig::item_into_raw(item);
+
+                let split_self = old_cursor_model.split_while_huge(PAGE_SIZE);
+
+                let aligned_nat: nat = vstd_extra::arithmetic::nat_align_up(
+                    split_self.cur_va as nat,
+                    PAGE_SIZE as nat,
+                );
+
+                CursorView::<KernelPtConfig>::lemma_split_while_huge_preserves_cur_va(
+                    old_cursor_model,
+                    PAGE_SIZE,
+                );
+
+                let tracked fresh = EntryOwner::<KernelPtConfig>::tracked_new_absent(
+                    cur_path,
+                    cur_parent_level,
+                );
+                entry_owners.tracked_insert(cur_mapped_pa, fresh);
+            }
+        }
+
+        Self { range }
+    }
+
+    /// Caller-precludable *bounds* panic condition for
+    /// [`Self::map_untracked_frames`]: physical range / area size / map
+    /// offset misalignment, plus the top-level capacity assert.
+    pub open spec fn map_untracked_frames_bounds_panic_condition(
+        area_size: usize,
+        map_offset: usize,
+        pa_range: &Range<Paddr>,
+    ) -> bool {
+        ||| pa_range.start % PAGE_SIZE != 0
+        ||| pa_range.end % PAGE_SIZE != 0
+        ||| area_size % PAGE_SIZE != 0
+        ||| map_offset % PAGE_SIZE != 0
+        ||| map_offset + usize::range_len(pa_range.start, pa_range.end) > area_size
+    }
+
+    /// Full panic condition for [`Self::map_untracked_frames`] = bounds OR OOM.
+    pub open spec fn map_untracked_frames_panic_condition(
+        area_size: usize,
+        map_offset: usize,
+        pa_range: &Range<Paddr>,
+    ) -> bool {
+        ||| Self::map_untracked_frames_bounds_panic_condition(area_size, map_offset, pa_range)
+        ||| kvirt_alloc_oom_condition(area_size)
+    }
+
+    /// Slot availability for untracked mappings; no counted ownership is required.
+    pub open spec fn untracked_range_slots_in_regions(
+        pa_range: &Range<Paddr>,
+        regions: MetaRegionOwners,
+    ) -> bool {
+        &&& pa_range.end <= MAX_PADDR
+        &&& forall|pa: Paddr|
+            #![trigger frame_to_index(pa)]
+            pa_range.start <= pa < pa_range.end && pa % PAGE_SIZE == 0 ==> regions.contains(
+                frame_to_index(pa),
+            )
+    }
+
+    /// Creates a kernel virtual area and maps untracked frames into it.
+    ///
+    /// The created virtual area will have a size of `area_size`, and the
+    /// physical addresses will be mapped starting from `map_offset` in
+    /// the area.
+    ///
+    /// You can provide a `0..0` physical range to create a virtual area without
+    /// mapping any physical memory.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if
+    ///  - the area size is not a multiple of [`PAGE_SIZE`];
+    ///  - the map offset is not aligned to [`PAGE_SIZE`];
+    ///  - the provided physical range is not aligned to [`PAGE_SIZE`];
+    ///  - the map offset plus the length of the physical range exceeds the
+    ///    area size;
+    ///  - the provided physical range contains tracked physical addresses.
+    #[verus_spec(res =>
+        with Tracked(owner): Tracked<KVirtAreaOwner>,
+             Tracked(root_guard): Tracked<PageTableGuard<'a, KernelPtConfig>>,
+             Tracked(regions): Tracked<&mut MetaRegionOwners>,
+             Tracked(guards): Tracked<&mut Guards>,
+        requires
+            // The default cursor can descend into a node covering exactly one huge page,
+            // while largest_pages selects a leaf in its unlocked parent. This is fixed in
+            // the latest version.
+            forall|level: PagingLevel|
+                2 <= level <= KernelPtConfig::HIGHEST_TRANSLATION_LEVEL() ==>
+                    pa_range.end - pa_range.start != page_size::<PagingConsts>(level),
+            pa_range.end - pa_range.start >= page_size::<PagingConsts>(2) ==> may_panic(),
+            !prop.flags.contains(crate::mm::page_prop::PageFlags::AVAIL1()),
+            !Self::map_untracked_frames_bounds_panic_condition(area_size, map_offset, &pa_range),
+            kvirt_alloc_oom_condition(area_size) ==> may_panic(),
+            old(regions).inv(),
+            owner.inv(),
+            owner.pt_owner.metaregion_sound(*old(regions)),
+            owner.pt_owner.0.value().node().relate_guard(root_guard),
+            Self::untracked_range_slots_in_regions(&pa_range, *old(regions)),
+            forall|pa: Paddr, level: PagingLevel|
+                #[trigger]
+                <crate::arch::mm::PageTableEntry as crate::mm::page_table::PageTableEntryTrait>::new_page_req(
+                    pa,
+                    level,
+                    prop,
+                ),
+        ensures
+            final(regions).inv(),
+            res.inv(),
+            !Self::map_untracked_frames_panic_condition(area_size, map_offset, &pa_range),
+    )]
+    #[verifier::spinoff_prover]
+    #[allow(private_interfaces)]
+    pub unsafe fn map_untracked_frames<A: InAtomicMode + 'a, 'a>(
+        area_size: usize,
+        map_offset: usize,
+        pa_range: Range<Paddr>,
+        prop: PageProperty,
+    ) -> Self {
+        let range_res = KVIRT_AREA_ALLOCATOR.alloc(area_size);
+        // Rust's `unwrap()` panics if not ok. TODO: make our own wrapper.
+        assert!(range_res.is_ok());
+        let range = range_res.unwrap();
+
+        proof {
+            kvirt_alloc_range_bounds(area_size, map_offset, range);
+        }
+
+        if pa_range.start < pa_range.end {
+            let len = pa_range.end - pa_range.start;
+            let va_range = range.start + map_offset..range.start + map_offset + len;
+
+            proof {
+                assert(FRAME_METADATA_BASE_VADDR <= KERNEL_END_VADDR) by (compute_only);
+                lemma_kernel_range_valid(va_range);
+            }
+
+            let page_table = {
+                proof_decl! {
+                    let tracked mut kpt_owner = Some(&owner.pt_owner);
+                }
+                #[verus_spec(with Tracked(&mut kpt_owner), Tracked(regions), Tracked(guards))]
+                get_kernel_page_table()
+            };
+            let preempt_guard = disable_preempt::<A>();
+
+            proof {
+                lemma_page_size_spec_values();
+                lemma_vaddr_range_spec_kernel();
+                lemma_arch_specific_consts_properties::<KernelPtConfig>();
+                assert(FRAME_METADATA_BASE_VADDR < 0xffff_ff80_0000_0000usize) by (compute_only);
+            }
+            #[verus_spec(with Tracked(owner.pt_owner), Ghost(root_guard), Tracked(regions), Tracked(guards))]
+            let cursor_res = page_table.cursor_mut(preempt_guard, &va_range);
+
+            let (mut cursor, Tracked(cursor_owner)) = cursor_res.unwrap();
+
+            let pages = collect_largest_pages(va_range.start, pa_range.start, len);
+
+            for (pa, level) in it: pages.into_iter()
+                invariant
+                    forall|level: PagingLevel|
+                        2 <= level <= KernelPtConfig::HIGHEST_TRANSLATION_LEVEL() ==> len
+                            != page_size::<PagingConsts>(level),
+                    len >= page_size::<PagingConsts>(2) ==> may_panic(),
+                    !prop.flags.contains(crate::mm::page_prop::PageFlags::AVAIL1()),
+                    forall|pa: Paddr, level: PagingLevel| #[trigger]
+                        <crate::arch::mm::PageTableEntry as crate::mm::page_table::PageTableEntryTrait>::new_page_req(
+                        pa, level, prop),
+                    cursor.0.invariants(cursor_owner, *regions, *guards),
+                    // Level bounds / alignment from `collect_largest_pages` postconditions.
+                    forall|i: int|
+                        0 <= i < it.seq().len() ==> {
+                            &&& (#[trigger] it.seq()[i]).0 % PAGE_SIZE == 0
+                            &&& it.seq()[i].0 % page_size::<PagingConsts>(it.seq()[i].1) == 0
+                            &&& 1 <= it.seq()[i].1 <= NR_LEVELS
+                            &&& it.seq()[i].1 <= KernelPtConfig::HIGHEST_TRANSLATION_LEVEL()
+                            &&& it.seq()[i].0 == pa_range.start + sum_page_sizes_spec(
+                                it.seq(),
+                                0,
+                                i,
+                            )
+                        },
+                    forall|i: int|
+                        0 <= i < it.seq().len() ==> (va_range.start as nat
+                            + #[trigger] sum_page_sizes_spec(it.seq(), 0, i)) % page_size::<
+                            PagingConsts,
+                        >(it.seq()[i].1) as nat == 0,
+                    sum_page_sizes_spec(it.seq(), 0, it.seq().len() as int) == len,
+                    // VA tracking: cursor has advanced past sum of processed pages.
+                    cursor.0.va as nat == va_range.start as nat + sum_page_sizes_spec(
+                        it.seq(),
+                        0,
+                        it.index() as int,
+                    ),
+                    cursor.0.barrier_va.start == va_range.start,
+                    cursor.0.barrier_va.end == va_range.start + len,
+                    pa_range.end == pa_range.start + len,
+                    pa_range.end <= MAX_PADDR,
+                    forall|pa: Paddr|
+                        #![trigger frame_to_index(pa)]
+                        pa_range.start <= pa < pa_range.end && pa % PAGE_SIZE == 0 ==> {
+                            let idx = frame_to_index(pa);
+                            &&& regions.contains(idx)
+                        },
+            {
+                let pos: Ghost<int> = Ghost(it.index() as int);
+
+                proof {
+                    lemma_sum_page_sizes_extend_right(it.seq(), 0, pos@);
+                    lemma_sum_page_sizes_mono(it.seq(), 0, pos@ + 1, it.seq().len() as int);
+                }
+
+                let item = MappedItem::Untracked(pa, level, prop);
+                proof {
+                    prop.lemma_avail1_tag_encoding();
+                    lemma_page_size_ge_base::<PagingConsts>(level);
+                }
+                proof_decl! {
+                    let tracked entry_owner =
+                        EntryOwner::<KernelPtConfig>::tracked_new_untracked_frame(pa, level, prop);
+                }
+
+                let ghost old_cursor_model: CursorView<KernelPtConfig> = cursor_owner@;
+
+                proof {
+                    cursor_owner.view_preserves_inv();  // old_cursor_model.inv()
+                }
+
+                // SAFETY: The caller of `map_untracked_frames` has ensured the safety of this mapping.
+                // `item_slot_in_regions` for the current `(pa, level)` follows from the
+                // loop invariant's per-PA slot facts, instantiated at the current `pa`.
+                proof {
+                    CursorMut::<'a, KernelPtConfig, A>::lemma_item_slot_in_regions_facts(
+                        item,
+                        *regions,
+                    );
+                }
+                let _ = unsafe {
+                    #[verus_spec(with Tracked(&mut cursor_owner), Tracked(entry_owner), Tracked(regions), Tracked(guards))]
+                    cursor.map(item)
+                };
+
+                proof {
+                    let level_raw = KernelPtConfig::item_into_raw(item).1;
+
+                    let split_self = old_cursor_model.split_while_huge(
+                        page_size::<PagingConsts>(level_raw),
+                    );
+
+                    CursorView::<KernelPtConfig>::lemma_split_while_huge_preserves_cur_va(
+                        old_cursor_model,
+                        page_size::<PagingConsts>(level_raw),
+                    );
+
+                    let pa_next_nat = pa_range.start as nat + sum_page_sizes_spec(
+                        it.seq(),
+                        0,
+                        pos@ + 1,
+                    );
+                }
+            }
+        }
+        Self { range }
+    }
+}
+
+/*impl Drop for KVirtArea {
+    fn drop(&mut self) {
+        // 1. unmap all mapped pages.
+        let page_table = KERNEL_PAGE_TABLE.unwrap();
+        let range = self.start()..self.end();
+        //let preempt_guard = disable_preempt();
+        let mut cursor = page_table.cursor_mut(&range).unwrap();
+        loop {
+            // SAFETY: The range is under `KVirtArea` so it is safe to unmap.
+            let Some(frag) = (unsafe { cursor.take_next(self.end() - cursor.virt_addr()) }) else {
+                break;
+            };
+            drop(frag);
+        }
+        // 2. free the virtual block
+        //KVIRT_AREA_ALLOCATOR.free(range);
+    }
+}*/
+} // verus!

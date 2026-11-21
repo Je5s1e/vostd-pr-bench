@@ -1,0 +1,239 @@
+diff --git a/ostd/specs/mm/embedding/cursor.rs b/ostd/specs/mm/embedding/cursor.rs
+index 2a3cfd602a74b9d56b8d9172afdd678068576432..034acff57a8fc8405f20d8cec12d1b663033ddea 100644
+--- a/ostd/specs/mm/embedding/cursor.rs
++++ b/ostd/specs/mm/embedding/cursor.rs
+@@ -62,7 +62,7 @@ use crate::specs::mm::page_table::cursor::owners::CursorOwner;
+ use crate::specs::mm::page_table::node::Guards;
+ use crate::specs::mm::tlb::TlbModel;
+ 
+-use super::{CursorEntry, CursorKind, VmSpaceId, axiom_cursor_entry_new};
++use super::{CursorEntry, CursorKind, VmSpaceId, tracked_cursor_entry_new};
+ 
+ verus! {
+ 
+@@ -706,7 +706,13 @@ pub(super) proof fn open_cursor_step<'a, 'rcu>(
+     let tracked owner_opt = vm_space_cursor_embedded(vm_space, regions, va);
+     match owner_opt {
+         Option::Some((owner, guards)) => {
+-            let tracked entry = axiom_cursor_entry_new(vs, CursorKind::ReadOnly, va, owner, guards);
++            let tracked entry = tracked_cursor_entry_new(
++                vs,
++                CursorKind::ReadOnly,
++                va,
++                owner,
++                guards,
++            );
+             Option::Some(entry)
+         },
+         Option::None => Option::None,
+@@ -752,7 +758,13 @@ pub(super) proof fn open_cursor_mut_step<'a, 'rcu>(
+     let tracked owner_opt = vm_space_cursor_mut_embedded(vm_space, regions, va);
+     match owner_opt {
+         Option::Some((owner, guards)) => {
+-            let tracked entry = axiom_cursor_entry_new(vs, CursorKind::Mutable, va, owner, guards);
++            let tracked entry = tracked_cursor_entry_new(
++                vs,
++                CursorKind::Mutable,
++                va,
++                owner,
++                guards,
++            );
+             Option::Some(entry)
+         },
+         Option::None => Option::None,
+diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
+index c4a7ef3b0f808aae959d29e4c4bcc36b4a74b313..59edea2319353ad3925cfd5fd5c92bd965f3d913 100644
+--- a/ostd/specs/mm/embedding/mod.rs
++++ b/ostd/specs/mm/embedding/mod.rs
+@@ -538,9 +538,9 @@ pub enum CursorKind {
+ /// cursor holds locked; mirrors what the exec `Cursor` carries via
+ /// `path: [Option<PageTableGuard<'rcu, C>>; NR_LEVELS]`.
+ pub tracked struct CursorEntry<'rcu> {
+-    pub vm_space: VmSpaceId,
+-    pub kind: CursorKind,
+-    pub va: Range<Vaddr>,
++    pub ghost vm_space: VmSpaceId,
++    pub ghost kind: CursorKind,
++    pub ghost va: Range<Vaddr>,
+     pub owner: CursorOwner<'rcu, UserPtConfig>,
+     pub guards: Guards<'rcu>,
+ }
+@@ -5362,7 +5362,7 @@ pub proof fn lemma_fresh_frame_id_not_in_dom(m: Map<FrameId, FrameEntry>)
+ }
+ 
+ /// Tracked constructor for [`CursorEntry`].
+-pub axiom fn axiom_cursor_entry_new<'rcu>(
++pub proof fn tracked_cursor_entry_new<'rcu>(
+     vm_space: VmSpaceId,
+     kind: CursorKind,
+     va: Range<Vaddr>,
+@@ -5375,7 +5375,9 @@ pub axiom fn axiom_cursor_entry_new<'rcu>(
+         res.va == va,
+         res.owner == owner,
+         res.guards == guards,
+-;
++{
++    CursorEntry { vm_space, kind, va, owner, guards }
++}
+ 
+ /// Tracked constructor for [`VmIoEntry`].
+ pub proof fn tracked_vm_io_entry_new<'a>(
+diff --git a/ostd/specs/mm/frame/meta_region_owners.rs b/ostd/specs/mm/frame/meta_region_owners.rs
+index 9ce4004e7728467f015b33a5c2aa116a6cf39601..b8d4351faa1ac757dc4b05ac728f49ccf2cb2b48 100644
+--- a/ostd/specs/mm/frame/meta_region_owners.rs
++++ b/ostd/specs/mm/frame/meta_region_owners.rs
+@@ -54,7 +54,7 @@ pub tracked struct MetaRegionOwners {
+     /// [`crate::specs::mm::frame::segment::tracked_mint_seg_obligations`]).
+     /// Multiset semantics — multiple outstanding obligations at the same slot
+     /// are counted individually.
+-    pub frame_obligations: vstd::multiset::Multiset<usize>,
++    pub ghost frame_obligations: vstd::multiset::Multiset<usize>,
+ }
+ 
+ pub ghost struct MetaRegionModel {
+@@ -275,17 +275,20 @@ impl MetaRegionOwners {
+     /// Pairs the production of a per-Frame [`DropObligation`] with a
+     /// `+1` on the `frame_obligations[slot_idx]` count. Called by Frame's
+     /// `constructor_spec` (i.e. `ManuallyDrop::new(frame, ..)`).
+-    pub axiom fn tracked_mint_frame_obligation(tracked &mut self, slot_idx: usize) -> (tracked obl:
++    pub proof fn tracked_mint_frame_obligation(tracked &mut self, slot_idx: usize) -> (tracked obl:
+         DropObligation<usize>)
+         ensures
+             obl.value() == slot_idx,
+             *final(self) == old(self).mint_frame_obligation(slot_idx),
+-    ;
++    {
++        self.frame_obligations = self.frame_obligations.insert(slot_idx);
++        DropObligation::tracked_mint(slot_idx)
++    }
+ 
+     /// Redeems a per-Frame obligation, decrementing `frame_obligations`
+     /// at `obl.value()`. Called by Frame's `consume_obligation` (i.e.
+     /// by `Drop::drop` or `ManuallyDrop::new`).
+-    pub axiom fn tracked_redeem_frame_obligation(
++    pub proof fn tracked_redeem_frame_obligation(
+         tracked &mut self,
+         tracked obl: DropObligation<usize>,
+     )
+@@ -293,7 +296,9 @@ impl MetaRegionOwners {
+             old(self).frame_obligations.count(obl.value()) > 0,
+         ensures
+             *final(self) == old(self).redeem_frame_obligation(obl.value()),
+-    ;
++    {
++        self.frame_obligations = self.frame_obligations.remove(obl.value());
++    }
+ }
+ 
+ } // verus!
+diff --git a/ostd/specs/mm/page_table/cursor/owners.rs b/ostd/specs/mm/page_table/cursor/owners.rs
+index 5487042df624b048e427f0fe088b8a865b26398d..0246d6b1d90aaed41953ef4622b5ca370c9612b4 100644
+--- a/ostd/specs/mm/page_table/cursor/owners.rs
++++ b/ostd/specs/mm/page_table/cursor/owners.rs
+@@ -46,9 +46,9 @@ broadcast use group_ghost_tree_lemmas;
+ pub tracked struct CursorContinuation<'rcu, C: PageTableConfig> {
+     pub entry_own: EntryOwner<C>,
+     pub ghost idx: usize,
+-    pub tree_level: nat,
++    pub ghost tree_level: nat,
+     pub children: Seq<Option<OwnerSubtree<C>>>,
+-    pub path: TreePath<NR_ENTRIES>,
++    pub ghost path: TreePath<NR_ENTRIES>,
+     pub guard: PageTableGuard<'rcu, C>,
+ }
+ 
+@@ -151,12 +151,24 @@ impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+         )
+     }
+ 
+-    pub axiom fn tracked_restore(tracked &mut self, tracked child: Self) -> (tracked guard:
++    pub proof fn tracked_restore(tracked &mut self, tracked child: Self) -> (tracked guard:
+         PageTableGuard<'rcu, C>)
++        requires
++            old(self).idx < old(self).children.len(),
+         ensures
+             *final(self) == old(self).restore(child).0,
+             guard == old(self).restore(child).1,
+-    ;
++    {
++        let tracked child_node = OwnerSubtree::tracked_new(
++            child.entry_own,
++            child.tree_level,
++            child.children,
++        );
++        lemma_update_is_remove_insert(self.children, self.idx as int, Some(child_node));
++        let _ = self.children.tracked_remove(self.idx as int);
++        self.children.tracked_insert(self.idx as int, Some(child_node));
++        child.guard
++    }
+ 
+     pub open spec fn new(
+         owner_subtree: OwnerSubtree<C>,
+@@ -173,14 +185,18 @@ impl<'rcu, C: PageTableConfig> CursorContinuation<'rcu, C> {
+         }
+     }
+ 
+-    pub axiom fn tracked_new(
++    pub proof fn tracked_new(
+         tracked owner_subtree: OwnerSubtree<C>,
+         idx: usize,
+-        guard: PageTableGuard<'rcu, C>,
+-    ) -> (tracked res: Self)
+-        ensures
+-            res == Self::new(owner_subtree, idx, guard),
+-    ;
++        tracked guard: PageTableGuard<'rcu, C>,
++    ) -> tracked Self
++        returns
++            Self::new(owner_subtree, idx, guard),
++    {
++        let ghost tree_level = owner_subtree.level();
++        let tracked (entry_own, children) = owner_subtree.tracked_into_parts();
++        Self { entry_own, idx, tree_level, children, path: TreePath::new(Seq::empty()), guard }
++    }
+ 
+     pub open spec fn map_children(
+         self,
+diff --git a/verified_libs/vstd_extra/src/ghost_tree.rs b/verified_libs/vstd_extra/src/ghost_tree.rs
+index 18291a403b6931621e97846a62762ec07d971d64..4d178231d9104585dc3107b81dfdf1fb7c1b3e27 100644
+--- a/verified_libs/vstd_extra/src/ghost_tree.rs
++++ b/verified_libs/vstd_extra/src/ghost_tree.rs
+@@ -305,6 +305,18 @@ impl<T: TreeNodeValue<L>, const N: usize, const L: usize> TreeNode<T, N, L> {
+         TreeNode { value, level, children: Tracked(children) }
+     }
+ 
++    /// Constructs a tracked node from its tracked fields.
++    pub proof fn tracked_new(
++        tracked value: T,
++        level: nat,
++        tracked children: Seq<Option<Self>>,
++    ) -> tracked Self
++        returns
++            Self::new(value, level, children),
++    {
++        TreeNode { value, level, children: Tracked(children) }
++    }
++
+     /// Constructs a node at the given level with default value and no children.
+     pub open spec fn new_default(lv: nat) -> Self {
+         Self::new(T::default(lv), lv, Seq::new(N as nat, |i| None))
+@@ -432,6 +444,19 @@ impl<T: TreeNodeValue<L>, const N: usize, const L: usize> TreeNode<T, N, L> {
+         &mut self.value
+     }
+ 
++    /// Consumes this node and returns its tracked value and children.
++    pub proof fn tracked_into_parts(tracked self) -> (tracked (value, children): (
++        T,
++        Seq<Option<Self>>,
++    ))
++        ensures
++            value == self.value(),
++            children == self.children(),
++    {
++        let tracked Tracked(children) = self.children;
++        (self.value, children)
++    }
++
+     /// Requires `f` to hold for this node and every present descendant.
+     ///
+     /// `path` identifies the current node. When descending through child index `i`, the

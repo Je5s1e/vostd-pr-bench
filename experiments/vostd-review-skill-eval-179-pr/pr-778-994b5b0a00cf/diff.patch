@@ -1,0 +1,169 @@
+diff --git a/ostd/specs/mm/frame/memory_region_specs.rs b/ostd/specs/mm/frame/memory_region_specs.rs
+index 42ac9a01051d8d7c79762eb351c5cbdb6079e5ca..4f04a21d76ce7e812956c42d784699a27719ba8b 100644
+--- a/ostd/specs/mm/frame/memory_region_specs.rs
++++ b/ostd/specs/mm/frame/memory_region_specs.rs
+@@ -1,7 +1,7 @@
+ use vstd::prelude::*;
+ use vstd_extra::prelude::*;
+ 
+-use crate::specs::arch::MAX_PADDR;
++use crate::specs::arch::{MAX_PADDR, PAGE_SIZE};
+ 
+ verus! {
+ 
+@@ -22,13 +22,61 @@ impl MemRegionModel {
+         self.typ == old_region.typ && old_region.base <= self.base <= self.end <= old_region.end
+     }
+ 
++    /// The mirror of [`MemRegionModel::is_sub_region`]: the region contains
++    /// `old_region`, with the same type.
++    pub open spec fn is_super_region(self, old_region: Self) -> bool {
++        self.typ == old_region.typ && self.base <= old_region.base <= old_region.end <= self.end
++    }
++
+     pub open spec fn is_separate(self, region: Self) -> bool {
+         self.end <= region.base || region.end <= self.base
+     }
+ 
++    /// Whether the region is empty.
++    pub open spec fn is_empty(self) -> bool {
++        self.base == self.end
++    }
++
++    /// Whether `addr` is in the half-open range `[base, end)` of the region.
++    pub open spec fn contains(self, addr: int) -> bool {
++        self.base <= addr < self.end
++    }
++
++    /// Whether the region overlaps the other region.
++    pub open spec fn overlaps(self, other: Self) -> bool {
++        self.base < other.end && other.base < self.end
++    }
++
++    /// Whether both boundaries of the region are multiples of `align`.
++    pub open spec fn aligned(self, align: int) -> bool {
++        self.base % align == 0 && self.end % align == 0
++    }
++
+     pub open spec fn bad() -> Self {
+         MemRegionModel { base: 0, end: 0, typ: 0 }
+     }
++
++    /// The inward alignment of the region: `base` grows up to and `end`
++    /// shrinks down to the enclosing `PAGE_SIZE` boundaries (used for
++    /// `Usable` regions so that partially usable pages are excluded).
++    pub open spec fn align_inward(self) -> Self {
++        MemRegionModel {
++            base: nat_align_up(self.base as nat, PAGE_SIZE as nat) as int,
++            end: nat_align_down(self.end as nat, PAGE_SIZE as nat) as int,
++            typ: self.typ,
++        }
++    }
++
++    /// The outward alignment of the region: `base` shrinks down to and `end`
++    /// grows up to the enclosing `PAGE_SIZE` boundaries (used for non-`Usable`
++    /// regions so that partially non-usable pages are wholly excluded).
++    pub open spec fn align_outward(self) -> Self {
++        MemRegionModel {
++            base: nat_align_down(self.base as nat, PAGE_SIZE as nat) as int,
++            end: nat_align_up(self.end as nat, PAGE_SIZE as nat) as int,
++            typ: self.typ,
++        }
++    }
+ }
+ 
+ pub ghost struct MemoryRegionArrayModel<const LEN: usize> {
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index 3f88734e05bf9b71c19cc8468b5b49a7ba67f6b9..28836033ce528fd60796ecd3a8eb08a922106691 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -9,7 +9,7 @@ use crate::specs::mm::frame::memory_region_specs::{MemRegionModel, MemoryRegionA
+ 
+ use core::ops::Deref;
+ 
+-// use align_ext::AlignExt;
++use align_ext::AlignExt;
+ 
+ //use crate::mm::{kspace::kernel_loaded_offset, Paddr, Vaddr, PAGE_SIZE};
+ 
+@@ -163,36 +163,69 @@ impl MemoryRegion {
+ 
+     /// The physical address of the base of the region.
+     #[verus_verify(dual_spec)]
++    #[verus_spec(returns self@.base as usize)]
+     pub fn base(&self) -> Paddr {
+         self.base
+     }
+ 
+     /// The length in bytes of the region.
+     #[verus_verify(dual_spec)]
++    #[verus_spec(returns (self@.end - self@.base) as usize)]
+     pub fn len(&self) -> usize {
+         self.len
+     }
+ 
+     /// The physical address of the end of the region.
+     #[verus_verify(dual_spec)]
+-    #[verus_spec(requires self.inv())]
++    #[verus_spec(
++        requires
++            self.inv(),
++        returns
++            self@.end as usize,
++    )]
+     pub fn end(&self) -> Paddr {
+         self.base + self.len
+     }
+ 
+     /// Checks whether the region is empty
+     #[verus_verify(dual_spec)]
++    #[verus_spec(returns self@.is_empty())]
+     pub fn is_empty(&self) -> bool {
+         self.len == 0
+     }
+ 
+     /// The type of the region.
+     #[verus_verify(dual_spec)]
++    #[verus_spec(ret =>
++        ensures
++            ret.to_int() == self@.typ,
++    )]
+     pub fn typ(&self) -> MemoryRegionType {
+         self.typ
+     }
+-    /*
++
++    #[verus_spec(ret =>
++        requires
++            self.inv(),
++            self@.typ == MemoryRegionType::Usable.to_int()
++                ==> self@.align_inward().inv(),
++        ensures
++            ret.inv(),
++            ret@ == (if self@.typ == MemoryRegionType::Usable.to_int() {
++                self@.align_inward()
++            } else {
++                self@.align_outward()
++            }),
++            ret@.aligned(PAGE_SIZE as int),
++            self@.typ == MemoryRegionType::Usable.to_int()
++                ==> ret@.is_sub_region(self@),
++            self@.typ != MemoryRegionType::Usable.to_int()
++                ==> ret@.is_super_region(self@),
++    )]
+     fn as_aligned(&self) -> Self {
++        proof! {
++            lemma_pow2_is_pow2_to64();
++        }
+         let (base, end) = match self.typ() {
+             MemoryRegionType::Usable => (
+                 self.base().align_up(PAGE_SIZE),
+@@ -208,7 +241,7 @@ impl MemoryRegion {
+             len: end - base,
+             typ: self.typ,
+         }
+-    }*/
++    }
+ }
+ 
+ /// The maximum number of regions that can be handled.

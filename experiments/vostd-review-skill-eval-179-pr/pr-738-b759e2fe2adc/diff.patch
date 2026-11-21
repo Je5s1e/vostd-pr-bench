@@ -1,0 +1,154 @@
+diff --git a/ostd/src/sync/rwarc.rs b/ostd/src/sync/rwarc.rs
+index 1029560a62fb758e7c57a8fde30699babab6b46f..bdd28ff7446bb99fefe9aa9a0329870089c39e13 100644
+--- a/ostd/src/sync/rwarc.rs
++++ b/ostd/src/sync/rwarc.rs
+@@ -77,6 +77,11 @@ impl<T> RwArc<T> {
+         self.0.data.write()
+     }
+ 
++    /// Returns a raw pointer to the contained value.
++    pub fn as_ptr(&self) -> *const T {
++        self.0.data.as_ptr()
++    }
++
+     /*
+     /// Returns an immutable reference if no other `RwArc` points to the same allocation.
+     ///
+diff --git a/ostd/src/sync/rwlock.rs b/ostd/src/sync/rwlock.rs
+index 1632c221a972d192dfe736c5a9f3ee171f31b329..9671c8790ff326d9b61e1573851557cb424e635d 100644
+--- a/ostd/src/sync/rwlock.rs
++++ b/ostd/src/sync/rwlock.rs
+@@ -478,8 +478,8 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+         if lock & (WRITER | MAX_READER | BEING_UPGRADED) == 0 {
+             Some(
+                 RwLockReadGuard {
+-                    inner: self,
+                     guard,
++                    inner: self,
+                     tracked_token: Tracked(read_token.tracked_unwrap()),
+                 },
+             )
+@@ -546,8 +546,8 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+         ).is_ok() {
+             Some(
+                 RwLockWriteGuard {
+-                    inner: self,
+                     guard,
++                    inner: self,
+                     tracked_perm: Tracked(guard_perm.tracked_unwrap()),
+                     tracked_token: Tracked(guard_token.tracked_unwrap()),
+                 },
+@@ -590,8 +590,8 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+         if lock == 0 {
+             return Some(
+                 RwLockUpgradeableGuard {
+-                    inner: self,
+                     guard,
++                    inner: self,
+                     tracked_token: Tracked(upgrade_guard_token.tracked_unwrap()),
+                 },
+             );
+@@ -617,26 +617,25 @@ impl<T  /*: ?Sized*/ , G: SpinGuardian> RwLock<T, G> {
+         }
+         None
+     }
+-}
+ 
+-/*
+-impl<T, G: SpinGuardian> RwLock<T, G> {
+-    /// Returns a mutable reference to the underlying data.
++    /*/// Returns a mutable reference to the underlying data.
+     ///
+     /// This method is zero-cost: By holding a mutable reference to the lock, the compiler has
+     /// already statically guaranteed that access to the data is exclusive.
+     pub fn get_mut(&mut self) -> &mut T {
+         self.val.get_mut()
+     }
+-
++*/
+     /// Returns a raw pointer to the underlying data.
+     ///
+     /// This method is safe, but it's up to the caller to ensure that access to the data behind it
+     /// is still safe.
++    #[verifier::external_body]
+     pub(super) fn as_ptr(&self) -> *mut T {
+-        self.val.get()
++        // self.val.get()
++        core::ptr::from_ref(&self.val) as *const T as *mut T
+     }
+-}*/
++}
+ 
+ /* the trait `core::fmt::Debug` is not implemented for `vstd::cell::pcell::PCell<T>`
+ impl<T: ?Sized + fmt::Debug, G> fmt::Debug for RwLock<T, G> {
+@@ -1036,8 +1035,8 @@ impl<'a, T  /*: ?Sized*/ , G: SpinGuardian> RwLockUpgradeableGuard<'a, T, G> {
+             }
+         );
+         if res.is_ok() {
+-            let inner = this.inner;
+             let guard = this.guard.transfer_to();
++            let inner = this.inner;
+             // drop(self);
+             atomic_with_ghost!(
+                 inner.lock => fetch_sub(UPGRADEABLE_READER);
+@@ -1056,8 +1055,8 @@ impl<'a, T  /*: ?Sized*/ , G: SpinGuardian> RwLockUpgradeableGuard<'a, T, G> {
+             );
+             Ok(
+                 RwLockWriteGuard {
+-                    inner,
+                     guard,
++                    inner,
+                     tracked_perm: Tracked(write_perm.tracked_unwrap()),
+                     tracked_token: Tracked(write_guard_token.tracked_unwrap()),
+                 },
+@@ -1065,8 +1064,8 @@ impl<'a, T  /*: ?Sized*/ , G: SpinGuardian> RwLockUpgradeableGuard<'a, T, G> {
+         } else {
+             Err(
+                 RwLockUpgradeableGuard {
+-                    inner: this.inner,
+                     guard: this.guard,
++                    inner: this.inner,
+                     tracked_token: Tracked(err_upread_guard_token.tracked_unwrap()),
+                 },
+             )
+diff --git a/ostd/src/sync/rwmutex.rs b/ostd/src/sync/rwmutex.rs
+index 7112595ecae0f28fc782e48131dbd79728861b10..0a96b2faaa33a811a4d36a7dcc680cc6bbfb8681 100644
+--- a/ostd/src/sync/rwmutex.rs
++++ b/ostd/src/sync/rwmutex.rs
+@@ -306,10 +306,10 @@ impl<T> RwMutex<T> {
+         };
+ 
+         Self {
+-            // val: UnsafeCell::new(val),
+-            val,
+             lock: AtomicUsize::new(Ghost((val, Ghost(ghost_id))), 0, Tracked(perms)),
+             queue: WaitQueue::new(),
++            // val: UnsafeCell::new(val),
++            val,
+             ghost_id: Ghost(ghost_id),
+         }
+     }
+diff --git a/ostd/src/sync/spin.rs b/ostd/src/sync/spin.rs
+index 283f54e397a9b8a51a7a623ab18b15e63e6e20f8..3a62e780e99d9974caf819746ca6c78294513f17 100644
+--- a/ostd/src/sync/spin.rs
++++ b/ostd/src/sync/spin.rs
+@@ -280,8 +280,8 @@ impl<T /*: ?Sized */, G: SpinGuardian, I: ResourceInvariant<T>> SpinLock<T, G, I
+             let tracked SpinLockResource { perm, resource: resource } = resource;
+         }
+         SpinLockGuard {
+-            lock: self,
+             guard: inner_guard,
++            lock: self,
+             tracked_perm: Tracked(perm),
+             tracked_resource: Tracked(resource),
+         }
+@@ -316,8 +316,8 @@ impl<T /*: ?Sized */, G: SpinGuardian, I: ResourceInvariant<T>> SpinLock<T, G, I
+                     resource.tracked_unwrap();
+             }
+             let lock_guard = SpinLockGuard {
+-                lock: self,
+                 guard: inner_guard,
++                lock: self,
+                 tracked_perm: Tracked(perm),
+                 tracked_resource: Tracked(resource),
+             };

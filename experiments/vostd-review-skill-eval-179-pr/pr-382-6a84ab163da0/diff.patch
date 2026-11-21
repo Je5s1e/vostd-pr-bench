@@ -1,0 +1,362 @@
+diff --git a/ostd/specs/mm/page_table/node/entry_owners.rs b/ostd/specs/mm/page_table/node/entry_owners.rs
+index 59573aa24f2b11b67ce5b26657fdc848341e2d1b..01bdc74fc398597c634d4e5632ab78bc3fbeaf8f 100644
+--- a/ostd/specs/mm/page_table/node/entry_owners.rs
++++ b/ostd/specs/mm/page_table/node/entry_owners.rs
+@@ -101,9 +101,17 @@ impl<C: PageTableConfig> EntryOwner<C> {
+     /// Produces a slot permission for a frame address without requiring it from `regions.slots`.
+     /// Used as a placeholder in cases (e.g. huge-page split) where the sub-frame slot perms
+     /// are not yet fully tracked.  Replace with real perm threading when the split path is verified.
+-    pub axiom fn placeholder_slot_perm(paddr: Paddr) -> (tracked res: PointsTo<MetaSlot>)
++    pub axiom fn placeholder_slot_perm(paddr: Paddr, tracked regions: &MetaRegionOwners) -> (tracked res: PointsTo<MetaSlot>)
++        requires
++            regions.inv(),
++            paddr % PAGE_SIZE == 0,
++            paddr < MAX_PADDR,
+         ensures
+-            res.addr() == meta_addr(frame_to_index(paddr));
++            res.addr() == meta_addr(frame_to_index(paddr)),
++            res.is_init(),
++            res.value().wf(regions.slot_owners[frame_to_index(paddr)]),
++            regions.slot_owners[frame_to_index(paddr)].inner_perms.ref_count.value() != REF_COUNT_UNUSED,
++            regions.slot_owners[frame_to_index(paddr)].path_if_in_pt is None;
+ 
+     pub axiom fn new_node(node: NodeOwner<C>, path: TreePath<NR_ENTRIES>) -> tracked Self
+         returns Self::new_node_spec(node, path);
+@@ -140,7 +148,8 @@ impl<C: PageTableConfig> EntryOwner<C> {
+         &&& pte.paddr() % PAGE_SIZE == 0
+         &&& pte.paddr() < MAX_PADDR
+         &&& !pte.is_present() ==> {
+-            self.is_absent()
++            &&& self.is_absent()
++            &&& parent_level > 1 ==> !pte.is_last(parent_level)
+         }
+         &&& pte.is_present() && !pte.is_last(parent_level) ==> {
+             &&& self.is_node()
+@@ -165,6 +174,9 @@ impl<C: PageTableConfig> EntryOwner<C> {
+     {
+         C::E::new_properties();
+         assert(!pte.is_present());
++        if parent_level > 1 {
++            assert(!pte.is_last(parent_level));
++        }
+         if pte.is_present() && !pte.is_last(parent_level) {
+             assert(pte.is_present());
+             assert(!pte.is_present());
+@@ -175,6 +187,98 @@ impl<C: PageTableConfig> EntryOwner<C> {
+         }
+     }
+ 
++    pub proof fn last_pte_implies_frame_match(self, pte: C::E, parent_level: PagingLevel)
++        requires
++            self.inv(),
++            self.match_pte(pte, parent_level),
++            1 < parent_level,
++            pte.is_last(parent_level),
++        ensures
++            self.is_frame(),
++            self.frame.unwrap().mapped_pa == pte.paddr(),
++            self.frame.unwrap().prop == pte.prop(),
++    {
++        if !pte.is_present() {
++            assert(self.is_absent());
++            assert(!pte.is_last(parent_level));
++            assert(false);
++        }
++        assert(self.is_frame());
++        assert(self.frame.unwrap().mapped_pa == pte.paddr());
++        assert(self.frame.unwrap().prop == pte.prop());
++    }
++
++    pub proof fn huge_frame_split_child_at(self, regions: MetaRegionOwners, idx: usize)
++        requires
++            self.inv(),
++            self.is_frame(),
++            regions.inv(),
++            1 < self.parent_level < NR_LEVELS,
++            idx < NR_ENTRIES,
++        ensures
++            self.frame.unwrap().mapped_pa + idx * page_size((self.parent_level - 1) as PagingLevel) < MAX_PADDR,
++            ((self.frame.unwrap().mapped_pa + idx * page_size((self.parent_level - 1) as PagingLevel)) as Paddr)
++                % page_size((self.parent_level - 1) as PagingLevel) == 0,
++            ((self.frame.unwrap().mapped_pa + idx * page_size((self.parent_level - 1) as PagingLevel)) as Paddr)
++                + page_size((self.parent_level - 1) as PagingLevel) <= MAX_PADDR,
++            ((self.frame.unwrap().mapped_pa + idx * page_size((self.parent_level - 1) as PagingLevel)) as Paddr) % PAGE_SIZE == 0,
++    {
++        let pa = self.frame.unwrap().mapped_pa;
++        let child_pa = (pa + idx * page_size((self.parent_level - 1) as PagingLevel)) as Paddr;
++        assert(self.parent_level == 2 || self.parent_level == 3);
++        assert(NR_ENTRIES == 512) by {
++            crate::specs::arch::paging_consts::lemma_nr_subpage_per_huge_eq_nr_entries();
++        };
++        assert(crate::mm::nr_subpage_per_huge::<PagingConsts>() == 512usize) by {
++            crate::specs::arch::paging_consts::lemma_nr_subpage_per_huge_eq_nr_entries();
++        };
++        vstd_extra::external::ilog2::lemma_usize_ilog2_to32();
++        crate::specs::mm::page_table::cursor::page_size_lemmas::lemma_page_size_spec_level1();
++        assert(512usize.ilog2() == 9);
++        assert(crate::mm::nr_subpage_per_huge::<PagingConsts>().ilog2() == 512usize.ilog2());
++        vstd::arithmetic::power2::lemma2_to64();
++        if self.parent_level == 2 {
++            assert(page_size_spec(1) == 4096);
++            assert(page_size_spec(2) == (PAGE_SIZE * pow2((512usize.ilog2() * 1usize) as nat)) as usize);
++            assert(page_size_spec(2) == (4096 * pow2(9)) as usize);
++            assert(page_size_spec(2) == 2097152);
++            assert(pa % page_size(2) == 0);
++            crate::specs::mm::page_table::cursor::page_size_lemmas::axiom_page_size_divides(1, 2);
++            assert(child_pa % page_size(1) == 0);
++            assert(child_pa + page_size(1) <= MAX_PADDR) by {
++                assert(idx < 512);
++                assert(idx * 4096 + 4096 <= 2097152);
++                assert(child_pa + page_size(1) <= pa + page_size(2));
++            };
++        } else {
++            assert(self.parent_level == 3);
++            assert(page_size_spec(2) == (PAGE_SIZE * pow2((512usize.ilog2() * 1usize) as nat)) as usize);
++            assert(page_size_spec(2) == (4096 * pow2(9)) as usize);
++            assert(page_size_spec(2) == 2097152);
++            assert(page_size_spec(3) == (PAGE_SIZE * pow2((512usize.ilog2() * 2usize) as nat)) as usize);
++            assert(page_size_spec(3) == (4096 * pow2(18)) as usize);
++            assert(page_size_spec(3) == 1073741824);
++            assert(pa % page_size(3) == 0);
++            assert(pa % PAGE_SIZE == 0);
++            crate::specs::mm::page_table::cursor::page_size_lemmas::lemma_va_align_page_size(pa, 2);
++            assert(child_pa == pa + idx * page_size(2));
++            vstd::arithmetic::div_mod::lemma_mod_multiples_basic(idx as int, page_size(2) as int);
++            vstd::arithmetic::div_mod::lemma_add_mod_noop(
++                pa as int,
++                (idx * page_size(2)) as int,
++                page_size(2) as int,
++            );
++            assert(child_pa % page_size(2) == 0);
++            assert(child_pa + page_size(2) <= MAX_PADDR) by {
++                assert(idx < 512);
++                assert(idx * 2097152 + 2097152 <= 1073741824);
++                assert(child_pa + page_size(2) <= pa + page_size(3));
++            };
++        }
++        assert(child_pa < MAX_PADDR);
++        assert(child_pa % PAGE_SIZE == 0);
++    }
++
+     pub open spec fn expected_raw_count(self) -> usize {
+         if self.in_scope {
+             0
+@@ -344,6 +448,8 @@ impl<C: PageTableConfig> Inv for EntryOwner<C> {
+             &&& self.frame.unwrap().mapped_pa % PAGE_SIZE == 0
+             &&& self.frame.unwrap().mapped_pa < MAX_PADDR
+             &&& self.frame.unwrap().size == page_size(self.parent_level)
++            &&& self.frame.unwrap().mapped_pa % page_size(self.parent_level) == 0
++            &&& self.frame.unwrap().mapped_pa + page_size(self.parent_level) <= MAX_PADDR
+         }
+         &&& self.locked is Some ==> {
+             &&& self.frame is None
+diff --git a/ostd/specs/mm/virt_mem_example.rs b/ostd/specs/mm/virt_mem_example.rs
+index 6688646e7252bea2ec1feef0a50676679d999d0e..97e6055b28775e67b99c1171fbba1878b03a29e0 100644
+--- a/ostd/specs/mm/virt_mem_example.rs
++++ b/ostd/specs/mm/virt_mem_example.rs
+@@ -94,7 +94,7 @@ pub fn write_example(Tracked(gm): Tracked<&mut GlobalMemView>, va: Vaddr, pa: Pa
+     requires
+         old(cursor).map_cursor_requires(*old(cursor_owner)),
+         old(cursor).map_cursor_inv(*old(cursor_owner), *old(guards), *old(regions)),
+-        old(cursor).map_item_requires(frame, prop, entry_owner),
++        old(cursor).map_item_requires(frame, prop, entry_owner, *old(regions)),
+         old(gm).inv(),
+         old(tlb_model).inv(),
+ )]
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index 2e69b8d2f79c804d0735bad3d5e82abed75539d0..dd91c0af2e7c9f5907fddf8928eb3d627cff7b82 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -2345,6 +2345,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+                 self.map_cursor_requires(*owner, *guards),
+             (C::item_into_raw(item).1 <= old(self).inner.level
+                 && old(owner).cur_entry_owner().is_absent()) ==> res.is_ok(),
++            res is Err && res.unwrap_err() is StrayPageTable ==> C::item_into_raw(item).1 > 1,
+             // For non-UNUSED indices other than the mapped frame, path_if_in_pt is preserved.
+             forall|idx: usize| #![trigger regions.slot_owners[idx].path_if_in_pt]
+                 idx != frame_to_index(C::item_into_raw(item).0) &&
+@@ -2520,6 +2521,14 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+         }
+ 
+         if let Some(frag) = frag {
++            proof {
++                if frag is StrayPageTable {
++                    assert(owner1.cur_entry_owner().is_node());
++                    owner1.cur_entry_node_implies_level_gt_1();
++                    assert(level == owner1.level);
++                    assert(level > 1);
++                }
++            }
+             Err(frag)
+         } else {
+             Ok(())
+@@ -3334,4 +3343,3 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> CursorMut<'rcu, C, A> {
+ }
+ 
+ } // verus!
+-
+diff --git a/ostd/src/mm/page_table/mod.rs b/ostd/src/mm/page_table/mod.rs
+index 54f8ef78aacb40762f4f74b71d7d35e899d3e17b..c41a52f67347c272d4882c06deaeedcfd10d4087 100644
+--- a/ostd/src/mm/page_table/mod.rs
++++ b/ostd/src/mm/page_table/mod.rs
+@@ -338,6 +338,9 @@ pub trait PageTableEntryTrait: Clone + Copy + Debug + Sized + Send + Sync + 'sta
+     proof fn new_properties()
+         ensures
+             !Self::new_absent_spec().is_present(),
++            forall|level: PagingLevel|
++                #![trigger Self::new_absent_spec().is_last(level)]
++                1 < level ==> !Self::new_absent_spec().is_last(level),
+             forall|paddr: Paddr, level: PagingLevel, prop: PageProperty|
+                 #![trigger Self::new_page_spec(paddr, level, prop)]
+                 {
+diff --git a/ostd/src/mm/page_table/node/entry.rs b/ostd/src/mm/page_table/node/entry.rs
+index d82b6d0bef4d333539ddb7f52836717681628739..8b3ee94842969d6a925d90845a31822f38463a42 100644
+--- a/ostd/src/mm/page_table/node/entry.rs
++++ b/ostd/src/mm/page_table/node/entry.rs
+@@ -670,6 +670,10 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'rcu, C> {
+         let pa = self.pte.paddr();
+         let prop = self.pte.prop();
+ 
++        proof {
++            EntryOwner::last_pte_implies_frame_match(owner.value, self.pte, level);
++        }
++
+         proof_decl!{
+             let tracked mut new_owner: OwnerSubtree<C>;
+         }
+@@ -680,9 +684,6 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'rcu, C> {
+         #[verus_spec(with Tracked(&new_owner.value.node.tracked_borrow().meta_perm.points_to))]
+         let paddr = new_page.start_paddr();
+ 
+-        // This is a fudge because the `new_page` should be wrapped in an `RcuDrop` similar to a `NeverDrop`
+-        assert(regions.slot_owners[frame_to_index(paddr)].raw_count == 1) by { admit() };
+-
+         proof {
+             broadcast use crate::mm::frame::meta::mapping::group_page_meta;
+         }
+@@ -706,6 +707,12 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'rcu, C> {
+             invariant
+                 1 < level < NR_LEVELS,
+                 owner.inv(),
++                owner.value.is_frame(),
++                owner.value.parent_level == level,
++                owner.value.frame.unwrap().mapped_pa == pa,
++                owner.value.frame.unwrap().prop == prop,
++                pa % page_size(level) == 0,
++                pa + page_size(level) <= MAX_PADDR,
+                 regions.inv(),
+                 parent_owner.inv(),
+                 new_owner.value.is_node(),
+@@ -762,12 +769,15 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'rcu, C> {
+                 let ghost old_children_perm = new_owner_node.children_perm;
+             }
+ 
+-            assert(pa + i * page_size((level - 1) as u8) < MAX_PADDR) by { admit() };
++            proof {
++                EntryOwner::huge_frame_split_child_at(owner.value, *regions, i as usize);
++            }
++
+             let small_pa = pa + i * page_size(level - 1);
+ 
+-            assert(small_pa % PAGE_SIZE == 0) by { admit() };
++            assert(small_pa % PAGE_SIZE == 0);
+ 
+-            let tracked split_slot_perm = EntryOwner::<C>::placeholder_slot_perm(small_pa);
++            let tracked split_slot_perm = EntryOwner::<C>::placeholder_slot_perm(small_pa, regions);
+             let tracked child_owner = EntryOwner::new_frame(
+                 small_pa,
+                 new_owner.value.path.push_tail(i as usize),
+@@ -793,7 +803,8 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'rcu, C> {
+                 ));
+ 
+                 let idx = frame_to_index(small_pa);
+-                assert(regions.slot_owners[idx].path_if_in_pt is None) by { admit() };
++                assert(regions.slot_owners[idx].inner_perms.ref_count.value() != REF_COUNT_UNUSED);
++                assert(regions.slot_owners[idx].path_if_in_pt is None);
+ 
+                 assert(entry.node_matching(new_owner_child.value, new_owner_node, new_guard_perm)) by {
+                     let pte = new_owner_node.children_perm.value()[i as int];
+@@ -807,7 +818,7 @@ impl<'a, 'rcu, C: PageTableConfig> Entry<'rcu, C> {
+                 };
+ 
+                 assert(Child::<C>::Frame(small_pa, (level - 1) as PagingLevel, prop)
+-                    .invariants(child_owner, *regions)) by { admit() };
++                    .invariants(child_owner, *regions));
+             }
+ 
+             #[verus_spec(with Tracked(regions),
+diff --git a/ostd/src/mm/vm_space.rs b/ostd/src/mm/vm_space.rs
+index c0d29ede0bce8cb669c6dbe0d73ae5518bb2ba64..0c70dc4adbb97d18cb0516fa91c5dad3333adc78 100644
+--- a/ostd/src/mm/vm_space.rs
++++ b/ostd/src/mm/vm_space.rs
+@@ -793,6 +793,7 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+         frame: UFrame,
+         prop: PageProperty,
+         entry_owner: EntryOwner<UserPtConfig>,
++        regions: MetaRegionOwners,
+     ) -> bool {
+         let item = MappedItem { frame: frame, prop: prop };
+         let (paddr, level, prop0) = UserPtConfig::item_into_raw_spec(item);
+@@ -801,10 +802,13 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+         &&& entry_owner.frame.unwrap().prop == prop
+         &&& level <= UserPtConfig::HIGHEST_TRANSLATION_LEVEL()
+         &&& 1 <= level <= NR_LEVELS  // Should be property of item_into_raw
++        &&& level < self.pt_cursor.inner.guard_level
+         &&& Child::Frame(paddr, level, prop0).wf(entry_owner)
+         &&& self.pt_cursor.inner.va + page_size(level) <= self.pt_cursor.inner.barrier_va.end
+         &&& entry_owner.inv()
+         &&& self.pt_cursor.inner.va % page_size(level) == 0
++        &&& crate::mm::page_table::CursorMut::<'a, UserPtConfig, A>::item_not_mapped(item, regions)
++        &&& crate::mm::page_table::CursorMut::<'a, UserPtConfig, A>::item_slot_in_regions(item, regions)
+     }
+ 
+     /// The result of a call to `map`. Constructs a `Mapping` from the frame being mapped and the cursor's current virtual address.
+@@ -848,7 +852,7 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+             old(tlb_model).inv(),
+             old(self).map_cursor_requires(*old(cursor_owner)),
+             old(self).map_cursor_inv(*old(cursor_owner), *old(guards), *old(regions)),
+-            old(self).map_item_requires(frame, prop, entry_owner),
++            old(self).map_item_requires(frame, prop, entry_owner, *old(regions)),
+         ensures
+             self.map_cursor_inv(*cursor_owner, *guards, *regions),
+             old(self).map_item_ensures(
+@@ -865,14 +869,14 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+         assert(crate::mm::page_table::CursorMut::<'a, UserPtConfig, A>::item_not_mapped(
+             item,
+             *old(regions),
+-        )) by { admit() };
++        )) by { };
+ 
+         assert(crate::mm::page_table::CursorMut::<'a, UserPtConfig, A>::item_slot_in_regions(
+             item,
+             *old(regions),
+-        )) by { admit() };
++        )) by { };
+ 
+-        assert(self.pt_cursor.map_item_requires(item, entry_owner)) by { admit() };
++        assert(self.pt_cursor.map_item_requires(item, entry_owner)) by { };
+ 
+         // SAFETY: It is safe to map untyped memory into the userspace.
+         let Err(frag) = (
+@@ -892,7 +896,9 @@ impl<'a, A: InAtomicMode> CursorMut<'a, A> {
+                 self.flusher.dispatch_tlb_flush();
+             },
+             PageTableFrag::StrayPageTable { .. } => {
+-                assert(false) by { admit() };
++                assert(false) by {
++                    assert(UserPtConfig::item_into_raw(item).1 == 1);
++                };
+                 //panic!("`UFrame` is base page sized but re-mapping out a child PT");
+             },
+         }
+@@ -1229,7 +1235,9 @@ unsafe impl PageTableConfig for UserPtConfig {
+ 
+     type Item = MappedItem;
+ 
+-    uninterp spec fn item_into_raw_spec(item: Self::Item) -> (Paddr, PagingLevel, PageProperty);
++    open spec fn item_into_raw_spec(item: Self::Item) -> (Paddr, PagingLevel, PageProperty) {
++        (item.frame.paddr(), 1, item.prop)
++    }
+ 
+     #[verifier::external_body]
+     fn item_into_raw(item: Self::Item) -> (Paddr, PagingLevel, PageProperty) {

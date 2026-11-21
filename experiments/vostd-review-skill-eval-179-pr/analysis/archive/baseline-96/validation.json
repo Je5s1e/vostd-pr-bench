@@ -1,0 +1,11 @@
+{
+  "frozen_cases": 96,
+  "validated_at_utc": "2026-11-21T06:28:20.848740+00:00",
+  "reviews_unchanged": true,
+  "new_reviews_since_cutoff": [
+    "pr-646-5053290d119e",
+    "pr-65-625495f69559",
+    "pr-651-4fe5602573ae",
+    "pr-656-ffafeb7a696a"
+  ]
+}

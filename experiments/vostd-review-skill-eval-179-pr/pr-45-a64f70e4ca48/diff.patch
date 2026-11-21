@@ -1,0 +1,189 @@
+diff --git a/fvt3-page-acquisition-safety/src/errors.rs b/fvt3-page-acquisition-safety/src/errors.rs
+deleted file mode 100644
+index 4561895ce06b20851c7268376fc028297a8faa9b..0000000000000000000000000000000000000000
+--- a/fvt3-page-acquisition-safety/src/errors.rs
++++ /dev/null
+@@ -1,21 +0,0 @@
+-use vstd::prelude::*;
+-
+-verus! {
+-
+-pub open spec fn expect_spec<T, E: core::fmt::Debug>(result: Result<T, E>, msg: &str) -> T
+-    recommends
+-        result.is_Ok(),
+-{
+-    result.get_Ok_0()
+-}
+-
+-#[verifier::external_fn_specification]
+-#[verifier::when_used_as_spec(expect_spec)]
+-pub fn expect<T, E: core::fmt::Debug>(result: Result<T, E>, msg: &str) -> T
+-    requires
+-        result.is_Ok(),
+-{
+-    result.expect(msg)
+-}
+-
+-} // verus!
+diff --git a/fvt3-page-acquisition-safety/src/lib.rs b/fvt3-page-acquisition-safety/src/lib.rs
+index 8479f8fff84f0a586bfe4748773bb3f74b818af8..256e5b2dab56e71bdef98432f5cfde55bed8ec2a 100644
+--- a/fvt3-page-acquisition-safety/src/lib.rs
++++ b/fvt3-page-acquisition-safety/src/lib.rs
+@@ -7,6 +7,5 @@
+ 
+ pub mod abstract_state;
+ pub mod common;
+-pub mod errors;
+ pub mod page;
+ pub mod rust_core_mem;
+diff --git a/fvt4-into-from-raw/src/errors.rs b/fvt4-into-from-raw/src/errors.rs
+deleted file mode 100644
+index 4561895ce06b20851c7268376fc028297a8faa9b..0000000000000000000000000000000000000000
+--- a/fvt4-into-from-raw/src/errors.rs
++++ /dev/null
+@@ -1,21 +0,0 @@
+-use vstd::prelude::*;
+-
+-verus! {
+-
+-pub open spec fn expect_spec<T, E: core::fmt::Debug>(result: Result<T, E>, msg: &str) -> T
+-    recommends
+-        result.is_Ok(),
+-{
+-    result.get_Ok_0()
+-}
+-
+-#[verifier::external_fn_specification]
+-#[verifier::when_used_as_spec(expect_spec)]
+-pub fn expect<T, E: core::fmt::Debug>(result: Result<T, E>, msg: &str) -> T
+-    requires
+-        result.is_Ok(),
+-{
+-    result.expect(msg)
+-}
+-
+-} // verus!
+diff --git a/fvt4-into-from-raw/src/lib.rs b/fvt4-into-from-raw/src/lib.rs
+index 8479f8fff84f0a586bfe4748773bb3f74b818af8..256e5b2dab56e71bdef98432f5cfde55bed8ec2a 100644
+--- a/fvt4-into-from-raw/src/lib.rs
++++ b/fvt4-into-from-raw/src/lib.rs
+@@ -7,6 +7,5 @@
+ 
+ pub mod abstract_state;
+ pub mod common;
+-pub mod errors;
+ pub mod page;
+ pub mod rust_core_mem;
+diff --git a/fvt5-lifecycle-safety/src/errors.rs b/fvt5-lifecycle-safety/src/errors.rs
+deleted file mode 100644
+index 4561895ce06b20851c7268376fc028297a8faa9b..0000000000000000000000000000000000000000
+--- a/fvt5-lifecycle-safety/src/errors.rs
++++ /dev/null
+@@ -1,21 +0,0 @@
+-use vstd::prelude::*;
+-
+-verus! {
+-
+-pub open spec fn expect_spec<T, E: core::fmt::Debug>(result: Result<T, E>, msg: &str) -> T
+-    recommends
+-        result.is_Ok(),
+-{
+-    result.get_Ok_0()
+-}
+-
+-#[verifier::external_fn_specification]
+-#[verifier::when_used_as_spec(expect_spec)]
+-pub fn expect<T, E: core::fmt::Debug>(result: Result<T, E>, msg: &str) -> T
+-    requires
+-        result.is_Ok(),
+-{
+-    result.expect(msg)
+-}
+-
+-} // verus!
+diff --git a/fvt5-lifecycle-safety/src/lib.rs b/fvt5-lifecycle-safety/src/lib.rs
+index c0805c10cb61f5132a8286d46e7cd53be6079063..f582a650280c03ee4e25c865c2ef75158e938cb5 100644
+--- a/fvt5-lifecycle-safety/src/lib.rs
++++ b/fvt5-lifecycle-safety/src/lib.rs
+@@ -7,7 +7,6 @@
+ 
+ pub mod abstract_state;
+ pub mod common;
+-pub mod errors;
+ pub mod frame;
+ pub mod page;
+ pub mod page_table;
+diff --git a/fvt6-vmreader-and-vmwriter/src/common.rs b/fvt6-vmreader-and-vmwriter/src/common.rs
+index e02af26a13f503ae64bb24840d31b66712a3db19..65db14f9ce72549e0fe23b607f94906a165c4eef 100644
+--- a/fvt6-vmreader-and-vmwriter/src/common.rs
++++ b/fvt6-vmreader-and-vmwriter/src/common.rs
+@@ -1,7 +1,6 @@
+ use vstd::prelude::*;
+ use vstd::simple_pptr::*;
+ 
+-pub use crate::error::*;
+ pub use crate::pod::*;
+ 
+ verus! {
+diff --git a/fvt6-vmreader-and-vmwriter/src/io/fallible.rs b/fvt6-vmreader-and-vmwriter/src/io/fallible.rs
+index f10e89cde7c8e33c53036682af6538d731513fc2..73eda35d348a5ad5914b196bc5e09631fde9119b 100644
+--- a/fvt6-vmreader-and-vmwriter/src/io/fallible.rs
++++ b/fvt6-vmreader-and-vmwriter/src/io/fallible.rs
+@@ -2,7 +2,7 @@ use vstd::prelude::*;
+ use core::result::Result;
+ 
+ use super::vmrw::{VmReader, VmWriter};
+-use crate::{common::*, error::Error, io::model::VmIoModel};
++use crate::{common::*, io::model::VmIoModel};
+ 
+ verus! {
+ 
+diff --git a/fvt6-vmreader-and-vmwriter/src/io/specs.rs b/fvt6-vmreader-and-vmwriter/src/io/specs.rs
+index 252aec77ddb759e5cec0a158eace47bd1c444996..8eca9e899c08ab958c5fbdbbd4aa7123330cdcbd 100644
+--- a/fvt6-vmreader-and-vmwriter/src/io/specs.rs
++++ b/fvt6-vmreader-and-vmwriter/src/io/specs.rs
+@@ -1,6 +1,6 @@
+ use vstd::prelude::*;
+-
+-use crate::{common::*, error::Error};
++use std::fmt::Error;
++use crate::{common::*};
+ 
+ verus! {
+ 
+diff --git a/fvt6-vmreader-and-vmwriter/src/io/vmrw.rs b/fvt6-vmreader-and-vmwriter/src/io/vmrw.rs
+index f280d502d2bd59faf8c889385442244ae1adabee..3aa72e6e8ea7e5bed6f54adba01e6d70cc6eef7f 100644
+--- a/fvt6-vmreader-and-vmwriter/src/io/vmrw.rs
++++ b/fvt6-vmreader-and-vmwriter/src/io/vmrw.rs
+@@ -1,6 +1,6 @@
+ use vstd::prelude::*;
+ use vstd::raw_ptr::*;
+-
++use std::fmt::Error;
+ use core::marker::PhantomData;
+ 
+ use crate::{common::*, io::model::VmIoModel, io::fallible::*, io::specs::*};
+diff --git a/lock-protocol/src/mm/mod.rs b/lock-protocol/src/mm/mod.rs
+index af4f90ed73dfdac10b53c3a27515d0953c75f161..870746084a7b16d78860c9f4dcc24ba67fd5869d 100644
+--- a/lock-protocol/src/mm/mod.rs
++++ b/lock-protocol/src/mm/mod.rs
+@@ -72,6 +72,7 @@ pub const fn page_size<C: PagingConstsTrait>(level: PagingLevel) -> (res: usize)
+     assert(t == 9) by {
+         assert(nr_subpage_per_huge() == 512);
+         assert(log(2, 512) == 9) by {
++            reveal(pow);
+             assert(512 == pow(2, 9)) by (compute_only);
+             assert(log(2, 512) == 9) by { lemma_log_pow(2, 9) }
+         }
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index 7a53d2fa8d5f0d783248b7d7b109cd9cd400d0f6..70cd39bc195eeac7fc40d3f71f4a15c7a15b61cf 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -74,6 +74,7 @@ impl NodeHelper {
+             Self::size_at_dep(2) == 262144,
+             Self::size_at_dep(3) == 134217728,
+     {
++        reveal(pow);
+         assert(Self::size_at_dep(0) == 1) by (compute_only);
+         assert(Self::size_at_dep(1) == 512) by (compute_only);
+         assert(Self::size_at_dep(2) == 262144) by (compute_only);

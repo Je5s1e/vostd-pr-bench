@@ -1,0 +1,866 @@
+[
+  {
+    "sample": "pr-100-3439712c4524",
+    "pr_number": 100,
+    "labels": 3,
+    "findings": 4,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-104-f3df1ab197d2",
+    "pr_number": 104,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-119-0a0ec99c5b50",
+    "pr_number": 119,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-122-aa2041448069",
+    "pr_number": 122,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-127-ac14d35923e4",
+    "pr_number": 127,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-136-9483097409b4",
+    "pr_number": 136,
+    "labels": 1,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-143-544fc49e7446",
+    "pr_number": 143,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-146-b4c63161c57b",
+    "pr_number": 146,
+    "labels": 1,
+    "findings": 4,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-146-c6ea1a85e164",
+    "pr_number": 146,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 1,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-16-ace524111090",
+    "pr_number": 16,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-161-1510b718eb7d",
+    "pr_number": 161,
+    "labels": 1,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-17-30beab687be4",
+    "pr_number": 17,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-171-6cc1b7bbb99b",
+    "pr_number": 171,
+    "labels": 2,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-171-81a05f39c6ad",
+    "pr_number": 171,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-175-1be41f76acbd",
+    "pr_number": 175,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-178-8d5d616a2605",
+    "pr_number": 178,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-182-16d5d093ac90",
+    "pr_number": 182,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-183-fb3b9d0681b5",
+    "pr_number": 183,
+    "labels": 2,
+    "findings": 3,
+    "full": 2,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-213-7de412d2a90e",
+    "pr_number": 213,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-213-9d72cec58996",
+    "pr_number": 213,
+    "labels": 1,
+    "findings": 3,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-22-97523065e4c0",
+    "pr_number": 22,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-220-1c5f850814d9",
+    "pr_number": 220,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-220-cfcd9e87ed0d",
+    "pr_number": 220,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-226-84f7a7f07d36",
+    "pr_number": 226,
+    "labels": 3,
+    "findings": 3,
+    "full": 3,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-226-8c5c020ff2db",
+    "pr_number": 226,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-23-56d930eb5a67",
+    "pr_number": 23,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-233-9d89be46b390",
+    "pr_number": 233,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-235-627f20d8afad",
+    "pr_number": 235,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-236-72a385b929f5",
+    "pr_number": 236,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-237-24bb220c7879",
+    "pr_number": 237,
+    "labels": 2,
+    "findings": 2,
+    "full": 2,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-25-6479bc556a28",
+    "pr_number": 25,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-250-8224e4aee238",
+    "pr_number": 250,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-26-2275e7c32b66",
+    "pr_number": 26,
+    "labels": 1,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-26-5474cd472251",
+    "pr_number": 26,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 1,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-296-899421ff5b69",
+    "pr_number": 296,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-3-df3e68c119ce",
+    "pr_number": 3,
+    "labels": 1,
+    "findings": 3,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-33-715c00b43894",
+    "pr_number": 33,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-337-b6aa265c1a4a",
+    "pr_number": 337,
+    "labels": 1,
+    "findings": 3,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "pr_number": 35,
+    "labels": 5,
+    "findings": 3,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-350-5cbda0832ce0",
+    "pr_number": 350,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-353-650ed55495ef",
+    "pr_number": 353,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-355-2a3429fb0b20",
+    "pr_number": 355,
+    "labels": 1,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-382-045fa97a6577",
+    "pr_number": 382,
+    "labels": 3,
+    "findings": 3,
+    "full": 3,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-382-6a84ab163da0",
+    "pr_number": 382,
+    "labels": 2,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-39-8777297fc95c",
+    "pr_number": 39,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-390-ff234245b17b",
+    "pr_number": 390,
+    "labels": 1,
+    "findings": 5,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-392-f30278a5973e",
+    "pr_number": 392,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-395-6ae195e508a8",
+    "pr_number": 395,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-403-a1f2685897f4",
+    "pr_number": 403,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 1
+  },
+  {
+    "sample": "pr-419-e2a32e9a225f",
+    "pr_number": 419,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-424-2e7051b98235",
+    "pr_number": 424,
+    "labels": 1,
+    "findings": 4,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-424-8d7b6621ed81",
+    "pr_number": 424,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-439-b083bbf05f58",
+    "pr_number": 439,
+    "labels": 2,
+    "findings": 4,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-44-a75fa49663cc",
+    "pr_number": 44,
+    "labels": 1,
+    "findings": 3,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-440-0ba029a82c8d",
+    "pr_number": 440,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-45-a64f70e4ca48",
+    "pr_number": 45,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-452-d834e11605c3",
+    "pr_number": 452,
+    "labels": 1,
+    "findings": 4,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-454-1db47ee9a94b",
+    "pr_number": 454,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-456-6aa8a9b0ede4",
+    "pr_number": 456,
+    "labels": 2,
+    "findings": 3,
+    "full": 2,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-473-27c3210449d8",
+    "pr_number": 473,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-474-a6fdca3a754f",
+    "pr_number": 474,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-485-6fac7bc837f6",
+    "pr_number": 485,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-487-5170c403b0d7",
+    "pr_number": 487,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-492-e7a37a7d7080",
+    "pr_number": 492,
+    "labels": 2,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-499-2d320cbb55fc",
+    "pr_number": 499,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 0,
+    "excluded": 1
+  },
+  {
+    "sample": "pr-50-5d510a5352a3",
+    "pr_number": 50,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-500-5c863f079762",
+    "pr_number": 500,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-500-6c26d6c45e16",
+    "pr_number": 500,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-500-e909aa15bb90",
+    "pr_number": 500,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-501-5646c42516b4",
+    "pr_number": 501,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-505-cb2be5a80af1",
+    "pr_number": 505,
+    "labels": 1,
+    "findings": 4,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-505-dffa7b932d72",
+    "pr_number": 505,
+    "labels": 1,
+    "findings": 4,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-511-860ffa221455",
+    "pr_number": 511,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-515-378590cc39ac",
+    "pr_number": 515,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-518-4cb9ee7caa9e",
+    "pr_number": 518,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "pr_number": 526,
+    "labels": 2,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-530-3574febda9d0",
+    "pr_number": 530,
+    "labels": 1,
+    "findings": 2,
+    "full": 0,
+    "partial": 1,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-532-9200dd2fb210",
+    "pr_number": 532,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-534-5ba756b22a68",
+    "pr_number": 534,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-546-269c2b583824",
+    "pr_number": 546,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-547-4510bdeecf13",
+    "pr_number": 547,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-562-581ce53261be",
+    "pr_number": 562,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-577-94715eb8c48e",
+    "pr_number": 577,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-595-c34b8882f0e1",
+    "pr_number": 595,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-612-0886ccdd5411",
+    "pr_number": 612,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "pr_number": 614,
+    "labels": 3,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-615-b995aae1ffdb",
+    "pr_number": 615,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-616-bd8357d3afaa",
+    "pr_number": 616,
+    "labels": 1,
+    "findings": 2,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-617-a00a7b6fa954",
+    "pr_number": 617,
+    "labels": 1,
+    "findings": 1,
+    "full": 1,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-626-cef66d9ffb91",
+    "pr_number": 626,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-628-096c166e5ce6",
+    "pr_number": 628,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-63-742ee43ba12c",
+    "pr_number": 63,
+    "labels": 1,
+    "findings": 1,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-632-1be8099780ff",
+    "pr_number": 632,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-634-64d2718d5a4d",
+    "pr_number": 634,
+    "labels": 1,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-636-b0d5450c6e0c",
+    "pr_number": 636,
+    "labels": 2,
+    "findings": 0,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  },
+  {
+    "sample": "pr-64-900e41671221",
+    "pr_number": 64,
+    "labels": 1,
+    "findings": 3,
+    "full": 0,
+    "partial": 0,
+    "excluded": 0
+  }
+]

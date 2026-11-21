@@ -1,0 +1,19 @@
+{
+  "number": 220,
+  "title": "Fix verus-update-test workflow",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Fix verus-update-test workflow",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": "fi fi repository: asterinas/verus repository: asterinas/verus",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 2
+}

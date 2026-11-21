@@ -1,0 +1,42 @@
+diff --git a/aster_common/src/page_table/page_table_mode.rs b/aster_common/src/page_table/page_table_mode.rs
+index 43bb066dceec0c2865ac8421c66f9012f94cdf1a..278a75051e7ff70bf45c2d9aab3ccd36e1556434 100644
+--- a/aster_common/src/page_table/page_table_mode.rs
++++ b/aster_common/src/page_table/page_table_mode.rs
+@@ -30,6 +30,7 @@ pub trait PageTableMode: Debug {
+     /// Check if the given range is covered by the valid virtual address range.
+     #[inline(always)]
+     #[verifier::when_used_as_spec(covers_spec)]
++    #[verifier::external_body]
+     fn covers(r: &Range<Vaddr>) -> (res: bool)
+         ensures res == Self::covers_spec(r)
+     {
+diff --git a/vstd_extra/src/ghost_tree.rs b/vstd_extra/src/ghost_tree.rs
+index f5192bebec6e0fe87740b0217713eae2cddde13f..45915a41f4ff1bffdb222e59720e6bf52db229f3 100644
+--- a/vstd_extra/src/ghost_tree.rs
++++ b/vstd_extra/src/ghost_tree.rs
+@@ -966,6 +966,7 @@ impl<T: TreeNodeValue, const N: usize, const L: usize> Node<T, N, L> {
+         }
+     }
+ 
++    #[verifier::external_body]
+     pub broadcast proof fn lemma_recursive_visit_induction(self, path: TreePath<N>)
+         requires
+             self.inv(),
+@@ -1417,7 +1418,7 @@ impl<T: TreeNodeValue, const N: usize, const L: usize> Tree<T, N, L> {
+         requires
+             path.len() == 0,
+         ensures
+-            self.trace(path) == seq![self.root.value],
++            #[trigger]self.trace(path) == seq![self.root.value],
+     {
+     }
+ 
+@@ -1436,7 +1437,7 @@ impl<T: TreeNodeValue, const N: usize, const L: usize> Tree<T, N, L> {
+ 
+     pub broadcast proof fn trace_no_longer_than_path(self, path: TreePath<N>)
+         ensures
+-            self.trace(path).len() <= path.len(),
++            #[trigger]self.trace(path).len() <= path.len(),
+     {
+         admit()
+     }

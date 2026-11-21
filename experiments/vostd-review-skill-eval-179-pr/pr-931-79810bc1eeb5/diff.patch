@@ -1,0 +1,442 @@
+diff --git a/ostd/libs/linux-bzimage/builder/src/lib.rs b/ostd/libs/linux-bzimage/builder/src/lib.rs
+index c42964dbea03538eac82427616a11a3038030e7e..a4eaf23d0c58d21e0ec6e0da1b685bce040a03c1 100644
+--- a/ostd/libs/linux-bzimage/builder/src/lib.rs
++++ b/ostd/libs/linux-bzimage/builder/src/lib.rs
+@@ -21,6 +21,14 @@ mod mapping;
+ )]
+ mod pe_header;
+ 
++use vstd::{prelude::*, std_specs::iter::IteratorSpec};
++use vstd_extra::external::xmas_elf::{
++    elf_parse_no_unwind, elf_parse_result, elf_program_headers, elf_program_headers_readable,
++    program_header_type, program_load_bytes, program_load_data_readable,
++};
++
++use mapping::{LEGACY_SETUP_SEC_SIZE, SETUP32_LMA};
++
+ use std::{
+     fs::File,
+     io::{Read, Seek, SeekFrom, Write},
+@@ -85,10 +93,22 @@ pub fn legacy32_rust_target_json() -> &'static str {
+ ///
+ /// Interestingly, the resulting binary should be the same as the memory
+ /// dump of the kernel setup header when it's loaded by the bootloader.
++#[verus_spec(ret =>
++    requires valid_flat_binary_input(elf_file),
++    ensures ret@ == flat_binary_spec(elf_file),
++)]
+ fn to_flat_binary(elf_file: &[u8]) -> Vec<u8> {
+     let elf = xmas_elf::ElfFile::new(elf_file).unwrap();
+     let mut bin = Vec::<u8>::new();
+ 
++    #[verus_spec(programs =>
++        invariant
++            programs.iter.obeys_prophetic_iter_laws(),
++            elf_program_headers_readable(&elf),
++            valid_flat_segments(elf_program_headers(&elf), elf.input@),
++            programs.seq() == elf_program_headers(&elf),
++            bin@ == flat_binary_prefix(programs.seq(), elf.input@, programs.index() as nat),
++    )]
+     for program in elf.program_iter() {
+         if program.get_type().unwrap() == xmas_elf::program::Type::Load {
+             let SegmentData::Undefined(header_data) = program.get_data(&elf).unwrap() else {
+@@ -98,8 +118,8 @@ fn to_flat_binary(elf_file: &[u8]) -> Vec<u8> {
+                 program.virtual_addr() as usize,
+             )));
+ 
+-            // Note that `mem_size` can be greater than `file_size`. The remaining part must be
+-            // filled with zeros.
++            // `mem_size` can exceed `file_size`. Only newly appended bytes are zeroed;
++            // an overlapping segment's memory-only tail keeps existing bytes.
+             let mem_length = program.mem_size() as usize;
+             if bin.len() < dst_file_offset + mem_length {
+                 bin.resize(dst_file_offset + mem_length, 0);
+@@ -115,6 +135,89 @@ fn to_flat_binary(elf_file: &[u8]) -> Vec<u8> {
+     bin
+ }
+ 
++verus! {
++
++/// The mapping expression uses mathematical integers; validity below makes
++/// each executable addition, subtraction, and usize cast exact.
++spec fn flat_segment_offset(program: &xmas_elf::program::ProgramHeader<'_>) -> int {
++    program.virtual_addr() + LEGACY_SETUP_SEC_SIZE - SETUP32_LMA
++}
++
++spec fn valid_flat_segments(
++    programs: Seq<xmas_elf::program::ProgramHeader<'_>>,
++    input: Seq<u8>,
++) -> bool {
++    forall|i: int|
++        0 <= i < programs.len() ==> {
++            let program = #[trigger] programs[i];
++            &&& program_header_type(&program) is Ok
++            &&& program_header_type(&program) == Ok(xmas_elf::program::Type::Load) ==> {
++                &&& program_load_data_readable(&program, input)
++                &&& program.file_size() <= program.mem_size() <= usize::MAX
++                &&& SETUP32_LMA - LEGACY_SETUP_SEC_SIZE <= program.virtual_addr() <= usize::MAX
++                    - LEGACY_SETUP_SEC_SIZE
++                &&& flat_segment_offset(&program) + program.mem_size() <= isize::MAX
++            }
++        }
++}
++
++spec fn valid_flat_binary_input(input: &[u8]) -> bool {
++    &&& elf_parse_no_unwind(input)
++    &&& elf_parse_result(input) matches Ok(elf) && {
++        &&& elf_program_headers_readable(&elf)
++        &&& valid_flat_segments(elf_program_headers(&elf), input@)
++    }
++}
++
++/// Extend with zeroes, then overwrite only the file bytes. In an overlapping
++/// segment, its memory-only tail preserves bytes that were already present.
++spec fn flat_load_step(old: Seq<u8>, data: Seq<u8>, offset: int, mem_size: int) -> Seq<u8> {
++    Seq::new(
++        vstd::math::max(old.len() as int, offset + mem_size) as nat,
++        |i: int|
++            if offset <= i < offset + data.len() {
++                data[i - offset]
++            } else if i < old.len() {
++                old[i]
++            } else {
++                0u8
++            },
++    )
++}
++
++spec fn flat_binary_prefix(
++    programs: Seq<xmas_elf::program::ProgramHeader<'_>>,
++    input: Seq<u8>,
++    count: nat,
++) -> Seq<u8>
++    recommends
++        count <= programs.len(),
++    decreases count,
++{
++    if count == 0 {
++        Seq::empty()
++    } else {
++        let old = flat_binary_prefix(programs, input, (count - 1) as nat);
++        let program = programs[count - 1];
++        if program_header_type(&program) == Ok(xmas_elf::program::Type::Load) {
++            flat_load_step(
++                old,
++                program_load_bytes(&program, input),
++                flat_segment_offset(&program),
++                program.mem_size() as int,
++            )
++        } else {
++            old
++        }
++    }
++}
++
++spec fn flat_binary_spec(input: &[u8]) -> Seq<u8> {
++    let elf = elf_parse_result(input).unwrap();
++    flat_binary_prefix(elf_program_headers(&elf), input@, elf_program_headers(&elf).len())
++}
++
++} // verus!
+ fn assert_elf64_reloc_supported(elf_file: &[u8]) {
+     const R_X86_64_RELATIVE: u32 = 8;
+ 
+diff --git a/ostd/libs/linux-bzimage/builder/src/pe_header.rs b/ostd/libs/linux-bzimage/builder/src/pe_header.rs
+index f0c5cd5035e31cba536c1a0bfcfc9671adef6b41..a8fd1d9369c4281dfe90e1a9995506140f5e5c52 100644
+--- a/ostd/libs/linux-bzimage/builder/src/pe_header.rs
++++ b/ostd/libs/linux-bzimage/builder/src/pe_header.rs
+@@ -544,6 +544,7 @@ fn build_pe_sec_headers_from(elf: &xmas_elf::ElfFile) -> AllPeSectionHdrs {
+                 &&& base == SETUP32_LMA - LEGACY_SETUP_SEC_SIZE ==> layout.1 == layout.2
+             }),
+     )]
++    #[verifier::spinoff_prover]
+     fn new_pe_sec_header(
+         segment: &xmas_elf::program::ProgramHeader,
+         base: usize,
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index a1d05fe63522946a34ac84453c246043689162a3..ee365f2e2fc77ad2e2f04800f7b5c8649b7348b1 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -20,6 +20,7 @@ pub mod smallvec;
+ pub mod smart_ptr;
+ pub mod str;
+ pub mod time;
++pub mod vec;
+ #[cfg(target_arch = "x86_64")]
+ pub mod x86;
+ pub mod xmas_elf;
+diff --git a/verified_libs/vstd_extra/src/external/slice.rs b/verified_libs/vstd_extra/src/external/slice.rs
+index c57086546aaeb8b6e304197827b3d08756c8f2c0..ae303f409763d383629ed3e1963ac184911af01d 100644
+--- a/verified_libs/vstd_extra/src/external/slice.rs
++++ b/verified_libs/vstd_extra/src/external/slice.rs
+@@ -3,6 +3,18 @@ use vstd::prelude::*;
+ 
+ verus! {
+ 
++/// Rust 1.99.1, library/core/src/convert/mod.rs: AsMut<[T]> for [T]
++/// returns `self`. The reborrow preserves the entire slice on return and
++/// propagates all subsequent mutations back to the receiver without panicking.
++pub assume_specification<T>[ <[T] as core::convert::AsMut<[T]>>::as_mut ](slice: &mut [T]) -> (ret:
++    &mut [T])
++    ensures
++        ret@ == old(slice)@,
++        final(slice)@ == final(ret)@,
++    opens_invariants none
++    no_unwind
++;
++
+ #[verifier::when_used_as_spec(as_ptr_spec)]
+ pub assume_specification<T>[ <[T]>::as_ptr ](s: &[T]) -> (r: *const T)
+     ensures
+diff --git a/verified_libs/vstd_extra/src/external/vec.rs b/verified_libs/vstd_extra/src/external/vec.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..fd2fc3390125ffd72e9206bc875e6f122baca2cd
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/vec.rs
+@@ -0,0 +1,27 @@
++// SPDX-License-Identifier: MPL-2.0
++use alloc::vec::Vec;
++use core::{
++    alloc::Allocator,
++    ops::{Index, IndexMut},
++    slice::SliceIndex,
++};
++use vstd::prelude::*;
++
++verus! {
++
++/// Rust 1.99.1, library/alloc/src/vec/mod.rs: IndexMut delegates through
++/// DerefMut/as_mut_slice to slice indexing. This adds the missing mutation/frame
++/// guarantee to vstd's inherited index_req, including for range indices.
++pub assume_specification<T, I: SliceIndex<[T]>, A: Allocator>[ <Vec<T, A> as IndexMut<
++    I,
++>>::index_mut ](vec: &mut Vec<T, A>, index: I) -> (output: &mut <Vec<T, A> as Index<I>>::Output)
++    ensures
++        exists|slice: &mut [T]| #[trigger]
++            slice@ == old(vec)@ && final(slice)@ == final(vec)@ && call_ensures(
++                <I as SliceIndex<[T]>>::index_mut,
++                (index, slice),
++                output,
++            ),
++;
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/xmas_elf.rs b/verified_libs/vstd_extra/src/external/xmas_elf.rs
+index 081088564d88201205a63f1f6650f035aa76fbf0..893407973490eee96ca04d75bb9a4abd1ea95d1d 100644
+--- a/verified_libs/vstd_extra/src/external/xmas_elf.rs
++++ b/verified_libs/vstd_extra/src/external/xmas_elf.rs
+@@ -4,7 +4,10 @@ use vstd::{prelude::*, std_specs::iter::IteratorSpec};
+ use xmas_elf::{
+     ElfFile,
+     header::{Class, Header, HeaderPt1, HeaderPt2, HeaderPt2_, Machine_, Type_ as HeaderType},
+-    program::{Flags, ProgramHeader, ProgramHeader32, ProgramHeader64, Type_},
++    program::{
++        Flags, ProgramHeader, ProgramHeader32, ProgramHeader64, SegmentData, TYPE_GNU_RELRO,
++        TYPE_HIOS, TYPE_HIPROC, TYPE_LOOS, TYPE_LOPROC, Type, Type_,
++    },
+ };
+ 
+ use super::slice::as_ptr_spec;
+@@ -154,6 +157,7 @@ pub assume_specification<'a, 'b>[ ElfFile::<'a>::program_iter ](elf: &'b ElfFile
+                 elf_program_headers(elf).len(),
+                 |i: int| true,
+             )
++            &&& IteratorSpec::decrease(&iter) == Some(elf_program_headers(elf).len())
+         },
+     opens_invariants none
+     no_unwind
+@@ -184,6 +188,194 @@ pub struct ExProgramFlags(Flags);
+ #[verifier::external_body]
+ pub struct ExProgramType(Type_);
+ 
++#[verifier::external_type_specification]
++pub struct ExProgramTypeValue(Type);
++
++// Type derives PartialEq; equality compares the variant and its u32 payload.
++pub assume_specification[ <Type as core::cmp::PartialEq>::eq ](left: &Type, right: &Type) -> bool
++    returns
++        *left == *right,
++;
++
++#[verifier::external_type_specification]
++pub struct ExSegmentData<'a>(SegmentData<'a>);
++
++// Opaque payload types are needed to expose SegmentData's enum variants.
++// Their private fields and dynamic/note parsing receive no specifications.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++#[verifier::reject_recursive_types(P)]
++pub struct ExDynamic<P>(xmas_elf::dynamic::Dynamic<P>) where
++    xmas_elf::dynamic::Tag_<P>: core::fmt::Debug,
++;
++
++#[verifier::external_type_specification]
++#[verifier::external_body]
++#[verifier::reject_recursive_types(P)]
++pub struct ExDynamicTag<P>(xmas_elf::dynamic::Tag_<P>);
++
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExNoteHeader(xmas_elf::sections::NoteHeader);
++
++/// The private u32 stored by Type_. Only its representation remains opaque;
++/// decoding below follows xmas-elf 0.10.0's Type_::as_type.
++pub uninterp spec fn program_type_raw(type_: Type_) -> u32;
++
++// Constants from program.rs; keep their trusted values at the external boundary.
++pub assume_specification[ xmas_elf::program::TYPE_LOOS ] -> u32
++    returns
++        0x60000000u32,
++;
++
++pub assume_specification[ xmas_elf::program::TYPE_HIOS ] -> u32
++    returns
++        0x6fffffffu32,
++;
++
++pub assume_specification[ xmas_elf::program::TYPE_LOPROC ] -> u32
++    returns
++        0x70000000u32,
++;
++
++pub assume_specification[ xmas_elf::program::TYPE_HIPROC ] -> u32
++    returns
++        0x7fffffffu32,
++;
++
++pub assume_specification[ xmas_elf::program::TYPE_GNU_RELRO ] -> u32
++    returns
++        0x6474e552u32,
++;
++
++/// GNU_RELRO takes precedence over the enclosing OS-specific range.
++pub open spec fn program_type_from_raw(raw: u32) -> Result<Type, &'static str> {
++    match raw {
++        0 => Ok(Type::Null),
++        1 => Ok(Type::Load),
++        2 => Ok(Type::Dynamic),
++        3 => Ok(Type::Interp),
++        4 => Ok(Type::Note),
++        5 => Ok(Type::ShLib),
++        6 => Ok(Type::Phdr),
++        7 => Ok(Type::Tls),
++        _ => if raw == TYPE_GNU_RELRO {
++            Ok(Type::GnuRelro)
++        } else if TYPE_LOOS <= raw <= TYPE_HIOS {
++            Ok(Type::OsSpecific(raw))
++        } else if TYPE_LOPROC <= raw <= TYPE_HIPROC {
++            Ok(Type::ProcessorSpecific(raw))
++        } else {
++            Err("Invalid type")
++        },
++    }
++}
++
++pub open spec fn program_type_result(type_: Type_) -> Result<Type, &'static str> {
++    program_type_from_raw(program_type_raw(type_))
++}
++
++// Derived Default initializes the private u32 to zero.
++pub assume_specification[ <Type_ as core::default::Default>::default ]() -> (ret: Type_)
++    ensures
++        program_type_raw(ret) == 0,
++;
++
++pub open spec fn program_header_type(header: &ProgramHeader<'_>) -> Result<Type, &'static str> {
++    match *header {
++        ProgramHeader::Ph32(h) => program_type_result(h.type_),
++        ProgramHeader::Ph64(h) => program_type_result(h.type_),
++    }
++}
++
++pub open spec fn program_header_file_size(header: &ProgramHeader<'_>) -> u64 {
++    match *header {
++        ProgramHeader::Ph32(h) => h.file_size as u64,
++        ProgramHeader::Ph64(h) => h.file_size,
++    }
++}
++
++pub open spec fn program_header_offset(header: &ProgramHeader<'_>) -> u64 {
++    match *header {
++        ProgramHeader::Ph32(h) => h.offset as u64,
++        ProgramHeader::Ph64(h) => h.offset,
++    }
++}
++
++/// raw_data adds the source fields before casting to usize. In ELF32 that
++/// addition is u32, even on a 64-bit host. Empty data bypasses the offset.
++pub open spec fn program_load_data_readable(header: &ProgramHeader<'_>, input: Seq<u8>) -> bool {
++    let offset = program_header_offset(header);
++    let size = program_header_file_size(header);
++    size == 0 || {
++        &&& match *header {
++            ProgramHeader::Ph32(_) => offset + size <= u32::MAX,
++            ProgramHeader::Ph64(_) => offset + size <= u64::MAX,
++        }
++        &&& offset + size <= usize::MAX
++        &&& offset + size <= input.len()
++    }
++}
++
++pub open spec fn program_load_bytes(header: &ProgramHeader<'_>, input: Seq<u8>) -> Seq<u8> {
++    let size = program_header_file_size(header);
++    if size == 0 {
++        Seq::empty()
++    } else {
++        input[program_header_offset(header)..program_header_offset(header) + size]
++    }
++}
++
++#[verifier::when_used_as_spec(program_header_type)]
++pub assume_specification<'a>[ ProgramHeader::<'a>::get_type ](header: &ProgramHeader<'a>) -> Result<
++    Type,
++    &'static str,
++>
++    returns
++        program_header_type(header),
++    opens_invariants none
++    no_unwind
++;
++
++#[verifier::when_used_as_spec(program_header_file_size)]
++pub assume_specification<'a>[ ProgramHeader::<'a>::file_size ](header: &ProgramHeader<'a>) -> u64
++    returns
++        program_header_file_size(header),
++    opens_invariants none
++    no_unwind
++;
++
++#[verifier::when_used_as_spec(program_header_offset)]
++pub assume_specification<'a>[ ProgramHeader::<'a>::offset ](header: &ProgramHeader<'a>) -> u64
++    returns
++        program_header_offset(header),
++    opens_invariants none
++    no_unwind
++;
++
++/// Audited only for Load: get_data delegates to raw_data and returns Undefined.
++/// Other segment types include dynamic/note parsing and receive no guarantees.
++pub assume_specification<'a>[ ProgramHeader::<'a>::get_data ](
++    header: &ProgramHeader<'a>,
++    elf: &ElfFile<'a>,
++) -> (ret: Result<SegmentData<'a>, &'static str>)
++    ensures
++        program_header_type(header) == Ok(Type::Load) && program_load_data_readable(
++            header,
++            elf.input@,
++        ) ==> {
++            ret matches Ok(SegmentData::Undefined(bytes)) && bytes@ == program_load_bytes(
++                header,
++                elf.input@,
++            )
++        },
++    opens_invariants none
++    no_unwind when program_header_type(header) == Ok(Type::Load) && program_load_data_readable(
++    header,
++    elf.input@,
++)
++;
++
+ /// The virtual address stored in either ELF program-header representation.
+ pub open spec fn program_header_virtual_addr(header: &ProgramHeader<'_>) -> u64 {
+     match *header {

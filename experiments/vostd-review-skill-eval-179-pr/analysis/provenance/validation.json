@@ -1,0 +1,36 @@
+{
+  "validated_at_utc": "2026-11-21T09:17:12.001527+00:00",
+  "frozen_cases": 179,
+  "labels": 244,
+  "findings": 300,
+  "reviews_match_frozen_hashes": true,
+  "diff_hashes_match": true,
+  "label_context_files": 231,
+  "all_label_context_files_equal": true,
+  "all_reviews_have_completion_sections": true,
+  "all_reviews_mention_fast": true,
+  "baseline_judgments_unchanged": true,
+  "baseline_review_format_updates": [
+    {
+      "sample": "pr-337-b6aa265c1a4a",
+      "old_sha256": "c719a14947b5324510907accac32bc4fe83d3bdc574337c8e6dec7f9528a7b15",
+      "new_sha256": "6562da082e33c454a27b80a09d780e6dec73c2f44193b5236ef47375241ff50b",
+      "inspected_change": "标题/Bottom line格式变化，finding内容无变化"
+    },
+    {
+      "sample": "pr-419-e2a32e9a225f",
+      "old_sha256": "c231ce101be011640ca3bbe4fcd422a73ada8192452510d3fcc34a91e96b066a",
+      "new_sha256": "8bdd0afb2ea3d46a947dfdb2d824e3377757dd3c78c411a7fac86bd732436806",
+      "inspected_change": "标题/Bottom line格式变化，finding内容无变化"
+    },
+    {
+      "sample": "pr-615-b995aae1ffdb",
+      "old_sha256": "bb7b778ebbeb335ab284419395de9e3c633f51dbf5190182629090ae9629cfdb",
+      "new_sha256": "0818d4022d8eb1bc6fbd5c061a7649bf7886e04b577dcb93a24002ee13860ddc",
+      "inspected_change": "标题/Bottom line格式变化，finding内容无变化"
+    }
+  ],
+  "baseline_skill_source_changes": [],
+  "counts_consistent": true,
+  "raw_none_placeholder_excluded": true
+}

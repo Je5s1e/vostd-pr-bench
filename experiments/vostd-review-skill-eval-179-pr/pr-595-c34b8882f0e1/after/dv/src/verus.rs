@@ -1,0 +1,1601 @@
+use colored::Colorize;
+use indexmap::IndexMap;
+use memoize::memoize;
+use std::collections::{HashMap, HashSet};
+use std::fs::{self, File};
+use std::hash::Hash;
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::time::Instant;
+
+use cargo_metadata;
+use cargo_metadata::CrateType;
+
+use crate::commands::CargoBuildExterns;
+use crate::{commands, dep_tree, executable, files, fingerprint, projects, serialization};
+
+pub type DynError = Box<dyn std::error::Error>;
+
+/// Verus binary location
+///
+/// This struct is used to locate the Verus binary and Z3 binary.
+/// It uses the `Executable` struct to locate the binaries in the system PATH or in the specified hints.
+/// It also provides a method to get the root directory of the project.
+///
+
+#[cfg(target_os = "windows")]
+pub const VERUS_BIN: &str = "verus.exe";
+#[cfg(not(target_os = "windows"))]
+pub const VERUS_BIN: &str = "verus";
+
+#[cfg(target_os = "windows")]
+pub const CARGO_VERUS_BIN: &str = "cargo-verus.exe";
+#[cfg(not(target_os = "windows"))]
+pub const CARGO_VERUS_BIN: &str = "cargo-verus";
+
+pub const VERUS_HINT_RELEASE: &str = "tools/verus/source/target-verus/release";
+pub const VERUS_HINT: &str = "tools/verus/source/target-verus/debug";
+pub const VERUS_EVN: &str = "VERUS_PATH";
+pub const CARGO_VERUS_ENV: &str = "CARGO_VERUS_PATH";
+
+#[cfg(target_os = "windows")]
+pub const VERUSFMT_BIN: &str = "verusfmt.exe";
+#[cfg(not(target_os = "windows"))]
+pub const VERUSFMT_BIN: &str = "verusfmt";
+
+#[cfg(target_os = "windows")]
+pub const RUST_VERIFY: &str = "rust_verify.exe";
+#[cfg(not(target_os = "windows"))]
+pub const RUST_VERIFY: &str = "rust_verify";
+
+#[cfg(target_os = "windows")]
+pub const Z3_BIN: &str = "z3.exe";
+#[cfg(not(target_os = "windows"))]
+pub const Z3_BIN: &str = "z3";
+
+#[cfg(target_os = "windows")]
+pub const DYN_LIB: &str = ".dll";
+#[cfg(target_os = "linux")]
+pub const DYN_LIB: &str = ".so";
+#[cfg(target_os = "macos")]
+pub const DYN_LIB: &str = ".dylib";
+
+pub const Z3_HINT: &str = "tools/verus/source";
+pub const Z3_EVN: &str = "VERUS_Z3_PATH";
+
+pub const RUSTDOC_BIN: &str = "rustdoc";
+
+#[cfg(target_os = "windows")]
+pub const VERUSDOC_BIN: &str = "verusdoc.exe";
+#[cfg(not(target_os = "windows"))]
+pub const VERUSDOC_BIN: &str = "verusdoc";
+pub const VERUSDOC_HINT_RELEASE: &str = "tools/verus/source/target/release";
+pub const VERUSDOC_HINT: &str = "tools/verus/source/target/debug";
+
+#[memoize]
+pub fn get_verus(release: bool) -> PathBuf {
+    executable::locate(
+            VERUS_BIN,
+            Some(VERUS_EVN),
+            if release { &[VERUS_HINT_RELEASE] } else {&[VERUS_HINT]},
+        ).unwrap_or_else(|| {
+            error!("Cannot find the Verus binary, please set the VERUS_PATH environment variable or add it to your PATH");
+        })
+}
+
+#[memoize]
+pub fn get_cargo_verus(release: bool) -> PathBuf {
+    executable::locate(
+        CARGO_VERUS_BIN,
+        Some(CARGO_VERUS_ENV),
+        if release {
+            &[VERUS_HINT_RELEASE, VERUS_HINT]
+        } else {
+            &[VERUS_HINT, VERUS_HINT_RELEASE]
+        },
+    )
+    .unwrap_or_else(|| {
+        error!(
+            "Cannot find the cargo-verus binary, please run `cargo dv bootstrap --upgrade`, set CARGO_VERUS_PATH, or add cargo-verus to your PATH"
+        );
+    })
+}
+
+#[memoize]
+pub fn get_rust_verify(release: bool) -> PathBuf {
+    executable::locate(
+        RUST_VERIFY,
+        None,
+        if release {
+            &[VERUS_HINT_RELEASE]
+        } else {
+            &[VERUS_HINT]
+        },
+    )
+    .unwrap_or_else(|| {
+        error!("Cannot find the Verus `rust_verify` binary.");
+    })
+}
+
+#[memoize]
+pub fn get_z3() -> PathBuf {
+    executable::locate(
+            Z3_BIN,
+            Some(Z3_EVN),
+            &[Z3_HINT],
+        ).unwrap_or_else(|| {
+            error!("Cannot find the Z3 binary, please set the VERUS_Z3_PATH environment variable or add it to your PATH");
+        })
+}
+
+#[memoize]
+pub fn get_rustdoc() -> PathBuf {
+    executable::locate(
+            RUSTDOC_BIN,
+            None,
+            &[] as &[&str]
+        ).unwrap_or_else(|| {
+            error!("Cannot find the rustdoc binary, please install it using `rustup component add rust-docs`");
+        })
+}
+
+#[memoize]
+pub fn get_verusdoc() -> PathBuf {
+    executable::locate(VERUSDOC_BIN, None, &[VERUSDOC_HINT_RELEASE, VERUSDOC_HINT]).unwrap_or_else(
+        || {
+            error!("Cannot find the verusdoc binary, please try `cargo dv bootstrap --upgrade`");
+        },
+    )
+}
+
+#[memoize]
+pub fn get_target_dir() -> PathBuf {
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .exec()
+        .expect("Failed to get metadata");
+    metadata.target_directory.into_std_path_buf()
+}
+
+#[memoize]
+pub fn get_workspace_root() -> PathBuf {
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .exec()
+        .expect("Failed to get metadata");
+    metadata.workspace_root.into_std_path_buf()
+}
+
+#[memoize]
+pub fn get_verus_target_dir() -> PathBuf {
+    let verus_dir = install::verus_dir();
+    verus_dir
+        .join("source")
+        .join("target-verus")
+        .join("release")
+}
+
+#[cfg(target_os = "windows")]
+#[memoize]
+pub fn system_crates() -> HashSet<&'static str> {
+    HashSet::from([
+        "build-script-build",
+        "borsh",
+        "vstd",
+        "verus_state_machines_macros",
+    ])
+}
+
+#[cfg(target_os = "linux")]
+#[memoize]
+pub fn system_crates() -> HashSet<&'static str> {
+    HashSet::from([
+        "build-script-build",
+        "borsh",
+        "vstd",
+        "verus_state_machines_macros",
+    ])
+}
+
+#[cfg(target_os = "macos")]
+#[memoize]
+pub fn system_crates() -> HashSet<&'static str> {
+    HashSet::from([
+        "build-script-build",
+        "borsh",
+        "vstd",
+        "verus_state_machines_macros",
+    ])
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct VerusDependency {
+    // target name of the dependency
+    pub name: String,
+    // path to the dependency, only if the dependency is a local path
+    pub path: Option<PathBuf>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct VerusTarget {
+    /// name of the package
+    pub name: String,
+    /// version of the package
+    pub version: String,
+    /// directory of the package
+    pub dir: PathBuf,
+    /// crate root file of the package
+    pub file: PathBuf,
+    /// crate type of the primary target of the package
+    pub crate_type: CrateType,
+    /// dependencies of the package
+    pub dependencies: Vec<VerusDependency>,
+    /// whether or not generate lifetime
+    pub gen_lifetime: bool,
+    /// runtime, has been rebuilt this session
+    pub rebuilt: bool,
+    /// carrying `default` features for this target
+    pub features: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ExtraOptions {
+    /// if log is enabled
+    pub log: bool,
+    /// if trace is enabled
+    pub trace: bool,
+    /// if release debug version
+    pub release: bool,
+    /// max number of errors before stopping
+    pub max_errors: usize,
+    /// needs to disassemble the output
+    pub disasm: bool,
+    /// pass-through options to the verifier
+    pub pass_through: Vec<String>,
+    /// count lines of code
+    pub count_line: bool,
+    /// use cargo-verus focus instead of cargo-verus verify
+    pub focus: bool,
+    /// verify-only-module should only apply to the main target, not its dependencies
+    pub verify_only_module_main_only: bool,
+}
+
+impl ExtraOptions {
+    /// Create a modified version of options for dependency compilation
+    /// If verify_only_module_main_only is true, removes the verify-only-module parameter
+    /// since it should only apply to the main target
+    pub fn for_dependency(&self) -> Self {
+        let pass_through = if self.verify_only_module_main_only {
+            let mut filtered = Vec::new();
+            let mut skip_next = false;
+
+            for arg in self.pass_through.iter() {
+                if skip_next {
+                    skip_next = false;
+                    continue;
+                }
+
+                if arg == "--verify-only-module" {
+                    // Skip this argument and the next one (the module name)
+                    skip_next = true;
+                } else if arg.starts_with("--verify-only-module=") {
+                    // Skip inline form: --verify-only-module=<path>
+                } else {
+                    filtered.push(arg.clone());
+                }
+            }
+            filtered
+        } else {
+            self.pass_through.clone()
+        };
+
+        ExtraOptions {
+            log: self.log,
+            trace: self.trace,
+            release: self.release,
+            max_errors: self.max_errors,
+            disasm: self.disasm,
+            pass_through,
+            count_line: self.count_line,
+            focus: self.focus,
+            verify_only_module_main_only: self.verify_only_module_main_only,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct DocOptions {}
+
+impl VerusTarget {
+    pub fn root_file(&self) -> PathBuf {
+        self.file.clone()
+    }
+
+    pub fn crate_type(&self) -> CrateType {
+        self.crate_type.clone()
+    }
+
+    pub fn fingerprint(&self) -> String {
+        let content = fingerprint::fingerprint_dir(&self.dir);
+        fingerprint::fingerprint_as_str(&content)
+    }
+
+    pub fn fingerprint_recursive(&self, all_targets: &HashMap<String, VerusTarget>) -> String {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+
+        let mut hasher = DefaultHasher::new();
+        let content = fingerprint::fingerprint_dir(&self.dir);
+        fingerprint::fingerprint_as_str(&content).hash(&mut hasher);
+        for dep in &self.dependencies {
+            if let Some(dep_target) = all_targets.get(&dep.name) {
+                dep_target
+                    .fingerprint_recursive(all_targets)
+                    .hash(&mut hasher);
+            }
+        }
+        hasher.finish().to_string()
+    }
+
+    pub fn is_fresh(&self, all_targets: &HashMap<String, VerusTarget>) -> bool {
+        let ts = self.library_proof_timestamp();
+        if !ts.exists() {
+            return false;
+        }
+
+        // Check if our own verification file exists
+        if !self.library_proof().exists() {
+            return false;
+        }
+
+        // Get our own timestamp
+        let self_timestamp = match std::fs::metadata(&self.library_proof()) {
+            Ok(metadata) => metadata.modified().unwrap_or(std::time::UNIX_EPOCH),
+            Err(_) => return false,
+        };
+
+        // Check if all recursive dependencies have their verification files and are not newer than us
+        let deps = get_local_dependency(self);
+        for dep in deps.values() {
+            if !dep.library_proof().exists() {
+                return false;
+            }
+
+            // Check if dependency is newer than us
+            if let Ok(dep_metadata) = std::fs::metadata(&dep.library_proof()) {
+                if let Ok(dep_timestamp) = dep_metadata.modified() {
+                    if dep_timestamp > self_timestamp {
+                        return false; // Dependency is newer, we need to rebuild
+                    }
+                }
+            }
+        }
+
+        let ts_hash = self.load_library_proof_timestamp();
+        let cur_hash = self.fingerprint_recursive(all_targets);
+        if cur_hash == ts_hash {
+            return true;
+        }
+        false
+    }
+
+    pub fn library_prefix(&self) -> String {
+        match self.crate_type {
+            CrateType::Bin => "",
+            CrateType::Lib => "lib",
+            _ => {
+                fatal!("Unknown crate type {}", self.crate_type)
+            }
+        }
+        .to_string()
+    }
+
+    pub fn library_suffix(&self) -> String {
+        match self.crate_type {
+            CrateType::Bin => "",
+            CrateType::Lib => "rlib",
+            _ => {
+                fatal!("Unknown crate type {}", self.crate_type)
+            }
+        }
+        .to_string()
+    }
+
+    pub fn library_proof(&self) -> PathBuf {
+        get_target_dir()
+            .join(format!("{}.verusdata", self.name))
+            .to_path_buf()
+    }
+
+    pub fn library_proof_timestamp(&self) -> PathBuf {
+        get_target_dir()
+            .join(format!("{}.verusdata.timestamp", self.name))
+            .to_path_buf()
+    }
+
+    pub fn load_library_proof_timestamp(&self) -> String {
+        let content = File::open(self.library_proof_timestamp())
+            .map(|mut f| {
+                let mut content = Vec::<u8>::new();
+                f.read_to_end(&mut content).unwrap_or_else(|e| {
+                    warn!("Failed to read library proof timestamp: {}", e);
+                    0
+                });
+                content
+            })
+            .unwrap_or_else(|e| {
+                warn!("Failed to open library proof timestamp: {}", e);
+                vec![]
+            });
+        String::from_utf8_lossy(&content).to_string()
+    }
+
+    pub fn save_library_proof_timestamp(&self, all_targets: &HashMap<String, VerusTarget>) {
+        let content = self.fingerprint_recursive(all_targets);
+        files::touch(self.library_proof_timestamp().to_string_lossy().as_ref());
+        let mut file = File::create(self.library_proof_timestamp()).unwrap_or_else(|e| {
+            error!("Failed to create library proof timestamp: {}", e);
+        });
+        file.write_all(content.as_bytes()).unwrap_or_else(|e| {
+            error!("Failed to write library proof timestamp: {}", e);
+        });
+    }
+
+    pub fn library_path(&self) -> PathBuf {
+        let lib = format!(
+            "{}{}.{}",
+            self.library_prefix(),
+            self.name,
+            self.library_suffix()
+        );
+        get_target_dir().join(lib).to_path_buf()
+    }
+}
+
+fn extract_dependencies(package: &cargo_metadata::Package) -> Vec<VerusDependency> {
+    let mut deps = Vec::new();
+    for dep in package.dependencies.iter() {
+        let name: String = match dep.rename {
+            Some(ref rename) => rename.replace('-', "_"),
+            None => dep.name.replace('-', "_"),
+        };
+        let path = dep.path.as_ref().map(|utf| Path::new(&utf).to_path_buf());
+        deps.push(VerusDependency { name, path });
+    }
+    deps
+}
+
+fn extract_features(
+    package: &cargo_metadata::Package,
+    workspace_features: &[String],
+) -> Vec<String> {
+    let mut features: HashSet<String> = HashSet::new();
+    features.extend(workspace_features.iter().map(|s| s.to_string()));
+
+    // level-traverse of the feature tree
+    let mut q = vec!["default"];
+    q.extend(workspace_features.iter().map(|s| s.as_str()));
+
+    while let Some(feat) = q.pop() {
+        if let Some(f) = package.features.get(feat) {
+            for f in f.iter() {
+                if !features.contains(f) {
+                    features.insert(f.clone());
+                    q.push(f);
+                }
+            }
+        }
+    }
+    features.into_iter().collect()
+}
+
+pub fn workspace_features(name: &str, metadata: &cargo_metadata::Metadata) -> Vec<String> {
+    metadata
+        .workspace_metadata
+        .get(name)
+        .and_then(|v| v.get("features"))
+        .and_then(|v| v.as_array())
+        .map(|features_array| {
+            features_array
+                .iter()
+                .filter_map(|feature| feature.as_str())
+                .map(|feature_str| feature_str.to_string())
+                .collect()
+        })
+        .unwrap_or_else(Vec::new)
+}
+
+#[memoize]
+pub fn verus_targets() -> HashMap<String, VerusTarget> {
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .exec()
+        .unwrap_or_else(|e| {
+            error!("Failed to get metadata: {:?}", e);
+        });
+
+    let workspace: HashSet<String> = metadata
+        .workspace_members
+        .iter()
+        .map(|id| id.to_string())
+        .collect();
+
+    let mut targets: HashMap<String, VerusTarget> = HashMap::new();
+    for package in metadata.packages.iter() {
+        if !workspace.contains(package.id.to_string().as_str())
+            || !package.features.contains_key("verify")
+        {
+            // Not a valid verus target
+            continue;
+        }
+
+        // check if features[verify] has "verus"
+        let has_verus = package
+            .features
+            .get("verify")
+            .map(|verifier| verifier.contains(&"verus".to_string()))
+            .unwrap_or(false);
+        if !has_verus {
+            // Not a valid verus target
+            continue;
+        }
+
+        let target_file = package
+            .metadata
+            .get("verus")
+            .and_then(|v| v.get("path"))
+            .and_then(|v| v.as_str());
+
+        // check if the package has a target
+        if let Some(target) = package.targets.first() {
+            let name = package.name.as_str().replace('-', "_");
+            let version = package.version.to_string();
+            let dir = Path::new(&package.manifest_path)
+                .parent()
+                .unwrap()
+                .to_path_buf();
+            let crate_type = if target.crate_types.contains(&CrateType::Bin) {
+                CrateType::Bin
+            } else {
+                CrateType::Lib
+            };
+            let file = dir.clone().join(target_file.unwrap_or(match crate_type {
+                CrateType::Bin => "src/main.rs",
+                _ => "src/lib.rs",
+            }));
+
+            let deps = extract_dependencies(package);
+
+            let gen_lifetime = package
+                .metadata
+                .get("verus")
+                .and_then(|v| v.get("check_lifetime"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+
+            let ws_features = workspace_features(&name, &metadata);
+            let features = extract_features(package, ws_features.as_slice());
+
+            targets.insert(
+                name.clone(),
+                VerusTarget {
+                    name,
+                    version,
+                    dir,
+                    file,
+                    crate_type,
+                    dependencies: deps,
+                    gen_lifetime,
+                    rebuilt: false,
+                    features,
+                },
+            );
+        } else {
+            // No valid target
+            continue;
+        }
+    }
+    targets
+}
+
+pub fn find_target(t: &str) -> Result<VerusTarget, String> {
+    let all = verus_targets();
+    let s = files::dir_as_package(t);
+
+    let target = all.get(&s).cloned().unwrap_or_else(|| {
+        error!(
+            "Cannot find target {}\n\n  Targets available:\n{}",
+            t,
+            all.keys()
+                .fold(String::new(), |acc, k| { acc + "\n - " + k })
+        );
+    });
+    Ok(target)
+}
+
+fn get_local_dependency_direct(target: &VerusTarget) -> IndexMap<String, VerusTarget> {
+    let all = verus_targets();
+    let mut deps = IndexMap::new();
+
+    for dep in target.dependencies.iter() {
+        if system_crates().contains(dep.name.as_str()) {
+            // Skip system crates
+            continue;
+        }
+        if dep.path.is_none() {
+            // Not a local path dependency
+            continue;
+        }
+        if !all.contains_key(dep.name.as_str()) {
+            // Not in current workspace
+            continue;
+        }
+        let dep_target = all.get(dep.name.as_str()).unwrap();
+        deps.insert(dep.name.clone(), dep_target.clone());
+    }
+
+    deps
+}
+
+pub fn get_local_dependency(target: &VerusTarget) -> IndexMap<String, VerusTarget> {
+    let mut result = IndexMap::new();
+    let mut visited = std::collections::HashSet::new();
+
+    fn collect_deps_recursively(
+        target: &VerusTarget,
+        result: &mut IndexMap<String, VerusTarget>,
+        visited: &mut std::collections::HashSet<String>,
+        _is_root: bool,
+    ) {
+        let target_name = target.name.replace('-', "_");
+
+        // Prevent infinite recursion
+        if visited.contains(&target_name) {
+            return;
+        }
+        visited.insert(target_name.clone());
+
+        // Get direct dependencies
+        let direct_deps = get_local_dependency_direct(target);
+
+        // Add direct dependencies to result (unless it's the root target)
+        for (dep_name, dep_target) in direct_deps.iter() {
+            let dep_key = dep_name.replace('-', "_");
+            if !result.contains_key(&dep_key) {
+                result.insert(dep_key, dep_target.clone());
+            }
+            // Recursively collect dependencies of this dependency
+            collect_deps_recursively(dep_target, result, visited, false);
+        }
+    }
+
+    collect_deps_recursively(target, &mut result, &mut visited, true);
+    result
+}
+
+pub fn get_remote_dependency(target: &VerusTarget, release: bool) -> IndexMap<String, String> {
+    let externs = resolve_deps_cached(target, release).renamed_full_externs();
+
+    let mut deps = IndexMap::new();
+
+    let local_verus = verus_targets()
+        .values()
+        .map(|t| t.name.replace('-', "_"))
+        .collect::<HashSet<_>>();
+
+    for (name, path) in externs.iter() {
+        if system_crates().contains(name.as_str()) {
+            // Skip system crates
+            continue;
+        }
+
+        if local_verus.contains(name) {
+            // Skip local verus dependencies
+            continue;
+        }
+        deps.insert(name.clone(), path.clone());
+    }
+
+    deps
+}
+
+pub fn check_externs(externs: &IndexMap<String, String>) -> Result<(), DynError> {
+    for (name, path) in externs.iter() {
+        if !Path::new(path).exists() {
+            return Err(format!(
+                "Cannot find the external library file at `{}` for `{}`",
+                path, name
+            )
+            .into());
+        }
+    }
+    Ok(())
+}
+
+pub fn cmd_push_externs(cmd: &mut Command, externs: &IndexMap<String, String>) {
+    for (name, path) in externs.iter() {
+        cmd.arg("--extern").arg(format!("{}={}", name, path));
+    }
+}
+
+pub fn reorder_deps(target: &VerusTarget, deps: &mut CargoBuildExterns) {
+    let raw = dep_tree::cargo_tree(&target.name);
+    let tree = dep_tree::CargoTree::parse(&raw);
+    let rank = tree.rank();
+    let rk = |x: &String| -> usize { *rank.get(x).unwrap_or(&usize::MAX) };
+
+    deps.last_level.sort_by(|a, _, b, _| rk(a).cmp(&rk(b)));
+
+    deps.libraries.sort_by(|_, a, _, b| {
+        let a = a.name.replace('-', "_");
+        let b = b.name.replace('-', "_");
+        rk(&a).cmp(&rk(&b))
+    })
+}
+
+pub fn resolve_deps(target: &VerusTarget, release: bool) -> CargoBuildExterns {
+    let dummy_rs = target.dir.join("src").join(".dummy.rs");
+    files::touch(&dummy_rs.to_string_lossy());
+
+    let mut externs = commands::cargo_build_resolve_deps(&target.name, &HashMap::new(), release);
+
+    if externs.deps_ready {
+        reorder_deps(target, &mut externs);
+        return externs;
+    }
+    warn!("Unable to resolve dependencies for `{}`", target.name);
+    CargoBuildExterns::default()
+}
+
+pub fn resolve_deps_cached(target: &VerusTarget, release: bool) -> serialization::Dependencies {
+    let deps_path = get_target_dir().join(format!("{}.deps.toml", target.name));
+    let cargo_toml = target.dir.join("Cargo.toml");
+    if deps_path.exists() && files::newer(&deps_path, &cargo_toml) {
+        // cache is up to date, read it directly
+        let deps: serialization::Dependencies = serialization::deserialize(&deps_path);
+        deps
+    } else {
+        // rebuild cache
+        let externs = resolve_deps(target, release);
+        let deps: serialization::Dependencies = externs.into();
+        serialization::serialize(&deps_path, &deps);
+        deps
+    }
+}
+
+/// Move files from workspace `.verus-log` root into a per-crate subdirectory.
+fn move_verus_log_files(crate_name: &str) {
+    let workspace_root = get_workspace_root();
+    let verus_log_dir = workspace_root.join(".verus-log");
+    if !verus_log_dir.exists() || !verus_log_dir.is_dir() {
+        return;
+    }
+
+    let crate_dir = verus_log_dir.join(crate_name);
+    // If crate_dir exists, clear its contents; otherwise create it.
+    if crate_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&crate_dir) {
+            for entry in entries.filter_map(|e| e.ok()) {
+                let p = entry.path();
+                if p.is_file() {
+                    if let Err(e) = fs::remove_file(&p) {
+                        warn!("Failed to remove file {}: {}", p.display(), e);
+                    }
+                } else if p.is_dir() {
+                    if let Err(e) = fs::remove_dir_all(&p) {
+                        warn!("Failed to remove dir {}: {}", p.display(), e);
+                    }
+                }
+            }
+        }
+    } else if let Err(e) = fs::create_dir_all(&crate_dir) {
+        warn!(
+            "Failed to create crate log dir {}: {}",
+            crate_dir.display(),
+            e
+        );
+        return;
+    }
+
+    if let Ok(entries) = fs::read_dir(&verus_log_dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            let path = entry.path();
+            if path.is_file() {
+                let dest = crate_dir.join(path.file_name().unwrap());
+                if let Err(e) = fs::rename(&path, &dest) {
+                    warn!(
+                        "Failed to move log file {} -> {}: {}",
+                        path.display(),
+                        dest.display(),
+                        e
+                    );
+                }
+            }
+        }
+    }
+}
+
+pub fn exec_verify(targets: &[VerusTarget], options: &ExtraOptions) -> Result<(), DynError> {
+    if options.count_line {
+        eprintln!("Error: --count-line is currently unsupported with cargo-verus");
+        // TODO: Re-enable this path once cargo-verus can produce the dep-info expected by Verus' line_count tool.
+        return Err("--count-line is currently unsupported with cargo-verus".into());
+    }
+
+    let run = |target: Option<&VerusTarget>| -> Result<(), DynError> {
+        let ts_start = Instant::now();
+        let cmd = &mut Command::new(get_cargo_verus(options.release));
+        cmd.arg(if options.focus { "focus" } else { "verify" });
+        if let Some(target) = target {
+            cmd.arg("-p").arg(&target.name);
+        }
+
+        let mut verus_args = Vec::new();
+        if options.log {
+            verus_args.push("--log-all".to_string());
+        }
+        if options.trace {
+            cmd.env("RUST_BACKTRACE", "full");
+            verus_args.push("--trace".to_string());
+        }
+        if options.count_line {
+            verus_args.push("--emit=dep-info".to_string());
+        }
+        verus_args.push(format!("--multiple-errors={}", options.max_errors));
+        verus_args.extend(options.pass_through.clone());
+        if !verus_args.is_empty() {
+            cmd.arg("--").args(verus_args);
+        }
+
+        info!(
+            "  {} {} {}",
+            "Verifying".bold().green(),
+            target
+                .map(|t| t.name.as_str())
+                .unwrap_or("workspace")
+                .white(),
+            target.map(|t| t.version.as_str()).unwrap_or("").white()
+        );
+        debug!(">> {:?}", cmd);
+
+        let status = cmd.status().unwrap_or_else(|e| {
+            error!("Error during verification: {}", e);
+        });
+
+        if status.success() {
+            // duration
+            let duration = ts_start.elapsed();
+            info!(
+                "  {} {} {} in {:.2}s",
+                "Verified".bold().green(),
+                target
+                    .map(|t| t.name.as_str())
+                    .unwrap_or("workspace")
+                    .white(),
+                target.map(|t| t.version.as_str()).unwrap_or("").white(),
+                duration.as_secs_f64()
+            );
+
+            if options.log && target.is_some() {
+                let target = target.unwrap();
+                move_verus_log_files(&target.name);
+            }
+        } else {
+            error!(
+                "Verification failed for {}",
+                target.map(|t| t.name.as_str()).unwrap_or("workspace")
+            );
+        }
+
+        if options.count_line {
+            let verus_root = install::verus_dir();
+            let line_count_dir = verus_root.join("source/tools/line_count");
+            let current_dir = std::env::current_dir()?;
+            let dependency_file = current_dir.join("lib.d");
+            std::env::set_current_dir(&line_count_dir)?;
+            let mut cargo_cmd = Command::new("cargo");
+            cargo_cmd
+                .arg("run")
+                .arg("--release")
+                .arg(&dependency_file)
+                .arg("-p");
+
+            println!(
+                "Counting lines for {}",
+                target.map(|t| t.name.as_str()).unwrap_or("workspace")
+            );
+            let line_count_result = cargo_cmd.status();
+            std::env::set_current_dir(current_dir)?;
+            line_count_result?;
+            fs::remove_file(&dependency_file)?;
+        }
+        Ok(())
+    };
+
+    if targets.is_empty() {
+        run(None)?;
+    } else {
+        for target in targets.iter() {
+            run(Some(target))?;
+        }
+    }
+    Ok(())
+}
+
+pub fn disassemble(target: &VerusTarget) -> Result<(), DynError> {
+    let objdump = commands::get_objdump();
+    let cmd = &mut Command::new(&objdump);
+    let mut status = cmd
+        .arg("-d")
+        .arg(target.library_path())
+        .stdout(Stdio::piped())
+        .spawn()?;
+
+    let out = status.stdout.take().unwrap_or_else(|| {
+        error!("Error during disassembly: {:?}", cmd);
+    });
+
+    let mut rustfilt = Command::new(commands::get_rustfilt());
+    let mut status = rustfilt
+        .stdin(Stdio::from(out))
+        .stdout(Stdio::piped())
+        .spawn()?;
+
+    let mut disasm = File::create(format!("{}.S", target.library_path().display()))?;
+
+    let mut out = status.stdout.take().unwrap_or_else(|| {
+        error!("Error during disassembly: {:?}", rustfilt);
+    });
+
+    let mut content = Vec::<u8>::new();
+    out.read_to_end(&mut content)?;
+    disasm.write_all(&content)?;
+    disasm.flush()?;
+    Ok(())
+}
+
+pub fn exec_compile(targets: &[VerusTarget], options: &ExtraOptions) -> Result<(), DynError> {
+    for target in targets.iter() {
+        let cmd = &mut Command::new(get_cargo_verus(options.release));
+        cmd.arg("build").arg("-p").arg(&target.name);
+        if options.release {
+            cmd.arg("--release");
+        }
+
+        let mut verus_args = Vec::new();
+        if options.log {
+            verus_args.push("--log-all".to_string());
+        }
+        if options.trace {
+            cmd.env("RUST_BACKTRACE", "full");
+            verus_args.push("--trace".to_string());
+        }
+        verus_args.push(format!("--multiple-errors={}", options.max_errors));
+        verus_args.extend(options.pass_through.clone());
+        if !verus_args.is_empty() {
+            cmd.arg("--").args(verus_args);
+        }
+
+        info!(
+            "  {} {} {}",
+            "Compiling".bold().green(),
+            target.name.white(),
+            target.version.white()
+        );
+        debug!(">> {:?}", cmd);
+
+        let status = cmd.status().unwrap_or_else(|e| {
+            error!("Error during compilation: {}", e);
+        });
+
+        if status.success() {
+            info!(
+                "  {} {} {}",
+                "Compiled".bold().green(),
+                target.name.white(),
+                target.version.white()
+            );
+        } else {
+            error!("Compilation failed for target {}", target.name);
+        }
+    }
+
+    Ok(())
+}
+
+pub fn exec_clean() -> Result<(), DynError> {
+    let status = Command::new("cargo").arg("clean").status()?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err("cargo clean failed".into())
+    }
+}
+
+pub mod install {
+    use super::*;
+    use crate::toolchain;
+    use git2::Repository;
+
+    pub struct VerusInstallOpts {
+        pub restart: bool,
+        pub release: bool,
+        pub branch: Option<String>,
+        pub force_reset: bool,
+        pub upstream_verus: bool,
+    }
+
+    pub const VERUS_REPO_HTTPS: &str = "https://github.com/asterinas/verus.git";
+    pub const VERUS_REPO_SSH: &str = "git@github.com:asterinas/verus.git";
+    pub const UPSTREAM_VERUS_REPO_HTTPS: &str = "https://github.com/verus-lang/verus.git";
+    pub const UPSTREAM_VERUS_REPO_SSH: &str = "git@github.com:verus-lang/verus.git";
+
+    fn target_repo_urls(upstream: bool) -> (&'static str, &'static str) {
+        if upstream {
+            (UPSTREAM_VERUS_REPO_SSH, UPSTREAM_VERUS_REPO_HTTPS)
+        } else {
+            (VERUS_REPO_SSH, VERUS_REPO_HTTPS)
+        }
+    }
+
+    fn is_target_origin(origin_url: &str, upstream: bool) -> bool {
+        let (ssh, https) = target_repo_urls(upstream);
+        origin_url == ssh || origin_url == https
+    }
+
+    fn maybe_switch_origin_remote(dir: &Path, upstream: bool) -> Result<bool, DynError> {
+        let repo = Repository::open(dir).unwrap_or_else(|e| {
+            error!(
+                "Unable to find the git repo of verus under {}: {}",
+                dir.display(),
+                e
+            );
+        });
+
+        let mut remote = repo.find_remote("origin")?;
+        let origin_url = remote.url().unwrap_or("");
+        if is_target_origin(origin_url, upstream) {
+            return Ok(false);
+        }
+
+        let (target_ssh, target_https) = target_repo_urls(upstream);
+        let use_ssh = origin_url.starts_with("git@") || origin_url.contains("ssh://");
+        let target_url = if use_ssh { target_ssh } else { target_https };
+
+        info!(
+            "Switching origin remote from {} to {}",
+            origin_url, target_url
+        );
+        repo.remote_set_url("origin", target_url)?;
+
+        // Refresh local remote handle after remote update.
+        remote = repo.find_remote("origin")?;
+        debug!("Updated origin remote URL: {}", remote.url().unwrap_or(""));
+        Ok(true)
+    }
+
+    fn force_reset_to_origin(dir: &Path, branch: Option<&str>) -> Result<(), DynError> {
+        let repo = Repository::open(dir).unwrap_or_else(|e| {
+            error!(
+                "Unable to find the git repo of verus under {}: {}",
+                dir.display(),
+                e
+            );
+        });
+
+        let target_branch = branch.unwrap_or("main");
+
+        let mut remote = repo.find_remote("origin")?;
+        let remote_url = remote.url().unwrap_or("");
+        let is_ssh = remote_url.starts_with("git@") || remote_url.contains("ssh://");
+
+        let mut callbacks = git2::RemoteCallbacks::new();
+        if is_ssh {
+            callbacks.credentials(|_url, username_from_url, _allowed_types| {
+                git2::Cred::ssh_key_from_agent(username_from_url.unwrap_or("git"))
+            });
+        }
+
+        let mut fetch_opts = git2::FetchOptions::new();
+        fetch_opts.remote_callbacks(callbacks);
+        remote.fetch(&[target_branch], Some(&mut fetch_opts), None)?;
+
+        let upstream_branch = format!("refs/remotes/origin/{}", target_branch);
+        let upstream_ref = repo.find_reference(&upstream_branch).map_err(|_| {
+            format!(
+                "Branch '{}' does not exist in the remote repository. Please check the branch name.",
+                target_branch
+            )
+        })?;
+        let upstream_commit = upstream_ref.peel_to_commit()?;
+
+        repo.reset(upstream_commit.as_object(), git2::ResetType::Hard, None)?;
+
+        let refname = format!("refs/heads/{}", target_branch);
+        if repo.find_reference(&refname).is_err() {
+            repo.reference(
+                &refname,
+                upstream_commit.id(),
+                false,
+                &format!("Create branch {}", target_branch),
+            )?;
+        } else {
+            let mut reference = repo.find_reference(&refname)?;
+            reference.set_target(
+                upstream_commit.id(),
+                &format!("Force reset to origin/{}", target_branch),
+            )?;
+        }
+
+        repo.set_head(&refname)?;
+        let mut checkout_opts = git2::build::CheckoutBuilder::new();
+        checkout_opts.force();
+        repo.checkout_head(Some(&mut checkout_opts))?;
+
+        status!("Force reset to origin/{} completed", target_branch);
+        status!(
+            "Repo {} updated to commit {}",
+            dir.display(),
+            upstream_commit.id()
+        );
+        Ok(())
+    }
+
+    #[memoize]
+    pub fn tools_dir() -> PathBuf {
+        projects::get_root().join("tools")
+    }
+
+    #[memoize]
+    pub fn verus_dir() -> PathBuf {
+        tools_dir().join("verus")
+    }
+
+    #[memoize]
+    pub fn verus_source_dir() -> PathBuf {
+        verus_dir().join("source")
+    }
+
+    #[memoize]
+    pub fn tools_patch_dir() -> PathBuf {
+        tools_dir().join("patches")
+    }
+
+    pub fn clone_repo(
+        verus_dir: &Path,
+        branch: Option<&str>,
+        upstream: bool,
+    ) -> Result<(), DynError> {
+        let repo_ssh = if upstream {
+            UPSTREAM_VERUS_REPO_SSH
+        } else {
+            VERUS_REPO_SSH
+        };
+        let repo_https = if upstream {
+            UPSTREAM_VERUS_REPO_HTTPS
+        } else {
+            VERUS_REPO_HTTPS
+        };
+
+        let branch_name = branch.unwrap_or("main");
+
+        info!(
+            "Cloning Verus repo from {} (branch: {}) to {} ...",
+            repo_ssh,
+            branch_name,
+            verus_dir.display()
+        );
+
+        let mut builder = git2::build::RepoBuilder::new();
+        builder.branch(branch_name);
+
+        let mut callbacks = git2::RemoteCallbacks::new();
+
+        callbacks.credentials(|_url, username_from_url, _allowed_types| {
+            git2::Cred::ssh_key_from_agent(username_from_url.unwrap_or("git"))
+        });
+
+        let mut fetch_opts = git2::FetchOptions::new();
+        fetch_opts.remote_callbacks(callbacks);
+        builder.fetch_options(fetch_opts);
+
+        let ssh_result = builder.clone(repo_ssh, verus_dir);
+        if ssh_result.is_ok() {
+            return Ok(());
+        }
+
+        info!("SSH failed, trying HTTPS: {}", repo_https);
+
+        let mut builder_https = git2::build::RepoBuilder::new();
+        builder_https.branch(branch_name);
+        builder_https
+            .clone(repo_https, verus_dir)
+            .map_err(|e| format!("Failed to clone verus repo: {}", e))?;
+
+        Ok(())
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn install_z3() -> Result<(), DynError> {
+        let z3 = verus_source_dir().join("z3.exe");
+        if !z3.exists() {
+            info!("Z3 not found, downloading...");
+            let mut cmd = executable::get_powershell_command()?;
+            cmd.current_dir(verus_source_dir())
+                .arg("/c")
+                .arg(".\\tools\\get-z3.ps1")
+                .status()
+                .unwrap_or_else(|e| {
+                    error!("Failed to download z3: {}", e);
+                });
+        }
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn install_z3() -> Result<(), DynError> {
+        let z3 = verus_source_dir().join("z3");
+        if !z3.exists() {
+            info!("Z3 not found, downloading...");
+            Command::new("bash")
+                .current_dir(verus_source_dir())
+                .arg("-c")
+                .arg("./tools/get-z3.sh")
+                .status()
+                .unwrap_or_else(|e| {
+                    error!("Failed to download z3: {}", e);
+                });
+        }
+        Ok(())
+    }
+
+    fn is_verusfmt_installed() -> bool {
+        let output = Command::new("verusfmt").arg("--version").output();
+        match output {
+            Ok(output) => {
+                if output.status.success() {
+                    return true;
+                }
+            }
+            Err(_) => {}
+        }
+        false
+    }
+
+    fn install_verusfmt() -> Result<(), DynError> {
+        println!("Start to install verusfmt");
+        let status = {
+            #[cfg(target_os = "windows")]
+            {
+                // pwsh -ExecutionPolicy Bypass -c "irm https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.ps1 | iex"
+                let mut cmd = executable::get_powershell_command()?;
+                cmd
+                .arg("-ExecutionPolicy")
+                .arg("Bypass")
+                .arg("-c")
+                .arg("irm https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.ps1 | iex");
+                println!("{:?}", cmd);
+                cmd.status()
+            }
+            #[cfg(not(target_os = "windows"))]
+            {
+                // curl --proto '=https' --tlsv1.2 -LsSf https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.sh | sh
+                let mut cmd = Command::new("bash");
+                cmd
+                .arg("-c")
+                .arg("curl --proto '=https' --tlsv1.2 -LsSf https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.sh | sh");
+                println!("{:?}", cmd);
+                cmd.status()
+            }
+        };
+        if let Err(err) = status {
+            eprintln!("Failed to install verusfmt {:?}", err);
+            return Err(err.into());
+        }
+        Ok(())
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn build_verus(release: bool) -> Result<(), DynError> {
+        let mut cmd = executable::get_powershell_command()?;
+        cmd.current_dir(verus_source_dir()).arg("/c").arg(format!(
+            "& '..\\tools\\activate.ps1'; vargo build {} --features singular",
+            if release { "--release" } else { "" }
+        ));
+        debug!("{:?}", cmd);
+        cmd.status().unwrap_or_else(|e| {
+            error!("Failed to build verus: {}", e);
+        });
+
+        let mut verusdoc_cmd = executable::get_powershell_command()?;
+        verusdoc_cmd
+            .current_dir(verus_source_dir())
+            .arg("/c")
+            .arg("& '..\\tools\\activate.ps1'; vargo build -p verusdoc");
+        debug!("{:?}", verusdoc_cmd);
+        verusdoc_cmd.status().unwrap_or_else(|e| {
+            error!("Failed to build verusdoc: {}", e);
+        });
+
+        status!("Verus build complete");
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn build_verus(release: bool) -> Result<(), DynError> {
+        let toolchain = verus_dir().join("rust-toolchain.toml");
+        let toolchain_name = toolchain::load_toolchain(&toolchain);
+
+        let cmd = &mut Command::new("bash");
+        cmd.current_dir(verus_source_dir())
+            .env_remove("RUSTUP_TOOLCHAIN")
+            .env("RUSTUP_TOOLCHAIN", toolchain_name.clone())
+            .arg("-c")
+            .arg(format!(
+                "source ../tools/activate; vargo build {} --features singular",
+                if release { "--release" } else { "" }
+            ));
+        debug!("{:?}", cmd);
+        cmd.status().unwrap_or_else(|e| {
+            error!("Failed to build verus: {}", e);
+        });
+
+        let verusdoc_cmd = &mut Command::new("bash");
+        verusdoc_cmd
+            .current_dir(verus_source_dir())
+            .env_remove("RUSTUP_TOOLCHAIN")
+            .env("RUSTUP_TOOLCHAIN", toolchain_name)
+            .arg("-c")
+            .arg("source ../tools/activate; vargo build -p verusdoc");
+        debug!("{:?}", verusdoc_cmd);
+        verusdoc_cmd.status().unwrap_or_else(|e| {
+            error!("Failed to build verusdoc: {}", e);
+        });
+
+        status!("Verus build complete");
+        Ok(())
+    }
+
+    pub fn exec_bootstrap(options: &VerusInstallOpts) -> Result<(), DynError> {
+        let verus_dir = verus_dir();
+
+        if options.restart && verus_dir.exists() {
+            info!("Removing old verus installation...");
+            std::fs::remove_dir_all(&verus_dir)?;
+        }
+
+        // Clone the Verus repo if it doesn't exist
+        if !verus_dir.exists() {
+            clone_repo(
+                &verus_dir,
+                options.branch.as_deref(),
+                options.upstream_verus,
+            )?;
+        }
+
+        // Download Z3
+        install_z3()?;
+
+        // Build Verus
+        build_verus(options.release)?;
+
+        // Update the workspace toolchain
+        toolchain::sync_toolchain(
+            &verus_dir.join("rust-toolchain.toml"),
+            &projects::get_root().join("rust-toolchain.toml"),
+        );
+
+        // Install Verusfmt
+        if options.restart || !is_verusfmt_installed() {
+            install_verusfmt()?;
+        }
+
+        status!("Verus installation complete");
+        Ok(())
+    }
+
+    pub fn git_pull(dir: &Path, branch: Option<&str>, force_reset: bool) -> Result<(), DynError> {
+        let repo = Repository::open(dir).unwrap_or_else(|e| {
+            error!(
+                "Unable to find the git repo of verus under {}: {}",
+                dir.display(),
+                e
+            );
+        });
+
+        // Determine target branch (default to "main")
+        let target_branch = branch.unwrap_or("main");
+
+        // Find the remote and check its URL to determine authentication method
+        let mut remote = repo.find_remote("origin")?;
+        let remote_url = remote.url().unwrap_or("");
+        let is_ssh = remote_url.starts_with("git@") || remote_url.contains("ssh://");
+
+        let mut callbacks = git2::RemoteCallbacks::new();
+
+        if is_ssh {
+            // SSH repository - use SSH key authentication
+            callbacks.credentials(|_url, username_from_url, _allowed_types| {
+                git2::Cred::ssh_key_from_agent(username_from_url.unwrap_or("git"))
+            });
+        }
+        let mut fetch_opts = git2::FetchOptions::new();
+        fetch_opts.remote_callbacks(callbacks);
+        remote.fetch(&[target_branch], Some(&mut fetch_opts), None)?;
+
+        // Get the current branch
+        let head = repo.head()?;
+        if !head.is_branch() {
+            return Err("HEAD is not a branch. Cannot pull.".into());
+        }
+
+        let _ = head.shorthand().map_err(|_| "Could not get branch name")?;
+        let local_commit = head.peel_to_commit()?;
+
+        // Find the matching remote branch
+        let upstream_branch = format!("refs/remotes/origin/{}", target_branch);
+        let upstream_ref = repo.find_reference(&upstream_branch).map_err(|_| {
+            format!(
+                "Branch '{}' does not exist in the remote repository. Please check the branch name.",
+                target_branch
+            )
+        })?;
+        let upstream_commit = upstream_ref.peel_to_commit()?;
+
+        // Check merge analysis
+        let annotated_commit = repo.find_annotated_commit(upstream_commit.id())?;
+        let analysis = repo.merge_analysis(&[&annotated_commit])?.0;
+
+        if analysis.is_up_to_date() {
+            status!("Already up to date");
+        } else if analysis.is_fast_forward() {
+            // Fast-forward
+            let refname = format!("refs/heads/{}", target_branch);
+
+            // Create local branch if it doesn't exist
+            if repo.find_reference(&refname).is_err() {
+                repo.reference(
+                    &refname,
+                    upstream_commit.id(),
+                    false,
+                    &format!("Create branch {}", target_branch),
+                )?;
+            }
+
+            let mut reference = repo.find_reference(&refname)?;
+            reference.set_target(upstream_commit.id(), "Fast-forward")?;
+            repo.set_head(&refname)?;
+
+            // Update working directory
+            let mut checkout_opts = git2::build::CheckoutBuilder::new();
+            checkout_opts.force();
+            repo.checkout_head(Some(&mut checkout_opts))?;
+
+            status!(
+                "Fast-forwarded {} to {}",
+                target_branch,
+                upstream_commit.id()
+            );
+        } else {
+            // Need to perform a merge
+            let mut merge_opts = git2::MergeOptions::new();
+            let mut checkout_opts = git2::build::CheckoutBuilder::new();
+
+            // Start the merge
+            repo.merge(
+                &[&annotated_commit],
+                Some(&mut merge_opts),
+                Some(&mut checkout_opts),
+            )?;
+
+            // Check for conflicts
+            if repo.index()?.has_conflicts() {
+                if force_reset {
+                    status!(
+                        "Conflicts detected, performing force reset to origin/{}",
+                        target_branch
+                    );
+
+                    // Reset the index to clean state
+                    repo.reset(
+                        &repo.head()?.peel_to_commit()?.as_object(),
+                        git2::ResetType::Hard,
+                        None,
+                    )?;
+
+                    // Force reset to the remote branch
+                    let refname = format!("refs/heads/{}", target_branch);
+
+                    // Create or update the local branch reference
+                    if repo.find_reference(&refname).is_err() {
+                        repo.reference(
+                            &refname,
+                            upstream_commit.id(),
+                            false,
+                            &format!("Force reset to origin/{}", target_branch),
+                        )?;
+                    } else {
+                        let mut reference = repo.find_reference(&refname)?;
+                        reference.set_target(
+                            upstream_commit.id(),
+                            &format!("Force reset to origin/{}", target_branch),
+                        )?;
+                    }
+
+                    // Set HEAD to the target branch
+                    repo.set_head(&refname)?;
+
+                    // Force checkout to update working directory
+                    let mut checkout_opts = git2::build::CheckoutBuilder::new();
+                    checkout_opts.force();
+                    repo.checkout_head(Some(&mut checkout_opts))?;
+
+                    status!("Force reset to origin/{} completed", target_branch);
+                    return Ok(());
+                } else {
+                    error!("There are conflicts between the recent updates and patches. Please resolve them manually.");
+                }
+            }
+
+            // Create the merge commit
+            let sig = repo.signature()?;
+            let tree_id = repo.index()?.write_tree()?;
+            let tree = repo.find_tree(tree_id)?;
+
+            repo.commit(
+                Some("HEAD"),
+                &sig,
+                &sig,
+                &format!("Merge remote-tracking branch 'origin/{}'", target_branch),
+                &tree,
+                &[&local_commit, &upstream_commit],
+            )?;
+
+            // Clean up merge state
+            repo.cleanup_state()?;
+
+            status!("Merged origin/{} into {}", target_branch, target_branch);
+        }
+
+        status!(
+            "Repo {} updated to commit {}",
+            dir.display(),
+            upstream_commit.id()
+        );
+        Ok(())
+    }
+
+    pub fn exec_upgrade(options: &VerusInstallOpts) -> Result<(), DynError> {
+        // rebuild if required or if the directory doesn't exist
+        if !verus_dir().exists() {
+            return exec_bootstrap(options);
+        }
+
+        // git pull the Verus repo
+        let verus_dir = verus_dir();
+        let branch = options.branch.as_ref().map(|s| s.as_str());
+        let switched = maybe_switch_origin_remote(&verus_dir, options.upstream_verus)?;
+        if switched {
+            force_reset_to_origin(&verus_dir, branch)?;
+        } else {
+            git_pull(&verus_dir, branch, options.force_reset)?;
+        }
+        status!("Verus repo updated to the latest version");
+
+        // Build Verus
+        build_verus(options.release)?;
+
+        // Update the workspace toolchain
+        toolchain::sync_toolchain(
+            &verus_dir.join("rust-toolchain.toml"),
+            &projects::get_root().join("rust-toolchain.toml"),
+        );
+
+        // Install Verusfmt
+        install_verusfmt()?;
+
+        status!("Verus upgrade complete");
+        Ok(())
+    }
+}

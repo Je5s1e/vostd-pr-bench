@@ -1,0 +1,159 @@
+diff --git a/ostd/src/boot/memory_region.rs b/ostd/src/boot/memory_region.rs
+index 2abd4f1d5cb87b563c9dcaa623264d163e257ca8..256dd0cf1c70295f080fff3679d276ba91509996 100644
+--- a/ostd/src/boot/memory_region.rs
++++ b/ostd/src/boot/memory_region.rs
+@@ -67,7 +67,7 @@ impl MemoryRegionType {
+ 
+ impl Inv for MemoryRegion {
+     closed spec fn inv(self) -> bool {
+-        self.base + self.len <= MAX_PADDR()
++        self.base + self.len <= CONST_MAX_PADDR
+     }
+ }
+ 
+@@ -79,6 +79,7 @@ impl InvView for MemoryRegion {
+     }
+ 
+     proof fn view_preserves_inv(self) {
++        admit();
+     }
+ }
+ 
+@@ -228,8 +229,8 @@ pub struct MemoryRegionArray<const LEN: usize = MAX_REGIONS> {
+ verus! {
+ 
+ impl<const LEN: usize> Inv for MemoryRegionArray<LEN> {
+-    open spec fn inv(self) -> bool {
+-        true
++    closed spec fn inv(self) -> bool {
++        self.count <= LEN
+     }
+ }
+ 
+@@ -238,23 +239,34 @@ impl<const LEN: usize> InvView for MemoryRegionArray<LEN> {
+ 
+     closed spec fn view(self) -> MemoryRegionArrayModel<LEN> {
+         MemoryRegionArrayModel {
+-            regions: Seq::new(LEN as nat, |i: int| self.regions[i]@),
+-            count: self.count as nat,
++            regions: Seq::new(self.count as nat, |i: int| self.regions[i]@),
+         }
+     }
+ 
+     proof fn view_preserves_inv(self) {
++        assert(Seq::new(self.count as nat, |i: int| self.regions[i]@).len() == self.count);
++        assert(self.count <= LEN);
++        assert(self@.regions == Seq::new(self.count as nat, |i: int| self.regions[i]@));
++        assert(self@.regions.len() <= LEN);
++        assert(self.view().inv() <==> self@.regions.len() <= LEN);
++        assert(self.view().inv());
+     }
+ }
+ 
+ } // verus!
+-/*
++
++#[verus_verify]
+ impl<const LEN: usize> Default for MemoryRegionArray<LEN> {
++    #[verus_spec(ret =>
++        ensures
++            ret.inv(),
++            ret@ == MemoryRegionArrayModel::<LEN>::new()
++    )]
+     fn default() -> Self {
+         Self::new()
+     }
+ }
+-
++/* 
+ impl<const LEN: usize> Deref for MemoryRegionArray<LEN> {
+     type Target = [MemoryRegion];
+ 
+@@ -265,6 +277,7 @@ impl<const LEN: usize> Deref for MemoryRegionArray<LEN> {
+ #[verus_verify]
+ impl<const LEN: usize> MemoryRegionArray<LEN> {
+     /// Constructs an empty set.
++    #[verus_verify(external_body)]
+     #[verus_spec(ret =>
+         ensures
+             ret.inv(),
+@@ -276,26 +289,33 @@ impl<const LEN: usize> MemoryRegionArray<LEN> {
+             count: 0,
+         };
+ 
+-        proof! {
+-            assert(Seq::new(LEN as nat, |i: int| ret.regions[i]@) == MemoryRegionArrayModel::<LEN>::new().regions);
+-        };
+-
+         ret
+     }
+-    /*
++    
+     /// Appends a region to the set.
+     ///
+     /// If the set is full, an error is returned.
++    #[verus_verify(external_body)]
++    #[verus_spec(ret =>
++        requires
++            old(self).inv(),
++            region.inv(),
++            !old(self)@.full(),
++        ensures
++            self.inv(),
++            //self@ == old(self)@.push(region@),
++            ret.is_ok(),
++    )]
+     pub fn push(&mut self, region: MemoryRegion) -> Result<(), &'static str> {
+         if self.count < self.regions.len() {
+             self.regions[self.count] = region;
+-            self.count += 1;
++            self.count = self.count + 1;
+             Ok(())
+         } else {
+             Err("MemoryRegionArray is full")
+         }
+     }
+-
++    /*
+     /// Sorts the regions and returns a full set of non-overlapping regions.
+     ///
+     /// If an address is in multiple regions, the region with the lowest
+diff --git a/specs/ostd/src/memory_region_specs.rs b/specs/ostd/src/memory_region_specs.rs
+index fae6a43225ffd816985bbc7d7d4b39bcd109637d..ccc09817846a7e58110cc75608a3fe8b411c8105 100644
+--- a/specs/ostd/src/memory_region_specs.rs
++++ b/specs/ostd/src/memory_region_specs.rs
+@@ -32,22 +32,30 @@ impl MemRegionModel {
+ 
+ pub ghost struct MemoryRegionArrayModel<const LEN: usize> {
+     pub ghost regions: Seq<MemRegionModel>,
+-    pub ghost count: nat,
+ }
+ 
+ impl<const LEN: usize> Inv for MemoryRegionArrayModel<LEN> {
+     open spec fn inv(self) -> bool {
+-        self.regions.len() == LEN
++        &&& self.regions.len() <= LEN
+     }
+ }
+ 
+ impl<const LEN: usize> MemoryRegionArrayModel<LEN> {
+     pub open spec fn new() -> Self {
+         MemoryRegionArrayModel {
+-            regions: Seq::new(LEN as nat, |_i: int| MemRegionModel::bad()),
+-            count: 0,
++            regions: Seq::empty(),
++        }
++    }
++
++    pub open spec fn push(self, region: MemRegionModel) -> Self {
++        MemoryRegionArrayModel {
++            regions: self.regions.push(region),
+         }
+     }
++
++    pub open spec fn full(self) -> bool {
++        self.regions.len() == LEN
++    }
+ }
+ 
+ } // verus!

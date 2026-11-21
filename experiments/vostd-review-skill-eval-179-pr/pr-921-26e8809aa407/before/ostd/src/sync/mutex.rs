@@ -1,0 +1,415 @@
+// SPDX-License-Identifier: MPL-2.0
+use vstd::{
+    atomic_ghost::*,
+    cell::{
+        self,
+        pcell::{self, *},
+    },
+    prelude::*,
+    std_specs::fmt::{DebugSpec, DebugSpecImpl},
+};
+use vstd_extra::{prelude::*, resource::ghost_resource::excl::*};
+
+use super::WaitQueue;
+use alloc::sync::Arc;
+use core::{
+    cell::UnsafeCell,
+    fmt,
+    ops::{Deref, DerefMut},
+    sync::atomic::Ordering,
+};
+
+verus! {
+
+struct_with_invariants! {
+
+/// A mutex with waitqueue.
+pub struct Mutex<T  /* : ?Sized */ > {
+    lock: AtomicBool<_, Option<PointsTo<T>>, _>,
+    queue: WaitQueue,
+    // val: UnsafeCell<T>,
+    val: PCell<T>,
+}
+
+closed spec fn wf(self) -> bool {
+    invariant on lock with (val) is (v: bool, g: Option<PointsTo<T>>) {
+        let active_guard = g is None;
+        &&& v <==> active_guard
+        &&& g is Some ==> g->0.id() == val.id()
+    }
+}
+}
+
+impl<T> Mutex<T> {
+    pub closed spec fn cell_id(self) -> cell::CellId {
+        self.val.id()
+    }
+
+    #[verifier::type_invariant]
+    pub closed spec fn type_inv(self) -> bool {
+        self.wf()
+    }
+
+    /// Creates a new mutex.
+    pub const fn new(val: T) -> Self {
+        let (val, Tracked(perm)) = PCell::new(val);
+        Self {
+            lock: AtomicBool::new(
+                Ghost(val),
+                false,
+                Tracked(Some(perm)),
+            ),
+            queue: WaitQueue::new(),
+            val: val,
+        }
+    }
+}
+
+#[verus_verify]
+impl<T  /* : ?Sized */ > Mutex<T> {
+    /// Acquires the mutex.
+    ///
+    /// This method runs in a block way until the mutex can be acquired.
+    #[track_caller]
+    #[verus_spec(ret => ensures ret.rel_mutex(*self))]
+    pub fn lock(&self) -> MutexGuard<'_, T> {
+        self.queue.wait_until(
+            || -> (ret: Option<MutexGuard<'_, T>>)
+                ensures
+                    ret is Some ==> ret->0.rel_mutex(*self),
+                { self.try_lock() },
+        )
+    }
+
+    /// Tries to acquire the mutex immediately.
+    #[verus_spec(ret =>
+        ensures
+            ret is Some ==> ret->0.rel_mutex(*self),
+    )]
+    pub fn try_lock(&self) -> Option<MutexGuard<'_, T>> {
+        // Cannot be reduced to `then_some`, or the possible dropping of the temporary
+        // guard will cause an unexpected unlock.
+        // SAFETY: The lock is successfully acquired when creating the guard.
+        proof_decl! {
+            let tracked mut locked_state: Option<PointsTo<T>> = None;
+        }
+        (#[verus_spec(with => Tracked(locked_state))] self.acquire_lock()).then(
+            || -> (ret: MutexGuard<T>)
+                requires
+                    locked_state is Some,
+                    locked_state -> Some_0.id() == self.cell_id(),
+                ensures
+                    ret.rel_mutex(*self),
+                {unsafe { proof_with!{Tracked(locked_state.tracked_unwrap())}; MutexGuard::new(self) }})
+    }
+
+    /* /// Returns a mutable reference to the underlying data.
+    ///
+    /// This method is zero-cost: By holding a mutable reference to the lock, the compiler has
+    /// already statically guaranteed that access to the data is exclusive.
+    #[verifier::external_body]
+    pub fn get_mut(&mut self) -> &mut T {
+        self.val.get_mut()
+    } */
+
+    /// Releases the mutex and wake up one thread which is blocked on this mutex.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that it has acquired the lock.
+    #[verus_spec(
+        with
+            Tracked(perm): Tracked<PointsTo<T>>,
+        requires
+            perm.id() == self.cell_id(),
+    )]
+    unsafe fn unlock(&self)
+    {
+        // SAFETY: The safety is upheld by the caller.
+        unsafe {
+            proof_with!(Tracked(perm));
+            self.release_lock();
+        }
+        self.queue.wake_one();
+    }
+
+    #[verus_spec(ret =>
+        with
+            -> locked_state: Tracked<Option<PointsTo<T>>>,
+        ensures
+            ret ==> locked_state@ is Some && locked_state@->0.id() == self.cell_id(),
+            !ret ==> locked_state@ is None,
+    )]
+    fn acquire_lock(&self) -> bool {
+        proof_decl! {
+            let tracked mut locked_state: Option<PointsTo<T>> = None;
+        }
+        proof! {
+            use_type_invariant(self);
+        }
+        proof_with! { |= Tracked(locked_state) }
+        atomic_with_ghost! {
+            self.lock => compare_exchange(false, true);
+            returning res;
+            ghost perms => {
+                if res is Ok {
+                    let tracked perm = perms.tracked_take();
+                    locked_state = Some(perm);
+                }
+            }
+        }.is_ok()
+    }
+
+    /// # Safety
+    ///
+    /// The caller must ensure that it has acquired the lock.
+    #[verus_spec(
+        with
+            Tracked(perm): Tracked<PointsTo<T>>,
+        requires
+            perm.id() == self.cell_id(),
+    )]
+    unsafe fn release_lock(&self)
+    {
+        proof! {
+            use_type_invariant(self);
+        }
+        atomic_with_ghost! {
+            self.lock => store(false);
+            ghost perms => {
+                perms = Some(perm);
+            }
+        }
+    }
+}
+
+/* impl<T: /* ?Sized +  */fmt::Debug> fmt::Debug for Mutex<T> {
+    #[verifier::external_body]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.val, f)
+    }
+} */
+#[verifier::external]
+unsafe impl<T: /*?Sized + */Send> Send for Mutex<T> {}
+#[verifier::external]
+unsafe impl<T: /*?Sized + */Send> Sync for Mutex<T> {}
+
+/// A guard that provides exclusive access to the data protected by a [`Mutex`].
+#[verifier::reject_recursive_types(T)]
+#[clippy::has_significant_drop]
+#[must_use]
+#[verus_verify]
+pub struct MutexGuard<'a, T  /* : ?Sized */ > {
+    mutex: &'a Mutex<T>,
+    tracked_perm: Tracked<PointsTo<T>>,
+}
+
+impl<'a, T  /* : ?Sized */ > MutexGuard<'a, T> {
+    #[verifier::type_invariant]
+    closed spec fn type_inv(self) -> bool {
+        self.tracked_perm@.id() == self.mutex.cell_id()
+    }
+
+    /// The value stored in the mutex.
+    pub closed spec fn value(self) -> T {
+        *self.tracked_perm@.value()
+    }
+
+    /// The value stored in the mutex. It is an alias of `Self::value`.
+    pub open spec fn view(self) -> T {
+        self.value()
+    }
+
+    pub closed spec fn rel_mutex(self, mutex: Mutex<T>) -> bool {
+        *self.mutex == mutex
+    }
+}
+
+#[verus_verify]
+impl<'a, T  /* : ?Sized */ > MutexGuard<'a, T> {
+    /// # Safety
+    ///
+    /// The caller must ensure that the given reference of [`Mutex`] lock has been successfully acquired
+    /// in the current context. When the created [`MutexGuard`] is dropped, it will unlock the [`Mutex`].
+    #[verus_spec(ret =>
+        with
+            Tracked(perm): Tracked<PointsTo<T>>,
+        requires
+            perm.id() == mutex.cell_id(),
+        ensures
+            ret.rel_mutex(*mutex),
+    )]
+    unsafe fn new(mutex: &'a Mutex<T>) -> (r: MutexGuard<'a, T>)
+    {
+        MutexGuard { mutex, tracked_perm: Tracked(perm) }
+    }
+}
+
+#[verus_verify]
+impl<T/* : ?Sized */> Deref for MutexGuard<'_, T> {
+    type Target = T;
+
+    #[verus_spec(returns self.view())]
+    fn deref(&self) -> &Self::Target {
+        proof! {
+            use_type_invariant(self);
+        }
+        // unsafe { &*self.mutex.val.get() }
+        self.mutex.val.borrow(Tracked(self.tracked_perm.borrow()))
+    }
+}
+
+#[verus_verify]
+impl<T/* : ?Sized */> DerefMut for MutexGuard<'_, T> {
+    #[verus_spec(ret =>
+        ensures
+            final(self).view() == *final(ret),
+            old(self).view() == *ret,
+    )]
+    fn deref_mut(&mut self) -> &mut Self::Target
+    {
+        proof!{
+            use_type_invariant(&*self);
+        }
+        //unsafe { &mut *self.mutex.val.get() }
+        self.mutex.val.borrow_mut(Tracked(&mut *self.tracked_perm))
+    }
+}
+
+/* impl<T  /* : ?Sized */ > Drop for MutexGuard<'_, T> {
+    fn drop(&mut self)
+    {
+        // SAFETY: The mutex is locked.
+        unsafe { self.mutex.unlock() };
+    }
+} */
+
+impl<T: /* ?Sized*/ > MutexGuard<'_, T> {
+    /// VERUS LIMITATION: We implement `drop` and call it manually because Verus's support for `Drop` is incomplete for now.
+    #[verus_spec]
+    pub fn drop(self) {
+        proof!{use_type_invariant(&self);}
+        // SAFETY: The mutex is locked.
+        unsafe {
+            proof_with!(self.tracked_perm);
+            self.mutex.unlock();
+        }
+    }
+}
+
+impl<T: fmt::Debug> DebugSpecImpl for MutexGuard<'_, T> {
+    open spec fn fmt_req(&self, f: &fmt::Formatter<'_>) -> bool {
+        self.view().fmt_req(f)
+    }
+}
+
+impl<T: /*?Sized + */fmt::Debug> fmt::Debug for MutexGuard<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
+    }
+}
+
+impl<T  /* : ?Sized */ > !Send for MutexGuard<'_, T> {}
+
+#[verifier::external]
+unsafe impl<T: /*?Sized +*/ Sync> Sync for MutexGuard<'_, T> {}
+
+#[verus_verify]
+impl<'a, T  /* : ?Sized */ > MutexGuard<'a, T> {
+    /// Returns the [`Mutex`] associated with this guard.
+    #[verus_spec(ret =>
+        ensures
+            guard.rel_mutex(*ret),
+    )]
+    pub fn get_lock(guard: &MutexGuard<'a, T>) -> &'a Mutex<T> {
+        guard.mutex
+    }
+}
+
+} // verus!
+
+/* #[cfg(ktest)] */
+mod test {
+    use vstd::invariant::AtomicInvariant;
+
+    use super::*;
+    use crate::prelude::*;
+
+    // A regression test for a bug fixed in [#1279](https://github.com/asterinas/asterinas/pull/1279).
+    /* #[ktest] */
+    #[verus_spec]
+    fn test_mutex_try_lock_does_not_unlock() {
+        /* Unfold Mutex::new so the initial load can use the atomic permission before
+         * it is hidden in an invariant. vstd's atomic loads are sequentially consistent.
+         * Origin Rust:
+         * let lock = Mutex::new(0);
+         * assert!(!lock.lock.load(Ordering::Relaxed));
+         */
+        let (val, perm) = PCell::new(0);
+        let (patomic, lock_perm) = vstd::atomic::PAtomicBool::new(false);
+        assert!(verus_exec_expr! { !patomic.load(Tracked(lock_perm.borrow())) });
+        let lock = Mutex {
+            lock: AtomicBool {
+                patomic,
+                atomic_inv: verus_exec_expr! {
+                    Tracked(AtomicInvariant::new(
+                        (val, patomic.id()), (lock_perm.get(), Some(perm.get())), 0,
+                    ))
+                },
+            },
+            queue: WaitQueue::new(),
+            val,
+        };
+
+        // A successful lock
+        let guard1 = lock.lock();
+        proof! {
+            use_type_invariant(&lock);
+            use_type_invariant(&guard1);
+        }
+        /* Open the atomic invariant to relate the loaded bit to the live guard's permission.
+         * Origin Rust: assert!(lock.lock.load(Ordering::Relaxed));
+         */
+        assert!(atomic_with_ghost! {
+            lock.lock => load();
+            returning locked;
+            ghost perms => {
+                if let Some(perm) = &mut perms {
+                    perm.is_exclusive(guard1.tracked_perm.borrow());
+                }
+            }
+        });
+
+        // A failed `try_lock` won't drop the lock
+        /* Name the result so its permission can be compared with the live guard's permission.
+         * Origin Rust: assert!(lock.try_lock().is_none());
+         */
+        let mut guard2 = lock.try_lock();
+        proof! {
+            use_type_invariant(&guard1);
+            if let Some(guard2) = &mut guard2 {
+                use_type_invariant(&*guard2);
+                guard2.tracked_perm.borrow_mut().is_exclusive(guard1.tracked_perm.borrow());
+            }
+        }
+        assert!(guard2.is_none());
+        /* Open the atomic invariant to relate the loaded bit to the live guard's permission.
+         * Origin Rust: assert!(lock.lock.load(Ordering::Relaxed));
+         */
+        assert!(atomic_with_ghost! {
+            lock.lock => load();
+            returning locked;
+            ghost perms => {
+                if let Some(perm) = &mut perms {
+                    perm.is_exclusive(guard1.tracked_perm.borrow());
+                }
+            }
+        });
+
+        // Ensure the lock is held until here
+        /* Verus requires the guard's explicit release method because automatic Drop is unsupported.
+         * Origin Rust: drop(guard1);
+         */
+        guard1.drop();
+    }
+}

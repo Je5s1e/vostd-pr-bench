@@ -1,0 +1,25 @@
+{
+  "number": 183,
+  "title": "Verify Cursor::move_forward",
+  "selected": true,
+  "category": "验证工作与工具",
+  "evidence": [
+    {
+      "location": "标题",
+      "excerpt": "Verify Cursor::move forward",
+      "category": "验证工作与工具"
+    },
+    {
+      "location": "PR正文",
+      "url": "https://github.com/asterinas/vostd/pull/183",
+      "excerpt": "Verified `Cursor::move_forward`. Added two alternative `spec fn` for `pte_index` that doesn't use bit arithmetics and some properties for the `page_size` function. Fixed a typo in `lemma_aligned_pte_index_unchang",
+      "category": "正文或讨论涉及验证"
+    },
+    {
+      "location": "代码 diff",
+      "excerpt": ").ilog2() - C::PTE_SIZE().ilog2())) by (nonlinear_arith); } pub proof fn lemma_page_size_increases<C: PagingConstsTrait>(i: PagingLevel, j: PagingLevel) by (nonlinear_arith) requires 1 <= i <= j <= C::NR_LE",
+      "category": "验证代码或工具改动"
+    }
+  ],
+  "evidence_count": 3
+}

@@ -1,0 +1,659 @@
+{
+  "evidence_directories": [
+    {
+      "sample": "pr-119-0a0ec99c5b50",
+      "files": [
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "0b2860df5aebd51f8e978e548935357e7a809e7540df018f8a4cffbbfd242c45"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "0600680f7d6cc328c5668e991eec14f578b341ac582f6cec491f5840b354f9a8"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "045a1d7924b2a6760f2d1f5b1057d147bd4b37ce31975415c98eb1ad53b06eb4"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "85aa77294c66c7896a60f109bd3bcc6f6b2a169788fb08ec2035e2787790525c"
+        }
+      ]
+    },
+    {
+      "sample": "pr-122-aa2041448069",
+      "files": [
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "1f3f5d3da236e3a8e1039f11ea7636790e841c44c91fd82f96ffdb31f0b4b0d9"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "04bc102e5f46adc2321a1c980fddb8b6b22ee47047c837eed99827f888063d8a"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "b551ea2c5e07505b753731af408582ee6da4bc814f9dfe35f82cecf095fa5449"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "7e1a3eaf88dbc8bcec597876398a29cceabebe1bb850d3de45c0c763a33b8113"
+        }
+      ]
+    },
+    {
+      "sample": "pr-136-9483097409b4",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "1c7fe7957a2a4f4bf2bbc38b5e0642ccf14c50d1890e15236cfbc7081f37003e"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "47bd635f8a47848b8274f9ba3a7efaafd826d6ae71bd7e151afc7a6fda080f48"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "4c820e40a651f9deb359425c167414422419ecca510d42e35c5646ebbca7304d"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "c5d9b503ce41f9f774fef448ca804f5c142ba66c5b126b65d6f0e605942eb6c7"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "f7b06c9a34e365190c9b7b6b3c6c0296bd457ff81cc81477b9bd5bdcebd3f0b4"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "e489ca1126f67027c6a4c86ef6429f54953fefb43c3cf02b4f583f36de4db0f2"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "908c98316d6a481a3dedcba1b0db808a0fd3cb09fdbac9264fae8ee8ea925352"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "895fc37c42b353ddf47320458a92ed1fa2e5d441e408114238a524243944c538"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "4f8d71df783ac1e14e37bc87d4006290922556381de6047c2fe06083c776d100"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "ac93a19ecbd953f9969f096c8cecccc041e6f3ea1cdf99caf5b0b37cee66c38f"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "b0e8e30fd29ddad0c35edb0d2363c1f30eaf01b537e2c9d9a443533edadc657a"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-143-544fc49e7446",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "c3f67d3903cafb6f10edd22d0b55c73bb9d4e83b97631affd0f9b38f78637904"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "34f663b3d8a8e3f66a10efc96e3075cbb464e6181dda8d2fd7056d6bd7e7b430"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "49f55cd640d422fc17c69470abd7d43bab943020f00468b637d4870a4673b1a7"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "d8762c1e1e4819ceb966c468b4a2d9bb634d7e8052ce01ef447de648607bc8f5"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "8f1a34f9fbe7f343df9b5e671f210108666f362e7e38efe16be24ed145f90c9a"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "e3cb93e03706d11b0365d67cffc3db0949d3fc71e7b461ca0fb28b5e68170d66"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "8d35561b50a4ca3aceb1274be07f84c06b16ee4853142cdfb80f30f87209c446"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "5f89e48f6d715ce28eaa2d374aec347c6d466c1cc1aabcfff6fd1f3838178609"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "e4945ad2f4460b42fbc4ce190042558eb467c6f0d9a9f967853d9c7456833ea7"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "d9182ebfccb6265df94886aaa6982365f46231a1d986465e71d53cdf57bd419d"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-146-b4c63161c57b",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "39966a7746f9ecba96fb1cb00eb20f14b0dd4e3a9f35c263329a75c04d0b326a"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "22286f6ff6d3dfaec653d4bee0d0504ba087fead8ce838f03b0f3640c11d9afc"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "9cc2cc7217066d94d68eee3f26b3cc7734c9714b7454f80aea7fba0d1f44aaec"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "c976d5852e96e3a7e6b082a35a8c96c7ca5aff743e61e25f9eb7c97e70f97fc3"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "47577d26b4daf75d928ddbf0990c25aebd0ccb0ec63cceec2819eef2efd17d38"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "3d9bf9965388249fd1a1afe16cdc13d5fb3cd55b68152431c4a9c5c513ee8ec2"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "21793fa4d5882e49da7ed74c15fb1c55066c072e5a4ebbc1cec7e9a33bc93437"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "04afee3779ee429b8e62e87aa11303b3d4f300681d6ef8c8841ad7a5df7e371d"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "3fe8998cdb2f2e964f80da0a6608a3984e770f50493736a085b48305688edd2b"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "bbcff2fcf97670090321d78fccdda0a945066b14aa2067e79cdd55e98748b186"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-146-c6ea1a85e164",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "39966a7746f9ecba96fb1cb00eb20f14b0dd4e3a9f35c263329a75c04d0b326a"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "22286f6ff6d3dfaec653d4bee0d0504ba087fead8ce838f03b0f3640c11d9afc"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "2e8eff904c876cb160db76840495bbaa9789eb2c7a1f77e7ede2d9e3c9bfc589"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "f5d8112c1f52cccdda78f52e6777061875aaedc29224b6e4c70ee38b827d7930"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "47577d26b4daf75d928ddbf0990c25aebd0ccb0ec63cceec2819eef2efd17d38"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "3d9bf9965388249fd1a1afe16cdc13d5fb3cd55b68152431c4a9c5c513ee8ec2"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "21793fa4d5882e49da7ed74c15fb1c55066c072e5a4ebbc1cec7e9a33bc93437"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "04afee3779ee429b8e62e87aa11303b3d4f300681d6ef8c8841ad7a5df7e371d"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "3fe8998cdb2f2e964f80da0a6608a3984e770f50493736a085b48305688edd2b"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "bbcff2fcf97670090321d78fccdda0a945066b14aa2067e79cdd55e98748b186"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-161-1510b718eb7d",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "6f9a0bd7bce4bc7984b6ad0b9fbf553d2457f4bb1d0ccad38ab62543a83f7ea2"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "14f9f0e09a563a82f7cd49a8252745923b2f2b3704f222bd11c48c7a341d53e6"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "c3e15145962c0170d72b6ff729bc5dfd13fa4d642f0a3befaa8b30b036498882"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "fc350f225fad2980bc838dc2f8838a8efbeb2b8d265b70546cbf7f0298c5621e"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "a7b8e6cd1d9d2cb0c5c458c6a8bb38d0039ecbbe5b5b6a00e8303462af929304"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "072dc9130128a155c4a766b77fcbb1fb2508fbb1cb6ef34df3454a75844060ea"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "f4a6f2506faa5e43c61f8b6470cad0bbf77fd64f8c5446d70b84040e207c760a"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "eb6c74e3e062e3ba4a71604f4641d98240aaddaf985ee4e53e39557db61662b9"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "5e4c8dd466020149175084b00e3f565a764f27f1bedeec381abed985c46ed57f"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "27c363f7b673b76043b2c54f7572cb0a757f12efaa71b8ba88144d83f530389a"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "586323590fa50a6f57bdeaf0b0387ad10b74cdf4d75b27bdfaae6574ae505158"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-178-8d5d616a2605",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "56850af4dfed29d9e05627335f4ab4bca362be6cbed87a431f9aff7fb6d98e1d"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "f268932410be622215c77465beafd8e5f49396e6b3a49d37fe4b53785cd230ea"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "0bc98e3e838de2681a8af140ec0284e2942a8570a6cbf69e4a8973a01492009c"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "24c6c33a63a132b12a2727f350d79eafd2331ac5b32ad0858e2646525bd157c3"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "69115036025839d586c94d360b91adc75016626881bfaf4c18e417bd61cb2f0c"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "2c6489effa5c18673d4cde64f2371909405fc3467b52c0dc4de6c2094c729cd9"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "33741a6334aa069d169ace04e99c51741fb8c8f4d2d81d5f349c32699584e8a9"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "632ad35691c263c223bbc4f0e62c3ae838e715de105246a228af1b367a4c8462"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "7daa305da6151e0bb6ca83a71bf9d76f184876e260df92264668724b5f894f10"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "7fba6fcb8bb160bed23f91e9a89bf239ea1221f73a9ba768925a44d90bd4873c"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "129ecad6125fc2ec9b865ff52c39893f2ac8f4fafd88cea607446bfba4292c23"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-182-16d5d093ac90",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "406198cd2086f9a7a73c0d9333ba6d7ac0a275a5667bf3233faa4be4d9be2cf9"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "4f6291f9481768b62eb930b22a48f6360e7be7d4e854fd3b79c3d01c1446e861"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "6b8697b597c9f997a128cd8e8323169ab7262a6116eabb58b842bd4656238140"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "e6631d20bda5460ced2c92e11867d109b4e41f1db1f35dea8c2ebc79599f39a5"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "77d61273cf04d1b4dc7ab60766abe626b04ae27b306bdf78c476721a0421aae9"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "38133a6239558f777e0d927d2efb7675f29f16688c9d3e86fbe955c05a46840b"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "e32dea12180b29e36f016f519a1ca3c47ea9b6e5dadb88a5ea7326a5b939b880"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "cb024e5b0d4b268896bb71b50a37b4acecc1f0234502be513a53872dc2a8d639"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "0ff57f84e8326b20ddd5c3b3739d5bafdab6dbd52649625021f83e4a13f60add"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "1ed3ffff0643c6c6b722e2ec1ec8ade71ad6d3085bf12b98057123dad691f39c"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-183-fb3b9d0681b5",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "48576c2245cd81b047b602da2542e75585a0b7cf8b04b16965f14de5e2395b9f"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "37415d040a7e0cc42b8d07bbe4b6f43db0231ddde36bedbdd49889d77013a2ca"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "8fb4f030923d581a0a2728be4112165c7e8d01225c76b4920376149f72edd76d"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "873af6ae43417f7bcdb368dcf71ac299ffcbb79e0e0910c09d8ab8c2565935cd"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "7e9b76f7e5dd2153be7eca285ddd7c89848294d7b918391e2f3d32b21b4df373"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "a5371a96871ffc0edf35edfa1eb2dd442c6e90e08de31802bfacc3ae03025aa2"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "55178a6a65bd3f725a5462bbf48a7ae7b222fba724e64f9d36618a9249a7d393"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "c1b5cdded3da5b89799a90e2a53b9f885e59c9d85ccc5941a1a55e08295d47fe"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "763b43991e8e38fe7d04881e281064158d88d47308b5e6c08c7add02c05c5c1b"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "7a7342cc3f29d9ac2d14d94b9b8dc8e3b9f294d42670c7c626dc8ecf9f32cf15"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-220-1c5f850814d9",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "143801b2d53ffe2b7edc45ab6abdfe798d1464a6e5c764874900052973ced743"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "7e16f54cf48e5cf57034e51276e55dda152d9c3a97387ccf6d27d30613e7533e"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "6301debe8bd592315f1fd48a13dc9122eeda5b2b1557a23ea799638de388478e"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "d3f13a323ae8cdee81a9dd1a5b8e498b6c827599baa1de785f12db6dccfe3d38"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "c195b9e0540f48e52bb93b2a87b29883a3a22a84bbbac9e9cb66f677835868d8"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "bf471375f30621fc42bfd61cdebbae3165cf02f949c436620184fb4c66494d68"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "c132de0b9d2464fafcffaeb1ce6197e063a70cccf19e584c1beda712427623d0"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "569df0245a978512aa03d0b8920ec57caa3fc8545ca4e1086622e056e7a89f15"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "b18158f0f835c534017b4a870101c13a8b16f57a18cca7a3ccdb3784baa7ba2d"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "11d087667de2242a780eeb9c0fefa1cd5d2290c226e40dc27edd5e24d266c360"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "a0cd3b75f461d27e235d86791f8fca2d6912305777ce94db6936c5b53d9c10af"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-220-cfcd9e87ed0d",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "143801b2d53ffe2b7edc45ab6abdfe798d1464a6e5c764874900052973ced743"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "7e16f54cf48e5cf57034e51276e55dda152d9c3a97387ccf6d27d30613e7533e"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "64dc2306f7cb2f3c2e88db5f4e0c24240f1b8fcec89286f25c7bc1b0a67d461a"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "f74017cd7e99e362acd16349ca7a268ef187d82cdc374c177ac34a530374e172"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "c195b9e0540f48e52bb93b2a87b29883a3a22a84bbbac9e9cb66f677835868d8"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "d2c013cacea079cfe081f069be45417ce4aebb8cbbe642a6a909a784157b5035"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "c132de0b9d2464fafcffaeb1ce6197e063a70cccf19e584c1beda712427623d0"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "569df0245a978512aa03d0b8920ec57caa3fc8545ca4e1086622e056e7a89f15"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "b18158f0f835c534017b4a870101c13a8b16f57a18cca7a3ccdb3784baa7ba2d"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "11d087667de2242a780eeb9c0fefa1cd5d2290c226e40dc27edd5e24d266c360"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "a0cd3b75f461d27e235d86791f8fca2d6912305777ce94db6936c5b53d9c10af"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-226-84f7a7f07d36",
+      "files": [
+        {
+          "path": "evidence/changes.diff",
+          "sha256": "b62c389e42f06cff0158444618c5ef2212ca9423f002d1d43f98c8c4bd79fecf"
+        },
+        {
+          "path": "evidence/changes.patch",
+          "sha256": "0b56d531fa4263c0ee2e9e2ed98b2588957d4c180e89a1aa1b3f740084473009"
+        },
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "7fc56aa3202091cadcbf233c6a2cd87ae1e9237272093fee9c55e19c30918130"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "c8c298de583e5d9eca0f319dcf9ed6ec1b02d37f27e6a0b8288663399b135acf"
+        },
+        {
+          "path": "evidence/metadata.json",
+          "sha256": "e44458fd9334b82e3c376dab1e98cef2eabe4897b2954ad30e282a0872c26720"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "0e7bb97e69ca492147892d2e01edc06f15206cb87b70d3f609d74f4eca6ea31d"
+        },
+        {
+          "path": "evidence/review-summary.json",
+          "sha256": "f1104a1b8aee332e391284a8848c8ade05e43fb7c309e6eefc1421d14b8411df"
+        },
+        {
+          "path": "evidence/原始讨论.json",
+          "sha256": "dcddb234a2016029ae210e4f1b96148c35682af538c1c3c0cbd9e170375dc5da"
+        },
+        {
+          "path": "evidence/筛选依据.json",
+          "sha256": "d03ea6d17d570415b987ae8f270140079809cc60956730125ab38b4933bb4529"
+        },
+        {
+          "path": "evidence/经验笔记.md",
+          "sha256": "7543660a3e87c3ec0288435b894f41df66d03a0d7710cc2b4bcf996d76b113c1"
+        },
+        {
+          "path": "evidence/讨论.md",
+          "sha256": "e4df8930e883ffe7f507b608a60ef4e41969fbce59f30f7583e153e98e65dddd"
+        },
+        {
+          "path": "evidence/附件清单.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ]
+    },
+    {
+      "sample": "pr-233-9d89be46b390",
+      "files": [
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "18081764a03eaf4d3c87f40cc8c977c2714a599d5a46241313c588fecbd07f58"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "ca43cd9d3a2103bdd76fb65e558a4cdac2a9a221790ca4eb0b2d88167d3cfa56"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "ffd74fe0228e0ed8aee79cf9e4e050f71d4b9282a35df6713ffe9b33347b1f37"
+        }
+      ]
+    },
+    {
+      "sample": "pr-236-72a385b929f5",
+      "files": [
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "771dc024cb36c81db4ba03bbebcb24f9180169863d03774e3ff9487885df8eb3"
+        },
+        {
+          "path": "evidence/export-manifest.json",
+          "sha256": "6e3ef5147467c22389720c0dbb4b1159a4919a0e8e06dda623238d6d5c38b87e"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "8b7fbde5199be7792d85367e15971625e7aaf3e3e01a9fe244c9f176d3419a14"
+        }
+      ]
+    },
+    {
+      "sample": "pr-237-24bb220c7879",
+      "files": [
+        {
+          "path": "evidence/commit-audit.json",
+          "sha256": "be8f5b562b598a052b3f3a4c786282d6e81b32886fea9477fb14bcad92cf0fd0"
+        },
+        {
+          "path": "evidence/repair.diff",
+          "sha256": "54a94f96bf32941746dccb6357df6b226755a0ba65a368f4fac31ad161c71144"
+        }
+      ]
+    }
+  ],
+  "sample_count": 16,
+  "reviewer_access_observed": null,
+  "note": "当前review工作区残留evidence；例如#143 review-summary.json含core_lesson。仅证明可用材料存在，缺trace不能断言Reviewer实际读取。"
+}

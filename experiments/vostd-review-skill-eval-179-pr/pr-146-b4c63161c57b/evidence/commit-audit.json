@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "pr_number": 146,
+  "sample_id": "pr-146-b4c63161c57b",
+  "comparison_base_sha": "c6ea1a85e1643203807290bd3dc5b83e5c75b21e",
+  "problem_commit_sha": "b4c63161c57b3c4551d0839b06f216743a93aed9",
+  "repair_commit_sha": "6747158e33ae6c85efbe0f7485cb3e614d9a9e51",
+  "primary_reviewer": "/root/audit_pr_143_147",
+  "second_reviewer": "/root/audit_pr_117_122",
+  "second_review_verdict": "approved",
+  "historical_toolchain_executed": false,
+  "evidence_basis": "The problem snapshot assumes allocation freshness and the resulting SPT invariant without sufficient allocator and tracked-permission facts; the direct child strengthens those contracts and proves spt.wf().",
+  "claim_scope": "proof_trust_boundary",
+  "repair_evidence": "Direct repair diff independently checked from the fixed historical Git object store; commit URL is recorded in labels.json."
+}

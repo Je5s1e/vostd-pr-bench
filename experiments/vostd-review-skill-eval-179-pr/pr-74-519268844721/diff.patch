@@ -1,0 +1,2483 @@
+diff --git a/fvt3-page-acquisition-safety/src/page/meta/impls.rs b/fvt3-page-acquisition-safety/src/page/meta/impls.rs
+index 31312012b738f6940675bcfb287b56794dd19876..9b0aeccb90e907533c25054aa17323b564f2f3b7 100644
+--- a/fvt3-page-acquisition-safety/src/page/meta/impls.rs
++++ b/fvt3-page-acquisition-safety/src/page/meta/impls.rs
+@@ -26,7 +26,8 @@ impl PageUsage {
+ 
+     #[verifier::when_used_as_spec(as_u8_spec)]
+     pub fn as_u8(&self) -> (res: u8)
+-        ensures res == self.as_u8_spec()
++        ensures
++            res == self.as_u8_spec(),
+     {
+         match self {
+             Self::Unused => 0,
+@@ -36,93 +37,84 @@ impl PageUsage {
+             Self::Meta => 65,
+             Self::Kernel => 66,
+         }
+-}
+-}
++    }
+ }
+ 
++} // verus!
+ verus! {
++
+ /// # Write of the `MetaSlotInner` to the `MetaSlot`.
+ ///
+ /// Verus (and also safe Rust) does not support writing value to
+ /// the union type. So we use a more verbose way to define the
+ /// new object of the `MetaSlotInner`.
+ impl MetaSlotInner {
+-pub fn new<M: PageMeta>() -> (res: Self)
+-{
+-    match M::get_usage() {
+-        PageUsage::Frame => Self {
+-            _frame: manually_drop(super::FrameMeta::default()),
+-        },
+-        PageUsage::PageTable => Self {
+-            _pt: manually_drop(super::PageTablePageMeta::default()),
+-        },
+-        _ => Self {
+-            _others: [0_u8; 0],
++    pub fn new<M: PageMeta>() -> (res: Self) {
++        match M::get_usage() {
++            PageUsage::Frame => Self { _frame: manually_drop(super::FrameMeta::default()) },
++            PageUsage::PageTable => Self {
++                _pt: manually_drop(super::PageTablePageMeta::default()),
++            },
++            _ => Self { _others: [0u8;0] },
+         }
+     }
+ }
+-}
+-}
+ 
++} // verus!
+ verus! {
+ 
+ impl MetaSlot {
++    /// Simulate the initial state of the `MetaSlot`.
++    ///
++    /// This function is purely logical and not used for the implementation.
++    /// It is defined for verify the invariants of the `MetaSlot`.
++    ///
++    pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
++        ensures
++            res.0.inv_relate(&res.1@),
++            res.1@.ref_count == 0u32,
++            res.1@.state == MetaSlotState::Unused,
++    {
++        let (cell, Tracked(cell_perm)) = PCell::empty();
++        let usage = AtomicU8::new(Ghost(cell), 0, Tracked(ActualUsage::Unused(cell_perm)));
++        let (ref_count, Tracked(ref_count_perm)) = PAtomicU32::new(0);
++        assert(ref_count.id() == ref_count_perm.id());
++        assert(ref_count_perm@.value == 0);
+ 
+-/// Simulate the initial state of the `MetaSlot`.
+-///
+-/// This function is purely logical and not used for the implementation.
+-/// It is defined for verify the invariants of the `MetaSlot`.
+-///
+-pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
+-    ensures
+-        res.0.inv_relate(&res.1@),
+-        res.1@.ref_count == 0_u32,
+-        res.1@.state == MetaSlotState::Unused,
+-{
+-    let (cell, Tracked(cell_perm)) = PCell::empty();
+-    let usage = AtomicU8::new(
+-        Ghost(cell),
+-        0,
+-        Tracked(ActualUsage::Unused(cell_perm)));
+-    let (ref_count, Tracked(ref_count_perm)) = PAtomicU32::new(0);
+-    assert(ref_count.id() == ref_count_perm.id());
+-    assert(ref_count_perm@.value == 0);
+-
+-    let slot = MetaSlot {
+-        _inner: cell,
+-        usage,
+-        ref_count,
+-    };
+-    assume(slot.invariants());
++        let slot = MetaSlot { _inner: cell, usage, ref_count };
++        assume(slot.invariants());
+ 
+-    let tracked model = MetaSlotModel {
+-        ref_count: 0,
+-        inner_perm: None,
+-        address: meta_to_page(slot.id() as Vaddr),
+-        ref_count_perm: Tracked(ref_count_perm),
+-        state: MetaSlotState::Unused,
+-        usage: PageUsage::Unused,
+-    };
+-    assert(model.address == meta_to_page(slot.id() as Vaddr));
++        let tracked model = MetaSlotModel {
++            ref_count: 0,
++            inner_perm: None,
++            address: meta_to_page(slot.id() as Vaddr),
++            ref_count_perm: Tracked(ref_count_perm),
++            state: MetaSlotState::Unused,
++            usage: PageUsage::Unused,
++        };
++        assert(model.address == meta_to_page(slot.id() as Vaddr));
+ 
+-    (slot, Tracked(model))
+-}
++        (slot, Tracked(model))
++    }
+ 
+-/// implements `self.usage.compare_exchange(0, u)`
+-pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+-    -> (res: (bool, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model),
+-        usage != PageUsage::Unused,
+-        model.state == MetaSlotState::Unused,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model.claim_spec(self, usage, res.0, &res.1@),
+-{
+-    let u = usage.as_u8();
+-    assert(u != 0);
+-    let tracked mut inner_perm = None;
+-    let cas = atomic_with_ghost!(
++    /// implements `self.usage.compare_exchange(0, u)`
++    pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>) -> (res: (
++        bool,
++        Tracked<MetaSlotModel>,
++    ))
++        requires
++            self.inv_relate(&model),
++            usage != PageUsage::Unused,
++            model.state == MetaSlotState::Unused,
++        ensures
++            self.inv_relate(&res.1@),
++            model.claim_spec(self, usage, res.0, &res.1@),
++    {
++        let u = usage.as_u8();
++        assert(u != 0);
++        let tracked mut inner_perm = None;
++        let cas =
++            atomic_with_ghost!(
+         &self.usage =>
+         compare_exchange(0, u);
+         update prev -> next;
+@@ -139,155 +131,149 @@ pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+         }
+     );
+ 
+-    if cas.is_ok() {
+-        assert(inner_perm.is_some());
+-        let tracked model = MetaSlotModel {
+-            state: MetaSlotState::Claimed,
+-            inner_perm: Some(Tracked(inner_perm.tracked_unwrap())),
+-            usage: usage,
+-            ..model
+-        };
+-        return (true, Tracked(model));
++        if cas.is_ok() {
++            assert(inner_perm.is_some());
++            let tracked model = MetaSlotModel {
++                state: MetaSlotState::Claimed,
++                inner_perm: Some(Tracked(inner_perm.tracked_unwrap())),
++                usage: usage,
++                ..model
++            };
++            return (true, Tracked(model));
++        }
++        (false, Tracked(model))
+     }
+-    (false, Tracked(model))
+-}
+ 
+-/// implements `self.ref_count.fetch_add(1)` during `from_unused()`
+-pub fn inc0(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Claimed,
+-        model@.ref_count == 0,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model@.inc0_spec(res.0, &res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: 1_u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` during `from_unused()`
++    pub fn inc0(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Claimed,
++            model@.ref_count == 0,
++        ensures
++            self.inv_relate(&res.1@),
++            model@.inc0_spec(res.0, &res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel { ref_count: 1u32, ..unwrap_model };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `self.ref_count.fetch_add(1)` for `inc_ref_count()`
+-pub fn inc(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count < u32::MAX,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model@.inc_spec(res.0, &res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: (unwrap_model.ref_count + 1) as u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` for `inc_ref_count()`
++    pub fn inc(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count < u32::MAX,
++        ensures
++            self.inv_relate(&res.1@),
++            model@.inc_spec(res.0, &res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel {
++            ref_count: (unwrap_model.ref_count + 1) as u32,
++            ..unwrap_model
++        };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `self.ref_count.fetch_add(1)` for `drop()`
+-pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count > 0,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model@.dec_spec(res.0, &res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_sub(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: (unwrap_model.ref_count@ - 1) as u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` for `drop()`
++    pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count > 0,
++        ensures
++            self.inv_relate(&res.1@),
++            model@.dec_spec(res.0, &res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_sub(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel {
++            ref_count: (unwrap_model.ref_count@ - 1) as u32,
++            ..unwrap_model
++        };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
+-pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>)
+-    -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Claimed,
+-        model@.inner_perm.is_some(),
+-        model@.inner_perm.unwrap()@.is_uninit(),
+-        model@.inner_perm.unwrap()@.id() == self._inner.id(),
+-    ensures
+-        self.inv_relate(&res@),
+-        model@.put_inner_spec(inner, &res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    self._inner.put(Tracked(&mut perm), inner);
+-    let tracked model = MetaSlotModel {
+-        inner_perm: Some(Tracked(perm)),
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
++    pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>) -> (res:
++        Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Claimed,
++            model@.inner_perm.is_some(),
++            model@.inner_perm.unwrap()@.is_uninit(),
++            model@.inner_perm.unwrap()@.id() == self._inner.id(),
++        ensures
++            self.inv_relate(&res@),
++            model@.put_inner_spec(inner, &res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        self._inner.put(Tracked(&mut perm), inner);
++        let tracked model = MetaSlotModel { inner_perm: Some(Tracked(perm)), ..unwrap_model };
++        Tracked(model)
++    }
+ 
+-/// seal the `inner` for `from_unused()`
+-///
+-/// This function is purely logical and not used for the implementation.
+-pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.inner_perm.unwrap()@.is_init(),
+-        model@.state == MetaSlotState::Claimed,
+-    ensures
+-        self.inv_relate(&res@),
+-        res@ == model@.seal_spec(),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Used,
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// seal the `inner` for `from_unused()`
++    ///
++    /// This function is purely logical and not used for the implementation.
++    pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.inner_perm.unwrap()@.is_init(),
++            model@.state == MetaSlotState::Claimed,
++        ensures
++            self.inv_relate(&res@),
++            res@ == model@.seal_spec(),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked model = MetaSlotModel { state: MetaSlotState::Used, ..unwrap_model };
++        Tracked(model)
++    }
+ 
+-/// complete M::on_drop() for `drop_as_last()`
+-///
+-/// This function is purely logical and not used for the implementation.
+-pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count@ == 0,
+-    ensures
+-        self.inv_relate(&res@),
+-        model@.clear_inner_spec(&res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    self._inner.take(Tracked(&mut perm));
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Finalizing,
+-        inner_perm: Some(Tracked(perm)),
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// complete M::on_drop() for `drop_as_last()`
++    ///
++    /// This function is purely logical and not used for the implementation.
++    pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count@ == 0,
++        ensures
++            self.inv_relate(&res@),
++            model@.clear_inner_spec(&res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        self._inner.take(Tracked(&mut perm));
++        let tracked model = MetaSlotModel {
++            state: MetaSlotState::Finalizing,
++            inner_perm: Some(Tracked(perm)),
++            ..unwrap_model
++        };
++        Tracked(model)
++    }
+ 
+-/// implements `self.usage.store(0)` for `drop_as_last()`
+-pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Finalizing,
+-        model@.ref_count == 0,
+-    ensures
+-        self.inv_relate(&res@),
+-        model@.clear_spec(&res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    atomic_with_ghost!(
++    /// implements `self.usage.store(0)` for `drop_as_last()`
++    pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Finalizing,
++            model@.ref_count == 0,
++        ensures
++            self.inv_relate(&res@),
++            model@.clear_spec(&res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        atomic_with_ghost!(
+         &self.usage =>
+         store(0);
+         update prev -> next;
+@@ -295,15 +281,15 @@ pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlot
+             g = ActualUsage::Unused(perm)
+         }
+     );
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Unused,
+-        inner_perm: None,
+-        usage: PageUsage::Unused,
+-        ..unwrap_model
+-    };
++        let tracked model = MetaSlotModel {
++            state: MetaSlotState::Unused,
++            inner_perm: None,
++            usage: PageUsage::Unused,
++            ..unwrap_model
++        };
+ 
+-    Tracked(model)
++        Tracked(model)
++    }
+ }
+ 
+-}
+ } // verus!
+diff --git a/fvt4-into-from-raw/src/page/meta/impls.rs b/fvt4-into-from-raw/src/page/meta/impls.rs
+index 31312012b738f6940675bcfb287b56794dd19876..9b0aeccb90e907533c25054aa17323b564f2f3b7 100644
+--- a/fvt4-into-from-raw/src/page/meta/impls.rs
++++ b/fvt4-into-from-raw/src/page/meta/impls.rs
+@@ -26,7 +26,8 @@ impl PageUsage {
+ 
+     #[verifier::when_used_as_spec(as_u8_spec)]
+     pub fn as_u8(&self) -> (res: u8)
+-        ensures res == self.as_u8_spec()
++        ensures
++            res == self.as_u8_spec(),
+     {
+         match self {
+             Self::Unused => 0,
+@@ -36,93 +37,84 @@ impl PageUsage {
+             Self::Meta => 65,
+             Self::Kernel => 66,
+         }
+-}
+-}
++    }
+ }
+ 
++} // verus!
+ verus! {
++
+ /// # Write of the `MetaSlotInner` to the `MetaSlot`.
+ ///
+ /// Verus (and also safe Rust) does not support writing value to
+ /// the union type. So we use a more verbose way to define the
+ /// new object of the `MetaSlotInner`.
+ impl MetaSlotInner {
+-pub fn new<M: PageMeta>() -> (res: Self)
+-{
+-    match M::get_usage() {
+-        PageUsage::Frame => Self {
+-            _frame: manually_drop(super::FrameMeta::default()),
+-        },
+-        PageUsage::PageTable => Self {
+-            _pt: manually_drop(super::PageTablePageMeta::default()),
+-        },
+-        _ => Self {
+-            _others: [0_u8; 0],
++    pub fn new<M: PageMeta>() -> (res: Self) {
++        match M::get_usage() {
++            PageUsage::Frame => Self { _frame: manually_drop(super::FrameMeta::default()) },
++            PageUsage::PageTable => Self {
++                _pt: manually_drop(super::PageTablePageMeta::default()),
++            },
++            _ => Self { _others: [0u8;0] },
+         }
+     }
+ }
+-}
+-}
+ 
++} // verus!
+ verus! {
+ 
+ impl MetaSlot {
++    /// Simulate the initial state of the `MetaSlot`.
++    ///
++    /// This function is purely logical and not used for the implementation.
++    /// It is defined for verify the invariants of the `MetaSlot`.
++    ///
++    pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
++        ensures
++            res.0.inv_relate(&res.1@),
++            res.1@.ref_count == 0u32,
++            res.1@.state == MetaSlotState::Unused,
++    {
++        let (cell, Tracked(cell_perm)) = PCell::empty();
++        let usage = AtomicU8::new(Ghost(cell), 0, Tracked(ActualUsage::Unused(cell_perm)));
++        let (ref_count, Tracked(ref_count_perm)) = PAtomicU32::new(0);
++        assert(ref_count.id() == ref_count_perm.id());
++        assert(ref_count_perm@.value == 0);
+ 
+-/// Simulate the initial state of the `MetaSlot`.
+-///
+-/// This function is purely logical and not used for the implementation.
+-/// It is defined for verify the invariants of the `MetaSlot`.
+-///
+-pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
+-    ensures
+-        res.0.inv_relate(&res.1@),
+-        res.1@.ref_count == 0_u32,
+-        res.1@.state == MetaSlotState::Unused,
+-{
+-    let (cell, Tracked(cell_perm)) = PCell::empty();
+-    let usage = AtomicU8::new(
+-        Ghost(cell),
+-        0,
+-        Tracked(ActualUsage::Unused(cell_perm)));
+-    let (ref_count, Tracked(ref_count_perm)) = PAtomicU32::new(0);
+-    assert(ref_count.id() == ref_count_perm.id());
+-    assert(ref_count_perm@.value == 0);
+-
+-    let slot = MetaSlot {
+-        _inner: cell,
+-        usage,
+-        ref_count,
+-    };
+-    assume(slot.invariants());
++        let slot = MetaSlot { _inner: cell, usage, ref_count };
++        assume(slot.invariants());
+ 
+-    let tracked model = MetaSlotModel {
+-        ref_count: 0,
+-        inner_perm: None,
+-        address: meta_to_page(slot.id() as Vaddr),
+-        ref_count_perm: Tracked(ref_count_perm),
+-        state: MetaSlotState::Unused,
+-        usage: PageUsage::Unused,
+-    };
+-    assert(model.address == meta_to_page(slot.id() as Vaddr));
++        let tracked model = MetaSlotModel {
++            ref_count: 0,
++            inner_perm: None,
++            address: meta_to_page(slot.id() as Vaddr),
++            ref_count_perm: Tracked(ref_count_perm),
++            state: MetaSlotState::Unused,
++            usage: PageUsage::Unused,
++        };
++        assert(model.address == meta_to_page(slot.id() as Vaddr));
+ 
+-    (slot, Tracked(model))
+-}
++        (slot, Tracked(model))
++    }
+ 
+-/// implements `self.usage.compare_exchange(0, u)`
+-pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+-    -> (res: (bool, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model),
+-        usage != PageUsage::Unused,
+-        model.state == MetaSlotState::Unused,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model.claim_spec(self, usage, res.0, &res.1@),
+-{
+-    let u = usage.as_u8();
+-    assert(u != 0);
+-    let tracked mut inner_perm = None;
+-    let cas = atomic_with_ghost!(
++    /// implements `self.usage.compare_exchange(0, u)`
++    pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>) -> (res: (
++        bool,
++        Tracked<MetaSlotModel>,
++    ))
++        requires
++            self.inv_relate(&model),
++            usage != PageUsage::Unused,
++            model.state == MetaSlotState::Unused,
++        ensures
++            self.inv_relate(&res.1@),
++            model.claim_spec(self, usage, res.0, &res.1@),
++    {
++        let u = usage.as_u8();
++        assert(u != 0);
++        let tracked mut inner_perm = None;
++        let cas =
++            atomic_with_ghost!(
+         &self.usage =>
+         compare_exchange(0, u);
+         update prev -> next;
+@@ -139,155 +131,149 @@ pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+         }
+     );
+ 
+-    if cas.is_ok() {
+-        assert(inner_perm.is_some());
+-        let tracked model = MetaSlotModel {
+-            state: MetaSlotState::Claimed,
+-            inner_perm: Some(Tracked(inner_perm.tracked_unwrap())),
+-            usage: usage,
+-            ..model
+-        };
+-        return (true, Tracked(model));
++        if cas.is_ok() {
++            assert(inner_perm.is_some());
++            let tracked model = MetaSlotModel {
++                state: MetaSlotState::Claimed,
++                inner_perm: Some(Tracked(inner_perm.tracked_unwrap())),
++                usage: usage,
++                ..model
++            };
++            return (true, Tracked(model));
++        }
++        (false, Tracked(model))
+     }
+-    (false, Tracked(model))
+-}
+ 
+-/// implements `self.ref_count.fetch_add(1)` during `from_unused()`
+-pub fn inc0(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Claimed,
+-        model@.ref_count == 0,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model@.inc0_spec(res.0, &res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: 1_u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` during `from_unused()`
++    pub fn inc0(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Claimed,
++            model@.ref_count == 0,
++        ensures
++            self.inv_relate(&res.1@),
++            model@.inc0_spec(res.0, &res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel { ref_count: 1u32, ..unwrap_model };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `self.ref_count.fetch_add(1)` for `inc_ref_count()`
+-pub fn inc(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count < u32::MAX,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model@.inc_spec(res.0, &res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: (unwrap_model.ref_count + 1) as u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` for `inc_ref_count()`
++    pub fn inc(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count < u32::MAX,
++        ensures
++            self.inv_relate(&res.1@),
++            model@.inc_spec(res.0, &res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel {
++            ref_count: (unwrap_model.ref_count + 1) as u32,
++            ..unwrap_model
++        };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `self.ref_count.fetch_add(1)` for `drop()`
+-pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count > 0,
+-    ensures
+-        self.inv_relate(&res.1@),
+-        model@.dec_spec(res.0, &res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_sub(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: (unwrap_model.ref_count@ - 1) as u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` for `drop()`
++    pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count > 0,
++        ensures
++            self.inv_relate(&res.1@),
++            model@.dec_spec(res.0, &res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_sub(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel {
++            ref_count: (unwrap_model.ref_count@ - 1) as u32,
++            ..unwrap_model
++        };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
+-pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>)
+-    -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Claimed,
+-        model@.inner_perm.is_some(),
+-        model@.inner_perm.unwrap()@.is_uninit(),
+-        model@.inner_perm.unwrap()@.id() == self._inner.id(),
+-    ensures
+-        self.inv_relate(&res@),
+-        model@.put_inner_spec(inner, &res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    self._inner.put(Tracked(&mut perm), inner);
+-    let tracked model = MetaSlotModel {
+-        inner_perm: Some(Tracked(perm)),
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
++    pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>) -> (res:
++        Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Claimed,
++            model@.inner_perm.is_some(),
++            model@.inner_perm.unwrap()@.is_uninit(),
++            model@.inner_perm.unwrap()@.id() == self._inner.id(),
++        ensures
++            self.inv_relate(&res@),
++            model@.put_inner_spec(inner, &res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        self._inner.put(Tracked(&mut perm), inner);
++        let tracked model = MetaSlotModel { inner_perm: Some(Tracked(perm)), ..unwrap_model };
++        Tracked(model)
++    }
+ 
+-/// seal the `inner` for `from_unused()`
+-///
+-/// This function is purely logical and not used for the implementation.
+-pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.inner_perm.unwrap()@.is_init(),
+-        model@.state == MetaSlotState::Claimed,
+-    ensures
+-        self.inv_relate(&res@),
+-        res@ == model@.seal_spec(),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Used,
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// seal the `inner` for `from_unused()`
++    ///
++    /// This function is purely logical and not used for the implementation.
++    pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.inner_perm.unwrap()@.is_init(),
++            model@.state == MetaSlotState::Claimed,
++        ensures
++            self.inv_relate(&res@),
++            res@ == model@.seal_spec(),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked model = MetaSlotModel { state: MetaSlotState::Used, ..unwrap_model };
++        Tracked(model)
++    }
+ 
+-/// complete M::on_drop() for `drop_as_last()`
+-///
+-/// This function is purely logical and not used for the implementation.
+-pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count@ == 0,
+-    ensures
+-        self.inv_relate(&res@),
+-        model@.clear_inner_spec(&res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    self._inner.take(Tracked(&mut perm));
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Finalizing,
+-        inner_perm: Some(Tracked(perm)),
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// complete M::on_drop() for `drop_as_last()`
++    ///
++    /// This function is purely logical and not used for the implementation.
++    pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count@ == 0,
++        ensures
++            self.inv_relate(&res@),
++            model@.clear_inner_spec(&res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        self._inner.take(Tracked(&mut perm));
++        let tracked model = MetaSlotModel {
++            state: MetaSlotState::Finalizing,
++            inner_perm: Some(Tracked(perm)),
++            ..unwrap_model
++        };
++        Tracked(model)
++    }
+ 
+-/// implements `self.usage.store(0)` for `drop_as_last()`
+-pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(&model@),
+-        model@.state == MetaSlotState::Finalizing,
+-        model@.ref_count == 0,
+-    ensures
+-        self.inv_relate(&res@),
+-        model@.clear_spec(&res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    atomic_with_ghost!(
++    /// implements `self.usage.store(0)` for `drop_as_last()`
++    pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(&model@),
++            model@.state == MetaSlotState::Finalizing,
++            model@.ref_count == 0,
++        ensures
++            self.inv_relate(&res@),
++            model@.clear_spec(&res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        atomic_with_ghost!(
+         &self.usage =>
+         store(0);
+         update prev -> next;
+@@ -295,15 +281,15 @@ pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlot
+             g = ActualUsage::Unused(perm)
+         }
+     );
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Unused,
+-        inner_perm: None,
+-        usage: PageUsage::Unused,
+-        ..unwrap_model
+-    };
++        let tracked model = MetaSlotModel {
++            state: MetaSlotState::Unused,
++            inner_perm: None,
++            usage: PageUsage::Unused,
++            ..unwrap_model
++        };
+ 
+-    Tracked(model)
++        Tracked(model)
++    }
+ }
+ 
+-}
+ } // verus!
+diff --git a/fvt5-lifecycle-safety/src/page/meta/impls.rs b/fvt5-lifecycle-safety/src/page/meta/impls.rs
+index 793c71b52251ed0c783c6f7cb1e9baf6aa17dc4e..18131a8a28e4456bd7d8806ac0ba7a9f6002b8db 100644
+--- a/fvt5-lifecycle-safety/src/page/meta/impls.rs
++++ b/fvt5-lifecycle-safety/src/page/meta/impls.rs
+@@ -19,90 +19,84 @@ use super::model::*;
+ 
+ /*
+ verus! {
++
+ /// # Write of the `MetaSlotInner` to the `MetaSlot`.
+ ///
+ /// Verus (and also safe Rust) does not support writing value to
+ /// the union type. So we use a more verbose way to define the
+ /// new object of the `MetaSlotInner`.
+-
+ impl MetaSlotInner {
+-#[rustc_allow_incoherent_impl]
+-pub fn new<M:PageMeta>() -> (res: Self)
+-{
+-    match M::USAGE() {
+-        PageUsage::PageTable => Self {
+-            _pt: manually_drop(super::PageTablePageMeta::default()),
+-        },
+-        _ => Self {
+-            _frame: manually_drop(super::FrameMeta::default()),
+-        },
++    #[rustc_allow_incoherent_impl]
++    pub fn new<M: PageMeta>() -> (res: Self) {
++        match M::USAGE() {
++            PageUsage::PageTable => Self {
++                _pt: manually_drop(super::PageTablePageMeta::default()),
++            },
++            _ => Self { _frame: manually_drop(super::FrameMeta::default()) },
++        }
+     }
+ }
+-}
+-} */
++
++} // verus!
++*/
+ 
+ /*
+-verus!{
++verus! {
+ 
+ impl MetaSlot {
++    /// Simulate the initial state of the `MetaSlot`.
++    ///
++    /// This function is purely logical and not used for the implementation.
++    /// It is defined for verify the invariants of the `MetaSlot`.
++    ///
++    #[rustc_allow_incoherent_impl]
++    pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
++        ensures
++            res.0.inv_relate(res.1@),
++            res.1@.ref_count == 0u32,
++            res.1@.state == MetaSlotState::Unused,
++    {
++        let (cell, Tracked(cell_perm)) = PCell::empty();
++        let usage = AtomicU8::new(Ghost(cell), 0, Tracked(ActualUsage::Unused(cell_perm)));
++        let (ref_count, Tracked(ref_count_perm)) = PAtomicU32::new(0);
++        assert(ref_count.id() == ref_count_perm.id());
++        assert(ref_count_perm@.value == 0);
+ 
+-/// Simulate the initial state of the `MetaSlot`.
+-///
+-/// This function is purely logical and not used for the implementation.
+-/// It is defined for verify the invariants of the `MetaSlot`.
+-///
+-#[rustc_allow_incoherent_impl]
+-pub fn init() -> (res: (Self, Tracked<MetaSlotModel>))
+-    ensures
+-        res.0.inv_relate(res.1@),
+-        res.1@.ref_count == 0_u32,
+-        res.1@.state == MetaSlotState::Unused,
+-{
+-    let (cell, Tracked(cell_perm)) = PCell::empty();
+-    let usage = AtomicU8::new(
+-        Ghost(cell),
+-        0,
+-        Tracked(ActualUsage::Unused(cell_perm)));
+-    let (ref_count, Tracked(ref_count_perm)) = PAtomicU32::new(0);
+-    assert(ref_count.id() == ref_count_perm.id());
+-    assert(ref_count_perm@.value == 0);
+-
+-    let slot = MetaSlot {
+-        _inner: cell,
+-        usage,
+-        ref_count,
+-    };
+-    assume(slot.invariants());
++        let slot = MetaSlot { _inner: cell, usage, ref_count };
++        assume(slot.invariants());
+ 
+-    let tracked model = MetaSlotModel {
+-        ref_count: 0,
+-        inner_perm: None,
+-        address: meta_to_page(slot.id() as Vaddr),
+-        ref_count_perm: Tracked(ref_count_perm),
+-        state: MetaSlotState::Unused,
+-        usage: PageUsage::Unused,
+-    };
+-    assert(model.address == meta_to_page(slot.id() as Vaddr));
++        let tracked model = MetaSlotModel {
++            ref_count: 0,
++            inner_perm: None,
++            address: meta_to_page(slot.id() as Vaddr),
++            ref_count_perm: Tracked(ref_count_perm),
++            state: MetaSlotState::Unused,
++            usage: PageUsage::Unused,
++        };
++        assert(model.address == meta_to_page(slot.id() as Vaddr));
+ 
+-    (slot, Tracked(model))
+-}
++        (slot, Tracked(model))
++    }
+ 
+-/// implements `self.usage.compare_exchange(0, u)`
+-#[rustc_allow_incoherent_impl]
+-pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+-    -> (res: (bool, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(model),
+-        usage != PageUsage::Unused,
+-        model.state == MetaSlotState::Unused,
+-    ensures
+-        self.inv_relate(res.1@),
+-        model.claim_spec(self, usage, res.0, res.1@),
+-{
+-    let u = usage.as_u8();
+-    assert(u != 0);
+-    let tracked mut inner_perm = None;
+-    let cas = atomic_with_ghost!(
++    /// implements `self.usage.compare_exchange(0, u)`
++    #[rustc_allow_incoherent_impl]
++    pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>) -> (res: (
++        bool,
++        Tracked<MetaSlotModel>,
++    ))
++        requires
++            self.inv_relate(model),
++            usage != PageUsage::Unused,
++            model.state == MetaSlotState::Unused,
++        ensures
++            self.inv_relate(res.1@),
++            model.claim_spec(self, usage, res.0, res.1@),
++    {
++        let u = usage.as_u8();
++        assert(u != 0);
++        let tracked mut inner_perm = None;
++        let cas =
++            atomic_with_ghost!(
+         &self.usage =>
+         compare_exchange(0, u);
+         update prev -> next;
+@@ -119,162 +113,156 @@ pub fn claim(&self, usage: PageUsage, Tracked(model): Tracked<MetaSlotModel>)
+         }
+     );
+ 
+-    if cas.is_ok() {
+-        assert(inner_perm.is_some());
+-        let tracked model = MetaSlotModel {
+-            state: MetaSlotState::Claimed,
+-            inner_perm: Some(Tracked(inner_perm.tracked_unwrap())),
+-            usage: usage,
+-            ..model
+-        };
+-        return (true, Tracked(model));
++        if cas.is_ok() {
++            assert(inner_perm.is_some());
++            let tracked model = MetaSlotModel {
++                state: MetaSlotState::Claimed,
++                inner_perm: Some(Tracked(inner_perm.tracked_unwrap())),
++                usage: usage,
++                ..model
++            };
++            return (true, Tracked(model));
++        }
++        (false, Tracked(model))
+     }
+-    (false, Tracked(model))
+-}
+ 
+-/// implements `self.ref_count.fetch_add(1)` during `from_unused()`
+-#[rustc_allow_incoherent_impl]
+-pub fn inc0(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(model@),
+-        model@.state == MetaSlotState::Claimed,
+-        model@.ref_count == 0,
+-    ensures
+-        self.inv_relate(res.1@),
+-        model@.inc0_spec(res.0, res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: 1_u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` during `from_unused()`
++    #[rustc_allow_incoherent_impl]
++    pub fn inc0(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(model@),
++            model@.state == MetaSlotState::Claimed,
++            model@.ref_count == 0,
++        ensures
++            self.inv_relate(res.1@),
++            model@.inc0_spec(res.0, res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel { ref_count: 1u32, ..unwrap_model };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `self.ref_count.fetch_add(1)` for `inc_ref_count()`
+-#[rustc_allow_incoherent_impl]
+-pub fn inc(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count < u32::MAX,
+-    ensures
+-        self.inv_relate(res.1@),
+-        model@.inc_spec(res.0, res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: (unwrap_model.ref_count + 1) as u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` for `inc_ref_count()`
++    #[rustc_allow_incoherent_impl]
++    pub fn inc(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count < u32::MAX,
++        ensures
++            self.inv_relate(res.1@),
++            model@.inc_spec(res.0, res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_add(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel {
++            ref_count: (unwrap_model.ref_count + 1) as u32,
++            ..unwrap_model
++        };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `self.ref_count.fetch_add(1)` for `drop()`
+-#[rustc_allow_incoherent_impl]
+-pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
+-    requires
+-        self.inv_relate(model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count > 0,
+-    ensures
+-        self.inv_relate(res.1@),
+-        model@.dec_spec(res.0, res.1@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let n = self.ref_count.fetch_sub(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
+-    let tracked model = MetaSlotModel {
+-        ref_count: (unwrap_model.ref_count@ - 1) as u32,
+-        ..unwrap_model
+-    };
+-    (n, Tracked(model))
+-}
++    /// implements `self.ref_count.fetch_add(1)` for `drop()`
++    #[rustc_allow_incoherent_impl]
++    pub fn dec(&self, mut model: Tracked<MetaSlotModel>) -> (res: (u32, Tracked<MetaSlotModel>))
++        requires
++            self.inv_relate(model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count > 0,
++        ensures
++            self.inv_relate(res.1@),
++            model@.dec_spec(res.0, res.1@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let n = self.ref_count.fetch_sub(Tracked(unwrap_model.ref_count_perm.borrow_mut()), 1);
++        let tracked model = MetaSlotModel {
++            ref_count: (unwrap_model.ref_count@ - 1) as u32,
++            ..unwrap_model
++        };
++        (n, Tracked(model))
++    }
+ 
+-/// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
+-#[rustc_allow_incoherent_impl]
+-pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>)
+-    -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(model@),
+-        model@.state == MetaSlotState::Claimed,
+-        model@.inner_perm.is_some(),
+-        model@.inner_perm.unwrap()@.is_uninit(),
+-        model@.inner_perm.unwrap()@.id() == self._inner.id(),
+-    ensures
+-        self.inv_relate(res@),
+-        model@.put_inner_spec(inner, res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    self._inner.put(Tracked(&mut perm), inner);
+-    let tracked model = MetaSlotModel {
+-        inner_perm: Some(Tracked(perm)),
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// implements `(ptr as *mut M).write(M::default())` for `from_unused()`
++    #[rustc_allow_incoherent_impl]
++    pub fn put_inner(&self, inner: MetaSlotInner, mut model: Tracked<MetaSlotModel>) -> (res:
++        Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(model@),
++            model@.state == MetaSlotState::Claimed,
++            model@.inner_perm.is_some(),
++            model@.inner_perm.unwrap()@.is_uninit(),
++            model@.inner_perm.unwrap()@.id() == self._inner.id(),
++        ensures
++            self.inv_relate(res@),
++            model@.put_inner_spec(inner, res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        self._inner.put(Tracked(&mut perm), inner);
++        let tracked model = MetaSlotModel { inner_perm: Some(Tracked(perm)), ..unwrap_model };
++        Tracked(model)
++    }
+ 
+-/// seal the `inner` for `from_unused()`
+-///
+-/// This function is purely logical and not used for the implementation.
+-#[rustc_allow_incoherent_impl]
+-pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(model@),
+-        model@.inner_perm.unwrap()@.is_init(),
+-        model@.state == MetaSlotState::Claimed,
+-    ensures
+-        self.inv_relate(res@),
+-        res@ == model@.seal_spec(),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Used,
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// seal the `inner` for `from_unused()`
++    ///
++    /// This function is purely logical and not used for the implementation.
++    #[rustc_allow_incoherent_impl]
++    pub fn seal(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(model@),
++            model@.inner_perm.unwrap()@.is_init(),
++            model@.state == MetaSlotState::Claimed,
++        ensures
++            self.inv_relate(res@),
++            res@ == model@.seal_spec(),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked model = MetaSlotModel { state: MetaSlotState::Used, ..unwrap_model };
++        Tracked(model)
++    }
+ 
+-/// complete M::on_drop() for `drop_as_last()`
+-///
+-/// This function is purely logical and not used for the implementation.
+-#[rustc_allow_incoherent_impl]
+-pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(model@),
+-        model@.state == MetaSlotState::Used,
+-        model@.ref_count@ == 0,
+-    ensures
+-        self.inv_relate(res@),
+-        model@.clear_inner_spec(res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    self._inner.take(Tracked(&mut perm));
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Finalizing,
+-        inner_perm: Some(Tracked(perm)),
+-        ..unwrap_model
+-    };
+-    Tracked(model)
+-}
++    /// complete M::on_drop() for `drop_as_last()`
++    ///
++    /// This function is purely logical and not used for the implementation.
++    #[rustc_allow_incoherent_impl]
++    pub fn clear_inner(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(model@),
++            model@.state == MetaSlotState::Used,
++            model@.ref_count@ == 0,
++        ensures
++            self.inv_relate(res@),
++            model@.clear_inner_spec(res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        self._inner.take(Tracked(&mut perm));
++        let tracked model = MetaSlotModel {
++            state: MetaSlotState::Finalizing,
++            inner_perm: Some(Tracked(perm)),
++            ..unwrap_model
++        };
++        Tracked(model)
++    }
+ 
+-/// implements `self.usage.store(0)` for `drop_as_last()`
+-#[rustc_allow_incoherent_impl]
+-pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
+-    requires
+-        self.inv_relate(model@),
+-        model@.state == MetaSlotState::Finalizing,
+-        model@.ref_count == 0,
+-    ensures
+-        self.inv_relate(res@),
+-        model@.clear_spec(res@),
+-{
+-    let tracked mut unwrap_model: MetaSlotModel = model.get();
+-    let tracked mut perm: PointsTo<MetaSlotInner> = unwrap_model.inner_perm.tracked_unwrap().get();
+-    atomic_with_ghost!(
++    /// implements `self.usage.store(0)` for `drop_as_last()`
++    #[rustc_allow_incoherent_impl]
++    pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlotModel>)
++        requires
++            self.inv_relate(model@),
++            model@.state == MetaSlotState::Finalizing,
++            model@.ref_count == 0,
++        ensures
++            self.inv_relate(res@),
++            model@.clear_spec(res@),
++    {
++        let tracked mut unwrap_model: MetaSlotModel = model.get();
++        let tracked mut perm: PointsTo<MetaSlotInner> =
++            unwrap_model.inner_perm.tracked_unwrap().get();
++        atomic_with_ghost!(
+         &self.usage =>
+         store(0);
+         update prev -> next;
+@@ -282,15 +270,16 @@ pub fn clear(&self, mut model: Tracked<MetaSlotModel>) -> (res: Tracked<MetaSlot
+             g = ActualUsage::Unused(perm)
+         }
+     );
+-    let tracked model = MetaSlotModel {
+-        state: MetaSlotState::Unused,
+-        inner_perm: None,
+-        usage: PageUsage::Unused,
+-        ..unwrap_model
+-    };
++        let tracked model = MetaSlotModel {
++            state: MetaSlotState::Unused,
++            inner_perm: None,
++            usage: PageUsage::Unused,
++            ..unwrap_model
++        };
+ 
+-    Tracked(model)
++        Tracked(model)
++    }
+ }
+ 
+-}
+-} // verus!*/
++} // verus!
++*/
+diff --git a/lock-protocol/src/exec/rw/cursor.rs b/lock-protocol/src/exec/rw/cursor.rs
+index 7f74e4bbdf9286292980ef49b6693064e6c97de7..7c41716abd3d785c9944ec9670f2fe65b818e4dd 100644
+--- a/lock-protocol/src/exec/rw/cursor.rs
++++ b/lock-protocol/src/exec/rw/cursor.rs
+@@ -51,7 +51,7 @@ pub struct Cursor {
+ }
+ 
+ impl Cursor {
+-    pub open spec fn wf(&self, mem: &MemContent) -> bool {
++    pub open spec fn wf(&self) -> bool {
+         &&& self.path@.len() == 4
+         &&& 1 <= self.level <= self.guard_level <= 4
+         &&& forall|level: PagingLevel|
+@@ -61,11 +61,11 @@ impl Cursor {
+                     self.path[level - 1] is None
+                 } else if level == self.guard_level {
+                     &&& self.path[level - 1] is WriteLocked
+-                    &&& self.path[level - 1]->WriteLocked_0.wf(mem)
++                    &&& self.path[level - 1]->WriteLocked_0.wf()
+                     &&& self.path[level - 1]->WriteLocked_0.inst_id() == self.inst@.id()
+                 } else {
+                     &&& self.path[level - 1] is ReadLocked
+-                    &&& self.path[level - 1]->ReadLocked_0.wf(mem)
++                    &&& self.path[level - 1]->ReadLocked_0.wf()
+                     &&& self.path[level - 1]->ReadLocked_0.inst_id() == self.inst@.id()
+                 }
+             }
+@@ -239,16 +239,15 @@ pub fn lock_range(
+     va: &Range<Vaddr>,
+     // new_pt_is_tracked: MapTrackingStatus,
+     m: Tracked<LockProtocolModel>,
+-    mem: &MemContent,
+ ) -> (res: (Cursor, Tracked<LockProtocolModel>))
+     requires
+-        pt.wf(mem),
++        pt.wf(),
+         va_range_wf(*va),
+         m@.inv(),
+         m@.inst_id() == pt.inst@.id(),
+         m@.state() is Void,
+     ensures
+-        res.0.wf(mem),
++        res.0.wf(),
+         res.0.wf_init(*va),
+         res.0.inst@.id() == pt.inst@.id(),
+         res.1@.inv(),
+@@ -271,7 +270,7 @@ pub fn lock_range(
+         NodeHelper::lemma_root_id();
+     };
+ 
+-    let mut cur_pt_paddr = pt.root.start_paddr(mem);
++    let mut cur_pt_paddr = pt.root.start_paddr();
+ 
+     let tracked mut m = m.get();
+     proof {
+@@ -293,7 +292,7 @@ pub fn lock_range(
+     while level > 1
+         invariant_except_break
+             valid_paddr(cur_pt_paddr),
+-            pt.wf(mem),
++            pt.wf(),
+             va_range_wf(*va),
+             m.inv(),
+             m.inst_id() == pt.inst@.id(),
+@@ -308,7 +307,7 @@ pub fn lock_range(
+                 #![trigger path@[i - 1]]
+                 level < i <= 4 ==> {
+                     &&& path@[i - 1] is ReadLocked
+-                    &&& path@[i - 1]->ReadLocked_0.wf(mem)
++                    &&& path@[i - 1]->ReadLocked_0.wf()
+                     &&& path@[i - 1]->ReadLocked_0.inst_id() == pt.inst@.id()
+                     &&& m.path()[4 - i] == path@[i - 1]->ReadLocked_0.nid()
+                 },
+@@ -332,7 +331,7 @@ pub fn lock_range(
+                 #![trigger path@[i - 1]]
+                 level < i <= 4 ==> {
+                     &&& path@[i - 1] is ReadLocked
+-                    &&& path@[i - 1]->ReadLocked_0.wf(mem)
++                    &&& path@[i - 1]->ReadLocked_0.wf()
+                     &&& path@[i - 1]->ReadLocked_0.inst_id() == pt.inst@.id()
+                     &&& m.path()[4 - i] == path@[i - 1]->ReadLocked_0.nid()
+                 },
+@@ -364,7 +363,6 @@ pub fn lock_range(
+         // the PT is alive. We will forget the reference later.
+         let cur_pt: PageTableNode = PageTableNode::from_raw(
+             cur_pt_paddr,
+-            mem,
+             Ghost(cur_nid),
+             Ghost(pt.inst@.id()),
+         );
+@@ -374,13 +372,13 @@ pub fn lock_range(
+             };
+             lemma_wf_tree_path_inc(m.path(), cur_pt.nid@);
+         }
+-        let res = cur_pt.lock_read(mem, Tracked(m));
++        let res = cur_pt.lock_read(Tracked(m));
+         let mut cur_pt_rlockguard = res.0;
+         proof {
+             m = res.1.get();
+         }
+ 
+-        let child = cur_pt_rlockguard.read_child_ref(start_idx, mem);
++        let child = cur_pt_rlockguard.read_child_ref(start_idx);
+         assert(!(child is Frame)) by {
+             child.axiom_no_huge_page();
+         };
+@@ -407,19 +405,19 @@ pub fn lock_range(
+             },
+             Child::None | Child::Unimplemented => {
+                 // Upgrade to write lock.
+-                let res = cur_pt_rlockguard.unlock(mem, Tracked(m));
++                let res = cur_pt_rlockguard.unlock(Tracked(m));
+                 let cur_pt = res.0;
+                 proof {
+                     m = res.1.get();
+                 }
+-                let res = cur_pt.lock_write(mem, Tracked(m));
++                let res = cur_pt.lock_write(Tracked(m));
+                 let mut cur_pt_wlockguard = res.0;
+                 proof {
+                     m = res.1.get();
+                 }
+ 
+-                let entry = cur_pt_wlockguard.entry(start_idx, mem);
+-                let child = entry.to_ref(&cur_pt_wlockguard, mem);
++                let entry = cur_pt_wlockguard.entry(start_idx);
++                let child = entry.to_ref(&cur_pt_wlockguard);
+                 assert(!(child is Frame)) by {
+                     child.axiom_no_huge_page();
+                 };
+@@ -427,12 +425,12 @@ pub fn lock_range(
+                     Child::PageTable(_, _, _) => unreached(),
+                     Child::PageTableRef(pt, _, _) => {
+                         // Downgrade to read lock.
+-                        let res = cur_pt_wlockguard.unlock(mem, Tracked(m));
++                        let res = cur_pt_wlockguard.unlock(Tracked(m));
+                         let cur_pt = res.0;
+                         proof {
+                             m = res.1.get();
+                         }
+-                        let res = cur_pt.lock_read(mem, Tracked(m));
++                        let res = cur_pt.lock_read(Tracked(m));
+                         let cur_pt_rlockguard = res.0;
+                         proof {
+                             m = res.1.get();
+@@ -454,24 +452,23 @@ pub fn lock_range(
+                         // );
+                         let pt = allocate_pt(
+                             level - 1,
+-                            mem,
+                             Tracked(pt.inst.borrow().clone()),
+                             Ghost(nxt_nid),
+                         );
+                         let tracked pt_inst = pt.inst.borrow().clone();
+-                        cur_pt_paddr = pt.start_paddr(mem);
++                        cur_pt_paddr = pt.start_paddr();
+                         let new_child = Child::PageTable(pt, Tracked(pt_inst), Ghost(nxt_nid));
+-                        assert(new_child.wf(mem)) by {
++                        assert(new_child.wf()) by {
+                             NodeHelper::lemma_get_child_sound(cur_nid, start_idx as nat);
+                         };
+-                        entry.replace(new_child, &mut cur_pt_wlockguard, mem);
++                        entry.replace(new_child, &mut cur_pt_wlockguard);
+                         // Downgrade to read lock.
+-                        let res = cur_pt_wlockguard.unlock(mem, Tracked(m));
++                        let res = cur_pt_wlockguard.unlock(Tracked(m));
+                         let cur_pt = res.0;
+                         proof {
+                             m = res.1.get();
+                         }
+-                        let res = cur_pt.lock_read(mem, Tracked(m));
++                        let res = cur_pt.lock_read(Tracked(m));
+                         let cur_pt_rlockguard = res.0;
+                         proof {
+                             m = res.1.get();
+@@ -509,16 +506,11 @@ pub fn lock_range(
+     let cur_pt_wlockguard = if cur_wlock_opt.is_some() {
+         cur_wlock_opt.unwrap()
+     } else {
+-        let cur_pt = PageTableNode::from_raw(
+-            cur_pt_paddr,
+-            mem,
+-            Ghost(cur_nid),
+-            Ghost(pt.inst@.id()),
+-        );
++        let cur_pt = PageTableNode::from_raw(cur_pt_paddr, Ghost(cur_nid), Ghost(pt.inst@.id()));
+         proof {
+             lemma_wf_tree_path_inc(m.path(), cur_pt.nid@);
+         }
+-        let res = cur_pt.lock_write(mem, Tracked(m));
++        let res = cur_pt.lock_write(Tracked(m));
+         proof {
+             m = res.1.get();
+         }
+@@ -543,10 +535,11 @@ pub fn lock_range(
+     (cursor, Tracked(m))
+ }
+ 
+-pub fn unlock_range(cursor: &mut Cursor, m: Tracked<LockProtocolModel>, mem: &MemContent) -> (res:
+-    Tracked<LockProtocolModel>)
++pub fn unlock_range(cursor: &mut Cursor, m: Tracked<LockProtocolModel>) -> (res: Tracked<
++    LockProtocolModel,
++>)
+     requires
+-        old(cursor).wf(mem),
++        old(cursor).wf(),
+         old(cursor).wf_with_lock_protocol_model(m@),
+         m@.inv(),
+         m@.state() is WriteLocked,
+@@ -564,12 +557,12 @@ pub fn unlock_range(cursor: &mut Cursor, m: Tracked<LockProtocolModel>, mem: &Me
+ 
+     assert(m.path().len() == 5 - guard_level);
+     assert(m.path()[4 - guard_level] == guard_node.nid());
+-    let res = guard_node.unlock(mem, Tracked(m));
++    let res = guard_node.unlock(Tracked(m));
+     let pt = res.0;
+     proof {
+         m = res.1.get();
+     }
+-    pt.into_raw(mem);
++    pt.into_raw();
+     cursor.unlock_level = Ghost((cursor.unlock_level@ + 1) as PagingLevel);
+ 
+     let mut i = guard_level + 1;
+@@ -582,7 +575,7 @@ pub fn unlock_range(cursor: &mut Cursor, m: Tracked<LockProtocolModel>, mem: &Me
+                 #![trigger cursor.path@[level - 1]]
+                 i <= level <= 4 ==> {
+                     &&& cursor.path@[level - 1] is ReadLocked
+-                    &&& cursor.path@[level - 1]->ReadLocked_0.wf(mem)
++                    &&& cursor.path@[level - 1]->ReadLocked_0.wf()
+                     &&& cursor.path@[level - 1]->ReadLocked_0.inst_id() == cursor.inst@.id()
+                 },
+             forall|level: int|
+@@ -598,12 +591,12 @@ pub fn unlock_range(cursor: &mut Cursor, m: Tracked<LockProtocolModel>, mem: &Me
+             GuardInPath::None => unreached(),
+             GuardInPath::ReadLocked(mut rguard) => {
+                 assert(m.path()[4 - i] == rguard.nid());
+-                let res = rguard.unlock(mem, Tracked(m));
++                let res = rguard.unlock(Tracked(m));
+                 let pt = res.0;
+                 proof {
+                     m = res.1.get();
+                 }
+-                pt.into_raw(mem);
++                pt.into_raw();
+                 cursor.unlock_level = Ghost((cursor.unlock_level@ + 1) as PagingLevel);
+             },
+             GuardInPath::WriteLocked(_) => unreached(),
+diff --git a/lock-protocol/src/exec/rw/frame/mod.rs b/lock-protocol/src/exec/rw/frame/mod.rs
+index 3f5971c35b5c7ecf805844e08dcdd9d1cc75eed6..b623952cb69f7804b83e7cc93623aebe74c2a561 100644
+--- a/lock-protocol/src/exec/rw/frame/mod.rs
++++ b/lock-protocol/src/exec/rw/frame/mod.rs
+@@ -16,18 +16,14 @@ use super::node::PageTableNode;
+ verus! {
+ 
+ #[verifier::external_body]  // TODO
+-pub fn allocate_pt(
+-    level: PagingLevel,
+-    mem: &MemContent,
+-    inst: Tracked<SpecInstance>,
+-    nid: Ghost<NodeId>,
+-) -> (res: PageTableNode)
++pub fn allocate_pt(level: PagingLevel, inst: Tracked<SpecInstance>, nid: Ghost<NodeId>) -> (res:
++    PageTableNode)
+     requires
+ // Root of the page table can not be allocated.
+ 
+         1 <= level < 4,
+     ensures
+-        res.wf(mem),
++        res.wf(),
+         res.inst@.cpu_num() == GLOBAL_CPU_NUM,
+         res.inst@.id() == inst@.id(),
+         res.nid@ == nid@,
+diff --git a/lock-protocol/src/exec/rw/mem_content/meta_slot/mapping.rs b/lock-protocol/src/exec/rw/mem_content/meta_slot/mapping.rs
+index b662b55c5520048251294ab0f4f54ccf2e99d993..a845de26f12e28cf3ea145b79f89c312a6e13055 100644
+--- a/lock-protocol/src/exec/rw/mem_content/meta_slot/mapping.rs
++++ b/lock-protocol/src/exec/rw/mem_content/meta_slot/mapping.rs
+@@ -17,9 +17,9 @@ pub uninterp spec fn frame_to_meta_spec(paddr: Paddr) -> Vaddr;
+ #[inline(always)]
+ #[verifier::when_used_as_spec(frame_to_meta_spec)]
+ #[verifier::external_body]
+-pub const fn frame_to_meta(paddr: Paddr) -> (res: Vaddr)
+-    ensures
+-        res == frame_to_meta_spec(paddr),
++pub const fn frame_to_meta(paddr: Paddr) -> Vaddr
++    returns
++        frame_to_meta_spec(paddr),
+ {
+     // let base = FRAME_METADATA_RANGE.start;
+     // let offset = paddr / PAGE_SIZE;
+@@ -33,9 +33,9 @@ pub uninterp spec fn meta_to_frame_spec(vaddr: Vaddr) -> Paddr;
+ #[inline(always)]
+ #[verifier::when_used_as_spec(meta_to_frame_spec)]
+ #[verifier::external_body]
+-pub const fn meta_to_frame(vaddr: Vaddr) -> (res: Paddr)
+-    ensures
+-        res == meta_to_frame_spec(vaddr),
++pub const fn meta_to_frame(vaddr: Vaddr) -> Paddr
++    returns
++        meta_to_frame_spec(vaddr),
+ {
+     // let base = FRAME_METADATA_RANGE.start;
+     // let offset = (vaddr - base) / size_of::<MetaSlot>();
+diff --git a/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs b/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs
+index 3ebb4bce443393d06ca2f6c4749f0316bf78d8f5..4a66bd1d67c8251bf5313c02b83bc112dc78bbe9 100644
+--- a/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs
++++ b/lock-protocol/src/exec/rw/mem_content/meta_slot/mod.rs
+@@ -90,9 +90,9 @@ impl MetaSlotPerm {
+         &&& self.inner.ptr() == ptr
+     }
+ 
+-    pub open spec fn wf(&self, meta_slot_array: &MetaSlotArray) -> bool {
+-        &&& 0 <= self.slot_idx < meta_slot_array.len()
+-        &&& self.relate(meta_slot_array.vec[self.slot_idx as int])
++    pub open spec fn wf(&self) -> bool {
++        //&&& 0 <= self.slot_idx < meta_slot_array.len()
++        //&&& self.relate(meta_slot_array.vec[self.slot_idx as int])
+         &&& self.inner.is_init()
+         &&& self.inner.value().wf()
+         &&& self.inner.value().is_pt() ==> {
+diff --git a/lock-protocol/src/exec/rw/mem_content/mod.rs b/lock-protocol/src/exec/rw/mem_content/mod.rs
+index 9d28420779cd966288cd2bf8c1695b2609079daf..78b4fa9828ba3da0835622c74f4e7a52de91d4ea 100644
+--- a/lock-protocol/src/exec/rw/mem_content/mod.rs
++++ b/lock-protocol/src/exec/rw/mem_content/mod.rs
+@@ -5,11 +5,3 @@ use builtin_macros::*;
+ use vstd::prelude::*;
+ 
+ pub use meta_slot::*;
+-
+-verus! {
+-
+-pub struct MemContent {
+-    pub meta_slot_array: MetaSlotArray,
+-}
+-
+-} // verus!
+diff --git a/lock-protocol/src/exec/rw/node/child.rs b/lock-protocol/src/exec/rw/node/child.rs
+index 18885be30154f63f434cf0cc7e2d36f1f2c26193..f556636166ae07c537e02a605b5e0936f4c51d79 100644
+--- a/lock-protocol/src/exec/rw/node/child.rs
++++ b/lock-protocol/src/exec/rw/node/child.rs
+@@ -35,10 +35,10 @@ impl Child {
+             self is Frame ==> self->Frame_1 == 1,
+     ;
+ 
+-    pub open spec fn wf(&self, mem: &MemContent) -> bool {
++    pub open spec fn wf(&self) -> bool {
+         match *self {
+             Self::PageTable(pt, inst, nid) => {
+-                &&& pt.wf(mem)
++                &&& pt.wf()
+                 &&& pt.inst@.id() == inst@.id()
+                 &&& pt.nid@ == nid@
+                 &&& inst@.cpu_num() == GLOBAL_CPU_NUM
+@@ -82,7 +82,7 @@ impl Child {
+     pub open spec fn wf_into_pte(&self, pte: Pte) -> bool {
+         match *self {
+             Child::PageTable(pt, inst, nid) => {
+-                &&& pte.wf_new_pt(pt.start_paddr_spec(), inst@, nid@)
++                &&& pte.wf_new_pt(pt.start_paddr(), inst@, nid@)
+                 &&& pte.inner.is_present()
+                 &&& !pte.inner.is_last((pt.level_spec() + 1) as PagingLevel)
+             },
+@@ -112,9 +112,9 @@ impl Child {
+     /// Usually this is for recording the PTE into a page table node. When the
+     /// child is needed again by reading the PTE of a page table node, extra
+     /// information should be provided using the [`Child::from_pte`] method.
+-    pub fn into_pte(self, mem: &MemContent) -> (res: Pte)
++    pub fn into_pte(self) -> (res: Pte)
+         requires
+-            self.wf(mem),
++            self.wf(),
+             !(self is PageTableRef),
+         ensures
+             self.wf_into_pte(res),
+@@ -122,7 +122,7 @@ impl Child {
+     {
+         match self {
+             Child::PageTable(pt, inst, nid) => {
+-                let paddr: Paddr = pt.start_paddr(mem);
++                let paddr: Paddr = pt.start_paddr();
+                 let pt = ManuallyDrop::new(pt);
+                 Pte::new_pt(paddr, inst, nid)
+             },
+@@ -180,14 +180,13 @@ impl Child {
+         pte: Pte,
+         level: PagingLevel,
+         // is_tracked: MapTrackingStatus,
+-        mem: &MemContent,
+     ) -> (res: Self)
+         requires
+             pte.wf(),
+             pte.wf_with_node_level(level),
+             1 <= level <= 4,
+         ensures
+-            res.wf(mem),
++            res.wf(),
+             res.wf_from_pte(pte, level),
+             !(res is PageTableRef),
+             res is Frame ==> res->Frame_1 == level,
+@@ -209,7 +208,7 @@ impl Child {
+             // at the given level.
+             // let pt = unsafe { PageTableNode::from_raw(paddr) };
+             // debug_assert_eq!(pt.level(), level - 1);
+-            let pt = PageTableNode::from_raw(paddr, mem, Ghost(pte.nid()), Ghost(pte.inst_id()));
++            let pt = PageTableNode::from_raw(paddr, Ghost(pte.nid()), Ghost(pte.inst_id()));
+             assert(pte.inst@ is Some);
+             assert(pte.nid@ is Some);
+             return Child::PageTable(pt, Tracked(pte.tracked_inst()), Ghost(pte.nid()));
+@@ -279,14 +278,13 @@ impl Child {
+         level: PagingLevel,
+         // is_tracked: MapTrackingStatus,
+         clone_raw: bool,
+-        mem: &MemContent,
+     ) -> (res: Self)
+         requires
+             pte.wf(),
+             pte.wf_with_node_level(level),
+             1 <= level <= 4,
+         ensures
+-            res.wf(mem),
++            res.wf(),
+             res.wf_ref_from_pte(*pte, level, clone_raw),
+             !clone_raw ==> !(res is PageTable),
+             res is Frame ==> res->Frame_1 == level,
+@@ -311,12 +309,7 @@ impl Child {
+                 // SAFETY: The physical address points to a valid page table node
+                 // at the given level.
+                 // let pt = unsafe { PageTableNode::from_raw(paddr) };
+-                let pt = PageTableNode::from_raw(
+-                    paddr,
+-                    mem,
+-                    Ghost(pte.nid()),
+-                    Ghost(pte.inst_id()),
+-                );
++                let pt = PageTableNode::from_raw(paddr, Ghost(pte.nid()), Ghost(pte.inst_id()));
+                 // debug_assert_eq!(pt.level(), level - 1);
+                 assert(pte.inst@ is Some);
+                 assert(pte.nid@ is Some);
+diff --git a/lock-protocol/src/exec/rw/node/entry.rs b/lock-protocol/src/exec/rw/node/entry.rs
+index bbe55359ebff2b11dd8eb92b1df6b56f0cfa7b54..4f4daf11e55a6a46f0fcf4a237237b3c7e54d123 100644
+--- a/lock-protocol/src/exec/rw/node/entry.rs
++++ b/lock-protocol/src/exec/rw/node/entry.rs
+@@ -48,13 +48,13 @@ impl Entry {
+     }
+ 
+     /// Gets a reference to the child.
+-    pub fn to_ref(&self, node: &PageTableWriteLock, mem: &MemContent) -> (res: Child)
++    pub fn to_ref(&self, node: &PageTableWriteLock) -> (res: Child)
+         requires
+             self.wf(),
+             self.wf_with_node(*node),
+-            node.wf(mem),
++            node.wf(),
+         ensures
+-            res.wf(mem),
++            res.wf(),
+             !(res is PageTable),
+             res is Frame ==> res->Frame_1 == node.level_spec(),
+     {
+@@ -63,9 +63,8 @@ impl Entry {
+         // unsafe { Child::ref_from_pte(&self.pte, self.node.level(), self.node.is_tracked(), false) }
+         Child::ref_from_pte(
+             &self.pte,
+-            node.level(mem),  /*self.node.is_tracked(),*/
++            node.level(),  /*self.node.is_tracked(),*/
+             false,
+-            mem,
+         )
+     }
+ 
+@@ -77,16 +76,16 @@ impl Entry {
+     ///
+     /// The method panics if the given child is not compatible with the node.
+     /// The compatibility is specified by the [`Child::is_compatible`].
+-    pub fn replace(self, new_child: Child, node: &mut PageTableWriteLock, mem: &MemContent)
++    pub fn replace(self, new_child: Child, node: &mut PageTableWriteLock)
+         requires
+             self.wf(),
+             self.wf_with_node(*old(node)),
+-            new_child.wf(mem),
++            new_child.wf(),
+             !(new_child is PageTableRef),
+             new_child.wf_with_node(self.idx as nat, *old(node)),
+-            old(node).wf(mem),
++            old(node).wf(),
+         ensures
+-            node.wf(mem),
++            node.wf(),
+             node.inst_id() == old(node).inst_id(),
+             node.nid() == old(node).nid(),
+     {
+@@ -106,8 +105,8 @@ impl Entry {
+         //  1. The index is within the bounds.
+         //  2. The new PTE is compatible with the page table node, as asserted above.
+         // unsafe { self.node.write_pte(self.idx, new_child.into_pte()) };
+-        let pte = new_child.into_pte(mem);
+-        node.write_pte(self.idx, pte, mem);
++        let pte = new_child.into_pte();
++        node.write_pte(self.idx, pte);
+ 
+         // old_child
+     }
+@@ -117,10 +116,10 @@ impl Entry {
+     /// # Safety
+     ///
+     /// The caller must ensure that the index is within the bounds of the node.
+-    pub fn new_at(idx: usize, node: &PageTableWriteLock, mem: &MemContent) -> (res: Self)
++    pub fn new_at(idx: usize, node: &PageTableWriteLock) -> (res: Self)
+         requires
+             0 <= idx < 512,
+-            node.wf(mem),
++            node.wf(),
+         ensures
+             res.wf(),
+             res.wf_with_node(*node),
+@@ -128,7 +127,7 @@ impl Entry {
+     {
+         // SAFETY: The index is within the bound.
+         // let pte = unsafe { node.read_pte(idx) };
+-        let pte = node.read_pte(idx, mem);
++        let pte = node.read_pte(idx);
+         Self { pte, idx }
+     }
+ }
+diff --git a/lock-protocol/src/exec/rw/node/mod.rs b/lock-protocol/src/exec/rw/node/mod.rs
+index 168bc214676d70d996915b5ad6576f937a021dae..e2a754fb6095068b2740fd7cadeb9be23318fbd0 100644
+--- a/lock-protocol/src/exec/rw/node/mod.rs
++++ b/lock-protocol/src/exec/rw/node/mod.rs
+@@ -31,9 +31,9 @@ impl PageTableNode {
+         self.perm@.value().get_inner_pt_spec()
+     }
+ 
+-    pub fn meta(&self, mem: &MemContent) -> (res: &PageTablePageMeta)
++    pub fn meta(&self) -> (res: &PageTablePageMeta)
+         requires
+-            self.wf(mem),
++            self.wf(),
+         ensures
+             *res =~= self.meta_spec(),
+     {
+@@ -46,15 +46,10 @@ impl PageTableNode {
+     pub uninterp spec fn from_raw_spec(paddr: Paddr) -> Self;
+ 
+     #[verifier::external_body]
+-    pub fn from_raw(
+-        paddr: Paddr,
+-        mem: &MemContent,
+-        nid: Ghost<NodeId>,
+-        inst_id: Ghost<InstanceId>,
+-    ) -> (res: Self)
++    pub fn from_raw(paddr: Paddr, nid: Ghost<NodeId>, inst_id: Ghost<InstanceId>) -> (res: Self)
+         ensures
+             res =~= Self::from_raw_spec(paddr),
+-            res.wf(mem),
++            res.wf(),
+             paddr == res.perm@.frame_paddr(),
+             res.nid@ == nid@,
+             res.inst@.id() == inst_id@,
+@@ -65,9 +60,9 @@ impl PageTableNode {
+     pub uninterp spec fn into_raw_spec(self) -> Paddr;
+ 
+     #[verifier::external_body]
+-    pub fn into_raw(self, mem: &MemContent) -> (res: Paddr)
++    pub fn into_raw(self) -> (res: Paddr)
+         requires
+-            self.wf(mem),
++            self.wf(),
+         ensures
+             res == self.into_raw_spec(),
+             res == self.perm@.frame_paddr(),
+@@ -75,15 +70,12 @@ impl PageTableNode {
+         unimplemented!();
+     }
+ 
+-    pub open spec fn start_paddr_spec(&self) -> Paddr {
+-        self.perm@.frame_paddr()
+-    }
+-
+-    pub fn start_paddr(&self, mem: &MemContent) -> (res: Paddr)
++    #[verifier::allow_in_spec]
++    pub fn start_paddr(&self) -> (res: Paddr)
+         requires
+-            self.wf(mem),
+-        ensures
+-            res == self.start_paddr_spec(),
++            self.wf(),
++        returns
++            self.perm@.frame_paddr(),
+     {
+         meta_to_frame(self.ptr.addr())
+     }
+@@ -91,8 +83,8 @@ impl PageTableNode {
+ 
+ // Functions defined in struct 'PageTableNode'.
+ impl PageTableNode {
+-    pub open spec fn wf(&self, mem: &MemContent) -> bool {
+-        &&& self.perm@.wf(&mem.meta_slot_array)
++    pub open spec fn wf(&self) -> bool {
++        &&& self.perm@.wf()
+         &&& self.perm@.relate(self.ptr)
+         &&& self.perm@.is_pt()
+         &&& NodeHelper::valid_nid(self.nid@)
+@@ -105,9 +97,9 @@ impl PageTableNode {
+         self.meta_spec().level
+     }
+ 
+-    pub fn level(&self, mem: &MemContent) -> (res: PagingLevel)
++    pub fn level(&self) -> (res: PagingLevel)
+         requires
+-            self.wf(mem),
++            self.wf(),
+         ensures
+             res == self.level_spec(),
+     {
+@@ -117,18 +109,18 @@ impl PageTableNode {
+         meta_slot.get_inner_pt().level
+     }
+ 
+-    pub fn lock_write(self, mem: &MemContent, m: Tracked<LockProtocolModel>) -> (res: (
++    pub fn lock_write(self, m: Tracked<LockProtocolModel>) -> (res: (
+         PageTableWriteLock,
+         Tracked<LockProtocolModel>,
+     ))
+         requires
+-            self.wf(mem),
++            self.wf(),
+             m@.inv(),
+             m@.inst_id() == self.inst@.id(),
+             m@.state() is ReadLocking,
+             wf_tree_path(m@.path().push(self.nid@)),
+         ensures
+-            res.0.wf(mem),
++            res.0.wf(),
+             res.0.frame->Some_0 =~= self,
+             res.1@.inv(),
+             res.1@.inst_id() == res.0.inst_id(),
+@@ -136,7 +128,7 @@ impl PageTableNode {
+             res.1@.path() =~= m@.path().push(res.0.nid()),
+     {
+         let tracked mut m = m.get();
+-        let res = self.meta(mem).lock.lock_write(Tracked(m));
++        let res = self.meta().lock.lock_write(Tracked(m));
+         proof {
+             m = res.1.get();
+         }
+@@ -144,19 +136,19 @@ impl PageTableNode {
+         (write_guard, Tracked(m))
+     }
+ 
+-    pub fn lock_read(self, mem: &MemContent, m: Tracked<LockProtocolModel>) -> (res: (
++    pub fn lock_read(self, m: Tracked<LockProtocolModel>) -> (res: (
+         PageTableReadLock,
+         Tracked<LockProtocolModel>,
+     ))
+         requires
+-            self.wf(mem),
++            self.wf(),
+             m@.inv(),
+             m@.inst_id() == self.inst@.id(),
+             m@.state() is ReadLocking,
+             m@.path().len() < 3,
+             wf_tree_path(m@.path().push(self.nid@)),
+         ensures
+-            res.0.wf(mem),
++            res.0.wf(),
+             res.0.frame->Some_0 =~= self,
+             res.1@.inv(),
+             res.1@.inst_id() == res.0.inst_id(),
+@@ -164,7 +156,7 @@ impl PageTableNode {
+             res.1@.path() =~= m@.path().push(res.0.nid()),
+     {
+         let tracked mut m = m.get();
+-        let res = self.meta(mem).lock.lock_read(Tracked(m));
++        let res = self.meta().lock.lock_read(Tracked(m));
+         proof {
+             m = res.1.get();
+         }
+@@ -179,18 +171,18 @@ pub struct PageTableReadLock {
+ }
+ 
+ impl PageTableReadLock {
+-    pub open spec fn wf_frame(&self, mem: &MemContent) -> bool {
++    pub open spec fn wf_frame(&self) -> bool {
+         &&& self.frame is Some
+-        &&& self.frame->Some_0.wf(mem)
++        &&& self.frame->Some_0.wf()
+     }
+ 
+-    pub open spec fn wf_guard(&self, mem: &MemContent) -> bool {
++    pub open spec fn wf_guard(&self) -> bool {
+         &&& self.guard is Some
+     }
+ 
+-    pub open spec fn wf(&self, mem: &MemContent) -> bool {
+-        &&& self.wf_frame(mem)
+-        &&& self.wf_guard(mem)
++    pub open spec fn wf(&self) -> bool {
++        &&& self.wf_frame()
++        &&& self.wf_guard()
+         &&& self.guard->Some_0.wf(&self.meta_spec().lock)
+     }
+ 
+@@ -202,54 +194,51 @@ impl PageTableReadLock {
+         self.frame->Some_0.nid@
+     }
+ 
+-    pub open spec fn paddr_spec(&self) -> Paddr {
+-        self.frame->Some_0.start_paddr_spec()
+-    }
+-
+-    pub fn paddr(&self, mem: &MemContent) -> (res: Paddr)
++    #[verifier::allow_in_spec]
++    pub fn paddr(&self) -> (res: Paddr)
+         requires
+-            self.wf_frame(mem),
+-        ensures
+-            res == self.paddr_spec(),
++            self.wf_frame(),
++        returns
++            self.frame->Some_0.start_paddr(),
+     {
+-        self.frame.as_ref().unwrap().start_paddr(mem)
++        self.frame.as_ref().unwrap().start_paddr()
+     }
+ 
+     pub open spec fn level_spec(&self) -> PagingLevel {
+         self.frame->Some_0.level_spec()
+     }
+ 
+-    pub fn level(&self, mem: &MemContent) -> (res: PagingLevel)
++    pub fn level(&self) -> (res: PagingLevel)
+         requires
+-            self.wf_frame(mem),
++            self.wf_frame(),
+         ensures
+             res == self.level_spec(),
+     {
+-        self.meta(mem).level
++        self.meta().level
+     }
+ 
+-    pub fn read_child_ref(&self, idx: usize, mem: &MemContent) -> (res: Child)
++    pub fn read_child_ref(&self, idx: usize) -> (res: Child)
+         requires
+-            self.wf(mem),
++            self.wf(),
+             0 <= idx < 512,
+         ensures
+-            res.wf(mem),
++            res.wf(),
+             !(res is PageTable),
+             res is Frame ==> res->Frame_1 == self.level_spec(),
+     {
+-        let pte: Pte = self.read_pte(idx, mem);
++        let pte: Pte = self.read_pte(idx);
+         // SAFETY: The provided `level` and `is_tracked` are the same as
+         // the node containing the PTE.
+         // unsafe { Child::ref_from_pte(&pte, self.level(), self.is_tracked(), false) }
+-        Child::ref_from_pte(&pte, self.level(mem), false, mem)
++        Child::ref_from_pte(&pte, self.level(), false)
+     }
+ 
+-    pub fn unlock(&mut self, mem: &MemContent, m: Tracked<LockProtocolModel>) -> (res: (
++    pub fn unlock(&mut self, m: Tracked<LockProtocolModel>) -> (res: (
+         PageTableNode,
+         Tracked<LockProtocolModel>,
+     ))
+         requires
+-            old(self).wf(mem),
++            old(self).wf(),
+             m@.inv(),
+             m@.inst_id() == old(self).inst_id(),
+             m@.state() is ReadLocking,
+@@ -257,7 +246,7 @@ impl PageTableReadLock {
+         ensures
+             self.frame is None,
+             self.guard is None,
+-            res.0.wf(mem),
++            res.0.wf(),
+             res.0 =~= old(self).frame->Some_0,
+             res.1@.inv(),
+             res.1@.inst_id() == res.0.inst@.id(),
+@@ -266,7 +255,7 @@ impl PageTableReadLock {
+     {
+         let tracked mut m = m.get();
+         let guard = self.guard.take().unwrap();
+-        let res = self.meta(mem).lock.unlock_read(guard, Tracked(m));
++        let res = self.meta().lock.unlock_read(guard, Tracked(m));
+         proof {
+             m = res.get();
+         }
+@@ -274,9 +263,9 @@ impl PageTableReadLock {
+         (frame, Tracked(m))
+     }
+ 
+-    pub fn read_pte(&self, idx: usize, mem: &MemContent) -> (res: Pte)
++    pub fn read_pte(&self, idx: usize) -> (res: Pte)
+         requires
+-            self.wf(mem),
++            self.wf(),
+             0 <= idx < 512,
+         ensures
+             res.wf(),
+@@ -287,10 +276,10 @@ impl PageTableReadLock {
+                 idx as nat,
+             ),
+     {
+-        let va = paddr_to_vaddr(self.paddr(mem));
++        let va = paddr_to_vaddr(self.paddr());
+         let ptr: ArrayPtr<Pte, PTE_NUM> = ArrayPtr::from_addr(va);
+         let guard: &RwReadGuard = self.guard.as_ref().unwrap();
+-        let res = guard.borrow_perms(&self.meta(mem).lock);
++        let res = guard.borrow_perms(&self.meta().lock);
+         let tracked perms = res.get();
+         assert(perms.inner.value()[idx as int].wf());
+         let pte: Pte = ptr.get(Tracked(&perms.inner), idx);
+@@ -301,13 +290,13 @@ impl PageTableReadLock {
+         self.frame->Some_0.meta_spec()
+     }
+ 
+-    pub fn meta(&self, mem: &MemContent) -> (res: &PageTablePageMeta)
++    pub fn meta(&self) -> (res: &PageTablePageMeta)
+         requires
+-            self.wf_frame(mem),
++            self.wf_frame(),
+         ensures
+             *res =~= self.meta_spec(),
+     {
+-        self.frame.as_ref().unwrap().meta(mem)
++        self.frame.as_ref().unwrap().meta()
+     }
+ }
+ 
+@@ -317,18 +306,18 @@ pub struct PageTableWriteLock {
+ }
+ 
+ impl PageTableWriteLock {
+-    pub open spec fn wf_frame(&self, mem: &MemContent) -> bool {
++    pub open spec fn wf_frame(&self) -> bool {
+         &&& self.frame is Some
+-        &&& self.frame->Some_0.wf(mem)
++        &&& self.frame->Some_0.wf()
+     }
+ 
+-    pub open spec fn wf_guard(&self, mem: &MemContent) -> bool {
++    pub open spec fn wf_guard(&self) -> bool {
+         &&& self.guard is Some
+     }
+ 
+-    pub open spec fn wf(&self, mem: &MemContent) -> bool {
+-        &&& self.wf_frame(mem)
+-        &&& self.wf_guard(mem)
++    pub open spec fn wf(&self) -> bool {
++        &&& self.wf_frame()
++        &&& self.wf_guard()
+         &&& self.guard->Some_0.wf(&self.meta_spec().lock)
+     }
+ 
+@@ -340,60 +329,56 @@ impl PageTableWriteLock {
+         self.frame->Some_0.nid@
+     }
+ 
+-    pub proof fn tracked_pt_inst(tracked &self, mem: &MemContent) -> (tracked res: SpecInstance)
++    pub proof fn tracked_pt_inst(tracked &self) -> (tracked res: SpecInstance)
+         requires
+-            self.wf(mem),
++            self.wf(),
+         ensures
+             res =~= self.frame->Some_0.inst@,
+     {
+         self.frame.tracked_borrow().inst.borrow().clone()
+     }
+ 
+-    pub fn entry(&self, idx: usize, mem: &MemContent) -> (res: Entry)
++    pub fn entry(&self, idx: usize) -> (res: Entry)
+         requires
+-            self.wf(mem),
++            self.wf(),
+             0 <= idx < 512,
+         ensures
+-            self.wf(mem),
+             res.wf(),
+             res.wf_with_node(*self),
+             res.idx == idx,
+     {
+-        Entry::new_at(idx, self, mem)
++        Entry::new_at(idx, self)
+     }
+ 
+-    pub open spec fn paddr_spec(&self) -> Paddr {
+-        self.frame->Some_0.start_paddr_spec()
+-    }
+-
+-    pub fn paddr(&self, mem: &MemContent) -> (res: Paddr)
++    #[verifier::allow_in_spec]
++    pub fn paddr(&self) -> (res: Paddr)
+         requires
+-            self.wf_frame(mem),
+-        ensures
+-            res == self.paddr_spec(),
++            self.wf_frame(),
++        returns
++            self.frame->Some_0.start_paddr(),
+     {
+-        self.frame.as_ref().unwrap().start_paddr(mem)
++        self.frame.as_ref().unwrap().start_paddr()
+     }
+ 
+     pub open spec fn level_spec(&self) -> PagingLevel {
+         self.frame->Some_0.level_spec()
+     }
+ 
+-    pub fn level(&self, mem: &MemContent) -> (res: PagingLevel)
++    pub fn level(&self) -> (res: PagingLevel)
+         requires
+-            self.wf_frame(mem),
++            self.wf_frame(),
+         ensures
+             res == self.level_spec(),
+     {
+-        self.meta(mem).level
++        self.meta().level
+     }
+ 
+-    pub fn unlock(&mut self, mem: &MemContent, m: Tracked<LockProtocolModel>) -> (res: (
++    pub fn unlock(&mut self, m: Tracked<LockProtocolModel>) -> (res: (
+         PageTableNode,
+         Tracked<LockProtocolModel>,
+     ))
+         requires
+-            old(self).wf(mem),
++            old(self).wf(),
+             m@.inv(),
+             m@.inst_id() == old(self).inst_id(),
+             m@.state() is WriteLocked,
+@@ -401,7 +386,7 @@ impl PageTableWriteLock {
+         ensures
+             self.frame is None,
+             self.guard is None,
+-            res.0.wf(mem),
++            res.0.wf(),
+             res.0 =~= old(self).frame->Some_0,
+             res.1@.inv(),
+             res.1@.inst_id() == res.0.inst@.id(),
+@@ -410,7 +395,7 @@ impl PageTableWriteLock {
+     {
+         let tracked mut m = m.get();
+         let guard = self.guard.take().unwrap();
+-        let res = self.meta(mem).lock.unlock_write(guard, Tracked(m));
++        let res = self.meta().lock.unlock_write(guard, Tracked(m));
+         proof {
+             m = res.get();
+         }
+@@ -418,9 +403,9 @@ impl PageTableWriteLock {
+         (frame, Tracked(m))
+     }
+ 
+-    pub fn read_pte(&self, idx: usize, mem: &MemContent) -> (res: Pte)
++    pub fn read_pte(&self, idx: usize) -> (res: Pte)
+         requires
+-            self.wf(mem),
++            self.wf(),
+             0 <= idx < 512,
+         ensures
+             res.wf(),
+@@ -431,7 +416,7 @@ impl PageTableWriteLock {
+                 idx as nat,
+             ),
+     {
+-        let va = paddr_to_vaddr(self.paddr(mem));
++        let va = paddr_to_vaddr(self.paddr());
+         let ptr: ArrayPtr<Pte, PTE_NUM> = ArrayPtr::from_addr(va);
+         let guard: &RwWriteGuard = self.guard.as_ref().unwrap();
+         let tracked perms = guard.perms.borrow();
+@@ -440,9 +425,9 @@ impl PageTableWriteLock {
+         pte
+     }
+ 
+-    pub fn write_pte(&mut self, idx: usize, pte: Pte, mem: &MemContent)
++    pub fn write_pte(&mut self, idx: usize, pte: Pte)
+         requires
+-            old(self).wf(mem),
++            old(self).wf(),
+             0 <= idx < 512,
+             pte.wf(),
+             pte.wf_with_node_info(
+@@ -452,11 +437,11 @@ impl PageTableWriteLock {
+                 idx as nat,
+             ),
+         ensures
+-            self.wf(mem),
++            self.wf(),
+             self.inst_id() == old(self).inst_id(),
+             self.nid() == old(self).nid(),
+     {
+-        let va = paddr_to_vaddr(self.paddr(mem));
++        let va = paddr_to_vaddr(self.paddr());
+         let ptr: ArrayPtr<Pte, PTE_NUM> = ArrayPtr::from_addr(va);
+         let mut guard = self.guard.take().unwrap();
+         assert forall|i: int|
+@@ -486,13 +471,13 @@ impl PageTableWriteLock {
+         self.frame->Some_0.meta_spec()
+     }
+ 
+-    pub fn meta(&self, mem: &MemContent) -> (res: &PageTablePageMeta)
++    pub fn meta(&self) -> (res: &PageTablePageMeta)
+         requires
+-            self.wf_frame(mem),
++            self.wf_frame(),
+         ensures
+             *res =~= self.meta_spec(),
+     {
+-        self.frame.as_ref().unwrap().meta(mem)
++        self.frame.as_ref().unwrap().meta()
+     }
+ }
+ 
+diff --git a/lock-protocol/src/exec/rw/page_table.rs b/lock-protocol/src/exec/rw/page_table.rs
+index 42485a9f43b665656551d59a34a395f5dcf33399..162f294d6074925462bd2a9d94e980e74a7cc604 100644
+--- a/lock-protocol/src/exec/rw/page_table.rs
++++ b/lock-protocol/src/exec/rw/page_table.rs
+@@ -17,8 +17,8 @@ pub struct PageTable {
+ }
+ 
+ impl PageTable {
+-    pub open spec fn wf(&self, mem: &MemContent) -> bool {
+-        &&& self.root.wf(mem)
++    pub open spec fn wf(&self) -> bool {
++        &&& self.root.wf()
+         &&& self.inst@.cpu_num() == GLOBAL_CPU_NUM
+     }
+ }

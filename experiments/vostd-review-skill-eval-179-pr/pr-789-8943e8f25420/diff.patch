@@ -1,0 +1,798 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index e79d62f2b4a58aad5a6443678c7d12f82f18b364..23c78227165f3450b726e46e4bf2a86675fb8f1f 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -672,6 +672,7 @@ dependencies = [
+ name = "vstd_extra"
+ version = "0.1.0"
+ dependencies = [
++ "acpi",
+  "bitvec",
+  "smallvec",
+  "vstd",
+diff --git a/ostd/src/arch/x86/kernel/acpi/dmar.rs b/ostd/src/arch/x86/kernel/acpi/dmar.rs
+index e48f928aefa69d7367b391176401b5a5a68b3b2f..b99d4e43156cb0a175c7d71b87225487a1cdf7de 100644
+--- a/ostd/src/arch/x86/kernel/acpi/dmar.rs
++++ b/ostd/src/arch/x86/kernel/acpi/dmar.rs
+@@ -1,6 +1,11 @@
+ // SPDX-License-Identifier: MPL-2.0
+ #![expect(dead_code)]
+ 
++use vstd::{
++    prelude::*,
++    std_specs::{iter::IteratorSpec, slice::into_iter_elts},
++};
++
+ use alloc::vec::Vec;
+ use core::{fmt::Debug, slice::Iter};
+ 
+@@ -11,6 +16,8 @@ use acpi::{
+ 
+ use super::remapping::{Andd, Atsr, Drhd, Rhsa, Rmrr, Satc, Sidp};
+ 
++verus! {
++
+ /// DMA Remapping structure.
+ ///
+ /// When IOMMU is enabled, the structure should be present in the ACPI table, and the user can use
+@@ -61,6 +68,14 @@ struct DmarHeader {
+     reserved: [u8; 10],
+ }
+ 
++impl Dmar {
++    /// The remapping structures parsed from the DMAR table, in table order.
++    pub closed spec fn remapping_structures_spec(self) -> Seq<Remapping> {
++        self.remapping_structures@
++    }
++}
++
++} // verus!
+ // SAFETY: The `DmarHeader` is the header for the DMAR structure. All its fields are described in
+ // the Intel manual.
+ unsafe impl AcpiTable for DmarHeader {
+@@ -70,8 +85,10 @@ unsafe impl AcpiTable for DmarHeader {
+     }
+ }
+ 
++#[verus_verify]
+ impl Dmar {
+     /// Creates a instance from ACPI table.
++    #[verus_verify(external_body)]
+     pub fn new() -> Option<Self> {
+         let acpi_table = super::get_acpi_tables()?;
+ 
+@@ -127,6 +144,12 @@ impl Dmar {
+         })
+     }
+ 
++    #[verus_spec(ret =>
++        ensures
++            IteratorSpec::remaining(&ret) == self.remapping_structures_spec().as_ref(),
++            into_iter_elts(ret) == IteratorSpec::remaining(&ret).unref(),
++            IteratorSpec::decrease(&ret) is Some,
++    )]
+     pub fn remapping_iter(&self) -> Iter<'_, Remapping> {
+         self.remapping_structures.iter()
+     }
+diff --git a/ostd/src/arch/x86/kernel/acpi/remapping.rs b/ostd/src/arch/x86/kernel/acpi/remapping.rs
+index 16528e1d38b41d237847fd2c949e78c10835147b..5dbb1b88728a2cad4a25531d0a427215deaa22d0 100644
+--- a/ostd/src/arch/x86/kernel/acpi/remapping.rs
++++ b/ostd/src/arch/x86/kernel/acpi/remapping.rs
+@@ -7,12 +7,26 @@
+ //! inside these structures.
+ //!
+ //! Most of the introduction are copied from Intel vt-directed-io-specification.
++use vstd::{
++    prelude::*,
++    seq::{
++        lemma_seq_ext_equal, lemma_seq_new_index, lemma_seq_new_len,
++        lemma_seq_push_index_different, lemma_seq_push_index_same, lemma_seq_push_len,
++    },
++    utf8::{encode_utf8, valid_utf8},
++};
++use vstd_extra::{debug_assert, debug_assert_eq};
++
++use core::mem::size_of;
++use ostd_pod::{decode_pod, from_bytes_spec};
+ 
+ use alloc::{borrow::ToOwned, string::String, vec::Vec};
+ use core::fmt::Debug;
+ 
+ use ostd_pod::Pod;
+ 
++verus! {
++
+ /// DMA-remapping hardware unit definition (DRHD).
+ ///
+ /// A DRHD structure uniquely represents a remapping hardware unit present in the platform.
+@@ -23,14 +37,19 @@ pub struct Drhd {
+     device_scopes: Vec<DeviceScope>,
+ }
+ 
++} // verus!
++#[verus_verify]
+ impl Drhd {
++    #[verus_verify(dual_spec)]
+     pub fn register_base_addr(&self) -> u64 {
+         self.header.register_base_addr
+     }
+ }
+ 
++verus! {
++
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct DrhdHeader {
+     typ: u16,
+     length: u16,
+@@ -40,6 +59,18 @@ pub struct DrhdHeader {
+     register_base_addr: u64,
+ }
+ 
++// SAFETY: The `DrhdHeader` struct is `repr(C)` and all its fields are plain old
++// data, so any bit pattern is a valid value.
++unsafe impl Pod for DrhdHeader {
++
++}
++
++impl DrhdHeader {
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// Reserved Memory Region Reporting (RMRR).
+ ///
+ /// BIOS allocated reserved memory ranges that may be DMA targets.
+@@ -52,7 +83,7 @@ pub struct Rmrr {
+ }
+ 
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct RmrrHeader {
+     typ: u16,
+     length: u16,
+@@ -62,6 +93,18 @@ pub struct RmrrHeader {
+     reserved_memory_region_limit_addr: u64,
+ }
+ 
++// SAFETY: The `RmrrHeader` struct is `repr(C)` and all its fields are plain
++// old data, so any bit pattern is a valid value.
++unsafe impl Pod for RmrrHeader {
++
++}
++
++impl RmrrHeader {
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// Root Port ATS Capability Reporting (ATSR).
+ ///
+ /// This structure is applicable only for platforms supporting Device-TLBs as reported through the
+@@ -73,7 +116,7 @@ pub struct Atsr {
+ }
+ 
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct AtsrHeader {
+     typ: u16,
+     length: u16,
+@@ -82,6 +125,18 @@ pub struct AtsrHeader {
+     segment_num: u16,
+ }
+ 
++// SAFETY: The `AtsrHeader` struct is `repr(C)` and all its fields are plain old
++// data, so any bit pattern is a valid value.
++unsafe impl Pod for AtsrHeader {
++
++}
++
++impl AtsrHeader {
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// Remapping Hardware Status Affinity (RHSA).
+ ///
+ /// It is applicable for platforms supporting non-uniform memory (NUMA),
+@@ -89,7 +144,7 @@ pub struct AtsrHeader {
+ /// This optional structure provides the association between each Remapping hardware unit (identified
+ /// by its espective Base Address) and the proximity domain to which that hardware unit belongs.
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct Rhsa {
+     typ: u16,
+     length: u16,
+@@ -98,6 +153,19 @@ pub struct Rhsa {
+     proximity_domain: u32,
+ }
+ 
++// SAFETY: The `Rhsa` struct is `repr(C)` and all its fields are plain old data,
++// so any bit pattern is a valid value.
++unsafe impl Pod for Rhsa {
++
++}
++
++impl Rhsa {
++    /// The total length of the remapping structure, in bytes.
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// ACPI Name-space Device Declaration (ANDD).
+ ///
+ /// An ANDD structure uniquely represents an ACPI name-space
+@@ -108,8 +176,15 @@ pub struct Andd {
+     acpi_object_name: String,
+ }
+ 
++impl Andd {
++    /// The characters of the ACPI object name.
++    pub closed spec fn acpi_object_name_spec(self) -> Seq<char> {
++        self.acpi_object_name@
++    }
++}
++
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct AnddHeader {
+     typ: u16,
+     length: u16,
+@@ -117,6 +192,19 @@ pub struct AnddHeader {
+     acpi_device_num: u8,
+ }
+ 
++// SAFETY: The `AnddHeader` struct is `repr(C)` and all its fields are plain
++// old data, so any bit pattern is a valid value.
++unsafe impl Pod for AnddHeader {
++
++}
++
++impl AnddHeader {
++    /// The total length of the remapping structure, in bytes.
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// SoC Integrated Address Translation Cache (SATC).
+ ///
+ /// The SATC reporting structure identifies devices that have address translation cache (ATC),
+@@ -128,7 +216,7 @@ pub struct Satc {
+ }
+ 
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct SatcHeader {
+     typ: u16,
+     length: u16,
+@@ -137,6 +225,18 @@ pub struct SatcHeader {
+     segment_num: u16,
+ }
+ 
++// SAFETY: The `SatcHeader` struct is `repr(C)` and all its fields are plain old
++// data, so any bit pattern is a valid value.
++unsafe impl Pod for SatcHeader {
++
++}
++
++impl SatcHeader {
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// SoC Integrated Device Property Reporting (SIDP).
+ ///
+ /// The (SIDP) reporting structure identifies devices that have special
+@@ -149,7 +249,7 @@ pub struct Sidp {
+ }
+ 
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct SidpHeader {
+     typ: u16,
+     length: u16,
+@@ -157,6 +257,18 @@ pub struct SidpHeader {
+     segment_num: u16,
+ }
+ 
++// SAFETY: The `SidpHeader` struct is `repr(C)` and all its fields are plain old
++// data, so any bit pattern is a valid value.
++unsafe impl Pod for SidpHeader {
++
++}
++
++impl SidpHeader {
++    pub closed spec fn length_spec(self) -> u16 {
++        self.length
++    }
++}
++
+ /// The Device Scope Structure is made up of Device Scope Entries. Each Device Scope Entry may be
+ /// used to indicate a PCI endpoint device
+ #[derive(Debug, Clone)]
+@@ -165,8 +277,15 @@ pub struct DeviceScope {
+     path: Vec<(u8, u8)>,
+ }
+ 
++impl DeviceScope {
++    /// The parsed path of the Device Scope Entry, as a sequence of byte pairs.
++    pub closed spec fn path_spec(self) -> Seq<(u8, u8)> {
++        self.path@
++    }
++}
++
+ #[repr(C)]
+-#[derive(Debug, Clone, Copy, Pod)]
++#[derive(Debug, Clone, Copy /*, Pod*/)]
+ pub struct DeviceScopeHeader {
+     typ: u8,
+     length: u8,
+@@ -176,9 +295,68 @@ pub struct DeviceScopeHeader {
+     start_bus_number: u8,
+ }
+ 
++// SAFETY: The `DeviceScopeHeader` struct is `repr(C)` and all its fields are
++// plain old data, so any bit pattern is a valid value.
++unsafe impl Pod for DeviceScopeHeader {
++
++}
++
++impl DeviceScopeHeader {
++    /// The total length of the Device Scope Entry.
++    pub closed spec fn length_spec(self) -> u8 {
++        self.length
++    }
++}
++
++/// The sequence of byte pairs read from `bytes[start..end]`, two bytes per element.
++pub open spec fn path_pairs_spec(bytes: Seq<u8>, start: int, end: int) -> Seq<(u8, u8)> {
++    Seq::new(((end - start) / 2) as nat, |i: int| (bytes[start + 2 * i], bytes[start + 2 * i + 1]))
++}
++
++/// Whether `bytes[start..end]` is a sequence of complete device-scope entries.
++pub closed spec fn valid_device_scopes(bytes: Seq<u8>, start: int, end: int) -> bool
++    decreases end - start,
++{
++    &&& 0 <= start <= end <= bytes.len()
++    &&& if start == end {
++        true
++    } else {
++        let remaining = bytes.subrange(start, end);
++        let scope_len = from_bytes_spec::<DeviceScopeHeader>(remaining).length_spec() as int;
++        &&& 0 < scope_len
++        &&& size_of::<DeviceScopeHeader>() <= scope_len <= end - start
++        &&& (scope_len - size_of::<DeviceScopeHeader>()) % 2 == 0
++        &&& valid_device_scopes(bytes, start + scope_len, end)
++    }
++}
++
++} // verus!
++macro_rules! impl_header_spec {
++    ($(($struct:ident, $header:ident),)*) => {
++        verus! {
++            $(impl $struct {
++                #[doc = concat!("The header of [`", stringify!($struct), "`].")]
++                pub closed spec fn header_spec(self) -> $header {
++                    self.header
++                }
++            })*
++        }
++    };
++}
++
++impl_header_spec!(
++    (Drhd, DrhdHeader),
++    (Rmrr, RmrrHeader),
++    (Atsr, AtsrHeader),
++    (Andd, AnddHeader),
++    (Satc, SatcHeader),
++    (Sidp, SidpHeader),
++    (DeviceScope, DeviceScopeHeader),
++);
+ macro_rules! impl_from_bytes {
+     ($(($struct:tt, $header_struct:tt),)*) => {
+-        $(impl $struct {
++        $(#[verus_verify]
++        impl $struct {
+             #[doc = concat!("Parses a [`", stringify!($struct), "`] from bytes.")]
+             ///
+             /// # Panics
+@@ -188,12 +366,32 @@ macro_rules! impl_from_bytes {
+                 stringify!($struct),
+                 "`].",
+             )]
++            #[verus_spec(ret =>
++                requires
++                    bytes@.len() >= size_of::<$header_struct>(),
++                    from_bytes_spec::<$header_struct>(bytes@).length_spec() == bytes@.len(),
++                    valid_device_scopes(
++                        bytes@,
++                        size_of::<$header_struct>() as int,
++                        bytes@.len() as int,
++                    ),
++                ensures
++                    ret.header_spec() == decode_pod::<$header_struct>(
++                        bytes@.subrange(0, size_of::<$header_struct>() as int),
++                    ),
++            )]
+             pub fn from_bytes(bytes: &[u8]) -> Self {
+                 let header = $header_struct::from_bytes(bytes);
+                 debug_assert_eq!(header.length as usize, bytes.len());
+ 
+                 let mut index = core::mem::size_of::<$header_struct>();
+                 let mut device_scopes = Vec::new();
++                #[verus_spec(invariant
++                    size_of::<$header_struct>() <= index <= header.length,
++                    header.length == bytes@.len(),
++                    valid_device_scopes(bytes@, index as int, bytes@.len() as int),
++                    decreases header.length as usize - index,
++                )]
+                 while index != (header.length as usize) {
+                     let val = DeviceScope::from_bytes_prefix(&bytes[index..]);
+                     index += val.header.length as usize;
+@@ -217,12 +415,32 @@ impl_from_bytes!(
+     (Sidp, SidpHeader),
+ );
+ 
++#[verus_verify]
+ impl DeviceScope {
+     /// Parses a [`DeviceScope`] from a prefix of the bytes.
+     ///
+     /// # Panics
+     ///
+     /// This method may panic if the byte prefix does not represent a valid [`DeviceScope`].
++    #[verus_spec(ret =>
++        requires
++            size_of::<DeviceScopeHeader>()
++                <= from_bytes_spec::<DeviceScopeHeader>(bytes@).length_spec()
++                <= bytes@.len(),
++            (
++                (from_bytes_spec::<DeviceScopeHeader>(bytes@).length_spec() as usize)
++                    - size_of::<DeviceScopeHeader>()
++            ) % 2 == 0,
++        ensures
++            ret.header_spec() == decode_pod::<DeviceScopeHeader>(
++                bytes@.subrange(0, size_of::<DeviceScopeHeader>() as int),
++            ),
++            ret.path_spec() =~= path_pairs_spec(
++                bytes@,
++                size_of::<DeviceScopeHeader>() as int,
++                ret.header_spec().length_spec() as int,
++            ),
++    )]
+     fn from_bytes_prefix(bytes: &[u8]) -> Self {
+         let header = DeviceScopeHeader::from_bytes(bytes);
+         debug_assert!((header.length as usize) <= bytes.len());
+@@ -231,9 +449,37 @@ impl DeviceScope {
+         debug_assert!((header.length as usize) >= index);
+ 
+         let mut path = Vec::new();
++        proof! {
++            assert(header == from_bytes_spec::<DeviceScopeHeader>(bytes@));
++            assert(bytes@.len() >= header.length);
++        }
++        #[verus_spec(invariant
++            size_of::<DeviceScopeHeader>() <= index <= header.length,
++            (header.length as usize - index) % 2 == 0,
++            (index - size_of::<DeviceScopeHeader>()) % 2 == 0,
++            bytes@.len() >= header.length,
++            path@ =~= path_pairs_spec(
++                bytes@,
++                size_of::<DeviceScopeHeader>() as int,
++                index as int,
++            ),
++            decreases header.length as usize - index,
++        )]
+         while index != (header.length as usize) {
+             let val = (bytes[index], bytes[index + 1]);
+             path.push(val);
++            proof! {
++                lemma_path_pairs_step(
++                    bytes@,
++                    size_of::<DeviceScopeHeader>() as int,
++                    (index + 2) as int,
++                );
++                assert(path@ =~= path_pairs_spec(
++                    bytes@,
++                    size_of::<DeviceScopeHeader>() as int,
++                    (index + 2) as int,
++                ));
++            }
+             index += 2;
+         }
+ 
+@@ -241,12 +487,20 @@ impl DeviceScope {
+     }
+ }
+ 
++#[verus_verify]
+ impl Rhsa {
+     /// Parses an [`Rhsa`] from the bytes.
+     ///
+     /// # Panics
+     ///
+     /// This method may panic if the bytes do not represent a valid [`Rhsa`].
++    #[verus_spec(
++        requires
++            bytes@.len() >= size_of::<Self>(),
++            from_bytes_spec::<Self>(bytes@).length_spec() == bytes@.len(),
++        returns
++            decode_pod::<Self>(bytes@.subrange(0, size_of::<Self>() as int)),
++    )]
+     pub fn from_bytes(bytes: &[u8]) -> Self {
+         let val = <Self as Pod>::from_bytes(bytes);
+         debug_assert_eq!(val.length as usize, bytes.len());
+@@ -255,12 +509,32 @@ impl Rhsa {
+     }
+ }
+ 
++#[verus_verify]
+ impl Andd {
+     /// Parses an [`Andd`] from the bytes.
+     ///
+     /// # Panics
+     ///
+     /// This method may panic if the bytes do not represent a valid [`Andd`].
++    #[verus_spec(ret =>
++        requires
++            bytes@.len() >= size_of::<AnddHeader>(),
++            from_bytes_spec::<AnddHeader>(bytes@).length_spec() == bytes@.len(),
++            valid_utf8(
++                bytes@.subrange(
++                    size_of::<AnddHeader>() as int,
++                    bytes@.len() as int,
++                ),
++            ),
++        ensures
++            ret.header_spec() == decode_pod::<AnddHeader>(
++                bytes@.subrange(0, size_of::<AnddHeader>() as int),
++            ),
++            encode_utf8(ret.acpi_object_name_spec()) =~= bytes@.subrange(
++                size_of::<AnddHeader>() as int,
++                bytes@.len() as int,
++            ),
++    )]
+     pub fn from_bytes(bytes: &[u8]) -> Self {
+         let header = AnddHeader::from_bytes(bytes);
+         debug_assert_eq!(header.length as usize, bytes.len());
+@@ -276,3 +550,43 @@ impl Andd {
+         }
+     }
+ }
++
++// Auxiliary proof functions
++
++verus! {
++
++/// One accumulation step: the byte pairs of `bytes[start..end)` are the byte
++/// pairs of `bytes[start..end-2)` with the last pair appended.
++proof fn lemma_path_pairs_step(bytes: Seq<u8>, start: int, end: int)
++    requires
++        start + 2 <= end <= bytes.len(),
++        (end - start) % 2 == 0,
++    ensures
++        path_pairs_spec(bytes, start, end) == path_pairs_spec(bytes, start, end - 2).push(
++            (bytes[end - 2], bytes[end - 1]),
++        ),
++{
++    let f = |i: int| (bytes[start + 2 * i], bytes[start + 2 * i + 1]);
++    let n = ((end - start) / 2) as nat;
++    let first = path_pairs_spec(bytes, start, end);
++    let rest = path_pairs_spec(bytes, start, end - 2);
++    assert(first =~= Seq::new(n, f));
++    assert(rest =~= Seq::new((n - 1) as nat, f));
++    lemma_seq_new_len(n, f);
++    lemma_seq_new_len((n - 1) as nat, f);
++    lemma_seq_push_len(rest, (bytes[end - 2], bytes[end - 1]));
++    assert forall|i: int| 0 <= i < n implies first[i] == rest.push(
++        (bytes[end - 2], bytes[end - 1]),
++    )[i] by {
++        lemma_seq_new_index(n, f, i);
++        if i < n - 1 {
++            lemma_seq_new_index((n - 1) as nat, f, i);
++            lemma_seq_push_index_different(rest, (bytes[end - 2], bytes[end - 1]), i);
++        } else {
++            lemma_seq_push_index_same(rest, (bytes[end - 2], bytes[end - 1]), i);
++        }
++    };
++    lemma_seq_ext_equal(first, rest.push((bytes[end - 2], bytes[end - 1])));
++}
++
++} // verus!
+diff --git a/ostd/src/arch/x86/kernel/mod.rs b/ostd/src/arch/x86/kernel/mod.rs
+index d07841169c7f1a975e77b383699b1b491e6184d1..e3493e18317b597d4072385a12200084beceb2c6 100644
+--- a/ostd/src/arch/x86/kernel/mod.rs
++++ b/ostd/src/arch/x86/kernel/mod.rs
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ pub(super) mod acpi;
+-pub(super) mod apic;
++/* pub(super) mod apic;
+ pub(super) mod irq;
+ pub(super) mod tsc;
+ 
+-pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine};
++pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index df7a81de1ac5c69e3608434f1841adddd782fe24..30ddccb5e8224e2363ed8fb5b9b39d7fb8056bd3 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -7,7 +7,7 @@ pub(crate) mod ex_table;
+ pub(crate) mod io;
+ pub(crate) mod iommu;*/
+ pub(crate) mod irq;
+-/* pub(crate) mod kernel; */
++pub(crate) mod kernel;
+ pub(crate) mod mm;
+ /*pub(crate) mod pci;
+ pub mod qemu;
+diff --git a/ostd/src/boot/mod.rs b/ostd/src/boot/mod.rs
+index bdcffdb7fb4449d2a0f67a832f9a865237e8f9c0..96012a7ec0b68b10bbdd927ef3a0f3aa1fa20240 100644
+--- a/ostd/src/boot/mod.rs
++++ b/ostd/src/boot/mod.rs
+@@ -7,15 +7,15 @@
+ pub mod memory_region;
+ //pub mod smp;
+ 
+-/*
+-use alloc::{
++/* use alloc::{
+     string::{String, ToString},
+     vec::Vec,
+-};
++}; */
+ 
+ use memory_region::{MemoryRegion, MemoryRegionArray};
+ use spin::Once;
+ 
++/*
+ /// The boot information provided by the bootloader.
+ pub struct BootInfo {
+     /// The name of the bootloader.
+@@ -38,7 +38,7 @@ pub fn boot_info() -> &'static BootInfo {
+ }
+ 
+ static INFO: Once<BootInfo> = Once::new();
+-
++*/
+ /// ACPI information from the bootloader.
+ ///
+ /// The boot crate can choose either providing the raw RSDP physical address or
+@@ -91,6 +91,7 @@ pub(crate) struct EarlyBootInfo {
+ /// The boot-time information.
+ pub(crate) static EARLY_INFO: Once<EarlyBootInfo> = Once::new();
+ 
++/*
+ /// Initializes the boot information.
+ ///
+ /// This function copies the boot-time accessible information to the heap to
+diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
+index 70ba85ca6ec7da7cdaf610e92654898151b91c67..f56a9a62b4f0b7850d6314a81fd90269d1f064c2 100644
+--- a/verified_libs/vstd_extra/Cargo.toml
++++ b/verified_libs/vstd_extra/Cargo.toml
+@@ -17,3 +17,4 @@ std = ["vstd/std"]
+ vstd = { workspace = true }
+ bitvec.workspace = true
+ smallvec = "1.13.2"
++acpi = "=5.2.0"
+diff --git a/verified_libs/vstd_extra/src/external/acpi.rs b/verified_libs/vstd_extra/src/external/acpi.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..da439031de3b5665f8863b0f2e242a33601b716c
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/acpi.rs
+@@ -0,0 +1,12 @@
++// SPDX-License-Identifier: MPL-2.0
++//! External type specifications for the `acpi` crate.
++use vstd::prelude::*;
++
++verus! {
++
++/// Verus proxy for the ACPI System Description Table header.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExSdtHeader(::acpi::sdt::SdtHeader);
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index 6fbe9b5b630b497fd560023636f375af10b14f21..34fb8f96defe3fcfcd0340bed79e151a942ab2e1 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -2,6 +2,7 @@
+ //!
+ //! These specifications are determined with careful inspection of the std library source code and documentation, and trusted as TCB.
+ //! They are subject to change if `vstd` covers more cases in the future.
++pub mod acpi;
+ pub mod bits;
+ mod bitvec;
+ pub mod cmp;
+@@ -16,8 +17,10 @@ pub mod range;
+ pub mod slice;
+ pub mod smallvec;
+ pub mod smart_ptr;
++pub mod str;
+ pub mod time;
+ 
++pub use acpi::*;
+ pub use bitvec::*;
+ pub use cmp::*;
+ pub use ilog2::*;
+@@ -29,6 +32,7 @@ pub use range::*;
+ pub use slice::*;
+ pub use smallvec::*;
+ pub use smart_ptr::*;
++pub use str::*;
+ pub use time::*;
+ 
+ use vstd::prelude::*;
+diff --git a/verified_libs/vstd_extra/src/external/str.rs b/verified_libs/vstd_extra/src/external/str.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..de82d844eecb46e011ee198dea20f978b3e128c2
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/str.rs
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: MPL-2.0
++//! Specifications for the UTF-8 string APIs missing from `vstd`.
++//!
++//! `vstd` models UTF-8 validity itself (`vstd::utf8::valid_utf8`) and specifies
++//! `str::from_utf8_unchecked`, but it does not specify `core::str::from_utf8`.
++use vstd::{prelude::*, string::StringSliceAdditionalSpecFns, utf8::valid_utf8};
++
++verus! {
++
++/// The error payload of [`core::str::from_utf8`]. It is never inspected by
++/// OSTD, so it carries no specification of its own beyond being usable in
++/// Verus specs.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExUtf8Error(core::str::Utf8Error);
++
++/// Validates UTF-8 and returns a `&str` borrowing the input bytes on success.
++/// See [`std::str::from_utf8`](https://doc.rust-lang.org/std/str/fn.from_utf8.html).
++///
++/// The result is `Ok` exactly when the input models a valid UTF-8 string
++/// ([`vstd::utf8::valid_utf8`]); on `Ok`, the decoded string borrows exactly
++/// the input bytes.
++pub assume_specification[ core::str::from_utf8 ](v: &[u8]) -> (res: Result<
++    &str,
++    core::str::Utf8Error,
++>)
++    ensures
++        res matches Ok(s) ==> {
++            &&& valid_utf8(v@)
++            &&& s.spec_bytes() =~= v@
++        },
++        res matches Err(_) ==> !valid_utf8(v@),
++;
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/trans_macros.rs b/verified_libs/vstd_extra/src/trans_macros.rs
+index 54cda36f67bd40cc6b730a0569ccbf56de75e30f..ebf7e4dd2e3543f3b1d089ff9ed093c251ae3d5f 100644
+--- a/verified_libs/vstd_extra/src/trans_macros.rs
++++ b/verified_libs/vstd_extra/src/trans_macros.rs
+@@ -40,3 +40,13 @@ macro_rules! debug_assert {
+         }
+     };
+ }
++
++#[macro_export]
++macro_rules! debug_assert_eq {
++    ($l:expr, $r:expr) => {
++        #[cfg(debug_assertions)]
++        if ($l != $r) {
++            $crate::panic::panic_diverge()
++        }
++    };
++}

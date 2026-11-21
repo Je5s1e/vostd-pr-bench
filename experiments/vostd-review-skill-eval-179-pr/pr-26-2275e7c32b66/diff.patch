@@ -1,0 +1,257 @@
+diff --git a/lock-protocol/src/test/rw_version/spec/tree.rs b/lock-protocol/src/test/rw_version/spec/tree.rs
+index ba276c822e750eca0398cd7e293c0696a000b965..48b23c1f749983cd0959e6dbd9c973b1dfa65fbf 100644
+--- a/lock-protocol/src/test/rw_version/spec/tree.rs
++++ b/lock-protocol/src/test/rw_version/spec/tree.rs
+@@ -5,9 +5,8 @@ use vstd::prelude::*;
+ 
+ use super::common::*;
+ use super::utils::*;
+-use vstd::map_lib::*;
+-use vstd_extra::set_extra::*;
+-use vstd_extra::map_extra::*;
++use vstd::{set::*, set_lib::*, map_lib::*};
++use vstd_extra::{seq_extra::*, set_extra::*, map_extra::*};
+ 
+ verus! {
+ 
+@@ -297,15 +296,47 @@ fn unlocking_end_inductive(pre: Self, post: Self, cpu: CpuId) {
+ 
+ #[inductive(read_lock)]
+ fn read_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {
++    let path = pre.cursors[cpu].get_read_lock_path();
++    assert(post.cursors== pre.cursors.insert(cpu, CursorState::ReadLocking(path.push(nid))));
+     assert(post.rc_cursors_relation()) by {
+-        assert forall |nid: NodeId| #[trigger] post.reader_counts.contains_key(nid) implies
+-        post.reader_counts[nid] == value_filter(
++        assert forall |id: NodeId| #[trigger] post.reader_counts.contains_key(id) implies
++        post.reader_counts[id] == value_filter(
+             post.cursors,
+-            |cursor: CursorState| cursor.hold_read_lock(nid),
++            |cursor: CursorState| cursor.hold_read_lock(id),
+         ).len() by {
++                let f = |cursor: CursorState| cursor.hold_read_lock(id);
++                lemma_wf_tree_path_push_inversion(path, nid);
++                if id!=nid {
++                    assert(post.reader_counts[id] == pre.reader_counts[id]);
++                    assert(post.cursors[cpu].hold_read_lock(id) == pre.cursors[cpu].hold_read_lock(id)) by {
++                        lemma_push_contains_different(path, nid, id);
++                    }
++                    lemma_insert_value_filter_same_len(
++                        pre.cursors, f, cpu, CursorState::ReadLocking(path.push(nid))
++                    );
++                    }
++                else{
++                    assert(pre.reader_counts[nid]==value_filter(
++                        pre.cursors,
++                        |cursor: CursorState| cursor.hold_read_lock(nid),
++                    ).len());
++                    assert(post.reader_counts[nid] == pre.reader_counts[nid] + 1);
++                    assert(!pre.cursors[cpu].hold_read_lock(nid));
++                    assert(post.cursors[cpu].hold_read_lock(nid)) by {
++                        lemma_push_contains_same(path, nid);
++                    }
++                    lemma_remove_value_filter_false(
++                        pre.cursors, f, cpu
++                    );
++                    lemma_insert_value_filter_true(
++                        pre.cursors, f, cpu, CursorState::ReadLocking(path.push(nid))
++                    );
++                    axiom_set_insert_len(pre.cursors.dom(),cpu);
++                }
+                 admit();
+-        }
+-    }
++        };
++
++    };
+  }
+ 
+ #[inductive(read_unlock)]
+diff --git a/vstd_extra/src/map_extra.rs b/vstd_extra/src/map_extra.rs
+index a27d6287b675b31aa594eda54a61af49f9a8f07c..da75131613bb5a648bb2ac56fcd8ea01981bc487 100644
+--- a/vstd_extra/src/map_extra.rs
++++ b/vstd_extra/src/map_extra.rs
+@@ -1,11 +1,60 @@
+ use vstd::prelude::*;
++use vstd::{set::*, map::*};
+ 
+ verus! {
+ 
++pub proof fn lemma_map_insert_len<K, V>(m: Map<K, V>, k: K, v: V)
++    requires
++        m.dom().finite(),
++    ensures
++        #[trigger] m.insert(k, v).len() == m.len() + (if m.contains_key(k) {
++            0int
++        } else {
++            1
++        }),
++{
++    axiom_map_insert_domain(m, k, v)
++}
++
++pub proof fn lemma_map_remove_len<K, V>(m: Map<K, V>, k: K)
++    requires
++        m.dom().finite(),
++    ensures
++        m.len() == #[trigger] m.remove(k).len() + (if m.contains_key(k) {
++            1
++        } else {
++            0int
++        }),
++{
++    axiom_map_remove_domain(m, k)
++}
++
+ pub open spec fn value_filter<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool) -> Map<K, V> {
+     m.restrict(m.dom().filter(|s| f(m[s])))
+ }
+ 
++pub proof fn lemma_value_filter_finite<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
++    requires
++        m.dom().finite(),
++    ensures
++        value_filter(m, f).dom().finite(),
++{
++    assert(value_filter(m, f).dom() =~= m.dom().filter(|s| f(m[s])));
++    m.dom().lemma_len_filter(|s| f(m[s]));
++}
++
++pub proof fn lemma_value_filter_contains<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
++    requires
++        m.contains_key(k),
++    ensures
++        if f(m[k]) {
++            value_filter(m, f).contains_key(k)
++        } else {
++            !value_filter(m, f).contains_key(k)
++        },
++{
++}
++
+ pub proof fn lemma_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
+     requires
+         forall|k: K| m.contains_key(k) ==> !#[trigger] f(m[k]),
+@@ -16,7 +65,6 @@ pub proof fn lemma_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool)
+ 
+ pub proof fn lemma_remove_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
+     requires
+-        m.contains_key(k),
+         f(m[k]),
+     ensures
+         value_filter(m.remove(k), f) =~= value_filter(m, f).remove(k),
+@@ -25,7 +73,6 @@ pub proof fn lemma_remove_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) ->
+ 
+ pub proof fn lemma_remove_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K)
+     requires
+-        m.contains_key(k),
+         !f(m[k]),
+     ensures
+         value_filter(m.remove(k), f) =~= value_filter(m, f),
+@@ -34,7 +81,6 @@ pub proof fn lemma_remove_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -
+ 
+ pub proof fn lemma_insert_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K, v: V)
+     requires
+-        !m.contains_key(k),
+         f(v),
+     ensures
+         value_filter(m.insert(k, v), f) =~= value_filter(m, f).insert(k, v),
+@@ -43,11 +89,65 @@ pub proof fn lemma_insert_value_filter_true<K, V>(m: Map<K, V>, f: spec_fn(V) ->
+ 
+ pub proof fn lemma_insert_value_filter_false<K, V>(m: Map<K, V>, f: spec_fn(V) -> bool, k: K, v: V)
+     requires
+-        !m.contains_key(k),
+         !f(v),
+     ensures
+-        value_filter(m.insert(k, v), f) =~= value_filter(m, f),
++        value_filter(m.insert(k, v), f) =~= if m.contains_key(k) {
++            value_filter(m, f).remove(k)
++        } else {
++            value_filter(m, f)
++        },
++{
++}
++
++pub proof fn lemma_insert_value_filter_same_len<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++    v: V,
++)
++    requires
++        m.dom().finite(),
++        m.contains_key(k),
++        f(m[k]) == f(v),
++    ensures
++        value_filter(m.insert(k, v), f).len() == value_filter(m, f).len(),
++{
++    lemma_value_filter_finite(m, f);
++    if f(v) {
++        lemma_insert_value_filter_true(m, f, k, v);
++        lemma_map_insert_len(value_filter(m, f), k, v);
++    } else {
++        lemma_insert_value_filter_false(m, f, k, v);
++        lemma_map_remove_len(value_filter(m, f), k);
++    }
++}
++
++pub proof fn lemma_insert_value_filter_different_len<K, V>(
++    m: Map<K, V>,
++    f: spec_fn(V) -> bool,
++    k: K,
++    v: V,
++)
++    requires
++        m.dom().finite(),
++        m.contains_key(k),
++        f(m[k]) != f(v),
++    ensures
++        value_filter(m.insert(k, v), f).len() == value_filter(m, f).len() + if f(v) {
++            1
++        } else {
++            -1
++        },
+ {
++    lemma_value_filter_finite(m, f);
++    if (f(v)) {
++        lemma_insert_value_filter_true(m, f, k, v);
++        lemma_map_insert_len(m, k, v);
++    } else {
++        lemma_insert_value_filter_false(m, f, k, v);
++        assert(value_filter(m.insert(k, v), f).len() == value_filter(m, f).remove(k).len());
++        lemma_map_remove_len(value_filter(m, f), k);
++    }
+ }
+ 
+ } // verus!
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index e6aa5b6937563d657020351191141df75790b6d6..82b5b7df09684f86d4cd0cb4797e5c5bf1c68215 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -82,3 +82,26 @@ pub broadcast group group_seq_extra_lemmas {
+ }
+ 
+ } // verus!
++verus! {
++
++pub proof fn lemma_push_contains_same<T>(s: Seq<T>, needle: T)
++    ensures
++        #[trigger] s.push(needle).contains(needle),
++{
++    assert(s.push(needle).last() == needle);
++}
++
++pub proof fn lemma_push_contains_different<T>(s: Seq<T>, new_elem: T, needle: T)
++    requires
++        new_elem != needle,
++    ensures
++        #[trigger] s.push(new_elem).contains(needle) == s.contains(needle),
++{
++    if (s.contains(needle)) {
++        let i = choose|i: int| 0 <= i < s.len() && s[i] == needle;
++        axiom_seq_push_index_different(s, needle, i);
++        assert(0 <= i < s.push(new_elem).len() && s.push(new_elem)[i] == needle);
++    }
++}
++
++} // verus!

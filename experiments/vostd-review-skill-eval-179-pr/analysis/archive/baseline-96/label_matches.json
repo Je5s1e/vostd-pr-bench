@@ -1,0 +1,3320 @@
+[
+  {
+    "sample": "pr-100-3439712c4524",
+    "label_index": 0,
+    "label_id": "pr-100-3439712c4524:commit-fix-a1d0de0d37a48d3c5e4983b4b061baad6ca76553-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The refactored cursor path specification reads a nonexistent pa field from an IntermediatePageTableEntryView instead of its frame_pa field.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+        "start_line": 145,
+        "end_line": 176
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-100-3439712c4524",
+    "label_index": 1,
+    "label_id": "pr-100-3439712c4524:commit-fix-a1d0de0d37a48d3c5e4983b4b061baad6ca76553-root-2",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "map promises that the cursor level is unchanged even though its descent loop lowers the level until frame.map_level().",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+        "start_line": 374,
+        "end_line": 408
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-100-3439712c4524",
+    "label_index": 2,
+    "label_id": "pr-100-3439712c4524:commit-fix-6b2ae965a7cd6cbf94fad5277baaeb2805f4ef7c-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The new-child map branch assumes that the allocated page-table child is the child represented by the current parent entry and cursor path before appending it.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+        "start_line": 467,
+        "end_line": 488
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-104-f3df1ab197d2",
+    "label_index": 0,
+    "label_id": "pr-104-f3df1ab197d2:commit-fix-1b93c8f936ebbdd8a9aa6119a09182616639e825-root-1",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "When page-sized cursor progress crosses a page-table-node boundary, move_forward does not ascend to the parent and pop_level would leave the departed child guard in a slot that must be empty at the higher level.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+        "start_line": 269,
+        "end_line": 325
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-119-0a0ec99c5b50",
+    "label_index": 0,
+    "label_id": "pr-119-0a0ec99c5b50:commit-fix-3c55e81c43d179b7179ed5ccde686f6446b49af5-root-1",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The frame condition exempts the post-state PTE instead of the removed PTE"
+    ],
+    "description": "replace_with_none identifies the frame-condition exception with the replacement PTE's post-state address instead of the removed PTE's entry-state address.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+        "start_line": 240,
+        "end_line": 299
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-122-aa2041448069",
+    "label_index": 0,
+    "label_id": "pr-122-aa2041448069:commit-fix-d45f4d703838e6d916fe1a4b2c50bdbfd0600e16-root-1",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "try_traverse_and_lock_subtree_root discards PageTableGuard values on two traversal paths without manually releasing their underlying spin locks.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+        "start_line": 381,
+        "end_line": 386
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rcu/cursor/locking.rs",
+        "start_line": 388,
+        "end_line": 419
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-127-ac14d35923e4",
+    "label_index": 0,
+    "label_id": "pr-127-ac14d35923e4:issue-comment-3121739038",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The Windows bootstrap silently falls back to legacy Windows PowerShell even though that shell has a known module-loading failure for the installer command, leaving users without actionable guidance to use pwsh.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "xtask/src/main.rs",
+        "start_line": 47,
+        "end_line": 55
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-136-9483097409b4",
+    "label_index": 0,
+    "label_id": "pr-136-9483097409b4:commit-fix-3319ef543031d4ee017c3e445255051949139e26-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "H1 — Three new admits trust the central path invariant"
+    ],
+    "description": "`lock_range` uses four `admit()` branches to trust that its lock-model path still corresponds to the requested virtual-address path.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "start_line": 506,
+        "end_line": 508
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "start_line": 549,
+        "end_line": 551
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "start_line": 589,
+        "end_line": 591
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "start_line": 625,
+        "end_line": 627
+      }
+    ],
+    "reason": "同一path对应关系根因：报告定位3个新admit，并明确提及第4个既有admit；不按4个位置拆分标签。"
+  },
+  {
+    "sample": "pr-143-544fc49e7446",
+    "label_index": 0,
+    "label_id": "pr-143-544fc49e7446:commit-fix-f486ec9ac7695f3ca8b82c611386341c44d3c381-root-1",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "A trusted lemma derives a newly allocated child's non-stray state from structural node IDs alone, without tying either guard to the same page-table instance or to the parent's live PTE token.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rcu/node/stray.rs",
+        "start_line": 86,
+        "end_line": 103
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rcu/node/entry.rs",
+        "start_line": 196,
+        "end_line": 211
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-146-b4c63161c57b",
+    "label_index": 0,
+    "label_id": "pr-146-b4c63161c57b:commit-fix-6747158e33ae6c85efbe0f7485cb3e614d9a9e51-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      2,
+      3
+    ],
+    "finding_titles": [
+      "Allocation freshness is dropped at the wrapper and reintroduced as a caller-local assumption",
+      "The state-machine update is bridged to the next verified operation by assuming the whole invariant"
+    ],
+    "description": "alloc_if_none assumes that a newly allocated page is fresh in the SPT frame map and then assumes the entire updated SubPageTable invariant.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+        "start_line": 434,
+        "end_line": 438
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+        "start_line": 481,
+        "end_line": 485
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-146-c6ea1a85e164",
+    "label_index": 0,
+    "label_id": "pr-146-c6ea1a85e164:commit-fix-b4c63161c57b3c4551d0839b06f216743a93aed9-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "P",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "H1 — The proof assumes a fact contradicted by the function precondition"
+    ],
+    "description": "alloc_if_none trusts the parent entry's address, level, root relationship, and resulting child-guard postconditions instead of deriving them from Entry well-formedness.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+        "start_line": 427,
+        "end_line": 445
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+        "start_line": 470,
+        "end_line": 474
+      }
+    ],
+    "reason": "H1提及i_pte.wf/root/level/frame level未经证明，但主论点是另一处矛盾；未完整分析Entry::wf缺关系及返回child guard保证。"
+  },
+  {
+    "sample": "pr-16-ace524111090",
+    "label_index": 0,
+    "label_id": "pr-16-ace524111090:commit-fix-be0f7880ff3e6dc60fcb461698b459b421f25056-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "After the update command starts fetching the current Verus branch, four finite memory-region loops fail the newly enabled execution termination check because they have no decreases clauses.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "fvt1-mem-region-init/src/memory_region.rs",
+        "start_line": 281,
+        "end_line": 281
+      },
+      {
+        "version": "after",
+        "path": "fvt1-mem-region-init/src/memory_region.rs",
+        "start_line": 390,
+        "end_line": 390
+      },
+      {
+        "version": "after",
+        "path": "fvt1-mem-region-init/src/memory_region.rs",
+        "start_line": 409,
+        "end_line": 409
+      },
+      {
+        "version": "after",
+        "path": "fvt1-mem-region-init/src/memory_region.rs",
+        "start_line": 435,
+        "end_line": 435
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-161-1510b718eb7d",
+    "label_index": 0,
+    "label_id": "pr-161-1510b718eb7d:commit-fix-fa698a4e527004be4da310b35b4db2dcbb5c09b5-root-1",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "The proof assumes an invariant whose address comparison is shadowed and generally false"
+    ],
+    "description": "The stray-to-PTE invariant compares a child PTE's target address with its parent node ID instead of the stray record's physical address.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 134,
+        "end_line": 146
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-17-30beab687be4",
+    "label_index": 0,
+    "label_id": "pr-17-30beab687be4:commit-fix-cd964908bc10022ac3f96531dd40ba2af8d40f0c-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The new FVT13 target omits the execution-termination policy for an intentional spin loop and a consuming queue loop, so the fixed Verus toolchain rejects the target with missing-decreases errors.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "fvt13-vmspace-unmap-safety/src/spin/exec.rs",
+        "start_line": 201,
+        "end_line": 201
+      },
+      {
+        "version": "after",
+        "path": "fvt13-vmspace-unmap-safety/src/tlb/cpu_local_queue/mod.rs",
+        "start_line": 76,
+        "end_line": 76
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-171-6cc1b7bbb99b",
+    "label_index": 0,
+    "label_id": "pr-171-6cc1b7bbb99b:review-comment-2249103975",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The new stray invariant is false after deallocation"
+    ],
+    "description": "`inv_stray_in_node` incorrectly requires every stray entry to retain a live node, excluding the true-stray state created when a node is removed and waits for recycling.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 173,
+        "end_line": 179
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 335,
+        "end_line": 351
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-171-6cc1b7bbb99b",
+    "label_index": 1,
+    "label_id": "pr-171-6cc1b7bbb99b:review-3080893835",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`wf_cursors` validates only cursor keys that happen to exist and does not require every valid CPU to own a cursor token.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 42,
+        "end_line": 48
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-171-81a05f39c6ad",
+    "label_index": 0,
+    "label_id": "pr-171-81a05f39c6ad:issue-comment-3149637962",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The non-overlap invariant ignores the nodes already write-locked by a `Locking` cursor, so it cannot establish exclusive ownership when that cursor becomes `Locked`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 97,
+        "end_line": 110
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 481,
+        "end_line": 520
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-175-1be41f76acbd",
+    "label_index": 0,
+    "label_id": "pr-175-1be41f76acbd:issue-comment-3158423715",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`protocol_lock_start` leaves the subtree root in `LockedOutside` and creates an empty `Locking(nid, nid)` range even though execution has already locked that root, so the protocol state does not represent the lock held at the end of traversal.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/rcu/tree.rs",
+        "start_line": 260,
+        "end_line": 267
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-178-8d5d616a2605",
+    "label_index": 0,
+    "label_id": "pr-178-8d5d616a2605:commit-fix-c450c77d6e941eee68da286465b2cd31c8ba9ffe-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The unconditional warning refers to Windows-only imports"
+    ],
+    "description": "The new parallel-verification warning uses `OwoColorize` and `Stream` on every platform while importing them only on Windows.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "xtask/src/main.rs",
+        "start_line": 21,
+        "end_line": 22
+      },
+      {
+        "version": "after",
+        "path": "xtask/src/main.rs",
+        "start_line": 573,
+        "end_line": 577
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-182-16d5d093ac90",
+    "label_index": 0,
+    "label_id": "pr-182-16d5d093ac90:commit-fix-27231bec4b98f6c9d842390e7108e36e9001ff92-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The new public reconstruction lemma is admitted"
+    ],
+    "description": "A newly generalized NodeHelper reconstruction lemma grants get_child(get_parent(nid), get_offset(nid)) == nid through admit instead of deriving it from the node trace representation.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/utils.rs",
+        "start_line": 1666,
+        "end_line": 1680
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-183-fb3b9d0681b5",
+    "label_index": 0,
+    "label_id": "pr-183-fb3b9d0681b5:commit-fix-ae8fa239a56d986bf4964523369cd20884123a64-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "H1 — A previously proved alignment lemma is now admitted"
+    ],
+    "description": "The rewritten aligned-PTE-index lemma exposes its complete higher-level alignment theorem through admit.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/mod.rs",
+        "start_line": 829,
+        "end_line": 839
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-183-fb3b9d0681b5",
+    "label_index": 1,
+    "label_id": "pr-183-fb3b9d0681b5:commit-fix-ae3200cfe5460f8451667fa1bfac75e7300b3e75-root-2",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "H2 — `move_forward` assumes the core carry-preservation fact"
+    ],
+    "description": "The rewritten move_forward proof assumes that adding the current page size preserves every higher-level PTE index after carry propagation.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/cursor/mod.rs",
+        "start_line": 315,
+        "end_line": 318
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-213-7de412d2a90e",
+    "label_index": 0,
+    "label_id": "pr-213-7de412d2a90e:commit-fix-47017f8007f0ccfa8a56282d63ddb84e5c50495b-root-1",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The lock-freedom predicate existentially chooses one thread for the entire leads-to relation, so an out-of-set thread makes the property vacuously true even when a real thread waits forever.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "specs/ostd/src/sync/abstract_lock.rs",
+        "start_line": 227,
+        "end_line": 235
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-213-9d72cec58996",
+    "label_index": 0,
+    "label_id": "pr-213-9d72cec58996:commit-fix-e9b354ef3bc27f5c87e87f7182715756e09341d1-root-1",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The admitted `cs` case hides a false invariant used to prove mutual exclusion"
+    ],
+    "description": "The abstract-lock invariant equates a held lock with a thread at cs, omitting the reachable unlock program-counter state in which the lock is still held.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "specs/ostd/src/sync/abstract_lock.rs",
+        "start_line": 209,
+        "end_line": 211
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-22-97523065e4c0",
+    "label_index": 0,
+    "label_id": "pr-22-97523065e4c0:commit-fix-bf2e519c92602e2737797ddc115f676ef673f948-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The selected snapshot's quotient-bound proof uses a division-order lemma whose strict-order precondition already requires the desired `offset < 512` fact, so the fixed verifier rejects the proof as circular.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/utils.rs",
+        "start_line": 395,
+        "end_line": 400
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-220-1c5f850814d9",
+    "label_index": 0,
+    "label_id": "pr-220-1c5f850814d9:commit-fix-cfcd9e87ed0da9aed525d3155885f1131c74733f-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Both shell if/then/else blocks in the verification workflow omit their closing fi.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": ".github/workflows/verus-update-test.yml",
+        "start_line": 32,
+        "end_line": 40
+      },
+      {
+        "version": "after",
+        "path": ".github/workflows/verus-update-test.yml",
+        "start_line": 50,
+        "end_line": 58
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-220-cfcd9e87ed0d",
+    "label_index": 0,
+    "label_id": "pr-220-cfcd9e87ed0d:commit-fix-503ca46c41ce3d491323bc992721da0ffcb66ef1-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "Bootstrap failures are suppressed in a promotion gate"
+    ],
+    "description": "Both phaseII bootstrap commands suppress failure with || true.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": ".github/workflows/verus-update-test.yml",
+        "start_line": 49,
+        "end_line": 50
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-226-84f7a7f07d36",
+    "label_index": 0,
+    "label_id": "pr-226-84f7a7f07d36:commit-fix-20fc76d3c11ec5d3be276833fcbb665a254e5af3-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The view invariant is admitted"
+    ],
+    "description": "MemoryRegion::view_preserves_inv exposes interval and type-tag validity through admit.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/boot/memory_region.rs",
+        "start_line": 74,
+        "end_line": 83
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-226-84f7a7f07d36",
+    "label_index": 1,
+    "label_id": "pr-226-84f7a7f07d36:commit-fix-bffe6ae7908ddffcb295b3f9f0ce2481c7e15a58-root-2",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "The empty constructor is replaced by a trusted body"
+    ],
+    "description": "MemoryRegionArray::new is external_body while promising an invariant-valid empty model.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/boot/memory_region.rs",
+        "start_line": 277,
+        "end_line": 293
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-226-84f7a7f07d36",
+    "label_index": 2,
+    "label_id": "pr-226-84f7a7f07d36:commit-fix-8dc6d41b7e4ea5a4aa9b3b34ae92f14a47076375-root-3",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      3
+    ],
+    "finding_titles": [
+      "`push` trusts an incomplete contract that excludes documented behavior"
+    ],
+    "description": "MemoryRegionArray::push is external_body while promising invariant preservation and success when capacity is available.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/boot/memory_region.rs",
+        "start_line": 295,
+        "end_line": 316
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-226-8c5c020ff2db",
+    "label_index": 0,
+    "label_id": "pr-226-8c5c020ff2db:commit-fix-722baaaa01f85cc734cc1dc92635343738d7e05b-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The memory-region implementations use &self receivers for Inv and InvView methods whose traits require self by value, so the proof-retaining trait implementations do not match their declared interfaces.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/boot/memory_region.rs",
+        "start_line": 70,
+        "end_line": 85
+      },
+      {
+        "version": "after",
+        "path": "specs/ostd/src/memory_region_specs.rs",
+        "start_line": 14,
+        "end_line": 14
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-23-56d930eb5a67",
+    "label_index": 0,
+    "label_id": "pr-23-56d930eb5a67:commit-fix-11116bf7ae9b5fe7b9e73be951a5b5ed4b8baab0-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The Windows bootstrap and update paths invoke PowerShell 7 (`pwsh`) unconditionally, so they fail with program-not-found on systems that only have the Windows-bundled `powershell.exe`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "xtask/src/main.rs",
+        "start_line": 848,
+        "end_line": 848
+      },
+      {
+        "version": "after",
+        "path": "xtask/src/main.rs",
+        "start_line": 879,
+        "end_line": 879
+      },
+      {
+        "version": "after",
+        "path": "xtask/src/main.rs",
+        "start_line": 937,
+        "end_line": 937
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-233-9d89be46b390",
+    "label_index": 0,
+    "label_id": "pr-233-9d89be46b390:commit-fix-aa2547b7ff107ddfdfb3ac756740473faeb3e093-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The reused predicate is no longer in scope at an existing caller"
+    ],
+    "description": "Deleting vstd_extra's public injective_on definition removes the name formerly re-exported through vstd_extra::prelude, but lock-protocol-rcu's unchanged proof still calls injective_on without importing vstd::relations::injective_on.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol-rcu/src/spec/utils.rs",
+        "start_line": 1161,
+        "end_line": 1164
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-235-627f20d8afad",
+    "label_index": 0,
+    "label_id": "pr-235-627f20d8afad:commit-fix-04bbe66ef7f7b7bae8d928570387e4f7964739e2-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "After the Verus update, `lemma_nat_as_parts` no longer proves its nat-valued decomposition because the calc chain does not establish the required intermediate non-overflow/coercion equality.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol-rcu/src/mm/page_table/mod.rs",
+        "start_line": 935,
+        "end_line": 945
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-236-72a385b929f5",
+    "label_index": 0,
+    "label_id": "pr-236-72a385b929f5:commit-fix-bdec3fc53c10ca4ffd05b514c93d56de16acc83e-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The workspace dependency cleanup omits the `demo` member"
+    ],
+    "description": "The root workspace removes verus_builtin and verus_builtin_macros from workspace.dependencies while demo/Cargo.toml still inherits both with workspace = true, so Cargo cannot load the workspace manifest.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "demo/Cargo.toml",
+        "start_line": 23,
+        "end_line": 26
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-237-24bb220c7879",
+    "label_index": 0,
+    "label_id": "pr-237-24bb220c7879:commit-fix-8488536c7972ae7e223853e2722efbe7f609988f-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The align-up model is exported through an admitted theorem"
+    ],
+    "description": "The align-up arithmetic theorem and the executable AlignExt::align_up contract are accepted through admit, so callers receive lower-bound, divisibility, least-aligned-value, and nat_align_up equality guarantees that are not checked against the rounding implementation.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/arithmetic.rs",
+        "start_line": 23,
+        "end_line": 34
+      },
+      {
+        "version": "after",
+        "path": "ostd/libs/align_ext/src/lib.rs",
+        "start_line": 55,
+        "end_line": 69
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-237-24bb220c7879",
+    "label_index": 1,
+    "label_id": "pr-237-24bb220c7879:commit-fix-8488536c7972ae7e223853e2722efbe7f609988f-root-2",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "The align-down model is exported through a separate admitted theorem"
+    ],
+    "description": "The align-down arithmetic theorem and the executable AlignExt::align_down contract are accepted through admit, so callers receive upper-bound, divisibility, greatest-aligned-value, and nat_align_down equality guarantees without a checked proof for the masking implementation.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/arithmetic.rs",
+        "start_line": 36,
+        "end_line": 47
+      },
+      {
+        "version": "after",
+        "path": "ostd/libs/align_ext/src/lib.rs",
+        "start_line": 73,
+        "end_line": 86
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-25-6479bc556a28",
+    "label_index": 0,
+    "label_id": "pr-25-6479bc556a28:commit-fix-3caac781cd8c3f79b7313883f8e6e53264a1a469-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The public subtree-bound lemma still depends on an admitted parent fact"
+    ],
+    "description": "The callable subtree-bound lemma exports its full guarantee while the essential parent equality is still discharged by a nested `admit()`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/spec/utils.rs",
+        "start_line": 964,
+        "end_line": 964
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-250-8224e4aee238",
+    "label_index": 0,
+    "label_id": "pr-250-8224e4aee238:commit-fix-609148d97d199f431416d3b8b71f9e2294f64b32-root-1",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "`entails_not_temp_reverse` assumes the missing condition needed to make its public theorem true"
+    ],
+    "description": "The new proof of entails_not_temp_reverse silently assumes that spec has a satisfying execution, although callers are not required to establish this premise.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/temporal_logic/rules.rs",
+        "start_line": 843,
+        "end_line": 854
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-26-2275e7c32b66",
+    "label_index": 0,
+    "label_id": "pr-26-2275e7c32b66:commit-fix-789cc0d7beddf1eb3629a7596429896f4aeb3072-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The edited invariant proof still relies on `admit()`"
+    ],
+    "description": "The read-lock induction proof exports cursor/reader-count consistency while its final quantified equality is still discharged with `admit()`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 336,
+        "end_line": 336
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-26-5474cd472251",
+    "label_index": 0,
+    "label_id": "pr-26-5474cd472251:commit-fix-289e346cc383d5e5187734cf6b3e0ba1f3b85565-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "P",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "Trusted facts are added to ordinary proof modules"
+    ],
+    "description": "The read-unlock transition exports cursor/count consistency and positive reader-count guarantees through four related `admit()` calls.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 341,
+        "end_line": 341
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 344,
+        "end_line": 344
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 355,
+        "end_line": 355
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 419,
+        "end_line": 419
+      }
+    ],
+    "reason": "H1命中同根因的positive辅助lemma，但未报告read_unlock其余3个admit；Low只是清理注释，不能算完整转移证明检测。"
+  },
+  {
+    "sample": "pr-296-899421ff5b69",
+    "label_index": 0,
+    "label_id": "pr-296-899421ff5b69:review-comment-2782098137",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`remove_rel_children` recursively duplicates information already available through `recursive_trace`, adding an unnecessary parallel specification helper.",
+    "rule_ids": [
+      "reuse-existing-specifications"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/ghost_tree.rs",
+        "start_line": 1518,
+        "end_line": 1537
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-3-df3e68c119ce",
+    "label_index": 0,
+    "label_id": "pr-3-df3e68c119ce:commit-fix-6772140e630958cdf11c69b063fdd9efad49e8c6-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      2,
+      3
+    ],
+    "finding_titles": [
+      "A complete recursive-visit proof is replaced by a local axiom",
+      "`covers` now trusts its executable/specification correspondence"
+    ],
+    "description": "The Rust 1.82 port marks two failing project-local bodies as `external_body`, making their contracts trusted assumptions even though the verifier cannot prove either implementation.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "aster_common/src/page_table/page_table_mode.rs",
+        "start_line": 33,
+        "end_line": 37
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/ghost_tree.rs",
+        "start_line": 969,
+        "end_line": 981
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-33-715c00b43894",
+    "label_index": 0,
+    "label_id": "pr-33-715c00b43894:issue-comment-2918513851",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The RW test module enables `exec::utils` without including the required `exec/utils.rs` source file, so the crate cannot build.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/exec/mod.rs",
+        "start_line": 2,
+        "end_line": 2
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-337-b6aa265c1a4a",
+    "label_index": 0,
+    "label_id": "pr-337-b6aa265c1a4a:issue-comment-4020780962",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "H1 — `PreemptDisabled` no longer disables preemption, so the enabled `RwArc` can self-deadlock on a preemptible CPU"
+    ],
+    "description": "`PreemptDisabled` is changed from an uninhabited guardian backed by `DisabledPreemptGuard` into a constructible unit struct whose guard constructors return `()`, so taking a lock no longer establishes or retains the advertised preemption-disabled state.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/sync/guard.rs",
+        "start_line": 34,
+        "end_line": 54
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "label_index": 0,
+    "label_id": "pr-35-fa067beadf03:commit-fix-0cc932ae121d4c4821ccf95cb744dbdc489ad771-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The public path-order theorem exports strict ordering for every index pair while admitting the case involving the final path element.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/common.rs",
+        "start_line": 135,
+        "end_line": 135
+      }
+    ],
+    "reason": "报告明确将common.rs既有admit排除在diff之外；基准要求识别快照存量缺陷。"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "label_index": 1,
+    "label_id": "pr-35-fa067beadf03:commit-fix-0cc932ae121d4c4821ccf95cb744dbdc489ad771-root-2",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      1,
+      2
+    ],
+    "finding_titles": [
+      "The new write-lock invariant is trusted rather than proved",
+      "A new subtree/accounting theorem is introduced with `admit()`"
+    ],
+    "description": "The write-lock transition exports subtree-lock preservation through an admitted inductive step and an admitted supporting subtree theorem.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 476,
+        "end_line": 476
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 604,
+        "end_line": 604
+      }
+    ],
+    "reason": "报告H1及M1分别定位inductive与支持lemma，合起来命中一个transition级标签。"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "label_index": 2,
+    "label_id": "pr-35-fa067beadf03:commit-fix-7df760c2e9dd1c888315c840fc9f3f4fc32244cf-root-1",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The write-unlock transition's entire invariant-preservation proof is trusted through `admit()`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 481,
+        "end_line": 481
+      }
+    ],
+    "reason": "报告明确将write_unlock既有admit排除在diff之外。"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "label_index": 3,
+    "label_id": "pr-35-fa067beadf03:commit-fix-7df760c2e9dd1c888315c840fc9f3f4fc32244cf-root-2",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The allocate transition's entire inductiveness obligation is trusted through `admit()` even though it can be checked without an assumption.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 484,
+        "end_line": 484
+      }
+    ],
+    "reason": "报告明确将allocate既有admit排除在diff之外。"
+  },
+  {
+    "sample": "pr-35-fa067beadf03",
+    "label_index": 4,
+    "label_id": "pr-35-fa067beadf03:commit-fix-7df760c2e9dd1c888315c840fc9f3f4fc32244cf-root-3",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The deallocate transition's entire inductiveness obligation is trusted through `admit()` even though it can be checked without an assumption.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/test/rw_version/spec/tree.rs",
+        "start_line": 487,
+        "end_line": 487
+      }
+    ],
+    "reason": "报告明确将deallocate既有admit排除在diff之外。"
+  },
+  {
+    "sample": "pr-350-5cbda0832ce0",
+    "label_index": 0,
+    "label_id": "pr-350-5cbda0832ce0:issue-comment-4100231726",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`RwArc` exposes locking operations but no spec-level view or equivalent relation to its protected value, so clients cannot state what data a returned guard borrows from the shared wrapper.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rwarc.rs",
+        "start_line": 26,
+        "end_line": 32
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rwarc.rs",
+        "start_line": 47,
+        "end_line": 64
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-353-650ed55495ef",
+    "label_index": 0,
+    "label_id": "pr-353-650ed55495ef:commit-fix-7eead79d9f5a72a4c28c93c5cb7e3405ac85fde5-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The documentation command passes only local and Verus crates to rustdoc, omitting registry dependency --extern mappings and their artifact search directory, so targets importing registry crates cannot resolve those imports.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "dv/src/doc.rs",
+        "start_line": 115,
+        "end_line": 143
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-355-2a3429fb0b20",
+    "label_index": 0,
+    "label_id": "pr-355-2a3429fb0b20:commit-fix-1fa08be0fc8dcd7e4f22c13b565ce1a721a8e83f-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "The rewritten `RwLock` module has invalid `impl` syntax"
+    ],
+    "description": "Three lock-guard negative Send implementations contain two consecutive commas in their generic parameter lists, leaving an empty generic parameter and preventing the source from parsing.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rwlock.rs",
+        "start_line": 694,
+        "end_line": 694
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rwlock.rs",
+        "start_line": 699,
+        "end_line": 699
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rwlock.rs",
+        "start_line": 704,
+        "end_line": 704
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-382-045fa97a6577",
+    "label_index": 0,
+    "label_id": "pr-382-045fa97a6577:review-comment-3000945837",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The trusted traversal contract excludes an executable `None` result"
+    ],
+    "description": "lock_range removes its retry loop and unwraps a traversal result that can be None when a stray node is encountered.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "start_line": 67,
+        "end_line": 84
+      }
+    ],
+    "reason": "H1明确描述None后unwrap并建议恢复retry，虽与callee不实契约合并，实际覆盖caller根因。"
+  },
+  {
+    "sample": "pr-382-045fa97a6577",
+    "label_index": 1,
+    "label_id": "pr-382-045fa97a6577:review-comment-3000945881",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The trusted traversal contract excludes an executable `None` result"
+    ],
+    "description": "The external specification guarantees Some even though the implementation explicitly returns None for stray nodes.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "start_line": 149,
+        "end_line": 188
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "start_line": 252,
+        "end_line": 261
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "start_line": 319,
+        "end_line": 328
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-382-045fa97a6577",
+    "label_index": 2,
+    "label_id": "pr-382-045fa97a6577:review-comment-3000945911",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "F",
+    "finding_ids": [
+      3
+    ],
+    "finding_titles": [
+      "`lock_range` no longer exposes the invariant its sole wrapper promises"
+    ],
+    "description": "lock_range drops the invariant, in_locked_range, and strict guard-level postconditions required by its callers.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "start_line": 33,
+        "end_line": 56
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-382-6a84ab163da0",
+    "label_index": 0,
+    "label_id": "pr-382-6a84ab163da0:review-comment-3001356215",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "`placeholder_slot_perm` manufactures ownership and arbitrary region facts"
+    ],
+    "description": "placeholder_slot_perm can manufacture initialized, non-unused, unmapped slot facts for any aligned in-range frame even though MetaRegionOwners::inv does not guarantee those facts.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "start_line": 104,
+        "end_line": 114
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-382-6a84ab163da0",
+    "label_index": 1,
+    "label_id": "pr-382-6a84ab163da0:review-comment-3001356268",
+    "category": "guideline",
+    "group": "W",
+    "group_name": "验证文档",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The map_item_requires documentation omits its new regions argument and the item_not_mapped and item_slot_in_regions obligations.",
+    "rule_ids": [
+      "document-verified-apis"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/vm_space.rs",
+        "start_line": 788,
+        "end_line": 811
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-39-8777297fc95c",
+    "label_index": 0,
+    "label_id": "pr-39-8777297fc95c:commit-fix-501ef2425a18da07580463f1382f15fba9856f7f-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Three proof postconditions call `Deref::deref` in specification context, which the supported Verus resolves as an illegal exec-mode call.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/manually_drop.rs",
+        "start_line": 34,
+        "end_line": 34
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/manually_drop.rs",
+        "start_line": 42,
+        "end_line": 42
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/manually_drop.rs",
+        "start_line": 49,
+        "end_line": 49
+      }
+    ],
+    "reason": "diff仅修改workspace/xtask；标签是证明postcondition内deref的mode错误，与变更路径不重合。"
+  },
+  {
+    "sample": "pr-390-ff234245b17b",
+    "label_index": 0,
+    "label_id": "pr-390-ff234245b17b:issue-comment-4182082798",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The DMA-stream accessor and I/O methods replace the original public `&self` interface with methods that require callers to supply an internal `RwLockReadGuard`, changing the public API/behavior instead of keeping synchronization behind the object boundary.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_stream.rs",
+        "start_line": 194,
+        "end_line": 240
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_stream.rs",
+        "start_line": 243,
+        "end_line": 299
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-392-f30278a5973e",
+    "label_index": 0,
+    "label_id": "pr-392-f30278a5973e:review-comment-3022538220",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The mapping proof manufactures a second initialized metadata-slot permission with an axiom and inserts it into the region map instead of transferring the existing linear permission.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 470,
+        "end_line": 480
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "start_line": 101,
+        "end_line": 114
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-395-6ae195e508a8",
+    "label_index": 0,
+    "label_id": "pr-395-6ae195e508a8:review-comment-3027624660",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The successful write-to-upgradeable downgrade returns the new guard without waking waiters that were blocked by the old write lock.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rwmutex.rs",
+        "start_line": 695,
+        "end_line": 749
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-403-a1f2685897f4",
+    "label_index": 0,
+    "label_id": "pr-403-a1f2685897f4:issue-comment-4235004952",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "X",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The take/put axioms can return linear pointer permissions while leaving an equivalent copy stored in the original PointsTo object, allowing tracked ownership to be duplicated or replaced without a borrow relationship.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "before",
+        "path": "vstd_extra/src/cast_ptr.rs",
+        "start_line": 243,
+        "end_line": 262
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/cast_ptr.rs",
+        "start_line": 257,
+        "end_line": 277
+      }
+    ],
+    "reason": "标签是before的take/put权限复制，after已改为借用；报告针对新borrow helper闲置，不能匹配旧缺陷，也不能简单归咎漏检。"
+  },
+  {
+    "sample": "pr-419-e2a32e9a225f",
+    "label_index": 0,
+    "label_id": "pr-419-e2a32e9a225f:commit-fix-dab3e2bda808bdf77c34675d4c70f8d96853983d-root-1",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The external seq_tracked_subrange and seq_tracked_map_values helpers return tracked sequences from ordinary ghost sequence inputs without consuming or borrowing the corresponding tracked resources, allowing the same resource model to produce duplicate ownership.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/seq_extra.rs",
+        "start_line": 10,
+        "end_line": 26
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-424-2e7051b98235",
+    "label_index": 0,
+    "label_id": "pr-424-2e7051b98235:issue-comment-4342695998",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "External specifications for slice pointer operations are placed in the generic std_extra module instead of the dedicated vstd_extra::external boundary.",
+    "rule_ids": [
+      "centralize-trusted-boundaries"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/std_extra.rs",
+        "start_line": 6,
+        "end_line": 15
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-424-8d7b6621ed81",
+    "label_index": 0,
+    "label_id": "pr-424-8d7b6621ed81:review-comment-3159151317",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The selected PR revision disables the DMA module and replaces the current generic, ownership-tracked DMA stream implementation with an outdated pre-port version.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/mod.rs",
+        "start_line": 22,
+        "end_line": 22
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_stream.rs",
+        "start_line": 20,
+        "end_line": 55
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-439-b083bbf05f58",
+    "label_index": 0,
+    "label_id": "pr-439-b083bbf05f58:issue-comment-4437186057",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "VmReader/VmWriter value operations consume tracked owner permissions on error even when their cursor is restored and the operation produces no value.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/io.rs",
+        "start_line": 665,
+        "end_line": 668
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/io.rs",
+        "start_line": 1225,
+        "end_line": 1232
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/io.rs",
+        "start_line": 1417,
+        "end_line": 1429
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/io.rs",
+        "start_line": 1469,
+        "end_line": 1479
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/io.rs",
+        "start_line": 2265,
+        "end_line": 2276
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-439-b083bbf05f58",
+    "label_index": 1,
+    "label_id": "pr-439-b083bbf05f58:issue-comment-4418478187",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The final head disables the `mm::dma` module while `ostd::init` still calls `mm::dma::init()`, so the crate cannot resolve that module reference.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/mod.rs",
+        "start_line": 22,
+        "end_line": 22
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/lib.rs",
+        "start_line": 121,
+        "end_line": 121
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-44-a75fa49663cc",
+    "label_index": 0,
+    "label_id": "pr-44-a75fa49663cc:issue-comment-2954551230",
+    "category": "semantic",
+    "group": "T",
+    "group_name": "显式admit/external_body证明缺口",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "Production allocation and range locking are promoted with their state transitions wholly trusted"
+    ],
+    "description": "The `allocate` and `lock_range` verification boundaries trust their complete contracts because `allocate` fails a precondition and `lock_range` crashes Verus around `ManuallyDrop`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "start_line": 274,
+        "end_line": 275
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/cursor.rs",
+        "start_line": 410,
+        "end_line": 411
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-440-0ba029a82c8d",
+    "label_index": 0,
+    "label_id": "pr-440-0ba029a82c8d:issue-comment-4411678323",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The migrated frame-mapping loops still spell out the owned iterator’s internal snapshot conversion instead of using the public `it.seq()` specification interface.",
+    "rule_ids": [
+      "reuse-existing-specifications"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 541,
+        "end_line": 554
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 568,
+        "end_line": 569
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 801,
+        "end_line": 817
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-45-a64f70e4ca48",
+    "label_index": 0,
+    "label_id": "pr-45-a64f70e4ca48:commit-fix-bc3de7e840084868dfc0f2f0608582214324b7af-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The error import rewrite breaks the VM I/O module"
+    ],
+    "description": "The FVT6 error migration still imports std::fmt::Error in its VM reader/writer and specification modules while referring to the project-specific InvalidArgs and PageFault variants, so the enabled modules cannot resolve those error values.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "fvt6-vmreader-and-vmwriter/src/io/vmrw.rs",
+        "start_line": 3,
+        "end_line": 3
+      },
+      {
+        "version": "after",
+        "path": "fvt6-vmreader-and-vmwriter/src/io/vmrw.rs",
+        "start_line": 136,
+        "end_line": 136
+      },
+      {
+        "version": "after",
+        "path": "fvt6-vmreader-and-vmwriter/src/io/specs.rs",
+        "start_line": 2,
+        "end_line": 2
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-452-d834e11605c3",
+    "label_index": 0,
+    "label_id": "pr-452-d834e11605c3:issue-3278110053",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Five new integer is_power_of_two external specifications repeat the existing vstd power-of-two existential model.",
+    "rule_ids": [
+      "reuse-existing-specifications"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "vstd_extra/src/external/int_specs.rs",
+        "start_line": 11,
+        "end_line": 11
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/external/int_specs.rs",
+        "start_line": 16,
+        "end_line": 16
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/external/int_specs.rs",
+        "start_line": 21,
+        "end_line": 21
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/external/int_specs.rs",
+        "start_line": 26,
+        "end_line": 26
+      },
+      {
+        "version": "after",
+        "path": "vstd_extra/src/external/int_specs.rs",
+        "start_line": 31,
+        "end_line": 31
+      }
+    ],
+    "reason": "报告要求upstream generic specs，标签要求复用现有is_pow2_exists；同一API不代表同一根因。"
+  },
+  {
+    "sample": "pr-454-1db47ee9a94b",
+    "label_index": 0,
+    "label_id": "pr-454-1db47ee9a94b:issue-comment-4537882561",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`cursor_mut_at` requires every non-member frame's slot permission to be in the global region map, excluding valid frames whose permission is owned by another linked list, a `UniqueFrame`, or a page-table node.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/frame/linked_list.rs",
+        "start_line": 432,
+        "end_line": 442
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-456-6aa8a9b0ede4",
+    "label_index": 0,
+    "label_id": "pr-456-6aa8a9b0ede4:review-comment-3256109828",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The newly exported DMA mapping is operationally a placeholder"
+    ],
+    "description": "`DmaCoherent::map` accepts non-cache-coherent devices but no longer changes the CPU mapping to uncacheable, so the returned mapping does not provide the advertised coherent CPU/device view.",
+    "rule_ids": [
+      "preserve-exec-code"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_coherent.rs",
+        "start_line": 51,
+        "end_line": 58
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_coherent.rs",
+        "start_line": 90,
+        "end_line": 109
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-456-6aa8a9b0ede4",
+    "label_index": 1,
+    "label_id": "pr-456-6aa8a9b0ede4:review-4306980141",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The newly exported DMA mapping is operationally a placeholder"
+    ],
+    "description": "Both DMA backends return a device address without performing their required platform setup: TDX pages remain private on the direct path and the IOMMU path installs no mappings.",
+    "rule_ids": [
+      "preserve-exec-code"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_coherent.rs",
+        "start_line": 111,
+        "end_line": 135
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-473-27c3210449d8",
+    "label_index": 0,
+    "label_id": "pr-473-27c3210449d8:review-comment-3286965930",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Trusted helpers that produce tracked owners use the legacy verifier::returns(proof) attribute and ordinary return binders instead of declaring tracked return values directly.",
+    "rule_ids": [
+      "avoid-redundant-mode-markers"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/linked_list/linked_list_owners.rs",
+        "start_line": 526,
+        "end_line": 535
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-474-a6fdca3a754f",
+    "label_index": 0,
+    "label_id": "pr-474-a6fdca3a754f:issue-comment-4531408222",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "KVirtArea::query models page-table guard ownership with a 'static lifetime even though atomic mode is established only by a local preemption guard.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 401,
+        "end_line": 405
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 460,
+        "end_line": 467
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-485-6fac7bc837f6",
+    "label_index": 0,
+    "label_id": "pr-485-6fac7bc837f6:review-comment-3333153971",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Three new executable metadata helpers are called by runtime paths but have unimplemented bodies, so metadata writes or borrows can panic instead of performing the required operation.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/meta_owners.rs",
+        "start_line": 431,
+        "end_line": 450
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/meta_owners.rs",
+        "start_line": 452,
+        "end_line": 468
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/meta_owners.rs",
+        "start_line": 470,
+        "end_line": 524
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-487-5170c403b0d7",
+    "label_index": 0,
+    "label_id": "pr-487-5170c403b0d7:issue-3636252007",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The re-enabled Task::current API always returns Some(CurrentTask {}), contradicting its documented None result in bootstrap context; the original task lookup remains commented out.",
+    "rule_ids": [
+      "preserve-exec-code"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/task/mod.rs",
+        "start_line": 90,
+        "end_line": 90
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-492-e7a37a7d7080",
+    "label_index": 0,
+    "label_id": "pr-492-e7a37a7d7080:review-comment-3339106905",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The generated flags field redundantly combines a `ghost` field marker with the `Ghost<T>` wrapper type.",
+    "rule_ids": [
+      "avoid-redundant-mode-markers"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "verified_bitflags/src/lib.rs",
+        "start_line": 93,
+        "end_line": 93
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-492-e7a37a7d7080",
+    "label_index": 1,
+    "label_id": "pr-492-e7a37a7d7080:review-comment-3339110119",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The exported macro's Clone implementation uses an unqualified `Ghost` constructor and unconditionally evaluates a ghost-only specification, breaking downstream or documentation builds where that name or ghost code is unavailable.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "verified_bitflags/src/lib.rs",
+        "start_line": 106,
+        "end_line": 109
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-499-2d320cbb55fc",
+    "label_index": 0,
+    "label_id": "pr-499-2d320cbb55fc:issue-comment-4658920663",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "X",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The selected pre-repair snapshot verifies a divergent specification-side x86 PageTableEntry implementation while the production implementation remains commented out, so the proofs do not establish the production PTE encoding behavior.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "before",
+        "path": "ostd/src/arch/x86/mm/mod.rs",
+        "start_line": 25,
+        "end_line": 26
+      },
+      {
+        "version": "before",
+        "path": "ostd/src/arch/x86/mm/mod.rs",
+        "start_line": 104,
+        "end_line": 168
+      },
+      {
+        "version": "before",
+        "path": "ostd/specs/arch/x86_64/page_table_entry.rs",
+        "start_line": 55,
+        "end_line": 66
+      },
+      {
+        "version": "before",
+        "path": "ostd/specs/arch/x86_64/page_table_entry.rs",
+        "start_line": 225,
+        "end_line": 262
+      },
+      {
+        "version": "before",
+        "path": "verified_libs/vstd_extra/src/bit_mapping.rs",
+        "start_line": 52,
+        "end_line": 61
+      }
+    ],
+    "reason": "标签全部定位before，PR删除替代模型并恢复production实现；after缺陷检测与历史问题识别任务不一致。"
+  },
+  {
+    "sample": "pr-50-5d510a5352a3",
+    "label_index": 0,
+    "label_id": "pr-50-5d510a5352a3:commit-fix-40b97821c08bd984014495d39c64649accc94849-root-1",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The blanket paging-constants implementation repeats two trait-owned `when_used_as_spec` mappings, causing the supported Verus to reject `lock-protocol` before verification.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/mod.rs",
+        "start_line": 130,
+        "end_line": 130
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/mm/page_table/mod.rs",
+        "start_line": 142,
+        "end_line": 142
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-500-5c863f079762",
+    "label_index": 0,
+    "label_id": "pr-500-5c863f079762:review-comment-3350635276",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Two proof lemmas carry unnecessary per-item `non_snake_case` lint suppressions.",
+    "rule_ids": [
+      "narrow-lint-suppressions"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/mapping.rs",
+        "start_line": 30,
+        "end_line": 30
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/mapping.rs",
+        "start_line": 38,
+        "end_line": 38
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-500-6c26d6c45e16",
+    "label_index": 0,
+    "label_id": "pr-500-6c26d6c45e16:review-comment-3353236200",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "Reuse the canonical frame/metadata conversion specifications"
+    ],
+    "description": "The restored executable address conversions use duplicate local spec models while the specification module aliases a second model under the exec names.",
+    "rule_ids": [
+      "pair-exec-helpers-with-spec-models"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/frame/meta.rs",
+        "start_line": 41,
+        "end_line": 49
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/mapping.rs",
+        "start_line": 44,
+        "end_line": 59
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/mapping.rs",
+        "start_line": 152,
+        "end_line": 153
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-500-e909aa15bb90",
+    "label_index": 0,
+    "label_id": "pr-500-e909aa15bb90:issue-comment-4618486734",
+    "category": "guideline",
+    "group": "E",
+    "group_name": "执行代码保留/放置",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The PR moves the existing executable frame/metadata address conversions out of their implementation module into the specification module.",
+    "rule_ids": [
+      "preserve-exec-code"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/mapping.rs",
+        "start_line": 92,
+        "end_line": 120
+      }
+    ],
+    "reason": "报告是frame_to_index/index_to_frame变spec-only；标签是frame_to_meta/meta_to_frame的exec放置错误，不同API及修复。"
+  },
+  {
+    "sample": "pr-501-5646c42516b4",
+    "label_index": 0,
+    "label_id": "pr-501-5646c42516b4:review-comment-3353050406",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "`VmSpace::activate` is neither callable by its intended clients nor implemented"
+    ],
+    "description": "The newly exposed `VmSpace::activate` API always panics instead of activating the page table.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/vm_space.rs",
+        "start_line": 316,
+        "end_line": 338
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-505-cb2be5a80af1",
+    "label_index": 0,
+    "label_id": "pr-505-cb2be5a80af1:review-comment-3361399035",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      2
+    ],
+    "finding_titles": [
+      "Required heap functionality is removed by block comments"
+    ],
+    "description": "The PR publicly enables the heap module while commenting out required allocation APIs and global allocator wiring, leaving downstream heap consumers unable to compile or allocate correctly.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/mod.rs",
+        "start_line": 19,
+        "end_line": 22
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/heap/slot.rs",
+        "start_line": 104,
+        "end_line": 157
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/heap/slab.rs",
+        "start_line": 176,
+        "end_line": 229
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/heap/mod.rs",
+        "start_line": 104,
+        "end_line": 112
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-505-dffa7b932d72",
+    "label_index": 0,
+    "label_id": "pr-505-dffa7b932d72:review-comment-3378453674",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Generic external specifications for core allocation types are placed inside the heap implementation module instead of the shared vstd_extra external-spec layer.",
+    "rule_ids": [
+      "centralize-trusted-boundaries"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/heap/mod.rs",
+        "start_line": 37,
+        "end_line": 53
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-511-860ffa221455",
+    "label_index": 0,
+    "label_id": "pr-511-860ffa221455:review-comment-3386412310",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The now-trivial `view_rec_finite` proof helper is unused and unnecessarily expands the proof API.",
+    "rule_ids": [
+      "avoid-unused-spec-helpers"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/owners.rs",
+        "start_line": 1206,
+        "end_line": 1214
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-515-378590cc39ac",
+    "label_index": 0,
+    "label_id": "pr-515-378590cc39ac:review-comment-3402157784",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "Restore the const empty constructor without silently widening the trust boundary"
+    ],
+    "description": "The public const `RcuOption::new_none` constructor is deleted even though the type's own example and existing API require it for static empty initialization.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rcu/mod.rs",
+        "start_line": 151,
+        "end_line": 151
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rcu/mod.rs",
+        "start_line": 776,
+        "end_line": 789
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-518-4cb9ee7caa9e",
+    "label_index": 0,
+    "label_id": "pr-518-4cb9ee7caa9e:review-comment-3402027390",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The nullable constructor was moved onto the non-null RCU type"
+    ],
+    "description": "The non-optional `Rcu` type exposes a `new_none` constructor that creates a nullable inner value, contradicting the type's non-null read semantics.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rcu/mod.rs",
+        "start_line": 730,
+        "end_line": 737
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/sync/rcu/mod.rs",
+        "start_line": 1085,
+        "end_line": 1089
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "label_index": 0,
+    "label_id": "pr-526-614ad9c3f014:review-comment-3412368616",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The ktest TestPtConfig implementation omits two required PageTableConfig proof methods, leaving the trait implementation incomplete when checked with proof members retained.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "start_line": 186,
+        "end_line": 222
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/test.rs",
+        "start_line": 88,
+        "end_line": 111
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-526-614ad9c3f014",
+    "label_index": 1,
+    "label_id": "pr-526-614ad9c3f014:review-comment-3412368685",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Two new page-table proof bodies import arithmetic helpers that are never referenced in their function scopes.",
+    "rule_ids": [
+      "organize-proof-imports"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/vm_space.rs",
+        "start_line": 1626,
+        "end_line": 1630
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/mod.rs",
+        "start_line": 170,
+        "end_line": 174
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-530-3574febda9d0",
+    "label_index": 0,
+    "label_id": "pr-530-3574febda9d0:review-comment-3419069655",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "P",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The generic paging-constants lemma promises a property violated by an existing implementation"
+    ],
+    "description": "The paging-constants proof newly requires every configuration to use the CPU-global base page size and entry ratio, extending an existing hardcoded level-count restriction.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/mod.rs",
+        "start_line": 131,
+        "end_line": 151
+      }
+    ],
+    "reason": "同类硬编码泛型约束，仅报告已有NR_LEVELS等式；未报告本次新增BASE_PAGE_SIZE及entry ratio。before:146已有该level等式，新增性判断错误。"
+  },
+  {
+    "sample": "pr-532-9200dd2fb210",
+    "label_index": 0,
+    "label_id": "pr-532-9200dd2fb210:review-comment-3449524410",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The selected revision carries forward CPU-specific paging requirements into newly generic paging proofs, so those proofs still exclude otherwise valid layouts.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/mod.rs",
+        "start_line": 139,
+        "end_line": 163
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/arch/x86/mod.rs",
+        "start_line": 132,
+        "end_line": 150
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-534-5ba756b22a68",
+    "label_index": 0,
+    "label_id": "pr-534-5ba756b22a68:review-comment-3432633664",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "A loop invariant redundantly casts every address and size operand to `int` instead of stating the same equality in their native arithmetic form.",
+    "rule_ids": [
+      "avoid-redundant-as-int-casts"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 765,
+        "end_line": 766
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-546-269c2b583824",
+    "label_index": 0,
+    "label_id": "pr-546-269c2b583824:commit-fix-a6d4cd2c17a43ecf9c5a435d9dc2b6e41c9c6efe-root-1",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The segment clone and slice contracts require `rc + 1 < REF_COUNT_MAX`, rejecting the valid boundary `rc = REF_COUNT_MAX - 1` even though the execution saturation guard permits the increment to `REF_COUNT_MAX`.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/mod.rs",
+        "start_line": 1127,
+        "end_line": 1144
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/segment.rs",
+        "start_line": 378,
+        "end_line": 387
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-547-4510bdeecf13",
+    "label_index": 0,
+    "label_id": "pr-547-4510bdeecf13:commit-fix-80d7ef6173e449e55c390d61c70f2229b5f7e291-root-1",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The trusted Entry::new mutable-borrow contract promises that the borrowed PageTableGuard has its original value when the borrow ends, even though the returned Entry exposes that guard through a public mutable node reference.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/node/entry.rs",
+        "start_line": 87,
+        "end_line": 98
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-562-581ce53261be",
+    "label_index": 0,
+    "label_id": "pr-562-581ce53261be:review-comment-3479795766",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "Rename the proved fact as a lemma"
+    ],
+    "description": "A checked proof function retains an `axiom_` name instead of the required `lemma_` prefix.",
+    "rule_ids": [
+      "name-proof-roles"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/kspace/kvirt_area.rs",
+        "start_line": 263,
+        "end_line": 263
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-577-94715eb8c48e",
+    "label_index": 0,
+    "label_id": "pr-577-94715eb8c48e:review-comment-3496139332",
+    "category": "guideline",
+    "group": "W",
+    "group_name": "验证文档",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The public `SegmentOwner` verification documentation still describes per-frame permissions and an obligation token that the simplified type no longer contains.",
+    "rule_ids": [
+      "document-verified-apis"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/segment.rs",
+        "start_line": 95,
+        "end_line": 100
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/segment.rs",
+        "start_line": 107,
+        "end_line": 141
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/segment.rs",
+        "start_line": 145,
+        "end_line": 160
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-595-c34b8882f0e1",
+    "label_index": 0,
+    "label_id": "pr-595-c34b8882f0e1:review-comment-3512718712",
+    "category": "semantic",
+    "group": "B",
+    "group_name": "构建、工具链与证明可接受性",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The README command described as verifying only ostd omits the focus flag, so it also re-checks dependency proofs instead of limiting verification to the root crate.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "README.md",
+        "start_line": 71,
+        "end_line": 75
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-612-0886ccdd5411",
+    "label_index": 0,
+    "label_id": "pr-612-0886ccdd5411:issue-3529784300",
+    "category": "semantic",
+    "group": "C",
+    "group_name": "API契约、泛型与边界",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The page-table item contract guarantees raw-value recovery after converting a raw value to an item, but does not guarantee recovery of the original item after converting it to raw form, despite the documented round-trip requirement.",
+    "rule_ids": [
+      "api-postconditions"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "start_line": 331,
+        "end_line": 331
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "label_index": 0,
+    "label_id": "pr-614-0f6d3afea7b8:review-comment-3557696368",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Two proof helpers that construct tracked resources use the `lemma_` prefix instead of the ownership-role prefix `tracked_`.",
+    "rule_ids": [
+      "name-proof-roles"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/mod.rs",
+        "start_line": 5397,
+        "end_line": 5397
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/mod.rs",
+        "start_line": 5406,
+        "end_line": 5406
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "label_index": 1,
+    "label_id": "pr-614-0f6d3afea7b8:review-comment-3557701673",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Three reusable proof facts are missing the required `lemma_` prefix.",
+    "rule_ids": [
+      "name-proof-roles"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/cursor/va_lemmas.rs",
+        "start_line": 371,
+        "end_line": 371
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/mod.rs",
+        "start_line": 800,
+        "end_line": 800
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "start_line": 642,
+        "end_line": 642
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-614-0f6d3afea7b8",
+    "label_index": 2,
+    "label_id": "pr-614-0f6d3afea7b8:review-comment-3557714902",
+    "category": "guideline",
+    "group": "E",
+    "group_name": "执行代码保留/放置",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "Proof work rewrites the executable `NR_LEVELS()` method instead of preserving its original direct return shape.",
+    "rule_ids": [
+      "preserve-exec-code"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/mod.rs",
+        "start_line": 463,
+        "end_line": 470
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-615-b995aae1ffdb",
+    "label_index": 0,
+    "label_id": "pr-615-b995aae1ffdb:review-comment-3534950852",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The new tracked constructors are single-use public helpers with the wrong proof-role name"
+    ],
+    "description": "Two proof helpers that construct tracked entries are named with the `lemma_` prefix instead of the repository's `tracked_` prefix for tracked-value helpers.",
+    "rule_ids": [
+      "name-proof-roles"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/vm_space_embedding.rs",
+        "start_line": 404,
+        "end_line": 409
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/vm_space_embedding.rs",
+        "start_line": 432,
+        "end_line": 437
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-616-bd8357d3afaa",
+    "label_index": 0,
+    "label_id": "pr-616-bd8357d3afaa:review-4649848274",
+    "category": "guideline",
+    "group": "E",
+    "group_name": "执行代码保留/放置",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "Proof work rewrites the executable implementation without retaining its original form"
+    ],
+    "description": "The proof removes `external_body` by decomposing the original one-line `page_size` execution into new executable locals and a temporary result instead of keeping all proof scaffolding in proof mode.",
+    "rule_ids": [
+      "preserve-exec-code"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/mod.rs",
+        "start_line": 214,
+        "end_line": 239
+      }
+    ],
+    "reason": "报告明确指出相同API/证明义务、相同失败机制，修复方向与标签一致。"
+  },
+  {
+    "sample": "pr-617-a00a7b6fa954",
+    "label_index": 0,
+    "label_id": "pr-617-a00a7b6fa954:issue-comment-4902219841",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "F",
+    "finding_ids": [
+      1
+    ],
+    "finding_titles": [
+      "The getter snapshots are not tied to the receiver"
+    ],
+    "description": "The DMA accessors expose values through fresh ghost snapshots that are only required to satisfy the inner invariant and are never related to this `DmaStream` or to a tracked observation of its current `RwArc` state, so the contracts do not establish that returned values describe the receiver being queried.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_stream.rs",
+        "start_line": 443,
+        "end_line": 448
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_stream.rs",
+        "start_line": 464,
+        "end_line": 478
+      },
+      {
+        "version": "after",
+        "path": "ostd/src/mm/dma/dma_stream.rs",
+        "start_line": 580,
+        "end_line": 614
+      }
+    ],
+    "reason": "直接命中getter任意ghost witness未绑定receiver的身份关系。"
+  },
+  {
+    "sample": "pr-626-cef66d9ffb91",
+    "label_index": 0,
+    "label_id": "pr-626-cef66d9ffb91:issue-3570339232",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "New Metadata specification import is added as another standalone same-crate import.",
+    "rule_ids": [
+      "group-imports-by-crate"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/src/mm/page_table/cursor/locking.rs",
+        "start_line": 21,
+        "end_line": 21
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-628-096c166e5ce6",
+    "label_index": 0,
+    "label_id": "pr-628-096c166e5ce6:issue-3577128689",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The embedded linked-list ownership helpers mutate tracked owners and transfer frame permissions but lack the tracked_ resource-role prefix.",
+    "rule_ids": [
+      "name-proof-roles"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/list_store.rs",
+        "start_line": 534,
+        "end_line": 534
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/list_store.rs",
+        "start_line": 453,
+        "end_line": 453
+      },
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/list_store.rs",
+        "start_line": 382,
+        "end_line": 382
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-63-742ee43ba12c",
+    "label_index": 0,
+    "label_id": "pr-63-742ee43ba12c:commit-fix-94e83a0ab6ac11b1d400463ad34c0b2e2655a593-root-1",
+    "category": "semantic",
+    "group": "R",
+    "group_name": "运行时行为与生命周期",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`PHYS_ADDR_MASK` includes the x86 NO_EXECUTE flag bit, so extracting the physical address from an NX page-table entry returns bit 63 as address data.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+        "start_line": 21,
+        "end_line": 25
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/pte/page_table_entry.rs",
+        "start_line": 347,
+        "end_line": 355
+      },
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/pte/page_table_flags.rs",
+        "start_line": 168,
+        "end_line": 178
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-632-1be8099780ff",
+    "label_index": 0,
+    "label_id": "pr-632-1be8099780ff:issue-3594255389",
+    "category": "semantic",
+    "group": "O",
+    "group_name": "所有权、资源守恒与对象身份",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The ghost frame_obligations ledger can be cleared without consuming outstanding tracked DropObligation tokens, undermining the clean-boundary accounting.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/frame/meta_region_owners.rs",
+        "start_line": 57,
+        "end_line": 57
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-634-64d2718d5a4d",
+    "label_index": 0,
+    "label_id": "pr-634-64d2718d5a4d:review-comment-3592805724",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "A reusable checked proof fact is named `segment_drop_embedded` instead of using the required `lemma_` prefix.",
+    "rule_ids": [
+      "name-proof-roles"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/embedding/segment.rs",
+        "start_line": 148,
+        "end_line": 148
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-636-b0d5450c6e0c",
+    "label_index": 0,
+    "label_id": "pr-636-b0d5450c6e0c:issue-3593301151",
+    "category": "guideline",
+    "group": "G",
+    "group_name": "规范复用、放置与闲置helper",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The tracked frame constructor repeats the physical-address alignment and upper-bound conjunction already provided by has_safe_slot.",
+    "rule_ids": [
+      "reuse-existing-specifications"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "start_line": 275,
+        "end_line": 275
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-636-b0d5450c6e0c",
+    "label_index": 1,
+    "label_id": "pr-636-b0d5450c6e0c:issue-3593299813",
+    "category": "guideline",
+    "group": "H",
+    "group_name": "命名、模式、导入与局部风格",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "The tracked frame constructor splits the contiguous parent-level bound into separate clauses instead of the chained comparison 1 <= parent_level < NR_LEVELS.",
+    "rule_ids": [
+      "use-chained-comparisons"
+    ],
+    "locations": [
+      {
+        "version": "after",
+        "path": "ostd/specs/mm/page_table/node/entry_owners.rs",
+        "start_line": 277,
+        "end_line": 277
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  },
+  {
+    "sample": "pr-64-900e41671221",
+    "label_index": 0,
+    "label_id": "pr-64-900e41671221:commit-fix-7b2e349ad7b7d17f70237d009b6cb938da9fb8bd-root-1",
+    "category": "semantic",
+    "group": "I",
+    "group_name": "状态机、不变量与模型语义",
+    "status": "M",
+    "finding_ids": [],
+    "finding_titles": [],
+    "description": "`PageTableEntryPerms::wf` guards every per-entry invariant with `len < 512` while also requiring `len == 512`, making all 512 PTE well-formedness obligations vacuous.",
+    "rule_ids": [],
+    "locations": [
+      {
+        "version": "after",
+        "path": "lock-protocol/src/exec/rw/node/rwlock/mod.rs",
+        "start_line": 316,
+        "end_line": 330
+      }
+    ],
+    "reason": "报告未指出此标签的具体根因；其他位置的信任缺口、同文件/同规则问题不计为命中。"
+  }
+]

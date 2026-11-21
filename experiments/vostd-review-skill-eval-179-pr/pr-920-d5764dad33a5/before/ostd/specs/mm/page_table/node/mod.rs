@@ -1,0 +1,160 @@
+pub mod entry_owners;
+pub mod owners;
+
+use vstd::prelude::*;
+use vstd_extra::{cast_ptr::Repr, drop_tracking::*};
+
+use crate::specs::mm::frame::meta_owners::{MetaSlotStorage, StoredPageTablePageMeta};
+
+use crate::mm::{
+    frame::Frame,
+    page_table::{PageTableConfig, PageTableGuard, PageTablePageMeta},
+};
+use core::marker::PhantomData;
+pub use entry_owners::*;
+pub use owners::*;
+
+verus! {
+
+pub tracked struct Guards {
+    /// The set of node addresses that are currently guarded (locked).
+    pub ghost guards: Set<usize>,
+}
+
+impl Guards {
+    pub open spec fn unlocked(self, addr: usize) -> bool {
+        !self.guards.contains(addr)
+    }
+
+    pub open spec fn lock_held(self, addr: usize) -> bool {
+        self.guards.contains(addr)
+    }
+}
+
+impl<'rcu, C: PageTableConfig> TrackDrop for PageTableGuard<'rcu, C> {
+    type State = Guards;
+
+    /// The node address whose lock this guard holds. The token
+    /// thus identifies *which* guard it tracks; `drop_requires`'s key
+    /// match prevents a guard's obligation from being used to drop a
+    /// different guard. The real lock-set ledger is `Guards::guards`;
+    /// this trait's discipline lifts the existing state-side discipline
+    /// onto the obligation token by carrying the locked address.
+    type Obligation = DropObligation<usize>;
+
+    open spec fn tracked_redeem_requires(self, s: Self::State) -> bool {
+        s.lock_held(self.inner.slot_vaddr())
+    }
+
+    open spec fn tracked_redeem_ensures(
+        self,
+        s0: Self::State,
+        s1: Self::State,
+        obl: Self::Obligation,
+    ) -> bool {
+        &&& s1.guards == s0.guards.remove(self.inner.slot_vaddr())
+        &&& obl.value() == self.inner.slot_vaddr()
+    }
+
+    proof fn tracked_redeem(self, tracked s: &mut Self::State) -> (tracked obl: Self::Obligation) {
+        s.guards = s.guards.remove(self.inner.slot_vaddr());
+        DropObligation::tracked_mint(self.inner.slot_vaddr())
+    }
+
+    open spec fn drop_requires(self, s: Self::State, obl: Self::Obligation) -> bool {
+        &&& s.unlocked(self.inner.slot_vaddr())
+        &&& obl.value() == self.inner.slot_vaddr()
+    }
+
+    open spec fn drop_ensures(
+        self,
+        s0: Self::State,
+        s1: Self::State,
+        obl: Self::Obligation,
+    ) -> bool {
+        s1.guards == s0.guards.insert(self.inner.slot_vaddr())
+    }
+}
+
+impl<C: PageTableConfig> PageTablePageMeta<C> {
+    pub open spec fn into_spec(self) -> StoredPageTablePageMeta {
+        StoredPageTablePageMeta {
+            nr_children: self.nr_children,
+            stray: self.stray,
+            level: self.level,
+            lock: self.lock,
+        }
+    }
+
+    #[verifier::when_used_as_spec(into_spec)]
+    pub fn into(self) -> StoredPageTablePageMeta
+        returns
+            self.into_spec(),
+    {
+        StoredPageTablePageMeta {
+            nr_children: self.nr_children,
+            stray: self.stray,
+            level: self.level,
+            lock: self.lock,
+        }
+    }
+}
+
+impl StoredPageTablePageMeta {
+    pub open spec fn into_spec<C: PageTableConfig>(self) -> PageTablePageMeta<C> {
+        PageTablePageMeta::<C> {
+            nr_children: self.nr_children,
+            stray: self.stray,
+            level: self.level,
+            lock: self.lock,
+            _phantom: PhantomData,
+        }
+    }
+
+    #[verifier::when_used_as_spec(into_spec)]
+    pub fn into<C: PageTableConfig>(self) -> PageTablePageMeta<C>
+        returns
+            self.into_spec::<C>(),
+    {
+        PageTablePageMeta::<C> {
+            nr_children: self.nr_children,
+            stray: self.stray,
+            level: self.level,
+            lock: self.lock,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+pub uninterp spec fn drop_tree_spec<C: PageTableConfig>(
+    _page: Frame<PageTablePageMeta<C>>,
+) -> Frame<PageTablePageMeta<C>>;
+
+impl<C: PageTableConfig> Repr<MetaSlotStorage> for PageTablePageMeta<C> {
+    open spec fn wf(r: MetaSlotStorage) -> bool {
+        matches!(r, MetaSlotStorage::PTNode(_))
+    }
+
+    open spec fn from_repr_spec(r: MetaSlotStorage) -> Self {
+        match r {
+            MetaSlotStorage::PTNode(node) => node.into::<C>(),
+            _ => arbitrary(),
+        }
+    }
+
+    fn to_repr(self) -> MetaSlotStorage {
+        MetaSlotStorage::PTNode(self.into())
+    }
+
+    #[verifier::external_body]
+    fn from_borrowed<'a>(r: &'a MetaSlotStorage) -> &'a Self {
+        unimplemented!()
+    }
+
+    #[verifier::external_body]
+    fn from_borrowed_mut<'a>(r: &'a mut MetaSlotStorage) -> &'a mut Self {
+        unimplemented!()
+    }
+}
+
+} // verus!

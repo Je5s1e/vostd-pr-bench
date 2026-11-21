@@ -1,0 +1,128 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/161",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 161,
+    "title": "Prove protocol_allocate",
+    "body": "Signed-off-by: Yonghao Zou <zouyonghao@live.cn>",
+    "bodyHTML": "<p dir=\"auto\">Signed-off-by: Yonghao Zou <a href=\"mailto:zouyonghao@live.cn\">zouyonghao@live.cn</a></p>",
+    "url": "https://github.com/asterinas/vostd/pull/161",
+    "state": "MERGED",
+    "createdAt": "2025-07-31T08:30:25Z",
+    "updatedAt": "2025-07-31T14:19:01Z",
+    "closedAt": "2025-07-31T14:18:57Z",
+    "mergedAt": "2025-07-31T14:18:56Z",
+    "author": {
+      "login": "zouyonghao"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "c1d63c7e77da5f3cacf16271b5e1da3f05e66adf",
+    "headRefName": "protocol_allocate",
+    "headRefOid": "fa698a4e527004be4da310b35b4db2dcbb5c09b5",
+    "changedFiles": 3,
+    "additions": 216,
+    "deletions": 10,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 3,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "Mw"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/exec/rcu/node/mod.rs",
+          "additions": 1,
+          "deletions": 3,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/rcu/tree.rs",
+          "additions": 165,
+          "deletions": 7,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/utils.rs",
+          "additions": 50,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

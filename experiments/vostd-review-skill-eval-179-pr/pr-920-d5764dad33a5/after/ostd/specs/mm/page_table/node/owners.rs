@@ -1,0 +1,334 @@
+use vstd::{
+    cell::{self, pcell_maybe_uninit},
+    prelude::*,
+    resource::Loc,
+};
+use vstd_extra::{array_ptr, ownership::*};
+
+use crate::specs::{
+    arch::*,
+    mm::{
+        frame::{mapping::*, meta_owners::*, meta_region_owners::MetaRegionOwners},
+        page_table::owners::tree_level_for,
+    },
+};
+
+use crate::mm::{
+    Paddr, PagingConstsTrait, PagingLevel, Vaddr,
+    frame::meta::{META_SLOT_SIZE, MetaSlot, REF_COUNT_MAX, mapping::meta_to_frame},
+    kspace::{FRAME_METADATA_RANGE, LINEAR_MAPPING_BASE_VADDR, VMALLOC_BASE_VADDR},
+    paddr_to_vaddr,
+    page_table::{PageTableGuard, *},
+};
+
+verus! {
+
+// ─── Present-PTE counting ──────────────────────────────────────────────────────
+// The intended meaning of `nr_children`: the number of *present* PTEs in the
+// node's `children_perm` array. `metaregion_sound_node` ties `nr_children` to
+// `count_present(children_perm.value())` (a settled-node invariant), which lets
+// the `nr_children_*_slot_bound` boundary facts be proven rather than axiomatized.
+/// Number of present PTEs among the first `n` entries of `s`.
+pub open spec fn count_present_upto<E: PageTableEntryTrait>(s: Seq<E>, n: int) -> int
+    decreases n,
+{
+    if n <= 0 {
+        0
+    } else {
+        count_present_upto(s, n - 1) + if s[n - 1].is_present() {
+            1int
+        } else {
+            0int
+        }
+    }
+}
+
+/// Number of present PTEs in `s`.
+pub open spec fn count_present<E: PageTableEntryTrait>(s: Seq<E>) -> int {
+    count_present_upto(s, s.len() as int)
+}
+
+/// `count_present_upto` is between `0` and `n`.
+pub proof fn lemma_count_present_upto_bound<E: PageTableEntryTrait>(s: Seq<E>, n: int)
+    requires
+        0 <= n,
+    ensures
+        0 <= count_present_upto(s, n) <= n,
+    decreases n,
+{
+    if n > 0 {
+        lemma_count_present_upto_bound(s, n - 1);
+    }
+}
+
+/// An absent slot below `n` makes the count strictly less than `n`.
+pub proof fn lemma_count_present_upto_absent<E: PageTableEntryTrait>(s: Seq<E>, n: int, idx: int)
+    requires
+        0 <= idx < n,
+        !s[idx].is_present(),
+    ensures
+        count_present_upto(s, n) < n,
+    decreases n,
+{
+    lemma_count_present_upto_bound(s, n - 1);
+    if idx < n - 1 {
+        lemma_count_present_upto_absent(s, n - 1, idx);
+    }
+}
+
+/// A present slot below `n` makes the count at least `1`.
+pub proof fn lemma_count_present_upto_present<E: PageTableEntryTrait>(s: Seq<E>, n: int, idx: int)
+    requires
+        0 <= idx < n,
+        s[idx].is_present(),
+    ensures
+        count_present_upto(s, n) >= 1,
+    decreases n,
+{
+    lemma_count_present_upto_bound(s, n - 1);
+    if idx < n - 1 {
+        lemma_count_present_upto_present(s, n - 1, idx);
+    }
+}
+
+/// Updating slot `idx` (with `idx < n`) shifts the count by the change in that
+/// slot's present-indicator.
+pub proof fn lemma_count_present_upto_update<E: PageTableEntryTrait>(
+    s: Seq<E>,
+    n: int,
+    idx: int,
+    pte: E,
+)
+    requires
+        0 <= idx < n <= s.len(),
+    ensures
+        count_present_upto(s.update(idx, pte), n) == count_present_upto(s, n) - (
+        if s[idx].is_present() {
+            1int
+        } else {
+            0int
+        }) + (if pte.is_present() {
+            1int
+        } else {
+            0int
+        }),
+    decreases n,
+{
+    let s2 = s.update(idx, pte);
+    if n - 1 == idx {
+        // The first `idx` entries are unchanged.
+        assert(count_present_upto(s2, n - 1) == count_present_upto(s, n - 1)) by {
+            lemma_count_present_upto_unchanged(s, s2, n - 1);
+        }
+    } else {
+        lemma_count_present_upto_update(s, n - 1, idx, pte);
+    }
+}
+
+/// A zero present-count up to `n` means every slot below `n` is absent.
+pub proof fn lemma_count_present_upto_zero_all_absent<E: PageTableEntryTrait>(s: Seq<E>, n: int)
+    requires
+        count_present_upto(s, n) == 0,
+        0 <= n,
+    ensures
+        forall|k: int| 0 <= k < n ==> !#[trigger] s[k].is_present(),
+    decreases n,
+{
+    if n > 0 {
+        lemma_count_present_upto_bound(s, n - 1);
+        lemma_count_present_upto_zero_all_absent(s, n - 1);
+    }
+}
+
+/// If two sequences agree on `[0, n)`, their counts up to `n` are equal.
+pub proof fn lemma_count_present_upto_unchanged<E: PageTableEntryTrait>(
+    s: Seq<E>,
+    s2: Seq<E>,
+    n: int,
+)
+    requires
+        0 <= n,
+        forall|k: int| 0 <= k < n ==> s[k] == s2[k],
+    ensures
+        count_present_upto(s2, n) == count_present_upto(s, n),
+    decreases n,
+{
+    if n > 0 {
+        lemma_count_present_upto_unchanged(s, s2, n - 1);
+    }
+}
+
+pub tracked struct PageMetaOwner {
+    pub nr_children: pcell_maybe_uninit::PointsTo<u16>,
+    pub stray: pcell_maybe_uninit::PointsTo<bool>,
+}
+
+impl Inv for PageMetaOwner {
+    open spec fn inv(self) -> bool {
+        &&& self.nr_children.is_init()
+        &&& 0 <= self.nr_children.value() <= NR_ENTRIES
+        &&& self.stray.is_init()
+    }
+}
+
+impl<C: PageTableConfig> OwnerOf for PageTablePageMeta<C> {
+    type Owner = PageMetaOwner;
+
+    open spec fn wf(self, owner: Self::Owner) -> bool {
+        &&& self.nr_children.id() == owner.nr_children.id()
+        &&& self.stray.id() == owner.stray.id()
+        &&& 0 <= owner.nr_children.value() <= NR_ENTRIES
+    }
+}
+
+/// # Verification Design
+/// The owner type for a page table node. It contains:
+/// - `meta_own`, a `PageMetaOwner`, which holds the permissions for node-specific
+///   metadata fields, `nr_children` and `stray`
+/// - `children_perm` is an array permission for the underlying frame in which the node
+///   is allocated, interpreted as an array of `NR_ENTRIES` page table entries
+/// - `slot_index` identifies the underlying frame's index in the metadata region
+/// - `metadata` and `metadata_id` are identity snapshots, not permissions.
+///   The owning Frame or incoming PTE holds this node's counted token.
+/// - Each node is a page table with a level between 1 and 4 (on x86); `level` tracks
+///   the level of this node.
+/// - `tree_level` is the level field of the `ghost_tree::TreeNode` that carries this object.
+///   Carried here for convenience, though it can be computed from `level`.
+pub tracked struct NodeOwner<C: PageTableConfig> {
+    pub meta_own: PageMetaOwner,
+    /// Identity snapshots; the incoming PTE or owning Frame holds the token.
+    pub ghost metadata: MetadataPerm,
+    pub ghost metadata_id: Loc,
+    pub children_perm: array_ptr::PointsTo<C::E, NR_ENTRIES>,
+    pub ghost tree_level: int,
+    pub ghost slot_index: int,
+}
+
+impl<C: PageTableConfig> Inv for NodeOwner<C> {
+    open spec fn inv(self) -> bool {
+        &&& self.meta_own.inv()
+        &&& 1 <= self.level() <= C::NR_LEVELS
+        &&& self.children_perm.wf()
+        &&& self.children_perm.is_init_all()
+        &&& self.children_perm.addr() == paddr_to_vaddr(
+            meta_to_frame(index_to_meta(self.slot_index)),
+        )
+        &&& self.tree_level == tree_level_for::<C>(self.level())
+        &&& 0 <= self.slot_index < max_meta_slots()
+        &&& FRAME_METADATA_RANGE.start <= index_to_meta(self.slot_index) < FRAME_METADATA_RANGE.end
+        &&& index_to_meta(self.slot_index) % META_SLOT_SIZE == 0
+        &&& meta_to_frame(index_to_meta(self.slot_index)) < VMALLOC_BASE_VADDR
+            - LINEAR_MAPPING_BASE_VADDR
+        &&& meta_to_frame(index_to_meta(self.slot_index)) < MAX_PADDR
+    }
+}
+
+impl<C: PageTableConfig> NodeOwner<C> {
+    /// Relates an actual counted token to this non-owning node identity.
+    pub open spec fn matches_permission(self, permission: FracMetadataPerm) -> bool {
+        &&& permission.frac() == 1
+        &&& permission.id() == self.metadata_id
+        &&& permission.resource() == self.metadata
+    }
+
+    /// The meta address of this node's slot, computed from `slot_index`.
+    pub open spec fn slot_vaddr(self) -> Vaddr {
+        index_to_meta(self.slot_index)
+    }
+
+    pub open spec fn meta_wf(self, regions: MetaRegionOwners) -> bool {
+        typed_meta_wf::<PageTablePageMeta<C>>(*regions.slots[self.slot_index], self.metadata)
+    }
+
+    pub open spec fn meta_value(self) -> PageTablePageMeta<C> {
+        typed_meta_value::<PageTablePageMeta<C>>(self.metadata)
+    }
+
+    pub open spec fn level(self) -> PagingLevel {
+        self.meta_value().level
+    }
+
+    /// Regions-tied invariants that used to live in `NodeOwner::inv()` via
+    /// the now-removed `meta_perm` field. Establishes the bridge between
+    /// the NodeOwner and the slot perm parked in regions.
+    pub open spec fn metaregion_sound_node(self, regions: MetaRegionOwners) -> bool {
+        let idx = self.slot_index;
+        &&& regions.contains(idx)
+        &&& 0 < regions.ref_count(idx) <= REF_COUNT_MAX
+        &&& self.metadata_id == regions.slot_owners[idx].metadata_perm.id()
+        &&& self.metadata == regions.slot_owners[idx].metadata_perm()
+        &&& self.meta_wf(regions)
+        &&& self.meta_value().wf(self.meta_own)
+        &&& regions.slot_owners[self.slot_index].usage is PageTable
+        &&& self.count_consistent()
+    }
+
+    /// `nr_children` equals the number of present PTEs in `children_perm`.
+    pub open spec fn count_consistent(self) -> bool {
+        self.meta_own.nr_children.value() == count_present(self.children_perm.value())
+    }
+}
+
+impl<C: PageTableConfig> NodeOwner<C> {
+    /// If a slot in `children_perm` holds a non-present PTE, then
+    /// `nr_children < NR_ENTRIES`. Proven (no longer axiomatized) from the
+    /// `count_consistent` invariant: `nr_children` counts present PTEs, and an
+    /// absent slot means not all `NR_ENTRIES` slots are present.
+    pub proof fn lemma_nr_children_absent_slot_bound(self, idx: usize)
+        requires
+            self.inv(),
+            self.count_consistent(),
+            self.children_perm.value().len() == NR_ENTRIES,
+            idx < NR_ENTRIES,
+            !self.children_perm.value()[idx as int].is_present(),
+        ensures
+            self.meta_own.nr_children.value() < NR_ENTRIES,
+    {
+        lemma_count_present_upto_absent(self.children_perm.value(), NR_ENTRIES as int, idx as int);
+    }
+
+    /// If a slot in `children_perm` holds a present PTE, then `nr_children > 0`.
+    /// Dual of [`Self::lemma_nr_children_absent_slot_bound`]; proven from
+    /// `count_consistent`.
+    pub proof fn nr_children_present_slot_bound(self, idx: usize)
+        requires
+            self.inv(),
+            self.count_consistent(),
+            self.children_perm.value().len() == NR_ENTRIES,
+            idx < NR_ENTRIES,
+            self.children_perm.value()[idx as int].is_present(),
+        ensures
+            self.meta_own.nr_children.value() > 0,
+    {
+        lemma_count_present_upto_present(self.children_perm.value(), NR_ENTRIES as int, idx as int);
+    }
+}
+
+impl<'rcu, C: PageTableConfig> NodeOwner<C> {
+    pub open spec fn relate_guard(self, guard: PageTableGuard<'rcu, C>) -> bool {
+        &&& guard.inner@.wf(self)
+        &&& guard.inner.external_meta_wf(self.metadata)
+        &&& guard.inner@.tracked_metadata_perm@ matches Some(permission) ==> {
+            &&& guard.inner.inv()
+            &&& self.matches_permission(permission)
+        }
+    }
+}
+
+impl<C: PageTableConfig> OwnerOf for PageTableNode<C> {
+    type Owner = NodeOwner<C>;
+
+    open spec fn wf(self, owner: Self::Owner) -> bool {
+        &&& self.slot_vaddr() == owner.slot_vaddr()
+        &&& self.ptr_inv()
+    }
+}
+
+impl<C: PageTableConfig> PageTableNode<C> {
+    pub open spec fn invariants(self, owner: NodeOwner<C>) -> bool {
+        &&& owner.inv()
+        &&& self.wf(owner)
+    }
+}
+
+} // verus!

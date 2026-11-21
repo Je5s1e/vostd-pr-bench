@@ -1,0 +1,245 @@
+diff --git a/ostd/src/arch/x86/mod.rs b/ostd/src/arch/x86/mod.rs
+index 5d98702b5db91003d9e65b8b9fe062ea6a0193ed..df7a81de1ac5c69e3608434f1841adddd782fe24 100644
+--- a/ostd/src/arch/x86/mod.rs
++++ b/ostd/src/arch/x86/mod.rs
+@@ -12,9 +12,9 @@ pub(crate) mod mm;
+ /*pub(crate) mod pci;
+ pub mod qemu;
+ pub(crate) mod serial;
+-pub(crate) mod task;
++pub(crate) mod task; */
+ pub mod timer;
+-pub mod trap;*/
++/* pub mod trap; */
+ 
+ /*use io::construct_io_mem_allocator_builder;
+ use spin::Once;
+diff --git a/ostd/src/arch/x86/timer/mod.rs b/ostd/src/arch/x86/timer/mod.rs
+index 4913046564998b0ca702967e95dc9a8a0bdd9660..816d3516898b69ec74bac7684986d3484cdf7607 100644
+--- a/ostd/src/arch/x86/timer/mod.rs
++++ b/ostd/src/arch/x86/timer/mod.rs
+@@ -1,5 +1,10 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! The timer support.
++use vstd::prelude::*;
++
++verus! {
++
++/*
+ mod apic;
+ mod hpet;
+ pub(crate) mod pit;
+@@ -15,7 +20,7 @@ use crate::{
+     timer::INTERRUPT_CALLBACKS,
+     trap::{self, irq::IrqLine},
+ };
+-
++*/
+ /// The timer frequency (Hz).
+ ///
+ /// Here we choose 1000Hz since 1000Hz is easier for unit conversion and
+@@ -30,6 +35,7 @@ use crate::{
+ /// / Divider)
+ pub const TIMER_FREQ: u64 = 1000;
+ 
++/*
+ static TIMER_IRQ: Once<IrqLine> = Once::new();
+ 
+ /// Initializes the timer state and enable timer interrupts on BSP.
+@@ -73,3 +79,5 @@ fn timer_callback(_: &TrapFrame) {
+ 
+     apic::timer_callback();
+ }
++*/
++} // verus!
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 80eb71a560d1aece5c390798c801b6cc0c0a83b8..8a90a38768d0a1763374bd1faf0a2299108472f9 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -50,7 +50,7 @@ pub mod prelude;
+ pub mod smp;*/
+ pub mod sync;
+ pub mod task;
+-// pub mod timer;
++pub mod timer;
+ pub mod trap;
+ // pub mod user;
+ #[path = "../specs/mod.rs"]
+diff --git a/ostd/src/timer/jiffies.rs b/ostd/src/timer/jiffies.rs
+index f327d73aace1189e372e12116d92cd9588c98d1e..98dc93e196cca0bfcb984961b923e5fa0bc1418f 100644
+--- a/ostd/src/timer/jiffies.rs
++++ b/ostd/src/timer/jiffies.rs
+@@ -3,23 +3,65 @@ use core::{
+     sync::atomic::{AtomicU64, Ordering},
+     time::Duration,
+ };
++use vstd::prelude::*;
++use vstd::std_specs::convert::FromSpecImpl;
+ 
+ use crate::arch::timer::TIMER_FREQ;
++verus! {
+ 
++pub(crate) exec static ELAPSED: AtomicU64 = AtomicU64::new(0);
++
++} // verus!
+ /// Jiffies is a term used to denote the units of time measurement by the kernel.
+ ///
+ /// A jiffy represents one tick of the system timer interrupt,
+ /// whose frequency is equal to [`TIMER_FREQ`] Hz.
++#[verus_verify]
+ #[derive(Copy, Clone, Debug)]
+ pub struct Jiffies(u64);
+ 
+-pub(crate) static ELAPSED: AtomicU64 = AtomicU64::new(0);
++verus! {
++
++impl View for Jiffies {
++    type V = u64;
++
++    closed spec fn view(&self) -> Self::V {
++        self.0
++    }
++}
+ 
++impl Jiffies {
++    /// The whole-second component of this jiffy count.
++    pub closed spec fn duration_secs(self) -> u64 {
++        self@ / TIMER_FREQ
++    }
++
++    /// The subsecond nanosecond component of this jiffy count.
++    pub closed spec fn duration_nanos(self) -> u32 {
++        (((self@ % TIMER_FREQ) * 1_000_000_000u64) / (TIMER_FREQ as int)) as u32
++    }
++}
++
++impl FromSpecImpl<Jiffies> for Duration {
++    open spec fn obeys_from_spec() -> bool {
++        true
++    }
++
++    open spec fn from_spec(value: Jiffies) -> Duration {
++        vstd_extra::external::duration_new_spec(value.duration_secs(), value.duration_nanos())
++    }
++}
++
++} // verus!
+ impl Jiffies {
+     /// The maximum value of [`Jiffies`].
+     pub const MAX: Self = Self(u64::MAX);
++}
+ 
++#[verus_verify]
++impl Jiffies {
+     /// Creates a new instance.
++    #[verus_spec(ret => ensures ret@ == value)]
+     pub fn new(value: u64) -> Self {
+         Self(value)
+     }
+@@ -30,16 +72,29 @@ impl Jiffies {
+     }
+ 
+     /// Gets the number of jiffies.
++    #[verus_spec(returns self@)]
+     pub fn as_u64(self) -> u64 {
+         self.0
+     }
+ 
+     /// Adds the given number of jiffies, saturating at [`Jiffies::MAX`] on overflow.
++    #[verus_spec(
++        ensures
++            final(self)@ == if old(self)@ + jiffies > u64::MAX {
++                u64::MAX
++            } else {
++                (old(self)@ + jiffies) as u64
++            },
++    )]
+     pub fn add(&mut self, jiffies: u64) {
+         self.0 = self.0.saturating_add(jiffies);
+     }
+ 
+     /// Gets the [`Duration`] calculated from the jiffies counts.
++    #[verus_spec(returns vstd_extra::external::duration_new_spec(
++        self.duration_secs(),
++        self.duration_nanos(),
++    ))]
+     pub fn as_duration(self) -> Duration {
+         let secs = self.0 / TIMER_FREQ;
+         let nanos = ((self.0 % TIMER_FREQ) * 1_000_000_000) / TIMER_FREQ;
+@@ -47,6 +102,7 @@ impl Jiffies {
+     }
+ }
+ 
++#[verus_verify]
+ impl From<Jiffies> for Duration {
+     fn from(value: Jiffies) -> Self {
+         value.as_duration()
+diff --git a/ostd/src/timer/mod.rs b/ostd/src/timer/mod.rs
+index c76df3b3751c8d8cbb9c51fe9121270a881a2fea..5724e323e955875bfcb5818782502a8d25e7e980 100644
+--- a/ostd/src/timer/mod.rs
++++ b/ostd/src/timer/mod.rs
+@@ -2,12 +2,12 @@
+ //! The timer support.
+ pub(crate) mod jiffies;
+ 
+-use alloc::{boxed::Box, vec::Vec};
+-use core::cell::RefCell;
++/* use alloc::{boxed::Box, vec::Vec};
++use core::cell::RefCell; */
+ 
+ pub use jiffies::Jiffies;
+ 
+-use crate::{cpu_local, trap};
++/* use crate::{cpu_local, trap};
+ 
+ type InterruptCallback = Box<dyn Fn() + Sync + Send>;
+ 
+@@ -25,4 +25,4 @@ where
+         .get_with(&irq_guard)
+         .borrow_mut()
+         .push(Box::new(func));
+-}
++} */
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index 7e2a80a33937ede9aca06c010bb625a2dfc0d402..5b1c6e3666dddbf5e78b51fdba63d00f8b75400e 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -11,6 +11,7 @@ pub mod ptr;
+ pub mod range;
+ pub mod slice;
+ pub mod smart_ptr;
++pub mod time;
+ 
+ pub use ilog2::*;
+ pub use int_specs::*;
+@@ -19,6 +20,7 @@ pub use ptr::*;
+ pub use range::*;
+ pub use slice::*;
+ pub use smart_ptr::*;
++pub use time::*;
+ 
+ use vstd::prelude::*;
+ 
+diff --git a/verified_libs/vstd_extra/src/external/time.rs b/verified_libs/vstd_extra/src/external/time.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..608c3628a3bbd46bfafc6375b37b22eb13849168
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/time.rs
+@@ -0,0 +1,17 @@
++use vstd::prelude::*;
++
++verus! {
++
++/// Abstract result of constructing a standard-library duration.
++pub uninterp spec fn duration_new_spec(secs: u64, nanos: u32) -> core::time::Duration;
++
++pub assume_specification[ core::time::Duration::new ](secs: u64, nanos: u32) -> core::time::Duration
++    requires
++        secs + (nanos / 1_000_000_000) as u64 <= u64::MAX,
++    returns
++        duration_new_spec(secs, nanos),
++    opens_invariants none
++    no_unwind
++;
++
++} // verus!

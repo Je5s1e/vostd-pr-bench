@@ -1,0 +1,43 @@
+{
+  "review_path_redactions": [
+    {
+      "file": "evidence/snapshot.json",
+      "sample": "pr-532-9200dd2fb210",
+      "field": "review",
+      "operation": "remove_machine_absolute_workspace_prefix",
+      "original_review_sha256": "33160367648ea5fe7cd14fd682e725d5162688a1d27a6f109b6e902c16bc729c",
+      "public_review_sha256": "4913415897a7e2be18f8cbe5062860e72e8cb20b3c1ed4932cc8e8a3a308d564"
+    },
+    {
+      "file": "evidence/snapshot.json",
+      "sample": "pr-75-0ff02a61dc17",
+      "field": "review",
+      "operation": "remove_machine_absolute_workspace_prefix",
+      "original_review_sha256": "6bc4fe56207f576075d87905cf75c00384aa61aa2d29346821fedcc06295b6f9",
+      "public_review_sha256": "3246d3a1c305bab4f1a5371ddd16b4b78aef761b2b75eba3c9c2a6b498559b14"
+    },
+    {
+      "file": "evidence/snapshot.json",
+      "sample": "pr-897-657bce05372e",
+      "field": "review",
+      "operation": "remove_machine_absolute_workspace_prefix",
+      "original_review_sha256": "1ea7ca4ac81821558850deac234f2918716774493410ccbdbf3b85942b2633a8",
+      "public_review_sha256": "6596d56713cd2086995946e7f666f6b78a6717b9941d7ca42a9bfb40e28d4188"
+    },
+    {
+      "file": "archive/baseline-96/snapshot.json",
+      "sample": "pr-532-9200dd2fb210",
+      "field": "review",
+      "operation": "remove_machine_absolute_workspace_prefix",
+      "original_review_sha256": "33160367648ea5fe7cd14fd682e725d5162688a1d27a6f109b6e902c16bc729c",
+      "public_review_sha256": "4913415897a7e2be18f8cbe5062860e72e8cb20b3c1ed4932cc8e8a3a308d564"
+    }
+  ],
+  "other_changes": [
+    "重新分目录并修正报告链接",
+    "补充阅读导航及复现说明",
+    "evaluate.py只调整输入/输出路径与输出保护；裁决和计算逻辑沿用",
+    "历史报告增加中间结果提示并移除本机绝对路径"
+  ],
+  "scoring_changes": false
+}

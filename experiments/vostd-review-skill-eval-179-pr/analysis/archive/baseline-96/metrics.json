@@ -1,0 +1,153 @@
+{
+  "captured_at": "2026-11-21T14:20:57.921502+08:00",
+  "sample_count": 96,
+  "distinct_pr_count": 85,
+  "total_samples": 179,
+  "completed_rate": 0.5363128491620112,
+  "issue_stats": {
+    "n": 117,
+    "full": 42,
+    "partial": 3,
+    "miss": 70,
+    "fixed_in_after": 2,
+    "strict_recall": 0.358974358974359,
+    "lenient_recall": 0.38461538461538464
+  },
+  "by_category": {
+    "semantic": {
+      "n": 91,
+      "full": 38,
+      "partial": 3,
+      "miss": 48,
+      "fixed_in_after": 2,
+      "strict_recall": 0.4175824175824176,
+      "lenient_recall": 0.45054945054945056
+    },
+    "guideline": {
+      "n": 26,
+      "full": 4,
+      "partial": 0,
+      "miss": 22,
+      "fixed_in_after": 0,
+      "strict_recall": 0.15384615384615385,
+      "lenient_recall": 0.15384615384615385
+    }
+  },
+  "by_group": {
+    "显式admit/external_body证明缺口": {
+      "n": 22,
+      "full": 15,
+      "partial": 2,
+      "miss": 5,
+      "fixed_in_after": 0,
+      "strict_recall": 0.6818181818181818,
+      "lenient_recall": 0.7727272727272727
+    },
+    "所有权、资源守恒与对象身份": {
+      "n": 10,
+      "full": 2,
+      "partial": 0,
+      "miss": 7,
+      "fixed_in_after": 1,
+      "strict_recall": 0.2,
+      "lenient_recall": 0.2
+    },
+    "状态机、不变量与模型语义": {
+      "n": 10,
+      "full": 4,
+      "partial": 0,
+      "miss": 5,
+      "fixed_in_after": 1,
+      "strict_recall": 0.4,
+      "lenient_recall": 0.4
+    },
+    "API契约、泛型与边界": {
+      "n": 12,
+      "full": 4,
+      "partial": 1,
+      "miss": 7,
+      "fixed_in_after": 0,
+      "strict_recall": 0.3333333333333333,
+      "lenient_recall": 0.4166666666666667
+    },
+    "构建、工具链与证明可接受性": {
+      "n": 23,
+      "full": 6,
+      "partial": 0,
+      "miss": 17,
+      "fixed_in_after": 0,
+      "strict_recall": 0.2608695652173913,
+      "lenient_recall": 0.2608695652173913
+    },
+    "运行时行为与生命周期": {
+      "n": 14,
+      "full": 7,
+      "partial": 0,
+      "miss": 7,
+      "fixed_in_after": 0,
+      "strict_recall": 0.5,
+      "lenient_recall": 0.5
+    },
+    "规范复用、放置与闲置helper": {
+      "n": 8,
+      "full": 1,
+      "partial": 0,
+      "miss": 7,
+      "fixed_in_after": 0,
+      "strict_recall": 0.125,
+      "lenient_recall": 0.125
+    },
+    "命名、模式、导入与局部风格": {
+      "n": 13,
+      "full": 2,
+      "partial": 0,
+      "miss": 11,
+      "fixed_in_after": 0,
+      "strict_recall": 0.15384615384615385,
+      "lenient_recall": 0.15384615384615385
+    },
+    "执行代码保留/放置": {
+      "n": 3,
+      "full": 1,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.3333333333333333,
+      "lenient_recall": 0.3333333333333333
+    },
+    "验证文档": {
+      "n": 2,
+      "full": 0,
+      "partial": 0,
+      "miss": 2,
+      "fixed_in_after": 0,
+      "strict_recall": 0.0,
+      "lenient_recall": 0.0
+    }
+  },
+  "after_only_sensitivity": {
+    "n": 115,
+    "full": 42,
+    "partial": 3,
+    "miss": 70,
+    "fixed_in_after": 0,
+    "strict_recall": 0.3652173913043478,
+    "lenient_recall": 0.391304347826087
+  },
+  "findings": 174,
+  "finding_status": {
+    "unmatched_not_adjudicated_false": 128,
+    "full_match": 43,
+    "partial_match": 3
+  },
+  "severity": {
+    "High": 87,
+    "Medium": 74,
+    "Low": 13
+  },
+  "cases_any_full": 35,
+  "cases_all_full": 32,
+  "cases_no_full": 61,
+  "cases_no_findings": 11,
+  "diff_equal": true
+}

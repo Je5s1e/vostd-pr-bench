@@ -1,0 +1,239 @@
+diff --git a/ostd/src/arch/x86/kernel/mod.rs b/ostd/src/arch/x86/kernel/mod.rs
+index a762dc0f9806a190b21d7703a74fd9376206ca21..7d422459306ad1c93dfa6f032bc631d92b50439a 100644
+--- a/ostd/src/arch/x86/kernel/mod.rs
++++ b/ostd/src/arch/x86/kernel/mod.rs
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ pub(super) mod acpi;
+ pub(super) mod apic;
+-/* pub(super) mod irq;
++/* pub(super) mod irq; */
+ pub(super) mod tsc;
+ 
+-pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
++/* pub use irq::{IRQ_CHIP, IrqChip, MappedIrqLine}; */
+diff --git a/ostd/src/arch/x86/kernel/tsc.rs b/ostd/src/arch/x86/kernel/tsc.rs
+index 6fa47d81d66c939074d8761a883795893f777fa3..dae6b5d89f267493509f780b667b7d9aad677fe3 100644
+--- a/ostd/src/arch/x86/kernel/tsc.rs
++++ b/ostd/src/arch/x86/kernel/tsc.rs
+@@ -1,11 +1,19 @@
+ // SPDX-License-Identifier: MPL-2.0
+ #![expect(unused_variables)]
+ 
++use vstd::{arithmetic::div_mod::lemma_fundamental_div_mod, prelude::*};
++use vstd_extra::ownership::Inv;
++
++/* PIT calibration awaits timer/IRQ integration.
++ * Origin Rust:
+ use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+ 
+ use log::info;
++*/
+ use x86::cpuid::cpuid;
+ 
++/* PIT calibration awaits timer/IRQ integration.
++ * Origin Rust:
+ use crate::{
+     arch::{
+         timer::{
+@@ -16,7 +24,10 @@ use crate::{
+     },
+     trap::irq::IrqLine,
+ };
++*/
+ 
++/* PIT calibration awaits timer/IRQ integration.
++ * Origin Rust:
+ /// The frequency of TSC(Hz)
+ pub(in crate::arch) static TSC_FREQ: AtomicU64 = AtomicU64::new(0);
+ 
+@@ -26,23 +37,106 @@ pub fn init_tsc_freq() {
+     TSC_FREQ.store(tsc_freq, Ordering::Relaxed);
+     info!("TSC frequency:{:?} Hz", tsc_freq);
+ }
++*/
++
++verus! {
++
++/// CPUID values sampled by one invocation.
++pub ghost struct CpuidSamples {
++    pub max_leaf: u32,
++    /// Leaf 0x15: (denominator, numerator, crystal Hz).
++    pub leaf15: Option<(u32, u32, u32)>,
++    pub base_mhz: Option<u32>,
++}
+ 
+-/// Determines TSC frequency via CPUID. If the CPU does not support calculating TSC frequency by
+-/// CPUID, the function will return None. The unit of the return value is KHz.
++impl Inv for CpuidSamples {
++    open spec fn inv(self) -> bool {
++        &&& self.leaf15.is_some() == (self.max_leaf > 0x15)
++        &&& self.base_mhz.is_some() == match self.leaf15 {
++            Some((a, b, c)) => a != 0 && b != 0 && c / 1000 == 0 && self.max_leaf >= 0x16,
++            None => false,
++        }
++    }
++}
++
++impl CpuidSamples {
++    /// Frequency in Hz, preserving kHz truncation.
++    pub open spec fn frequency_hz(self) -> Option<int> {
++        if self.max_leaf <= 0x15 {
++            None
++        } else {
++            match self.leaf15 {
++                None => None,
++                Some((a, b, c)) => {
++                    if a == 0 || b == 0 {
++                        None
++                    } else {
++                        let khz = if c / 1000 != 0 {
++                            c as int / 1000
++                        } else {
++                            match self.base_mhz {
++                                Some(base) => base as int * 1000 * a / b as int,
++                                None => 0,
++                            }
++                        };
++                        let overflow = match self.base_mhz {
++                            Some(base) => base as int * 1000 > u32::MAX || base as int * 1000 * a
++                                > u32::MAX,
++                            None => false,
++                        };
++                        if overflow || khz == 0 {
++                            None
++                        } else {
++                            Some(khz * 1000 * b / a as int)
++                        }
++                    }
++                },
++            }
++        }
++    }
++}
++
++} // verus!
++/// Returns TSC frequency in Hz, or None for missing/zero inputs or u32 overflow.
++/// Retains the existing max-leaf <= 0x15 rejection.
+ ///
+ /// Ref: function `native_calibrate_tsc` in linux `arch/x86/kernel/tsc.c`
+ ///
++/// ## Safety
++/// - Arithmetic is proved panic-free; native CPUID reads are trusted.
++///
++/// ## Functional Correctness
++/// - The result matches the sampled-register calculation, including kHz truncation
++///   and overflow rejection. Physical clock accuracy is outside the proof.
++///
++#[verus_spec(result =>
++    with Tracked(samples): Tracked<&mut Ghost<CpuidSamples>>
++    ensures
++        final(samples)@.inv(),
++        final(samples)@.frequency_hz() == match result {
++            Some(hz) => Some(hz as int),
++            None => None,
++        },
++)]
+ pub fn determine_tsc_freq_via_cpuid() -> Option<u64> {
+     // Check the max cpuid supported
+     let cpuid = cpuid!(0);
+     let max_cpuid = cpuid.eax;
++    proof! {
++        *samples = Ghost(CpuidSamples { max_leaf: max_cpuid, leaf15: None, base_mhz: None });
++    }
+     if max_cpuid <= 0x15 {
+         return None;
+     }
+ 
+-    // TSC frequecny = ecx * ebx / eax
+-    // CPUID 0x15: Time Stamp Counter and Nominal Core Crystal Clock Information Leaf
++    // Leaf 0x15: TSC frequency = crystal Hz * EBX / EAX, with kHz truncation.
+     let mut cpuid = cpuid!(0x15);
++    proof! {
++        *samples = Ghost(CpuidSamples {
++            leaf15: Some((cpuid.eax, cpuid.ebx, cpuid.ecx)),
++            ..samples@
++        });
++    }
+     if cpuid.eax == 0 || cpuid.ebx == 0 {
+         return None;
+     }
+@@ -56,17 +150,36 @@ pub fn determine_tsc_freq_via_cpuid() -> Option<u64> {
+     if crystal_khz == 0 && max_cpuid >= 0x16 {
+         cpuid = cpuid!(0x16);
+         let base_mhz = cpuid.eax;
+-        crystal_khz = base_mhz * 1000 * eax_denominator / ebx_numerator;
++        proof! {
++            *samples = Ghost(CpuidSamples { base_mhz: Some(base_mhz), ..samples@ });
++        }
++        /* CPUID products may overflow u32; return None.
++         * Origin Rust: crystal_khz = base_mhz * 1000 * eax_denominator / ebx_numerator;
++         */
++        crystal_khz = base_mhz.checked_mul(1000)?.checked_mul(eax_denominator)? / ebx_numerator;
++        proof! {
++            lemma_fundamental_div_mod(base_mhz * 1000 * eax_denominator, ebx_numerator as int);
++        }
+     }
+ 
+     if crystal_khz == 0 {
+         None
+     } else {
+         let crystal_hz = crystal_khz as u64 * 1000;
++        proof! {
++            assert(crystal_hz * ebx_numerator <= u64::MAX) by (nonlinear_arith)
++                requires
++                    0 <= crystal_khz * 1000 <= u32::MAX
++                        || 0 <= crystal_khz * ebx_numerator <= u32::MAX,
++                    crystal_hz == crystal_khz * 1000,
++                    0 < ebx_numerator <= u32::MAX,
++            {}
++        }
+         Some(crystal_hz * ebx_numerator as u64 / eax_denominator as u64)
+     }
+ }
+ 
++/*
+ /// When kernel cannot get the TSC frequency from CPUID, it can leverage
+ /// the PIT to calculate this frequency.
+ pub fn determine_tsc_freq_via_pit() -> u64 {
+@@ -121,3 +234,4 @@ pub fn determine_tsc_freq_via_pit() -> u64 {
+         IS_FINISH.store(true, Ordering::Release);
+     }
+ }
++*/
+diff --git a/verified_libs/vstd_extra/src/external/x86.rs b/verified_libs/vstd_extra/src/external/x86.rs
+index f9d06fcbe74677adcc384815aa1b448b6d206606..7482d11e71fb746b3282a4048e2b7151a671c916 100644
+--- a/verified_libs/vstd_extra/src/external/x86.rs
++++ b/verified_libs/vstd_extra/src/external/x86.rs
+@@ -1,8 +1,9 @@
+ //! External specifications for the [`x86` crate](https://crates.io/crates/x86)
+-//! constants and MSR accessors. Constant values are trusted to match
++//! constants, CPUID reader and MSR accessors. Constant values are trusted to match
+ //! the crate sources; the original constants are re-exported below. Also models the
+ //! [`x86_64` crate](https://crates.io/crates/x86_64) MSR accessors.
+ use vstd::prelude::*;
++use x86::cpuid::CpuIdResult;
+ 
+ pub use x86::{
+     apic::xapic::{
+@@ -19,6 +20,20 @@ use x86_64::registers::model_specific::Msr;
+ 
+ verus! {
+ 
++/// Exposes the four u32 result registers.
++#[verifier::external_type_specification]
++pub struct ExCpuIdResult(CpuIdResult);
++
++/// Trusted native read: x86 0.52/raw-cpuid 10.7 delegates to `__cpuid_count`.
++/// Requires x86_64 outside SGX; registers are arbitrary per call.
++pub assume_specification[ x86::cpuid::native_cpuid::cpuid_count ](
++    leaf: u32,
++    subleaf: u32,
++) -> CpuIdResult
++    opens_invariants none
++    no_unwind
++;
++
+ pub assume_specification[ x86::apic::xapic::XAPIC_ID ] -> u32
+     returns
+         0x020u32,

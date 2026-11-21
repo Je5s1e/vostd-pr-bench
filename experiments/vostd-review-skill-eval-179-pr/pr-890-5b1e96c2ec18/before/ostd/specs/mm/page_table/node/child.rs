@@ -1,0 +1,140 @@
+use vstd::prelude::*;
+use vstd_extra::ownership::*;
+
+use crate::specs::mm::frame::{
+    mapping::{frame_to_index, meta_to_index},
+    meta_owners::FracMetadataPerm,
+    meta_region_owners::MetaRegionOwners,
+};
+
+use crate::arch::mm::PagingConsts;
+use crate::mm::{
+    Paddr, PagingConstsTrait, PagingLevel, Vaddr, frame::*, page_prop::PageProperty, page_table::*,
+};
+
+verus! {
+
+impl<C: PageTableConfig> OwnerOf for Child<C> {
+    type Owner = EntryOwner<C>;
+
+    open spec fn wf(self, owner: Self::Owner) -> bool {
+        match self {
+            Self::PageTable(node) => {
+                &&& owner.is_node()
+                &&& node.slot_vaddr() == owner.node().slot_vaddr()
+                &&& node.index() == meta_to_index(node.slot_vaddr())
+                &&& node.ptr_inv()
+                &&& node.inv()
+                &&& owner.node_permission is None
+                &&& owner.node().matches_permission(node.frac_metadata_perm())
+            },
+            Self::Frame(paddr, level, prop) => {
+                &&& owner.is_frame()
+                &&& owner.frame().mapped_pa == paddr
+                &&& owner.frame().prop == prop
+                &&& level == owner.parent_level
+            },
+            Self::None => owner.is_absent(),
+        }
+    }
+}
+
+impl<'a, C: PageTableConfig> OwnerOf for ChildRef<'a, C> {
+    type Owner = EntryOwner<C>;
+
+    open spec fn wf(self, owner: Self::Owner) -> bool {
+        match self {
+            Self::PageTable(node) => {
+                &&& owner.is_node()
+                &&& node.slot_vaddr() == owner.node().slot_vaddr()
+                &&& node@.ptr_inv()
+                &&& node.external_meta_wf(owner.node().metadata, ())
+                &&& node@.tracked_metadata_perm@ matches Some(permission) ==> {
+                    &&& node.inv()
+                    &&& owner.node().matches_permission(permission)
+                }
+            },
+            Self::Frame(paddr, level, prop) => {
+                &&& owner.is_frame()
+                &&& owner.frame().mapped_pa == paddr
+                &&& owner.frame().prop == prop
+            },
+            Self::None => owner.is_absent(),
+        }
+    }
+}
+
+impl<C: PageTableConfig> Child<C> {
+    pub open spec fn from_pte_spec(
+        pte: C::E,
+        level: PagingLevel,
+        regions: MetaRegionOwners,
+        permission: Option<FracMetadataPerm>,
+    ) -> Self {
+        if !pte.is_present() {
+            Self::None
+        } else if pte.is_last(level) {
+            Self::Frame(pte.paddr(), level, pte.prop())
+        } else {
+            Self::PageTable(
+                PageTableNode::from_raw_spec(
+                    pte.paddr(),
+                    regions.slots[frame_to_index(pte.paddr())],
+                    permission,
+                ),
+            )
+        }
+    }
+
+    pub open spec fn invariants(self, owner: EntryOwner<C>, regions: MetaRegionOwners) -> bool {
+        &&& owner.inv()
+        &&& regions.inv()
+        &&& self.wf(owner)
+        &&& match self {
+            Self::Frame(paddr, level, prop) => C::E::new_page_req(paddr, level, prop),
+            _ => true,
+        }
+        &&& owner.metaregion_sound(regions)
+    }
+}
+
+impl<C: PageTableConfig> ChildRef<'_, C> {
+    pub open spec fn invariants(self, owner: EntryOwner<C>, regions: MetaRegionOwners) -> bool {
+        &&& owner.inv()
+        &&& regions.inv()
+        &&& self.wf(owner)
+        &&& owner.metaregion_sound(regions)
+    }
+}
+
+impl<C: PageTableConfig> EntryOwner<C> {
+    pub open spec fn into_pte_owner_spec(self, child: Child<C>) -> EntryOwner<C> {
+        match child {
+            Child::PageTable(node) => EntryOwner {
+                node_permission: Some(node.frac_metadata_perm()),
+                ..self
+            },
+            _ => self,
+        }
+    }
+
+    pub open spec fn from_pte_owner_spec(self) -> EntryOwner<C> {
+        if self.is_node() {
+            EntryOwner { node_permission: None, ..self }
+        } else {
+            self
+        }
+    }
+
+    /// This is equivalent to the other `invariants` relations, combining the `inv` predicates for each
+    /// object and the well-formedness relations between them.
+    pub open spec fn pte_invariants(self, pte: C::E, regions: MetaRegionOwners) -> bool {
+        &&& self.inv()
+        &&& regions.inv()
+        &&& self.match_pte(pte, self.parent_level)
+        &&& self.metaregion_sound(regions)
+        &&& self.is_node() ==> self.node_permission is Some
+    }
+}
+
+} // verus!

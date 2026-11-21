@@ -1,0 +1,144 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/226",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 226,
+    "title": "PhaseII verified: Add proofs about `memory_region`",
+    "body": "Merge some proofs from `fvt1` but with the new attribute syntax. This PR can not be merged because of a Verus bug, we are working on it.",
+    "bodyHTML": "<p dir=\"auto\">Merge some proofs from <code class=\"notranslate\">fvt1</code> but with the new attribute syntax. This PR can not be merged because of a Verus bug, we are working on it.</p>",
+    "url": "https://github.com/asterinas/vostd/pull/226",
+    "state": "MERGED",
+    "createdAt": "2025-10-30T10:22:17Z",
+    "updatedAt": "2025-11-07T03:07:50Z",
+    "closedAt": "2025-11-07T02:34:38Z",
+    "mergedAt": "2025-11-07T02:34:38Z",
+    "author": {
+      "login": "rikosellic"
+    },
+    "baseRefName": "phaseII/verified",
+    "baseRefOid": "01794b0c349fdfaf8ae12aeb2ef01c9628fe6e73",
+    "headRefName": "merge-fvt1",
+    "headRefOid": "5f5ee367aaf0b3f02412ae31259435e2c539e818",
+    "changedFiles": 5,
+    "additions": 202,
+    "deletions": 16,
+    "labels": {
+      "nodes": [
+        {
+          "name": "AI-assist"
+        }
+      ]
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 5,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "NQ"
+      },
+      "nodes": [
+        {
+          "path": "ostd/src/boot/memory_region.rs",
+          "additions": 138,
+          "deletions": 13,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/boot/mod.rs",
+          "additions": 3,
+          "deletions": 1,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "ostd/src/lib.rs",
+          "additions": 2,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "specs/ostd/src/lib.rs",
+          "additions": 2,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "specs/ostd/src/memory_region_specs.rs",
+          "additions": 57,
+          "deletions": 0,
+          "changeType": "ADDED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

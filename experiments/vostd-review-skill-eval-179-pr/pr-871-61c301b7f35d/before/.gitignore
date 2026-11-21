@@ -1,0 +1,65 @@
+# Git subrepo
+.git-subrepo/
+.git-slave/
+.gitslave
+
+# Cargo
+Cargo.lock
+target/
+
+# Verus
+.verus-log/
+
+# Zed
+.zed/settings.json
+
+# Tools
+tools/verus
+tools/verus-analyzer
+
+# anchor
+.anchor
+
+# macos
+.DS_Store
+
+**/*.rs.bk
+
+# node
+node_modules
+package-lock.json
+
+# ledger
+test-ledger
+
+# yarn
+.yarn
+
+#log
+*.log.json
+*.log.json.gz
+*.txt
+*.log
+
+#doc
+doc
+
+# cspell
+.vscode/cspell.json
+.vscode/vostd-words.txt
+
+# build artifacts
+*.rlib
+
+# Agents
+.agents/*
+!/.agents/skills/
+.agents/skills/*
+!/.agents/skills/vostd-code-review/
+.claude/**
+!/.claude/skills/
+!/.claude/skills/vostd-code-review
+.codex/
+.copilot/
+.github/copilot-instructions.md
+.github/instructions.md

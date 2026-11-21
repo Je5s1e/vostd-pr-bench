@@ -1,0 +1,1230 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 5236f895727bb42c9e0cbec42ed32b72b45f77e8..3dc567b7e5c891130ea90ab67db19f62359dac17 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -190,6 +190,15 @@ dependencies = [
+  "lazy_static",
+ ]
+ 
++[[package]]
++name = "id-alloc"
++version = "0.1.0"
++dependencies = [
++ "bitvec",
++ "vstd",
++ "vstd_extra",
++]
++
+ [[package]]
+ name = "ident_case"
+ version = "1.0.1"
+@@ -310,6 +319,7 @@ dependencies = [
+  "fdt",
+  "gimli 0.28.1",
+  "iced-x86",
++ "id-alloc",
+  "inherit-methods-macro",
+  "log",
+  "loongArch64",
+@@ -662,6 +672,7 @@ dependencies = [
+ name = "vstd_extra"
+ version = "0.1.0"
+ dependencies = [
++ "bitvec",
+  "vstd",
+ ]
+ 
+diff --git a/Cargo.toml b/Cargo.toml
+index 0963ca334a8392810f81677ea200bc8b79cadd2b..b416fce0896c2b1015bdae654a05e083698d850a 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -6,6 +6,7 @@ members = [
+     "verified_libs/ostd-pod",
+     "ostd",
+     "ostd/libs/align_ext",
++    "ostd/libs/id-alloc",
+     # "ostd/libs/ostd-macros",
+     # "ostd/libs/ostd-test",
+     # "kernel/libs/int-to-c-enum",
+@@ -51,3 +52,9 @@ codegen-units = 1
+ [workspace.dependencies]
+ # Verus
+ vstd = { path = "tools/verus/source/vstd", default-features = false, features = ["alloc"] }
++bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
++
++[workspace.package]
++edition = "2021"
++repository = "https://github.com/asterinas/vostd"
++license = "MPL-2.0"
+diff --git a/README.md b/README.md
+index a6d3dda321189da64ca41b7831d17facd20828e2..52e1f12dacf432c887c63a3da7d1d0eacd80e49b 100644
+--- a/README.md
++++ b/README.md
+@@ -5,7 +5,7 @@
+ [![verify (verus-lang/verus)](https://img.shields.io/github/actions/workflow/status/asterinas/vostd/ci-upstream-verus.yml?branch=main&label=verify%20(verus-lang%2Fverus))](https://github.com/asterinas/vostd/actions/workflows/ci-upstream-verus.yml)
+ 
+ > [!NOTE]
+-> This repository is currently in a transitional state: the components under `ostd/src/sync` already track the upcoming Asterinas release [v0.18.1](https://github.com/asterinas/asterinas/releases/tag/v0.18.1), while every other OSTD component is still based on [v0.16.0](https://github.com/asterinas/asterinas/releases/tag/v0.16.0).
++> This repository is currently in a transitional state: the components under `ostd/src/sync` and `ostd/libs/id-alloc` already track the upcoming Asterinas release [v0.18.1](https://github.com/asterinas/asterinas/releases/tag/v0.18.1), while every other OSTD component is still based on [v0.16.0](https://github.com/asterinas/asterinas/releases/tag/v0.16.0).
+ 
+ ## Overview
+ 
+diff --git a/dv b/dv
+index 6d6502d142b049f691055d9de76709ef47c664d6..a8834cbb0dc227e83d05033a452dc95875d94fd5 160000
+--- a/dv
++++ b/dv
+@@ -1 +1 @@
+-Subproject commit 6d6502d142b049f691055d9de76709ef47c664d6
++Subproject commit a8834cbb0dc227e83d05033a452dc95875d94fd5
+diff --git a/ostd/Cargo.toml b/ostd/Cargo.toml
+index bb4340ad5fefea0a3dd46c74362f1e532e900865..d92648cf655f4d3f8c3d98496719b59a8a64bf3f 100644
+--- a/ostd/Cargo.toml
++++ b/ostd/Cargo.toml
+@@ -25,7 +25,7 @@ buddy_system_allocator = { version = "0.10", default-features = false, features
+ bitflags_upstream = { package = "bitflags", version = "1.3" }
+ cfg-if = "1.0"
+ gimli = { version = "0.28", default-features = false, features = ["read-core"] }
+-#id-alloc = { path = "libs/id-alloc", version = "0.1.0" }
++id-alloc = { path = "libs/id-alloc", version = "0.1.0" }
+ inherit-methods-macro = { git = "https://github.com/asterinas/inherit-methods-macro", rev = "98f7e3e", version = "0.1.0" }
+ #int-to-c-enum = { path = "../kernel/libs/int-to-c-enum", version = "0.1.0" }
+ # intrusive-collections = { version = "0.9.6", features = ["nightly"] }
+diff --git a/ostd/libs/id-alloc/Cargo.toml b/ostd/libs/id-alloc/Cargo.toml
+index 5cdd942e9a73ac337797a06c74a9e728d6b2203c..6e39c66ad3905266959cbad204cb727351aa7a81 100644
+--- a/ostd/libs/id-alloc/Cargo.toml
++++ b/ostd/libs/id-alloc/Cargo.toml
+@@ -1,15 +1,27 @@
+ [package]
+ name = "id-alloc"
+ version = "0.1.0"
+-edition = "2021"
+-license = "MPL-2.0"
+ description = "An id allocator implemented by the bitmap"
+-repository = "https://github.com/asterinas/asterinas"
++repository.workspace = true
++license.workspace = true
++edition.workspace = true
+ 
+ # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+ 
++[features]
++verus = []
++verify = ["verus"]
++alloc = []
++default = ["verify", "alloc"]
++
++[package.metadata.verus]
++path = "src/lib.rs"
++verify = true
++
+ [dependencies]
+-bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
++bitvec.workspace = true
++vstd = { workspace = true }
++vstd_extra = { path = "../../../verified_libs/vstd_extra" }
+ 
+ [lints]
+ workspace = true
+diff --git a/ostd/libs/id-alloc/src/lib.rs b/ostd/libs/id-alloc/src/lib.rs
+index 85fe26b256890cfdee36e147aed4f294308a85ff..0b760189ef08e20ec56ee5b6c21aef1345006825 100644
+--- a/ostd/libs/id-alloc/src/lib.rs
++++ b/ostd/libs/id-alloc/src/lib.rs
+@@ -1,65 +1,349 @@
+ // SPDX-License-Identifier: MPL-2.0
+-
+ #![cfg_attr(not(test), no_std)]
+ #![deny(unsafe_code)]
++#![feature(proc_macro_hygiene)]
++#![expect(internal_features)]
++
++use ::bitvec::prelude::BitVec;
++use vstd::prelude::*;
++use vstd_extra::{debug_assert, prelude::*};
+ 
+ use core::{fmt::Debug, ops::Range};
+ 
+-use bitvec::prelude::BitVec;
++verus! {
++
++/// The index of the first `false` bit in `s`, or `s.len()` if every bit is `true`.
++pub open spec fn is_first_zero(s: Seq<bool>, i: int) -> bool {
++    &&& 0 <= i <= s.len()
++    &&& (forall|j: int| #![trigger s.index(j)] 0 <= j < i ==> s.index(j))
++    &&& (i < s.len() ==> !s.index(i))
++}
++
++/// Index of the first `false` bit, or `s.len()` if every bit is `true`. Defined
++/// recursively so it is deterministic and the SMT solver can unfold it.
++pub open spec fn first_zero_seq(s: Seq<bool>) -> int
++    decreases s.len(),
++{
++    if s.len() == 0 {
++        0
++    } else if !s.index(0) {
++        0
++    } else {
++        1 + first_zero_seq(s.subrange(1, s.len() as int))
++    }
++}
++
++// Bring the bitvec bridge's broadcast axioms into scope so they fire at call sites.
++broadcast use {
++    group_bitvec_models,
++    axiom_bitvec_index_usize,
++    axiom_bitvec_index_req,
++    axiom_bitslice_get_range,
++    axiom_bitvec_len_bound,
++};
+ 
++} // verus!
+ /// An id allocator implemented by the bitmap.
+ /// The true bit implies that the id is allocated, and vice versa.
++///
++/// # Verified Invariant
++///
++/// `first_available_id == first_zero_seq(self@)`: it is the index of the first
++/// free (`false`) bit, or the length when the bitmap is full. Consequently every
++/// bit before `first_available_id` is `true` and (unless full) the bit at
++/// `first_available_id` is `false`.
+ #[derive(Clone)]
++#[verifier::allow(autoderive_clone_without_spec)]
++#[verus_verify]
+ pub struct IdAlloc {
+     bitset: BitVec<u8>,
+     first_available_id: usize,
+ }
+ 
+-impl IdAlloc {
+-    /// Constructs a new id allocator with a maximum capacity.
+-    pub fn with_capacity(capacity: usize) -> Self {
+-        let mut bitset = BitVec::with_capacity(capacity);
+-        bitset.resize(capacity, false);
+-        Self {
+-            bitset,
+-            first_available_id: 0,
++verus! {
++
++impl View for IdAlloc {
++    type V = Seq<bool>;
++
++    closed spec fn view(&self) -> Seq<bool> {
++        bitvec_view(&self.bitset)
++    }
++}
++
++impl Inv for IdAlloc {
++    /// The well-formedness invariant: `first_available_id` is the first free bit.
++    closed spec fn inv(self) -> bool {
++        &&& 0 <= self.first_available_id <= self@.len()
++        &&& self.first_available_id == first_zero_seq(self@)
++    }
++}
++
++/// `is_first_zero` is uniquely satisfied. Broadcast so it auto-fires whenever two
++/// `is_first_zero` facts arise.
++pub broadcast proof fn lemma_is_first_zero_unique(s: Seq<bool>, i: int, j: int)
++    requires
++        is_first_zero(s, i),
++        is_first_zero(s, j),
++    ensures
++        #![auto]
++        i == j,
++{
++    if i < j {
++        assert(false);
++    } else if j < i {
++        assert(false);
++    }
++}
++
++/// `first_zero_seq(s)` itself satisfies `is_first_zero` (induction on `s.len()`).
++proof fn lemma_first_zero_seq_char(s: Seq<bool>)
++    ensures
++        is_first_zero(s, first_zero_seq(s)),
++    decreases s.len(),
++{
++    if s.len() == 0 {
++    } else if !s.index(0) {
++    } else {
++        let sub = s.subrange(1, s.len() as int);
++        lemma_first_zero_seq_char(sub);
++        let i2 = first_zero_seq(sub);
++        assert(is_first_zero(s, 1 + i2)) by {
++            assert forall|j: int| 0 <= j < 1 + i2 implies s.index(j) by {
++                if j == 0 {
++                } else {
++                    assert(s.index(j) == sub.index(j - 1));
++                }
++            }
++            if 1 + i2 < s.len() {
++            }
+         }
+     }
++}
+ 
+-    /// Constructs a new id allocator from a slice of `u8` bytes and a maximum capacity.
+-    ///
+-    /// The slice of `u8` bytes is the raw data of a bitmap.
+-    pub fn from_bytes_with_capacity(slice: &[u8], capacity: usize) -> Self {
+-        let bitset = if capacity > slice.len() * 8 {
+-            let mut bitset = BitVec::from_slice(slice);
+-            bitset.resize(capacity, false);
+-            bitset
++/// If the prefix `[0, k)` of `s` is all `true`, then the first zero of `s` is
++/// `k` plus the first zero of the remainder (induction on `s.len()`).
++proof fn lemma_first_zero_seq_prefix_all_true(s: Seq<bool>, k: int)
++    requires
++        0 <= k <= s.len(),
++        forall|j: int| #![trigger s.index(j)] 0 <= j < k ==> s.index(j),
++    ensures
++        first_zero_seq(s) == k + first_zero_seq(s.subrange(k, s.len() as int)),
++    decreases s.len(),
++{
++    if k == 0 {
++        assert(s.subrange(0, s.len() as int) =~= s) by {}
++    } else if s.len() == 0 {
++    } else {
++        let sub = s.subrange(1, s.len() as int);
++        lemma_first_zero_seq_prefix_all_true(sub, k - 1);
++        assert(sub.subrange(k - 1, sub.len() as int) =~= s.subrange(k, s.len() as int)) by {}
++    }
++}
++
++/// Setting the bit at `k - 1` (the current first zero) to `true`, when the prefix
++/// `[0, k - 1)` is all `true`, advances the first zero to
++/// `k + first_zero_seq(s.subrange(k, len))`.
++proof fn lemma_first_zero_seq_advance_after_set(s: Seq<bool>, k: int)
++    requires
++        0 < k <= s.len(),
++        forall|j: int| 0 <= j < k - 1 ==> s.index(j),
++        k - 1 < s.len() ==> !s.index(k - 1),
++    ensures
++        first_zero_seq(s.update(k - 1, true)) == k + first_zero_seq(s.subrange(k, s.len() as int)),
++{
++    let t = s.update(k - 1, true);
++    lemma_first_zero_seq_prefix_all_true(t, k);
++    assert(t.subrange(k, s.len() as int) =~= s.subrange(k, s.len() as int)) by {}
++}
++
++/// Element-wise-equal sequences have the same `first_zero_seq`.
++proof fn lemma_first_zero_seq_ext_equal(a: Seq<bool>, b: Seq<bool>)
++    requires
++        a =~= b,
++    ensures
++        first_zero_seq(a) == first_zero_seq(b),
++    decreases a.len(),
++{
++    if a.len() == 0 {
++        assert(b.len() == 0);
++    } else if !a.index(0) {
++        assert(!b.index(0));
++    } else {
++        lemma_first_zero_seq_ext_equal(
++            a.subrange(1, a.len() as int),
++            b.subrange(1, b.len() as int),
++        );
++    }
++}
++
++/// Clearing a `true` bit at `i` moves the first zero to `min(first_zero_seq(s), i)`.
++proof fn lemma_first_zero_seq_clear(s: Seq<bool>, i: int)
++    requires
++        0 <= i < s.len(),
++        s.index(i),
++    ensures
++        first_zero_seq(s.update(i, false)) == if first_zero_seq(s) <= i {
++            first_zero_seq(s)
+         } else {
+-            let mut bitset = BitVec::from_slice(&slice[..capacity.div_ceil(8)]);
+-            bitset.truncate(capacity);
+-            bitset
+-        };
++            i
++        },
++    decreases s.len(),
++{
++    let fz = first_zero_seq(s);
++    lemma_first_zero_seq_char(s);
++    let t = s.update(i, false);
++    lemma_first_zero_seq_char(t);
++    if fz <= i {
++        assert(is_first_zero(t, fz)) by {
++            if fz < s.len() {
++                assert(!t.index(fz)) by {
++                    if fz == i {
++                        assert(t.index(fz) == false);
++                    } else {
++                        assert(t.index(fz) == s.index(fz));
++                        assert(!s.index(fz));
++                    }
++                }
++            }
++            assert(forall|j: int| 0 <= j < fz ==> t.index(j)) by {
++                assert(forall|j: int| 0 <= j < fz ==> s.index(j));
++            }
++        }
++        lemma_is_first_zero_unique(t, first_zero_seq(t), fz);
++    } else {
++        assert(is_first_zero(t, i)) by {
++            assert(!t.index(i));
++            assert(forall|j: int| 0 <= j < i ==> t.index(j)) by {
++                assert(forall|j: int| 0 <= j < i ==> s.index(j));
++            }
++        }
++        lemma_is_first_zero_unique(t, first_zero_seq(t), i);
++    }
++}
+ 
+-        let first_available_id = (0..bitset.len())
+-            .find(|&i| !bitset[i])
+-            .map_or(bitset.len(), |i| i);
++/// Clearing all bits in `[start, end)` moves the first zero to
++/// `min(first_zero_seq(s), start)`.
++proof fn lemma_first_zero_seq_clear_range(s: Seq<bool>, t: Seq<bool>, start: int, end: int)
++    requires
++        s.len() == t.len(),
++        0 <= start < end <= s.len(),
++        forall|j: int| #![trigger t.index(j)] 0 <= j < start ==> t.index(j) == s.index(j),
++        forall|j: int| #![trigger t.index(j)] start <= j < end ==> !t.index(j),
++        forall|j: int| #![trigger t.index(j)] end <= j < s.len() ==> t.index(j) == s.index(j),
++    ensures
++        first_zero_seq(t) == if first_zero_seq(s) <= start {
++            first_zero_seq(s)
++        } else {
++            start
++        },
++{
++    let fz = first_zero_seq(s);
++    lemma_first_zero_seq_char(s);
++    lemma_first_zero_seq_char(t);
++    if fz <= start {
++        assert(is_first_zero(t, fz)) by {
++            if fz < s.len() {
++                assert(!t.index(fz)) by {
++                    if fz < start {
++                        assert(t.index(fz) == s.index(fz));
++                        assert(!s.index(fz));
++                    }
++                }
++            }
++            assert(forall|j: int| 0 <= j < fz ==> t.index(j)) by {
++                assert(forall|j: int| 0 <= j < fz ==> s.index(j));
++                assert(forall|j: int| 0 <= j < fz ==> t.index(j) == s.index(j));
++            }
++        }
++        lemma_is_first_zero_unique(t, first_zero_seq(t), fz);
++    } else {
++        assert(is_first_zero(t, start)) by {
++            assert(!t.index(start));
++            assert(forall|j: int| 0 <= j < start ==> t.index(j)) by {
++                assert(forall|j: int| 0 <= j < start ==> s.index(j));
++            }
++        }
++        lemma_is_first_zero_unique(t, first_zero_seq(t), start);
++    }
++}
+ 
++/// Setting a `false` bit at `i` that is strictly past the first zero leaves the
++/// first zero unchanged.
++proof fn lemma_first_zero_seq_set_after_first_zero(s: Seq<bool>, i: int)
++    requires
++        0 <= i < s.len(),
++        first_zero_seq(s) < i,
++        !s.index(i),
++    ensures
++        first_zero_seq(s.update(i, true)) == first_zero_seq(s),
++{
++    let fz = first_zero_seq(s);
++    lemma_first_zero_seq_char(s);
++    let t = s.update(i, true);
++    lemma_first_zero_seq_char(t);
++    assert(is_first_zero(t, fz)) by {
++        if fz < s.len() {
++            assert(!t.index(fz)) by {
++                assert(fz < i);
++                assert(t.index(fz) == s.index(fz));
++                assert(!s.index(fz));
++            }
++        }
++        assert forall|j: int| 0 <= j < fz implies t.index(j) by {
++            assert(t.index(j) == s.index(j));
++            assert(s.index(j));
++        }
++    }
++    lemma_is_first_zero_unique(t, first_zero_seq(t), fz);
++}
++
++} // verus!
++#[verus_verify]
++impl IdAlloc {
++    /// Constructs a new id allocator with a maximum capacity.
++    #[verus_spec(ret =>
++        requires
++            capacity <= usize::MAX / 8,
++        ensures
++            ret@ == Seq::new(capacity as nat, |i: int| false),
++            ret.inv(),
++    )]
++    pub fn with_capacity(capacity: usize) -> Self {
++        let mut bitset = BitVec::with_capacity(capacity);
++        bitset.resize(capacity, false);
+         Self {
+             bitset,
+-            first_available_id,
++            first_available_id: 0,
+         }
+     }
+ 
+     /// Allocates and returns a new `id`.
+     ///
+     /// If allocation is not possible, it returns `None`.
++    #[verus_spec(res =>
++        requires
++            old(self).inv(),
++        ensures
++            res matches Some(id) ==> {
++                &&& id == first_zero_seq(old(self)@)
++                &&& first_zero_seq(old(self)@) < old(self)@.len()
++                &&& final(self)@ == old(self)@.update(first_zero_seq(old(self)@), true)
++                &&& final(self).inv()
++            },
++            res is None ==> {
++                &&& first_zero_seq(old(self)@) == old(self)@.len()
++                &&& final(self)@ == old(self)@
++                &&& final(self).inv()
++            },
++    )]
+     pub fn alloc(&mut self) -> Option<usize> {
+         if self.first_available_id < self.bitset.len() {
+             let id = self.first_available_id;
++            proof! {
++                lemma_first_zero_seq_char(self@);
++            }
+             self.bitset.set(id, true);
+-            self.first_available_id = (id + 1..self.bitset.len())
+-                .find(|&i| !self.bitset[i])
+-                .map_or(self.bitset.len(), |i| i);
++            self.update_first_available_id(id + 1);
+             Some(id)
+         } else {
+             None
+@@ -73,17 +357,55 @@ impl IdAlloc {
+     /// If allocation is not possible, it returns `None`.
+     ///
+     /// TODO: Choose a more efficient strategy.
++    #[verus_spec(res =>
++        requires
++            old(self).inv(),
++        ensures
++            res matches Some(r) ==> {
++                &&& r.end - r.start == count
++                &&& 0 <= r.start
++                &&& r.end <= old(self)@.len()
++                &&& (forall|i: int| #![trigger old(self)@[i]] r.start <= i < r.end ==> !old(self)@[i])
++                &&& (forall|i: int| #![trigger final(self)@[i]] r.start <= i < r.end ==> final(self)@[i])
++                &&& (forall|i: int| 0 <= i < final(self)@.len() && !(r.start <= i < r.end) ==> final(self)@[i] == old(self)@[i])
++                &&& final(self)@.len() == old(self)@.len()
++                &&& final(self).inv()
++            },
++            res is None ==> {
++                &&& final(self)@ == old(self)@
++                &&& final(self).inv()
++            },
++    )]
+     pub fn alloc_consecutive(&mut self, count: usize) -> Option<Range<usize>> {
+         if count == 0 {
+             return None;
+         }
+ 
+-        // Scan the bitmap from the position `first_available_id`
+-        // for the first `count` number of consecutive 0's.
++        let end = self.first_available_id.checked_add(count)?;
++        if end > self.bitset.len() {
++            return None;
++        }
++
+         let allocated_range = {
+-            // Invariance: all bits within `curr_range` are 0's
+             let mut curr_range = self.first_available_id..self.first_available_id + 1;
+-            while curr_range.len() < count && curr_range.end < self.bitset.len() {
++            proof! {
++                lemma_first_zero_seq_char(self@);
++            }
++            #[verus_spec(invariant
++                count > 0,
++                self@ == old(self)@,
++                self.first_available_id == old(self).first_available_id,
++                self.first_available_id <= curr_range.start,
++                curr_range.start <= curr_range.end,
++                curr_range.end <= self@.len(),
++                range_usize_len_spec(&curr_range) <= count,
++                forall|j: int| #![trigger self@[j]] curr_range.start as int <= j < curr_range.end as int ==> !self@[j],
++                decreases self@.len() as int - curr_range.end as int,
++            )]
++            /* `Range::len` is unspecced by vstd.
++             * Origin Rust: while curr_range.len() < count && curr_range.end < self.bitset.len() {
++             */
++            while range_usize_len(&curr_range) < count && curr_range.end < self.bitset.len() {
+                 if !self.is_allocated(curr_range.end) {
+                     curr_range.end += 1;
+                 } else {
+@@ -91,23 +413,38 @@ impl IdAlloc {
+                 }
+             }
+ 
+-            if curr_range.len() < count {
++            if range_usize_len(&curr_range) < count {
+                 return None;
+             }
+ 
+             curr_range
+         };
+ 
+-        // Set every bit to 1 within the allocated range
+-        for id in allocated_range.clone() {
++        #[verus_spec(invariant
++            self@.len() == old(self)@.len(),
++            0 <= allocated_range.start,
++            allocated_range.end <= self@.len(),
++            allocated_range.start <= id,
++            id <= allocated_range.end,
++            forall|j: int| #![trigger self@[j]] allocated_range.start as int <= j < id as int ==> self@[j],
++            forall|j: int| 0 <= j < self@.len() && !(allocated_range.start as int <= j < id as int) ==> self@[j] == old(self)@[j],
++        )]
++        /* `Range::clone` is unspecced; iterate `start..end` directly.
++         * Origin Rust: for id in allocated_range.clone()
++         */
++        for id in allocated_range.start..allocated_range.end {
+             self.bitset.set(id, true);
+         }
+ 
+-        // In case we need to update first_available_id
+         if self.is_allocated(self.first_available_id) {
+-            self.first_available_id = (allocated_range.end..self.bitset.len())
+-                .find(|&i| !self.bitset[i])
+-                .map_or(self.bitset.len(), |i| i);
++            self.update_first_available_id(allocated_range.end);
++        }
++
++        proof! {
++            let faid = old(self).first_available_id as int;
++            if faid < allocated_range.start as int {
++                lemma_first_zero_seq_char(self@);
++            }
+         }
+ 
+         Some(allocated_range)
+@@ -118,20 +455,54 @@ impl IdAlloc {
+     /// # Panics
+     ///
+     /// If the `range` is out of bounds, this method will panic.
++    #[verus_spec(
++        requires
++            old(self).inv(),
++            range.end <= self@.len(),
++            forall|i: int| range.start <= i < self@.len() && i < range.end ==> self@[i],
++        ensures
++            final(self)@.len() == old(self)@.len(),
++            forall|i: int| #![trigger final(self)@[i]] range.start <= i < range.end ==> !final(self)@[i],
++            forall|i: int|
++                0 <= i < final(self)@.len() && !(range.start <= i < range.end) ==> final(self)@[i] == old(self)@[i],
++            final(self).inv(),
++    )]
+     pub fn free_consecutive(&mut self, range: Range<usize>) {
+-        if range.is_empty() {
++        /* `Range::is_empty` is unspecced by vstd.
++         * Origin Rust: if range.is_empty() {
++         */
++        if range_usize_is_empty(&range) {
+             return;
+         }
+ 
+         let range_start = range.start;
++        #[verus_spec(invariant
++            self@.len() == old(self)@.len(),
++            0 <= range.start,
++            range.end <= self@.len(),
++            range.start <= id,
++            id <= range.end,
++            forall|j: int| #![trigger self@[j]] range.start as int <= j < id as int ==> !self@[j],
++            forall|j: int| 0 <= j < self@.len() && !(range.start as int <= j < id as int) ==> self@[j] == old(self)@[j],
++        )]
++        /* Drop `.clone()` (range unused after) and the in-loop `debug_assert` (already required).
++         * Origin Rust: for id in range.clone() { debug_assert!(self.is_allocated(id));
++         */
+         for id in range {
+-            debug_assert!(self.is_allocated(id));
+             self.bitset.set(id, false);
+         }
+ 
+         if range_start < self.first_available_id {
+             self.first_available_id = range_start
+         }
++        proof! {
++            lemma_first_zero_seq_clear_range(
++                old(self)@,
++                self@,
++                range.start as int,
++                range.end as int,
++            );
++        }
+     }
+ 
+     /// Releases the allocated `id`.
+@@ -139,16 +510,28 @@ impl IdAlloc {
+     /// # Panics
+     ///
+     /// If the `id` is out of bounds, this method will panic.
++    #[verus_spec(
++        requires
++            old(self).inv(),
++            id < self@.len(),
++            self@[id as int],
++        ensures
++            final(self)@ == old(self)@.update(id as int, false),
++            final(self).inv(),
++    )]
+     pub fn free(&mut self, id: usize) {
+         debug_assert!(self.is_allocated(id));
+ 
+         self.bitset.set(id, false);
++        proof! {
++            lemma_first_zero_seq_clear(old(self)@, id as int);
++        }
+         if id < self.first_available_id {
+             self.first_available_id = id;
+         }
+     }
+ 
+-    /// Allocate a specific ID.
++    /// Allocates a specific ID.
+     ///
+     /// If the ID is already allocated, it returns `None`, otherwise it
+     /// returns the allocated ID.
+@@ -156,15 +539,34 @@ impl IdAlloc {
+     /// # Panics
+     ///
+     /// If the `id` is out of bounds, this method will panic.
++    #[verus_spec(res =>
++        requires
++            old(self).inv(),
++            id < self@.len(),
++        ensures
++            res is Some ==> {
++                &&& final(self)@ == old(self)@.update(id as int, true)
++                &&& res == (if old(self)@[id as int] { None } else { Some(id) })
++                &&& final(self).inv()
++            },
++            res is None ==> final(self)@ == old(self)@ && final(self).inv(),
++    )]
+     pub fn alloc_specific(&mut self, id: usize) -> Option<usize> {
+         if self.bitset[id] {
+             return None;
+         }
+         self.bitset.set(id, true);
+         if id == self.first_available_id {
+-            self.first_available_id = (id + 1..self.bitset.len())
+-                .find(|&i| !self.bitset[i])
+-                .map_or(self.bitset.len(), |i| i);
++            proof! {
++                lemma_first_zero_seq_char(old(self)@);
++            }
++            self.update_first_available_id(id + 1);
++        }
++        proof! {
++            if id != old(self).first_available_id {
++                lemma_first_zero_seq_char(old(self)@);
++                lemma_first_zero_seq_set_after_first_zero(old(self)@, id as int);
++            }
+         }
+         Some(id)
+     }
+@@ -174,13 +576,45 @@ impl IdAlloc {
+     /// # Panics
+     ///
+     /// If the `id` is out of bounds, this method will panic.
++    #[verus_spec(ret =>
++        requires
++            id < self@.len(),
++        ensures
++            ret == self@[id as int],
++    )]
+     pub fn is_allocated(&self, id: usize) -> bool {
+         self.bitset[id]
+     }
+ 
+-    /// Views the id allocator as a slice of `u8` bytes.
+-    pub fn as_bytes(&self) -> &[u8] {
+-        self.bitset.as_raw_slice()
++    /// Updates the `first_available_id` field to the first zero index at or after `start`.
++    #[verus_spec(
++        requires
++            0 <= self.first_available_id <= self@.len(),
++            0 <= start <= self@.len(),
++            forall|i: int| #![trigger self@[i]] 0 <= i < start ==> self@[i],
++        ensures
++            final(self)@ == old(self)@,
++            final(self).first_available_id == first_zero_seq(final(self)@),
++            final(self).inv(),
++    )]
++    fn update_first_available_id(&mut self, start: usize) {
++        let bit_slice = self
++            .bitset
++            .get(start..self.bitset.len())
++            .expect("start is guaranteed to be valid by the caller");
++        /* Bind the bounded `first_zero` result (avoid closure overflow + enable proof).
++         * Origin Rust: self.first_available_id = bit_slice.first_zero().map(|offset| start + offset).unwrap_or(len);
++         */
++        self.first_available_id = match bit_slice.first_zero() {
++            Some(offset) => start + offset,
++            None => self.bitset.len(),
++        };
++        proof! {
++            lemma_first_zero_seq_prefix_all_true(self@, start as int);
++            let tail = self@.subrange(start as int, self@.len() as int);
++            lemma_first_zero_seq_char(self@);
++            assert(is_first_zero(bitslice_view(bit_slice), first_zero_seq(tail)));
++        }
+     }
+ }
+ 
+@@ -192,3 +626,22 @@ impl Debug for IdAlloc {
+             .finish()
+     }
+ }
++
++#[cfg(test)]
++mod test {
++    use super::IdAlloc;
++
++    #[test]
++    fn bitmap_alloc_out_of_bounds() {
++        let capacity = 16;
++        let mut bitmap = IdAlloc::with_capacity(capacity);
++
++        for _ in 0..capacity {
++            assert!(bitmap.alloc().is_some());
++        }
++
++        // Allocating one more ID should fail since the
++        // bitmap's `first_available_id` + `count` is out of bounds.
++        assert!(bitmap.alloc_consecutive(1).is_none());
++    }
++}
+diff --git a/ostd/specs/mm/embedding/mod.rs b/ostd/specs/mm/embedding/mod.rs
+index 4765b60e10d216c62a92be3234b3c8aae592f171..84f40fd11be6364ad18848a9bb8429f5673419d8 100644
+--- a/ostd/specs/mm/embedding/mod.rs
++++ b/ostd/specs/mm/embedding/mod.rs
+@@ -3882,6 +3882,7 @@ proof fn lemma_step_segment_clone_range<'rcu>(
+     assert(s.regions.inv()) by {
+         reveal(VmStore::structural_inv);
+     };
++    let ghost old_store = *s;
+     let ghost old_regions = s.regions;
+     let ghost old_frames = s.frames;
+     let ghost old_segments = s.segments;
+@@ -3989,6 +3990,9 @@ proof fn lemma_step_segment_clone_range<'rcu>(
+             == 0 implies s.regions.slot_owner(paddr_c).usage is Frame by {
+         reveal(VmStore::structural_inv);
+         let cov_idx = frame_to_index(paddr_c);
++        assert(valid_frame_paddr(paddr_c));
++        old_regions.lemma_contains_valid_frame_paddr(paddr_c);
++        assert(old_regions.contains(cov_idx));
+         if sid_other == sid2 {
+             // Covered by the new entry ⟹ in sub_range ⊆ sid's range.
+             assert(s.segments[sid2].range == sub_range);
+@@ -4000,11 +4004,9 @@ proof fn lemma_step_segment_clone_range<'rcu>(
+             assert(old_segments[sid_other] == s.segments[sid_other]);
+             assert(old_regions.slot_owners[cov_idx].usage is Frame);
+         }
+-        // `cov_0 <= idx < max_meta_slots()` via `lemma_contains_valid_frame_paddr`
+-        // (`slot_owners.contains_key`) + `MetaRegionOwners::inv`'s
+-        // biimplication. Then the universal usage-preservation above
+-        // gives `s.regions` usage == old usage == Frame at cov_idx.
+-        assert(valid_frame_paddr(paddr_c));
++        // `cov_0 <= idx < max_meta_slots()` (⟹ dict membership) proven above.
++        // Then the universal usage-preservation above gives
++        // `s.regions` usage == old usage == Frame at cov_idx.
+         s.regions.lemma_contains_valid_frame_paddr(paddr_c);
+         assert(s.regions.contains(cov_idx));
+     };
+@@ -4017,8 +4019,10 @@ proof fn lemma_step_segment_clone_range<'rcu>(
+         reveal(VmStore::structural_inv);
+         let other_idx = frame_to_index(s.frames[fid_other].paddr);
+         assert(old_frames.dom().contains(fid_other));
+-        assert(old_regions.slot_owners[other_idx].usage is Frame);
+         assert(valid_frame_paddr(s.frames[fid_other].paddr));
++        old_regions.lemma_contains_valid_frame_paddr(s.frames[fid_other].paddr);
++        assert(old_regions.contains(other_idx));
++        assert(old_regions.slot_owners[other_idx].usage is Frame);
+         s.regions.lemma_contains_valid_frame_paddr(s.frames[fid_other].paddr);
+         assert(s.regions.contains(other_idx));
+         // `other_0 <= idx < max_meta_slots()` (biimplication) ⟹ universal
+@@ -4137,10 +4141,12 @@ proof fn lemma_step_segment_clone_range<'rcu>(
+         };
+         assert(s.regions.slot_owners[u_idx] == old_regions.slot_owners[u_idx]);
+     };
+-    lemma_accounting_inv_intro(*s);
+     assert(s.structural_inv()) by {
+         reveal(VmStore::structural_inv);
+     };
++    assert(s.accounting_inv()) by {
++        reveal(VmStore::accounting_inv);
++    };
+     assert(s.inv()) by {
+         reveal(VmStore::inv);
+     };
+diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
+index 2f02cd4673315ee0f943e4d1d71a1206aa4824a3..a4dd253d478952c7e097e02a241c1b03c352ce99 100644
+--- a/verified_libs/vstd_extra/Cargo.toml
++++ b/verified_libs/vstd_extra/Cargo.toml
+@@ -15,3 +15,4 @@ std = ["vstd/std"]
+ 
+ [dependencies]
+ vstd = { workspace = true }
++bitvec.workspace = true
+diff --git a/verified_libs/vstd_extra/src/external/bitvec.rs b/verified_libs/vstd_extra/src/external/bitvec.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..27b2ca72ef712988abc5bd0c1febd7bd8c8cb017
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/bitvec.rs
+@@ -0,0 +1,319 @@
++//! Verus specifications for the third-party `bitvec` crate, trusted as TCB from
++//! inspection of the `bitvec-1.0.1` source (`store.rs`, `order.rs`,
++//! `vec/{api,ops}.rs`, `slice/{api,ops}.rs`) and centralized here rather than beside
++//! an OSTD caller. `id-alloc` is currently the only consumer (`BitVec<u8, Lsb0>`).
++//!
++//! Contracts are admitted only for trusted primitive storage (`u8`, `u32`, `usize`,
++//! `u64` on 64-bit, with `Lsb0`). `BitStore` alone is insufficient: `Cell`, atomic,
++//! or alias-safe storage can mutate through a shared reference, and implementing the
++//! external traits grants no model guarantees. Contracts are therefore guarded by an
++//! uninterpreted model predicate assumed only for those instances; primitive storage
++//! has `Mem = Self` and `Unalias = Self` (its internal `Access`/`Alias` types are not
++//! admitted).
++//!
++//! The model is a `Seq<bool>`; the views below equate every executed `bitvec`
++//! operation to a `Seq` operation, so all reasoning in `id-alloc` stays at the
++//! `Seq<bool>` level.
++use bitvec::{
++    order::{BitOrder, Lsb0},
++    slice::{BitSlice, BitSliceIndex},
++    store::BitStore,
++    vec::BitVec,
++};
++use core::ops::{Deref, DerefMut, Index, Range};
++use vstd::{prelude::*, std_specs::core::IndexSpec};
++
++macro_rules! bitvec_model_axiom {
++    ($name:ident, $t:ty) => {
++        ::vstd::prelude::verus! {
++            pub broadcast axiom fn $name()
++                ensures
++                    #[trigger] obeys_bitvec_model::<$t, Lsb0>(),
++            ;
++        }
++};
++}
++
++// Keep instances separate so pruning an unused type does not remove the others.
++bitvec_model_axiom!(axiom_u8_bitvec_model, u8);
++bitvec_model_axiom!(axiom_u32_bitvec_model, u32);
++bitvec_model_axiom!(axiom_usize_bitvec_model, usize);
++#[cfg(target_pointer_width = "64")]
++bitvec_model_axiom!(axiom_u64_bitvec_model, u64);
++
++verus! {
++
++/// Verus declaration for bitvec's default `Lsb0` bit order (a zero-sized marker).
++#[verifier::external_type_specification]
++#[verifier::external_body]
++pub struct ExLsb0(Lsb0);
++
++/// Type-level declaration only; this does not assume any `BitStore` semantics.
++#[verifier::external_trait_specification]
++pub trait ExBitStore: 'static + core::fmt::Debug {
++    type ExternalTraitSpecificationFor: bitvec::store::BitStore;
++}
++
++/// Type-level declaration only; this does not assume any `BitOrder` semantics.
++#[verifier::external_trait_specification]
++pub trait ExBitOrder: 'static {
++    type ExternalTraitSpecificationFor: bitvec::order::BitOrder;
++}
++
++/// Verus declaration for bitvec's `BitSliceIndex` trait. Only the associated types
++/// are surfaced; `id-alloc` uses the `Range<usize>` instance, whose `Immut` is a
++/// `&BitSlice`.
++#[verifier::external_trait_specification]
++pub trait ExBitSliceIndex<'a, T: BitStore, O: BitOrder> {
++    type ExternalTraitSpecificationFor: BitSliceIndex<'a, T, O>;
++
++    type Immut;
++
++    type Mut;
++}
++
++/// Opaque external wrapper for the owned bitmap type.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++#[verifier::reject_recursive_types(T)]
++#[verifier::reject_recursive_types(O)]
++pub struct ExBitVec<T: BitStore, O: BitOrder>(BitVec<T, O>);
++
++/// Opaque external wrapper for the borrowed bit-slice type.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++#[verifier::reject_recursive_types(T)]
++#[verifier::reject_recursive_types(O)]
++pub struct ExBitSlice<T: BitStore, O: BitOrder>(BitSlice<T, O>);
++
++/// The full bitmap, modelled as a sequence of booleans.
++pub uninterp spec fn bitvec_view<T: BitStore, O: BitOrder>(b: &BitVec<T, O>) -> Seq<bool>;
++
++/// The content of a borrowed bit-slice, modelled as a sequence of booleans.
++pub uninterp spec fn bitslice_view<T: BitStore, O: BitOrder>(b: &BitSlice<T, O>) -> Seq<bool>;
++
++/// Whether storage and order support the immutable sequence model. Only the
++/// concrete instances in `group_bitvec_models` are trusted below.
++pub uninterp spec fn obeys_bitvec_model<T: BitStore, O: BitOrder>() -> bool;
++
++/// The only index and `get` specializations covered by this bridge.
++pub uninterp spec fn obeys_bitslice_index_model<T: BitStore, O: BitOrder, Idx>() -> bool where
++    BitSlice<T, O>: Index<Idx>,
++;
++
++pub uninterp spec fn obeys_bitslice_get_model<'a, T: BitStore, O: BitOrder, I>() -> bool where
++    I: BitSliceIndex<'a, T, O>,
++;
++
++pub broadcast axiom fn axiom_usize_bitslice_index_model<T: BitStore, O: BitOrder>()
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        #[trigger] obeys_bitslice_index_model::<T, O, usize>(),
++;
++
++pub broadcast axiom fn axiom_range_bitslice_get_model<'a, T: BitStore, O: BitOrder>()
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        #[trigger] obeys_bitslice_get_model::<'a, T, O, Range<usize>>(),
++;
++
++pub broadcast group group_bitvec_models {
++    axiom_u8_bitvec_model,
++    axiom_u32_bitvec_model,
++    axiom_usize_bitvec_model,
++    axiom_usize_bitslice_index_model,
++    axiom_range_bitslice_get_model,
++    #[cfg(target_pointer_width = "64")]
++    axiom_u64_bitvec_model,
++}
++
++/// Derefs to a `BitSlice` over exactly the `BitVec`'s own bits.
++pub assume_specification<'a, T: BitStore, O: BitOrder>[ <BitVec<T, O> as Deref>::deref ](
++    bv: &'a BitVec<T, O>,
++) -> (ret: &'a <BitVec<T, O> as Deref>::Target)
++    ensures
++        obeys_bitvec_model::<T, O>() ==> bitslice_view(ret) == bitvec_view(bv),
++;
++
++/// A `BitVec` derefs mutably to a `BitSlice` over exactly its own bits; a mutation
++/// performed through the returned borrow is reflected in the `BitVec`'s final view.
++pub assume_specification<'a, T: BitStore, O: BitOrder>[ <BitVec<T, O> as DerefMut>::deref_mut ](
++    bv: &'a mut BitVec<T, O>,
++) -> (ret: &'a mut <BitVec<T, O> as Deref>::Target)
++    ensures
++        obeys_bitvec_model::<T, O>() ==> {
++            &&& bitslice_view(ret) == bitvec_view(old(bv))
++            &&& bitvec_view(final(bv)) == bitslice_view(final(ret))
++        },
++;
++
++/// Constructs an empty `BitVec` (length 0). The capacity hint is not modelled.
++/// Panics if `capacity` exceeds `BitSlice::<T, O>::MAX_BITS` (= `usize::MAX >> 3`);
++/// callers must keep `capacity` within that bound.
++pub assume_specification<T: BitStore, O: BitOrder>[ BitVec::<T, O>::with_capacity ](
++    capacity: usize,
++) -> (ret: BitVec<T, O>)
++    requires
++        obeys_bitvec_model::<T, O>(),
++        capacity <= usize::MAX / 8,
++    ensures
++        bitvec_view(&ret).len() == 0,
++;
++
++/// Resizes the `BitVec` to `new_len`, filling new positions with `value` and
++/// preserving existing bits up to the shorter length. Panics if `new_len` exceeds
++/// `BitSlice::<T, O>::MAX_BITS` (= `usize::MAX >> 3`).
++pub assume_specification<T: BitStore, O: BitOrder>[ BitVec::<T, O>::resize ](
++    bv: &mut BitVec<T, O>,
++    new_len: usize,
++    value: bool,
++)
++    requires
++        obeys_bitvec_model::<T, O>(),
++        new_len <= usize::MAX / 8,
++    ensures
++        bitvec_view(final(bv)).len() == new_len,
++        forall|i: int|
++            #![trigger bitvec_view(final(bv))[i]]
++            0 <= i < new_len ==> bitvec_view(final(bv))[i] == (if i < bitvec_view(old(bv)).len() {
++                bitvec_view(old(bv))[i]
++            } else {
++                value
++            }),
++;
++
++/// The number of bits.
++pub assume_specification<T: BitStore, O: BitOrder>[ BitVec::<T, O>::len ](
++    bv: &BitVec<T, O>,
++) -> usize
++    requires
++        obeys_bitvec_model::<T, O>(),
++    returns
++        bitvec_view(bv).len() as usize,
++;
++
++/// Reads a single bit (panics if `idx` is out of bounds); the `usize` result is
++/// related to the model by [`axiom_bitvec_index_usize`].
++pub uninterp spec fn bitvec_index_value<'a, T: BitStore, O: BitOrder, Idx>(
++    bv: &'a BitVec<T, O>,
++    idx: Idx,
++) -> &'a <BitVec<T, O> as Index<Idx>>::Output where BitSlice<T, O>: Index<Idx>;
++
++pub assume_specification<'a, T: BitStore, O: BitOrder, Idx>[ <BitVec<T, O> as Index<Idx>>::index ](
++    bv: &'a BitVec<T, O>,
++    idx: Idx,
++) -> (ret: &'a <BitVec<T, O> as Index<Idx>>::Output) where BitSlice<T, O>: Index<Idx>
++    ensures
++        obeys_bitvec_model::<T, O>() && obeys_bitslice_index_model::<T, O, Idx>() ==> ret
++            == bitvec_index_value(bv, idx),
++;
++
++/// The indexed `usize` bit equals the model value.
++pub broadcast axiom fn axiom_bitvec_index_usize<T: BitStore, O: BitOrder>(
++    bv: &BitVec<T, O>,
++    idx: usize,
++)
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        #![trigger bitvec_index_value(bv, idx)]
++        *bitvec_index_value(bv, idx) == bitvec_view(bv)[idx as int],
++;
++
++/// `BitVec`'s `Index` precondition (`index_req`): the index must be in `[0, len)`,
++/// the condition under which `BitVec::index` does not panic.
++pub broadcast axiom fn axiom_bitvec_index_req<T: BitStore, O: BitOrder>(bv: &BitVec<T, O>, i: usize)
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        #![trigger <BitVec<T, O> as IndexSpec<usize>>::index_req(bv, &i)]
++        <BitVec<T, O> as IndexSpec<usize>>::index_req(bv, &i) == (i < bitvec_view(bv).len()),
++;
++
++/// Bit length is bounded by `BitSlice::<T, O>::MAX_BITS` (= `usize::MAX >> 3`).
++pub broadcast axiom fn axiom_bitvec_len_bound<T: BitStore, O: BitOrder>(bv: &BitVec<T, O>)
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        #![trigger bitvec_view(bv)]
++        bitvec_view(bv).len() <= (usize::MAX as int) / 8,
++;
++
++/// Writes a single bit. Panics if `index` is out of bounds.
++pub assume_specification<T: BitStore, O: BitOrder>[ BitSlice::<T, O>::set ](
++    bv: &mut BitSlice<T, O>,
++    index: usize,
++    value: bool,
++)
++    requires
++        obeys_bitvec_model::<T, O>(),
++        index < bitslice_view(bv).len(),
++    ensures
++        bitslice_view(final(bv)) == bitslice_view(old(bv)).update(index as int, value),
++;
++
++/// Borrows a part of the bit-slice (`get` is generic over `I`); the `Range<usize>`
++/// result is related to a sub-range by [`axiom_bitslice_get_range`].
++pub uninterp spec fn bitslice_get_value<'a, T: BitStore, O: BitOrder, I: BitSliceIndex<'a, T, O>>(
++    bv: &BitSlice<T, O>,
++    idx: I,
++) -> Option<<I as BitSliceIndex<'a, T, O>>::Immut>;
++
++pub assume_specification<'a, T: BitStore, O: BitOrder, I: BitSliceIndex<'a, T, O>>[ BitSlice::<
++    T,
++    O,
++>::get ](bv: &'a BitSlice<T, O>, idx: I) -> Option<<I as BitSliceIndex<'a, T, O>>::Immut>
++    requires
++        obeys_bitvec_model::<T, O>(),
++        obeys_bitslice_get_model::<'a, T, O, I>(),
++    returns
++        bitslice_get_value(bv, idx),
++;
++
++/// For a `Range<usize>`, `get` returns `Some` of a bit-slice equal to the
++/// sub-range `bitslice_view(bv).subrange(start, end)` when
++/// `0 <= start <= end <= bitslice_view(bv).len()`, and `None` otherwise.
++pub broadcast axiom fn axiom_bitslice_get_range<'a, T: BitStore, O: BitOrder>(
++    bv: &BitSlice<T, O>,
++    range: Range<usize>,
++)
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        #![trigger bitslice_get_value(bv, range)]
++        match bitslice_get_value(bv, range) {
++            Some(s) => {
++                &&& 0 <= range.start <= range.end <= bitslice_view(bv).len()
++                &&& bitslice_view(s) == bitslice_view(bv).subrange(
++                    range.start as int,
++                    range.end as int,
++                )
++            },
++            None => !(0 <= range.start <= range.end <= bitslice_view(bv).len()),
++        },
++;
++
++/// The first index holding a `0` bit, counted from the start of the slice.
++pub assume_specification<T: BitStore, O: BitOrder>[ BitSlice::<T, O>::first_zero ](
++    bv: &BitSlice<T, O>,
++) -> (ret: Option<usize>)
++    requires
++        obeys_bitvec_model::<T, O>(),
++    ensures
++        match ret {
++            Some(j) => {
++                &&& 0 <= j < bitslice_view(bv).len()
++                &&& !bitslice_view(bv)[j as int]
++                &&& forall|i: int|
++                    #![trigger bitslice_view(bv)[i]]
++                    0 <= i < j ==> bitslice_view(bv)[i]
++            },
++            None => forall|i: int|
++                #![trigger bitslice_view(bv)[i]]
++                0 <= i < bitslice_view(bv).len() ==> bitslice_view(bv)[i],
++        },
++;
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index f4071583be31c52546ef98873d2e8ab52d9e0d41..e70ca511688932b1fee8b36b6796ae966eb0aa8b 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -2,6 +2,7 @@
+ //!
+ //! These specifications are determined with careful inspection of the std library source code and documentation, and trusted as TCB.
+ //! They are subject to change if `vstd` covers more cases in the future.
++pub mod bitvec;
+ pub mod btree;
+ pub mod convert;
+ pub mod deref;
+@@ -14,6 +15,7 @@ pub mod slice;
+ pub mod smart_ptr;
+ pub mod time;
+ 
++pub use bitvec::*;
+ pub use btree::*;
+ pub use ilog2::*;
+ pub use int_specs::*;

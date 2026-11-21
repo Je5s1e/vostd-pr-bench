@@ -1,0 +1,1365 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index a6e3c8f05d08b4755967b1aaa78189e4bdd41c95..a47f2df3a3a69bd3cfbdf531215c1deba72d33c3 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -120,6 +120,7 @@ name = "lock-protocol"
+ version = "0.1.0"
+ dependencies = [
+  "vstd",
++ "vstd_extra",
+ ]
+ 
+ [[package]]
+diff --git a/lock-protocol/Cargo.toml b/lock-protocol/Cargo.toml
+index 6a38f7284d5589962514769d02fc212f6744f350..869b6e03805b888bc6d0c7430c6edf6eff621f4d 100644
+--- a/lock-protocol/Cargo.toml
++++ b/lock-protocol/Cargo.toml
+@@ -7,5 +7,5 @@ edition = "2021"
+ 
+ [dependencies]
+ vstd = { path = "../tools/verus/source/vstd" }
+-# vstd_extra = { path = "../vstd_extra" }
++vstd_extra = { path = "../vstd_extra" }
+ # aster_common = { path = "../aster_common" }
+\ No newline at end of file
+diff --git a/lock-protocol/src/helpers/extra_num.rs b/lock-protocol/src/helpers/extra_num.rs
+deleted file mode 100644
+index d5590f168b3474d85d2c8941b403fb22a2102d2c..0000000000000000000000000000000000000000
+--- a/lock-protocol/src/helpers/extra_num.rs
++++ /dev/null
+@@ -1,699 +0,0 @@
+-use vstd::prelude::*;
+-use vstd::arithmetic::logarithm::*;
+-use vstd::arithmetic::power2::*;
+-use vstd::arithmetic::power::*;
+-use vstd::layout::is_power_2;
+-
+-verus! {
+-
+-pub broadcast proof fn lemma_pow2_log2(e: nat)
+-    ensures
+-        #[trigger] log(2, pow2(e) as int) == e,
+-{
+-    lemma_pow2(e);
+-    lemma_log_pow(2, e);
+-}
+-
+-pub broadcast proof fn lemma_pow2_is_power2(e: nat)
+-    ensures
+-        #[trigger] is_power_2(pow2(e) as int),
+-    decreases e,
+-{
+-    if e == 0 {
+-        assert(pow2(e) == 1) by {
+-            lemma2_to64();
+-        };
+-        assert(is_power_2(1));
+-    } else {
+-        lemma_pow2_is_power2((e - 1) as nat);
+-        let p = pow2((e - 1) as nat) as int;
+-        assert(is_power_2(p));
+-        assert(pow2(e) == 2 * p) by {
+-            lemma_pow2_unfold(e);
+-        };
+-        assert(pow2(e) % 2 == 0);
+-        assert(is_power_2(2 * p / 2));
+-        assert(is_power_2(p));
+-    }
+-}
+-
+-pub proof fn lemma2_to64_hi32()
+-    ensures
+-        pow2(33) == 0x200000000,
+-        pow2(34) == 0x400000000,
+-        pow2(35) == 0x800000000,
+-        pow2(36) == 0x1000000000,
+-        pow2(37) == 0x2000000000,
+-        pow2(38) == 0x4000000000,
+-        pow2(39) == 0x8000000000,
+-        pow2(40) == 0x10000000000,
+-        pow2(41) == 0x20000000000,
+-        pow2(42) == 0x40000000000,
+-        pow2(43) == 0x80000000000,
+-        pow2(44) == 0x100000000000,
+-        pow2(45) == 0x200000000000,
+-        pow2(46) == 0x400000000000,
+-        pow2(47) == 0x800000000000,
+-        pow2(48) == 0x1000000000000,
+-        pow2(49) == 0x2000000000000,
+-        pow2(50) == 0x4000000000000,
+-        pow2(51) == 0x8000000000000,
+-        pow2(52) == 0x10000000000000,
+-        pow2(53) == 0x20000000000000,
+-        pow2(54) == 0x40000000000000,
+-        pow2(55) == 0x80000000000000,
+-        pow2(56) == 0x100000000000000,
+-        pow2(57) == 0x200000000000000,
+-        pow2(58) == 0x400000000000000,
+-        pow2(59) == 0x800000000000000,
+-        pow2(60) == 0x1000000000000000,
+-        pow2(61) == 0x2000000000000000,
+-        pow2(62) == 0x4000000000000000,
+-        pow2(63) == 0x8000000000000000,
+-        pow2(64) == 0x10000000000000000,
+-{
+-    lemma2_to64();
+-    reveal(pow2);
+-    reveal(pow);
+-    #[verusfmt::skip]
+-    assert(
+-        pow2(33) == 0x200000000 &&
+-        pow2(34) == 0x400000000 &&
+-        pow2(35) == 0x800000000 &&
+-        pow2(36) == 0x1000000000 &&
+-        pow2(37) == 0x2000000000 &&
+-        pow2(38) == 0x4000000000 &&
+-        pow2(39) == 0x8000000000 &&
+-        pow2(40) == 0x10000000000 &&
+-        pow2(41) == 0x20000000000 &&
+-        pow2(42) == 0x40000000000 &&
+-        pow2(43) == 0x80000000000 &&
+-        pow2(44) == 0x100000000000 &&
+-        pow2(45) == 0x200000000000 &&
+-        pow2(46) == 0x400000000000 &&
+-        pow2(47) == 0x800000000000 &&
+-        pow2(48) == 0x1000000000000 &&
+-        pow2(49) == 0x2000000000000 &&
+-        pow2(50) == 0x4000000000000 &&
+-        pow2(51) == 0x8000000000000 &&
+-        pow2(52) == 0x10000000000000 &&
+-        pow2(53) == 0x20000000000000 &&
+-        pow2(54) == 0x40000000000000 &&
+-        pow2(55) == 0x80000000000000 &&
+-        pow2(56) == 0x100000000000000 &&
+-        pow2(57) == 0x200000000000000 &&
+-        pow2(58) == 0x400000000000000 &&
+-        pow2(59) == 0x800000000000000 &&
+-        pow2(60) == 0x1000000000000000 &&
+-        pow2(61) == 0x2000000000000000 &&
+-        pow2(62) == 0x4000000000000000 &&
+-        pow2(63) == 0x8000000000000000 &&
+-        pow2(64) == 0x10000000000000000
+-    ) by (compute_only);
+-}
+-
+-pub proof fn lemma_pow2_is_power2_to64()
+-    ensures
+-        is_power_2(0x1),
+-        is_power_2(0x2),
+-        is_power_2(0x4),
+-        is_power_2(0x8),
+-        is_power_2(0x10),
+-        is_power_2(0x20),
+-        is_power_2(0x40),
+-        is_power_2(0x80),
+-        is_power_2(0x100),
+-        is_power_2(0x200),
+-        is_power_2(0x400),
+-        is_power_2(0x800),
+-        is_power_2(0x1000),
+-        is_power_2(0x2000),
+-        is_power_2(0x4000),
+-        is_power_2(0x8000),
+-        is_power_2(0x10000),
+-        is_power_2(0x20000),
+-        is_power_2(0x40000),
+-        is_power_2(0x80000),
+-        is_power_2(0x100000),
+-        is_power_2(0x200000),
+-        is_power_2(0x400000),
+-        is_power_2(0x800000),
+-        is_power_2(0x1000000),
+-        is_power_2(0x2000000),
+-        is_power_2(0x4000000),
+-        is_power_2(0x8000000),
+-        is_power_2(0x10000000),
+-        is_power_2(0x20000000),
+-        is_power_2(0x40000000),
+-        is_power_2(0x80000000),
+-        is_power_2(0x100000000),
+-        is_power_2(0x200000000),
+-        is_power_2(0x400000000),
+-        is_power_2(0x800000000),
+-        is_power_2(0x1000000000),
+-        is_power_2(0x2000000000),
+-        is_power_2(0x4000000000),
+-        is_power_2(0x8000000000),
+-        is_power_2(0x10000000000),
+-        is_power_2(0x20000000000),
+-        is_power_2(0x40000000000),
+-        is_power_2(0x80000000000),
+-        is_power_2(0x100000000000),
+-        is_power_2(0x200000000000),
+-        is_power_2(0x400000000000),
+-        is_power_2(0x800000000000),
+-        is_power_2(0x1000000000000),
+-        is_power_2(0x2000000000000),
+-        is_power_2(0x4000000000000),
+-        is_power_2(0x8000000000000),
+-        is_power_2(0x10000000000000),
+-        is_power_2(0x20000000000000),
+-        is_power_2(0x40000000000000),
+-        is_power_2(0x80000000000000),
+-        is_power_2(0x100000000000000),
+-        is_power_2(0x200000000000000),
+-        is_power_2(0x400000000000000),
+-        is_power_2(0x800000000000000),
+-        is_power_2(0x1000000000000000),
+-        is_power_2(0x2000000000000000),
+-        is_power_2(0x4000000000000000),
+-        is_power_2(0x8000000000000000),
+-        is_power_2(0x10000000000000000),
+-{
+-    lemma2_to64();
+-    lemma2_to64_hi32();
+-    lemma_pow2_is_power2(0);
+-    lemma_pow2_is_power2(1);
+-    lemma_pow2_is_power2(2);
+-    lemma_pow2_is_power2(3);
+-    lemma_pow2_is_power2(4);
+-    lemma_pow2_is_power2(5);
+-    lemma_pow2_is_power2(6);
+-    lemma_pow2_is_power2(7);
+-    lemma_pow2_is_power2(8);
+-    lemma_pow2_is_power2(9);
+-    lemma_pow2_is_power2(10);
+-    lemma_pow2_is_power2(11);
+-    lemma_pow2_is_power2(12);
+-    lemma_pow2_is_power2(13);
+-    lemma_pow2_is_power2(14);
+-    lemma_pow2_is_power2(15);
+-    lemma_pow2_is_power2(16);
+-    lemma_pow2_is_power2(17);
+-    lemma_pow2_is_power2(18);
+-    lemma_pow2_is_power2(19);
+-    lemma_pow2_is_power2(20);
+-    lemma_pow2_is_power2(21);
+-    lemma_pow2_is_power2(22);
+-    lemma_pow2_is_power2(23);
+-    lemma_pow2_is_power2(24);
+-    lemma_pow2_is_power2(25);
+-    lemma_pow2_is_power2(26);
+-    lemma_pow2_is_power2(27);
+-    lemma_pow2_is_power2(28);
+-    lemma_pow2_is_power2(29);
+-    lemma_pow2_is_power2(30);
+-    lemma_pow2_is_power2(31);
+-    lemma_pow2_is_power2(32);
+-    lemma_pow2_is_power2(33);
+-    lemma_pow2_is_power2(34);
+-    lemma_pow2_is_power2(35);
+-    lemma_pow2_is_power2(36);
+-    lemma_pow2_is_power2(37);
+-    lemma_pow2_is_power2(38);
+-    lemma_pow2_is_power2(39);
+-    lemma_pow2_is_power2(40);
+-    lemma_pow2_is_power2(41);
+-    lemma_pow2_is_power2(42);
+-    lemma_pow2_is_power2(43);
+-    lemma_pow2_is_power2(44);
+-    lemma_pow2_is_power2(45);
+-    lemma_pow2_is_power2(46);
+-    lemma_pow2_is_power2(47);
+-    lemma_pow2_is_power2(48);
+-    lemma_pow2_is_power2(49);
+-    lemma_pow2_is_power2(50);
+-    lemma_pow2_is_power2(51);
+-    lemma_pow2_is_power2(52);
+-    lemma_pow2_is_power2(53);
+-    lemma_pow2_is_power2(54);
+-    lemma_pow2_is_power2(55);
+-    lemma_pow2_is_power2(56);
+-    lemma_pow2_is_power2(57);
+-    lemma_pow2_is_power2(58);
+-    lemma_pow2_is_power2(59);
+-    lemma_pow2_is_power2(60);
+-    lemma_pow2_is_power2(61);
+-    lemma_pow2_is_power2(62);
+-    lemma_pow2_is_power2(63);
+-    lemma_pow2_is_power2(64);
+-}
+-
+-pub proof fn lemma_log2_to64()
+-    ensures
+-        log(2, 0x1) == 0,
+-        log(2, 0x2) == 1,
+-        log(2, 0x4) == 2,
+-        log(2, 0x8) == 3,
+-        log(2, 0x10) == 4,
+-        log(2, 0x20) == 5,
+-        log(2, 0x40) == 6,
+-        log(2, 0x80) == 7,
+-        log(2, 0x100) == 8,
+-        log(2, 0x200) == 9,
+-        log(2, 0x400) == 10,
+-        log(2, 0x800) == 11,
+-        log(2, 0x1000) == 12,
+-        log(2, 0x2000) == 13,
+-        log(2, 0x4000) == 14,
+-        log(2, 0x8000) == 15,
+-        log(2, 0x10000) == 16,
+-        log(2, 0x20000) == 17,
+-        log(2, 0x40000) == 18,
+-        log(2, 0x80000) == 19,
+-        log(2, 0x100000) == 20,
+-        log(2, 0x200000) == 21,
+-        log(2, 0x400000) == 22,
+-        log(2, 0x800000) == 23,
+-        log(2, 0x1000000) == 24,
+-        log(2, 0x2000000) == 25,
+-        log(2, 0x4000000) == 26,
+-        log(2, 0x8000000) == 27,
+-        log(2, 0x10000000) == 28,
+-        log(2, 0x20000000) == 29,
+-        log(2, 0x40000000) == 30,
+-        log(2, 0x80000000) == 31,
+-        log(2, 0x100000000) == 32,
+-        log(2, 0x200000000) == 33,
+-        log(2, 0x400000000) == 34,
+-        log(2, 0x800000000) == 35,
+-        log(2, 0x1000000000) == 36,
+-        log(2, 0x2000000000) == 37,
+-        log(2, 0x4000000000) == 38,
+-        log(2, 0x8000000000) == 39,
+-        log(2, 0x10000000000) == 40,
+-        log(2, 0x20000000000) == 41,
+-        log(2, 0x40000000000) == 42,
+-        log(2, 0x80000000000) == 43,
+-        log(2, 0x100000000000) == 44,
+-        log(2, 0x200000000000) == 45,
+-        log(2, 0x400000000000) == 46,
+-        log(2, 0x800000000000) == 47,
+-        log(2, 0x1000000000000) == 48,
+-        log(2, 0x2000000000000) == 49,
+-        log(2, 0x4000000000000) == 50,
+-        log(2, 0x8000000000000) == 51,
+-        log(2, 0x10000000000000) == 52,
+-        log(2, 0x20000000000000) == 53,
+-        log(2, 0x40000000000000) == 54,
+-        log(2, 0x80000000000000) == 55,
+-        log(2, 0x100000000000000) == 56,
+-        log(2, 0x200000000000000) == 57,
+-        log(2, 0x400000000000000) == 58,
+-        log(2, 0x800000000000000) == 59,
+-        log(2, 0x1000000000000000) == 60,
+-        log(2, 0x2000000000000000) == 61,
+-        log(2, 0x4000000000000000) == 62,
+-        log(2, 0x8000000000000000) == 63,
+-        log(2, 0x10000000000000000) == 64,
+-{
+-    lemma2_to64();
+-    lemma2_to64_hi32();
+-    lemma_pow2_log2(0);
+-    lemma_pow2_log2(1);
+-    lemma_pow2_log2(2);
+-    lemma_pow2_log2(3);
+-    lemma_pow2_log2(4);
+-    lemma_pow2_log2(5);
+-    lemma_pow2_log2(6);
+-    lemma_pow2_log2(7);
+-    lemma_pow2_log2(8);
+-    lemma_pow2_log2(9);
+-    lemma_pow2_log2(10);
+-    lemma_pow2_log2(11);
+-    lemma_pow2_log2(12);
+-    lemma_pow2_log2(13);
+-    lemma_pow2_log2(14);
+-    lemma_pow2_log2(15);
+-    lemma_pow2_log2(16);
+-    lemma_pow2_log2(17);
+-    lemma_pow2_log2(18);
+-    lemma_pow2_log2(19);
+-    lemma_pow2_log2(20);
+-    lemma_pow2_log2(21);
+-    lemma_pow2_log2(22);
+-    lemma_pow2_log2(23);
+-    lemma_pow2_log2(24);
+-    lemma_pow2_log2(25);
+-    lemma_pow2_log2(26);
+-    lemma_pow2_log2(27);
+-    lemma_pow2_log2(28);
+-    lemma_pow2_log2(29);
+-    lemma_pow2_log2(30);
+-    lemma_pow2_log2(31);
+-    lemma_pow2_log2(32);
+-    lemma_pow2_log2(33);
+-    lemma_pow2_log2(34);
+-    lemma_pow2_log2(35);
+-    lemma_pow2_log2(36);
+-    lemma_pow2_log2(37);
+-    lemma_pow2_log2(38);
+-    lemma_pow2_log2(39);
+-    lemma_pow2_log2(40);
+-    lemma_pow2_log2(41);
+-    lemma_pow2_log2(42);
+-    lemma_pow2_log2(43);
+-    lemma_pow2_log2(44);
+-    lemma_pow2_log2(45);
+-    lemma_pow2_log2(46);
+-    lemma_pow2_log2(47);
+-    lemma_pow2_log2(48);
+-    lemma_pow2_log2(49);
+-    lemma_pow2_log2(50);
+-    lemma_pow2_log2(51);
+-    lemma_pow2_log2(52);
+-    lemma_pow2_log2(53);
+-    lemma_pow2_log2(54);
+-    lemma_pow2_log2(55);
+-    lemma_pow2_log2(56);
+-    lemma_pow2_log2(57);
+-    lemma_pow2_log2(58);
+-    lemma_pow2_log2(59);
+-    lemma_pow2_log2(60);
+-    lemma_pow2_log2(61);
+-    lemma_pow2_log2(62);
+-    lemma_pow2_log2(63);
+-    lemma_pow2_log2(64);
+-}
+-
+-} // verus!
+-macro_rules! impl_external_ilog2 {
+-    ($uN: ty, $bits: expr, $spec_name: ident, $ext_fn_name: ident,
+-    $pow2_lemma: ident, $pow2_ilog2_lemma: ident,
+-    $log2_bounds_lemma: ident, $ilog2_ordered_lemma: ident $(,)?) => {
+-        verus! {
+-            #[verifier::inline]
+-            pub open spec fn $spec_name(x: $uN) -> u32
+-            {
+-                log(2, x as int) as u32
+-            }
+-
+-            #[verifier::external_fn_specification]
+-            #[verifier::when_used_as_spec($spec_name)]
+-            pub fn $ext_fn_name(x: $uN) -> (res: u32)
+-                ensures
+-                    res == log(2, x as int),
+-            {
+-                x.ilog2()
+-            }
+-
+-            pub broadcast proof fn $pow2_lemma(e: u32, x: $uN)
+-                requires
+-                    #[trigger] pow2(e as nat) == x,
+-                ensures
+-                    #[trigger] x.ilog2() == e,
+-            {
+-                lemma_pow2_log2(e as nat);
+-            }
+-
+-            pub broadcast proof fn $pow2_ilog2_lemma(e: u32)
+-                requires
+-                    pow2(e as nat) < $uN::MAX,
+-                ensures
+-                    #[trigger] (pow2(e as nat) as $uN).ilog2() == e,
+-            {
+-                $pow2_lemma(e, pow2(e as nat) as $uN);
+-            }
+-
+-            pub proof fn $log2_bounds_lemma(x: $uN)
+-                ensures
+-                    0 <= log(2, x as int) <= $bits,
+-                    0 <= x.ilog2() <= $bits,
+-            {
+-                lemma_log_nonnegative(2, x as int);
+-                assert(x <= $uN::MAX);
+-                assert(($uN::MAX as int) < (pow2($bits) as int)) by {
+-                    lemma2_to64();
+-                };
+-                assert(log(2, x as int) <= log(2, pow2($bits) as int)) by {
+-                    lemma_log_is_ordered(2, x as int, pow2($bits) as int);
+-                };
+-                assert(log(2, pow2($bits) as int) == $bits) by {
+-                    lemma_pow2_log2($bits);
+-                };
+-            }
+-
+-            pub proof fn $ilog2_ordered_lemma(x: $uN, y: $uN)
+-                requires
+-                    x <= y,
+-                ensures
+-                    x.ilog2() <= y.ilog2(),
+-            {
+-                $log2_bounds_lemma(x);
+-                $log2_bounds_lemma(y);
+-                lemma_log_is_ordered(2, x as int, y as int);
+-            }
+-        }
+-    };
+-}
+-
+-impl_external_ilog2!(
+-    u8,
+-    8,
+-    u8_ilog2_spec,
+-    ex_u8_ilog2,
+-    lemma_u8_pow2_ilog2_x,
+-    lemma_u8_pow2_ilog2,
+-    lemma_u8_log2_bounds,
+-    lemma_u8_ilog2_ordered,
+-);
+-
+-impl_external_ilog2!(
+-    u16,
+-    16,
+-    u16_ilog2_spec,
+-    ex_u16_ilog2,
+-    lemma_u16_pow2_ilog2_x,
+-    lemma_u16_pow2_ilog2,
+-    lemma_u16_log2_bounds,
+-    lemma_u16_ilog2_ordered,
+-);
+-
+-impl_external_ilog2!(
+-    u32,
+-    32,
+-    u32_ilog2_spec,
+-    ex_u32_ilog2,
+-    lemma_u32_pow2_ilog2_x,
+-    lemma_u32_pow2_ilog2,
+-    lemma_u32_log2_bounds,
+-    lemma_u32_ilog2_ordered,
+-);
+-
+-impl_external_ilog2!(
+-    usize,
+-    64,
+-    usize_ilog2_spec,
+-    ex_usize_ilog2,
+-    lemma_usize_pow2_ilog2_x,
+-    lemma_usize_pow2_ilog2,
+-    lemma_usize_log2_bounds,
+-    lemma_usize_ilog2_ordered,
+-);
+-
+-impl_external_ilog2!(
+-    u64,
+-    64,
+-    u64_ilog2_spec,
+-    ex_u64_ilog2,
+-    lemma_u64_pow2_ilog2_x,
+-    lemma_u64_pow2_ilog2,
+-    lemma_u64_log2_bounds,
+-    lemma_u64_ilog2_ordered,
+-);
+-
+-verus! {
+-
+-pub proof fn lemma_u8_ilog2_to8()
+-    ensures
+-        (0x1 as u8).ilog2() == 0,
+-        (0x2 as u8).ilog2() == 1,
+-        (0x4 as u8).ilog2() == 2,
+-        (0x8 as u8).ilog2() == 3,
+-        (0x10 as u8).ilog2() == 4,
+-        (0x20 as u8).ilog2() == 5,
+-        (0x40 as u8).ilog2() == 6,
+-        (0x80 as u8).ilog2() == 7,
+-{
+-    lemma_log2_to64();
+-}
+-
+-pub proof fn lemma_u16_ilog2_to16()
+-    ensures
+-        (0x1 as u16).ilog2() == 0,
+-        (0x2 as u16).ilog2() == 1,
+-        (0x4 as u16).ilog2() == 2,
+-        (0x8 as u16).ilog2() == 3,
+-        (0x10 as u16).ilog2() == 4,
+-        (0x20 as u16).ilog2() == 5,
+-        (0x40 as u16).ilog2() == 6,
+-        (0x80 as u16).ilog2() == 7,
+-        (0x100 as u16).ilog2() == 8,
+-        (0x200 as u16).ilog2() == 9,
+-        (0x400 as u16).ilog2() == 10,
+-        (0x800 as u16).ilog2() == 11,
+-        (0x1000 as u16).ilog2() == 12,
+-        (0x2000 as u16).ilog2() == 13,
+-        (0x4000 as u16).ilog2() == 14,
+-        (0x8000 as u16).ilog2() == 15,
+-{
+-    lemma_log2_to64();
+-}
+-
+-pub proof fn lemma_u32_ilog2_to32()
+-    ensures
+-        (0x1 as u32).ilog2() == 0,
+-        (0x2 as u32).ilog2() == 1,
+-        (0x4 as u32).ilog2() == 2,
+-        (0x8 as u32).ilog2() == 3,
+-        (0x10 as u32).ilog2() == 4,
+-        (0x20 as u32).ilog2() == 5,
+-        (0x40 as u32).ilog2() == 6,
+-        (0x80 as u32).ilog2() == 7,
+-        (0x100 as u32).ilog2() == 8,
+-        (0x200 as u32).ilog2() == 9,
+-        (0x400 as u32).ilog2() == 10,
+-        (0x800 as u32).ilog2() == 11,
+-        (0x1000 as u32).ilog2() == 12,
+-        (0x2000 as u32).ilog2() == 13,
+-        (0x4000 as u32).ilog2() == 14,
+-        (0x8000 as u32).ilog2() == 15,
+-        (0x10000 as u32).ilog2() == 16,
+-        (0x20000 as u32).ilog2() == 17,
+-        (0x40000 as u32).ilog2() == 18,
+-        (0x80000 as u32).ilog2() == 19,
+-        (0x100000 as u32).ilog2() == 20,
+-        (0x200000 as u32).ilog2() == 21,
+-        (0x400000 as u32).ilog2() == 22,
+-        (0x800000 as u32).ilog2() == 23,
+-        (0x1000000 as u32).ilog2() == 24,
+-        (0x2000000 as u32).ilog2() == 25,
+-        (0x4000000 as u32).ilog2() == 26,
+-        (0x8000000 as u32).ilog2() == 27,
+-        (0x10000000 as u32).ilog2() == 28,
+-        (0x20000000 as u32).ilog2() == 29,
+-        (0x40000000 as u32).ilog2() == 30,
+-        (0x80000000 as u32).ilog2() == 31,
+-{
+-    lemma_log2_to64();
+-}
+-
+-pub proof fn lemma_usize_ilog2_to32()
+-    ensures
+-        (0x1 as usize).ilog2() == 0,
+-        (0x2 as usize).ilog2() == 1,
+-        (0x4 as usize).ilog2() == 2,
+-        (0x8 as usize).ilog2() == 3,
+-        (0x10 as usize).ilog2() == 4,
+-        (0x20 as usize).ilog2() == 5,
+-        (0x40 as usize).ilog2() == 6,
+-        (0x80 as usize).ilog2() == 7,
+-        (0x100 as usize).ilog2() == 8,
+-        (0x200 as usize).ilog2() == 9,
+-        (0x400 as usize).ilog2() == 10,
+-        (0x800 as usize).ilog2() == 11,
+-        (0x1000 as usize).ilog2() == 12,
+-        (0x2000 as usize).ilog2() == 13,
+-        (0x4000 as usize).ilog2() == 14,
+-        (0x8000 as usize).ilog2() == 15,
+-        (0x10000 as usize).ilog2() == 16,
+-        (0x20000 as usize).ilog2() == 17,
+-        (0x40000 as usize).ilog2() == 18,
+-        (0x80000 as usize).ilog2() == 19,
+-        (0x100000 as usize).ilog2() == 20,
+-        (0x200000 as usize).ilog2() == 21,
+-        (0x400000 as usize).ilog2() == 22,
+-        (0x800000 as usize).ilog2() == 23,
+-        (0x1000000 as usize).ilog2() == 24,
+-        (0x2000000 as usize).ilog2() == 25,
+-        (0x4000000 as usize).ilog2() == 26,
+-        (0x8000000 as usize).ilog2() == 27,
+-        (0x10000000 as usize).ilog2() == 28,
+-        (0x20000000 as usize).ilog2() == 29,
+-        (0x40000000 as usize).ilog2() == 30,
+-        (0x80000000 as usize).ilog2() == 31,
+-{
+-    lemma_log2_to64();
+-}
+-
+-pub proof fn lemma_u64_ilog2_to64()
+-    ensures
+-        (0x1 as u64).ilog2() == 0,
+-        (0x2 as u64).ilog2() == 1,
+-        (0x4 as u64).ilog2() == 2,
+-        (0x8 as u64).ilog2() == 3,
+-        (0x10 as u64).ilog2() == 4,
+-        (0x20 as u64).ilog2() == 5,
+-        (0x40 as u64).ilog2() == 6,
+-        (0x80 as u64).ilog2() == 7,
+-        (0x100 as u64).ilog2() == 8,
+-        (0x200 as u64).ilog2() == 9,
+-        (0x400 as u64).ilog2() == 10,
+-        (0x800 as u64).ilog2() == 11,
+-        (0x1000 as u64).ilog2() == 12,
+-        (0x2000 as u64).ilog2() == 13,
+-        (0x4000 as u64).ilog2() == 14,
+-        (0x8000 as u64).ilog2() == 15,
+-        (0x10000 as u64).ilog2() == 16,
+-        (0x20000 as u64).ilog2() == 17,
+-        (0x40000 as u64).ilog2() == 18,
+-        (0x80000 as u64).ilog2() == 19,
+-        (0x100000 as u64).ilog2() == 20,
+-        (0x200000 as u64).ilog2() == 21,
+-        (0x400000 as u64).ilog2() == 22,
+-        (0x800000 as u64).ilog2() == 23,
+-        (0x1000000 as u64).ilog2() == 24,
+-        (0x2000000 as u64).ilog2() == 25,
+-        (0x4000000 as u64).ilog2() == 26,
+-        (0x8000000 as u64).ilog2() == 27,
+-        (0x10000000 as u64).ilog2() == 28,
+-        (0x20000000 as u64).ilog2() == 29,
+-        (0x40000000 as u64).ilog2() == 30,
+-        (0x80000000 as u64).ilog2() == 31,
+-        (0x100000000 as u64).ilog2() == 32,
+-        (0x200000000 as u64).ilog2() == 33,
+-        (0x400000000 as u64).ilog2() == 34,
+-        (0x800000000 as u64).ilog2() == 35,
+-        (0x1000000000 as u64).ilog2() == 36,
+-        (0x2000000000 as u64).ilog2() == 37,
+-        (0x4000000000 as u64).ilog2() == 38,
+-        (0x8000000000 as u64).ilog2() == 39,
+-        (0x10000000000 as u64).ilog2() == 40,
+-        (0x20000000000 as u64).ilog2() == 41,
+-        (0x40000000000 as u64).ilog2() == 42,
+-        (0x80000000000 as u64).ilog2() == 43,
+-        (0x100000000000 as u64).ilog2() == 44,
+-        (0x200000000000 as u64).ilog2() == 45,
+-        (0x400000000000 as u64).ilog2() == 46,
+-        (0x800000000000 as u64).ilog2() == 47,
+-        (0x1000000000000 as u64).ilog2() == 48,
+-        (0x2000000000000 as u64).ilog2() == 49,
+-        (0x4000000000000 as u64).ilog2() == 50,
+-        (0x8000000000000 as u64).ilog2() == 51,
+-        (0x10000000000000 as u64).ilog2() == 52,
+-        (0x20000000000000 as u64).ilog2() == 53,
+-        (0x40000000000000 as u64).ilog2() == 54,
+-        (0x80000000000000 as u64).ilog2() == 55,
+-        (0x100000000000000 as u64).ilog2() == 56,
+-        (0x200000000000000 as u64).ilog2() == 57,
+-        (0x400000000000000 as u64).ilog2() == 58,
+-        (0x800000000000000 as u64).ilog2() == 59,
+-        (0x1000000000000000 as u64).ilog2() == 60,
+-        (0x2000000000000000 as u64).ilog2() == 61,
+-        (0x4000000000000000 as u64).ilog2() == 62,
+-        (0x8000000000000000 as u64).ilog2() == 63,
+-{
+-    lemma_log2_to64();
+-}
+-
+-} // verus!
+diff --git a/lock-protocol/src/helpers/mod.rs b/lock-protocol/src/helpers/mod.rs
+index 54bc121f717acbbecaf0513571df49c6eff2b720..6c16ab21a22f014cf1b22079c2468556216ef5a1 100644
+--- a/lock-protocol/src/helpers/mod.rs
++++ b/lock-protocol/src/helpers/mod.rs
+@@ -1,4 +1,3 @@
+ pub mod align_ext;
+ pub mod extern_const;
+-pub mod extra_num;
+ pub mod math;
+diff --git a/lock-protocol/src/lib.rs b/lock-protocol/src/lib.rs
+index 589034110f58ee83fd5c2d66a1d126df96faddd3..fe3d16dd2038850718f9a17d240c604b46bfd8f7 100644
+--- a/lock-protocol/src/lib.rs
++++ b/lock-protocol/src/lib.rs
+@@ -11,7 +11,6 @@ pub mod mm;
+ pub mod prelude;
+ pub mod spec;
+ // FIXME: There is a rw lock version in this module and incomplete
+-// pub mod test;
+ pub mod task;
+ pub mod test;
+ pub mod x86_64;
+diff --git a/lock-protocol/src/mm/mod.rs b/lock-protocol/src/mm/mod.rs
+index 5052a65ebc87915b4368af6f967d6084a21ef3de..af4f90ed73dfdac10b53c3a27515d0953c75f161 100644
+--- a/lock-protocol/src/mm/mod.rs
++++ b/lock-protocol/src/mm/mod.rs
+@@ -15,7 +15,7 @@ pub use page_table::*;
+ pub use page_table::node::*;
+ pub use frame::*;
+ 
+-use crate::helpers::extra_num::lemma_pow2_is_power2_to64;
++use vstd_extra::extra_num::lemma_pow2_is_power2_to64;
+ use crate::helpers::math::lemma_page_shl;
+ 
+ verus! {
+diff --git a/lock-protocol/src/mm/page_table/mod.rs b/lock-protocol/src/mm/page_table/mod.rs
+index 27fe6dd2da9be0556cd9ab96a53bca327f1c16d8..32330b441161b84312e63895915cc21624995a77 100644
+--- a/lock-protocol/src/mm/page_table/mod.rs
++++ b/lock-protocol/src/mm/page_table/mod.rs
+@@ -7,7 +7,8 @@ pub use node::*;
+ use core::fmt::Debug;
+ use std::{marker::PhantomData, ops::Range};
+ 
+-use crate::helpers::{extra_num::lemma_usize_ilog2_to32, math::lemma_u64_and_less_than};
++use crate::helpers::{math::lemma_u64_and_less_than};
++use vstd_extra::extra_num::lemma_usize_ilog2_to32;
+ 
+ use super::{
+     meta::AnyFrameMeta, nr_subpage_per_huge, page_prop::PageProperty, vm_space::Token, Paddr,
+diff --git a/lock-protocol/src/spec/common.rs b/lock-protocol/src/spec/common.rs
+index 1666cc315c3c42042933d21ba4edca7faaacd41b..8903083d7ea73f96253798171b250df7a73775de 100644
+--- a/lock-protocol/src/spec/common.rs
++++ b/lock-protocol/src/spec/common.rs
+@@ -158,3 +158,24 @@ impl RangeState {
+ }
+ 
+ } // verus!
++verus! {
++
++pub proof fn lemma_pos_in_range_set_finite(l: nat, r: nat)
++    requires
++        l <= r,
++    ensures
++        Set::new(|p: nat| pos_in_range(l, r, p)).finite(),
++        Set::new(|p: nat| pos_in_range(l, r, p)).len() == (r - l) as nat,
++    decreases r - l,
++{
++    if l == r {
++        assert(Set::new(|p: nat| pos_in_range(l, r, p)) =~= Set::empty());
++    } else {
++        lemma_pos_in_range_set_finite(l, (r - 1) as nat);
++        assert(Set::new(|p| pos_in_range(l, (r - 1) as nat, p)).insert((r - 1) as nat) =~= Set::new(
++            |p| pos_in_range(l, r, p),
++        ));
++    }
++}
++
++} // verus!
+diff --git a/lock-protocol/src/spec/utils.rs b/lock-protocol/src/spec/utils.rs
+index af5d4a9f4deb3b3cf5f62b1849a0a5f83c7d46f4..a597acd815190e190baae3c378d8824d28f2b746 100644
+--- a/lock-protocol/src/spec/utils.rs
++++ b/lock-protocol/src/spec/utils.rs
+@@ -4,6 +4,7 @@ use vstd::prelude::*;
+ use vstd::arithmetic::power::*;
+ use vstd::arithmetic::div_mod::*;
+ use vstd::arithmetic::mul::*;
++use vstd_extra::prelude::*;
+ 
+ use super::common::*;
+ 
+@@ -888,6 +889,17 @@ impl NodeHelper {
+     {
+         Self::nid_to_dep(nid) < 3
+     }
++
++    pub proof fn lemma_valid_nid_set_finite(nid: NodeId)
++        ensures
++            Set::new(|nid| Self::valid_nid(nid)).finite(),
++            Set::new(|nid| Self::valid_nid(nid)).len() == Self::total_size(),
++    {
++        assert(Set::new(|nid| Self::valid_nid(nid)) =~= Set::new(
++            |nid| 0 <= nid < Self::total_size(),
++        ));
++        lemma_nat_range_finite(0, Self::total_size());
++    }
+ }
+ 
+ } // verus!
+diff --git a/lock-protocol/src/test/rw_version/spec/atomic.rs b/lock-protocol/src/test/rw_version/spec/atomic.rs
+index f967cc2b22b291bb754b22440cb7a02140752ea1..5da770fc7f3eac92ea7eb34b7eb8b98197d63141 100644
+--- a/lock-protocol/src/test/rw_version/spec/atomic.rs
++++ b/lock-protocol/src/test/rw_version/spec/atomic.rs
+@@ -24,8 +24,8 @@ pub fn inv_cursors(&self) -> bool {
+ 
+     &&& forall |cpu: CpuId| #![auto]
+         self.cursors.dom().contains(cpu) &&
+-        self.cursors[cpu].is_Locked() ==>
+-            NodeHelper::valid_nid(self.cursors[cpu].get_Locked_0())
++        self.cursors[cpu] is Locked ==>
++            NodeHelper::valid_nid(self.cursors[cpu]->Locked_0)
+ }
+ 
+ #[invariant]
+@@ -33,11 +33,11 @@ pub fn inv_non_overlapping(&self) -> bool {
+     forall |cpu1: CpuId, cpu2: CpuId| #![auto]
+         cpu1 != cpu2 &&
+         self.cursors.dom().contains(cpu1) &&
+-        self.cursors[cpu1].is_Locked() &&
++        self.cursors[cpu1] is Locked &&
+         self.cursors.dom().contains(cpu2) &&
+-        self.cursors[cpu2].is_Locked() ==> {
+-            let nid1 = self.cursors[cpu1].get_Locked_0();
+-            let nid2 = self.cursors[cpu2].get_Locked_0();
++        self.cursors[cpu2] is Locked ==> {
++            let nid1 = self.cursors[cpu1]->Locked_0;
++            let nid2 = self.cursors[cpu2]->Locked_0;
+ 
+             !NodeHelper::in_subtree(nid1, nid2) &&
+             !NodeHelper::in_subtree(nid2, nid1)
+@@ -50,8 +50,8 @@ pub open spec fn all_non_overlapping(&self, nid: NodeId) -> bool
+ {
+     forall |cpu: CpuId| #![auto]
+         self.cursors.dom().contains(cpu) &&
+-        self.cursors[cpu].is_Locked() ==> {
+-            let _nid = self.cursors[cpu].get_Locked_0();
++        self.cursors[cpu] is Locked ==> {
++            let _nid = self.cursors[cpu]->Locked_0;
+ 
+             !NodeHelper::in_subtree(nid, _nid) &&
+             !NodeHelper::in_subtree(_nid, nid)
+@@ -73,7 +73,7 @@ transition!{
+         require(valid_cpu(pre.cpu_num, cpu));
+         require(NodeHelper::valid_nid(nid));
+ 
+-        require(pre.cursors[cpu].is_Void());
++        require(pre.cursors[cpu] is Void);
+         require(pre.all_non_overlapping(nid));
+         let new_cursor = AtomicCursorState::Locked(nid);
+         update cursors = pre.cursors.insert(cpu, new_cursor);
+@@ -84,7 +84,7 @@ transition!{
+     unlock(cpu: CpuId) {
+         require(valid_cpu(pre.cpu_num, cpu));
+ 
+-        require(pre.cursors[cpu].is_Locked());
++        require(pre.cursors[cpu] is Locked);
+         let new_cursor = AtomicCursorState::Void;
+         update cursors = pre.cursors.insert(cpu, new_cursor);
+     }
+diff --git a/lock-protocol/src/test/rw_version/spec/common.rs b/lock-protocol/src/test/rw_version/spec/common.rs
+index e380c4a65287f0c9701afb2c580b53f4d1689b53..556df816896eeb4a0b846a65cb0331928d8a0e92 100644
+--- a/lock-protocol/src/test/rw_version/spec/common.rs
++++ b/lock-protocol/src/test/rw_version/spec/common.rs
+@@ -31,14 +31,12 @@ pub open spec fn wf_tree_path(path: Seq<NodeId>) -> bool {
+ } // verus!
+ verus! {
+ 
+-#[is_variant]
+ pub enum NodeState {
+     UnAllocated,
+     WriteUnLocked,
+     WriteLocked,
+ }
+ 
+-#[is_variant]
+ pub enum CursorState {
+     Void,
+     ReadLocking(Seq<NodeId>),
+@@ -112,13 +110,11 @@ impl CursorState {
+     }
+ }
+ 
+-#[is_variant]
+ pub enum AtomicCursorState {
+     Void,
+     Locked(NodeId),
+ }
+ 
+-#[is_variant]
+ pub enum NodeStability {
+     Stable,
+     Instable,
+diff --git a/lock-protocol/src/test/rw_version/spec/tree.rs b/lock-protocol/src/test/rw_version/spec/tree.rs
+index 03d65293cf2734384e8b4823e7c1e7450e66ba8d..b677c0744bb87bf906f4fefec5edf36032adacc0 100644
+--- a/lock-protocol/src/test/rw_version/spec/tree.rs
++++ b/lock-protocol/src/test/rw_version/spec/tree.rs
+@@ -5,6 +5,8 @@ use vstd::prelude::*;
+ 
+ use super::common::*;
+ use super::utils::*;
++use vstd::map_lib::*;
++use vstd_extra::set_extra::lemma_nat_range_finite;
+ 
+ verus! {
+ 
+@@ -38,29 +40,8 @@ pub open spec fn rc_equal(
+     cursors: Set<CursorState>,
+ ) -> bool
+     recommends cursors.finite(),
+-    decreases cursors.len(), when cursors.finite()
+ {
+-        if rc == 0 && cursors.len() == 0 { true }
+-        else if cursors.len() == 0 { false }
+-        else {
+-            let cursor = cursors.choose();
+-            if cursor.hold_read_lock(nid) {
+-                if rc == 0 { false }
+-                else {
+-                    Self::rc_equal(
+-                        nid,
+-                        (rc - 1) as nat,
+-                        cursors.remove(cursor)
+-                    )
+-                }
+-            } else {
+-                Self::rc_equal(
+-                    nid,
+-                    rc,
+-                    cursors.remove(cursor)
+-                )
+-            }
+-        }
++    rc == cursors.filter(|cursor:CursorState| cursor.hold_read_lock(nid)).len()
+ }
+ 
+ #[invariant]
+@@ -72,7 +53,7 @@ pub fn inv_reader_counts(&self) -> bool {
+ #[invariant]
+ pub fn inv_unallocated_has_no_rc(&self) -> bool {
+     forall |nid: NodeId| #![auto] self.reader_counts.dom().contains(nid) ==> {
+-        self.nodes[nid].is_UnAllocated() ==> self.reader_counts[nid] == 0
++        self.nodes[nid] is UnAllocated ==> self.reader_counts[nid] == 0
+     }
+ }
+ 
+@@ -105,7 +86,7 @@ pub fn inv_cursors(&self) -> bool {
+ pub fn inv_rw_lock(&self) -> bool {
+     forall |nid: NodeId| #![auto]
+         self.reader_counts.dom().contains(nid) &&
+-        self.reader_counts[nid] > 0 ==> self.nodes[nid].is_WriteUnLocked()
++        self.reader_counts[nid] > 0 ==> self.nodes[nid] is WriteUnLocked
+ }
+ 
+ #[invariant]
+@@ -143,11 +124,10 @@ init!{
+             |nid| NodeHelper::valid_nid(nid),
+             |nid| 0,
+         );
+-        init cursors = Seq::new(cpu_num, |cpu:int| cpu as nat).to_set().mk_map(|cpu| CursorState::Void);
+-        //init cursors = Map::new(
+-        //    |cpu| valid_cpu(cpu_num, cpu),
+-        //    |cpu| CursorState::Void,
+-        //);
++        init cursors = Map::new(
++            |cpu| valid_cpu(cpu_num, cpu),
++            |cpu| CursorState::Void,
++        );
+     }
+ }
+ 
+@@ -262,7 +242,32 @@ transition!{
+ }
+ 
+ #[inductive(initialize)]
+-fn initialize_inductive(post: Self, cpu_num: CpuId) { admit(); }
++fn initialize_inductive(post: Self, cpu_num: CpuId) {
++    assert(post.inv_cursors()) by{
++        assert(post.cursors.dom().finite()) by{
++            assert(post.cursors.dom()=~=Set::new(
++                |cpu| valid_cpu(post.cpu_num, cpu),
++            ));
++            assert(Set::new(|cpu:CpuId| valid_cpu(post.cpu_num, cpu)).finite()) by
++            {
++                Self::lemma_valid_cpu_set_finite(post.cpu_num);
++            }
++        }
++        assert(post.cursors.values().finite()) by {
++            lemma_values_finite(
++                post.cursors);
++        }
++    }
++    assert(post.rc_cursors_relation()) by {
++        assert forall |nid: NodeId| #[trigger] post.reader_counts.dom().contains(nid) implies
++        Self::rc_equal(nid, post.reader_counts[nid], post.cursors.values()) by{
++            assert(post.reader_counts[nid] == 0);
++            assert(post.cursors.values().filter(
++                |cursor: CursorState| cursor.hold_read_lock(nid)).is_empty());
++        }
++    }
++
++ }
+ 
+ #[inductive(locking_start)]
+ fn locking_start_inductive(pre: Self, post: Self, cpu: CpuId) { admit(); }
+@@ -288,8 +293,21 @@ fn allocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit();
+ #[inductive(deallocate)]
+ fn deallocate_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
++proof fn lemma_valid_cpu_set_finite(cpu_num: CpuId)
++ensures
++    Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)).finite(),
++    Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)).len() == cpu_num,
++{
++    assert(Set::new(|cpu: CpuId| valid_cpu(cpu_num, cpu)) =~= Set::new(
++        |cpu: CpuId| 0<=cpu<cpu_num,
++    ));
++    lemma_nat_range_finite(0, cpu_num);
++}
++
++
+ }
+ 
++
+ }
+ 
+ } // verus!
+diff --git a/vstd_extra/Cargo.toml b/vstd_extra/Cargo.toml
+index e70e56d53f874cc2f9fba15bf484714772c81acf..d6c1690097552f885a70c4df78d37ef4a6d5047e 100644
+--- a/vstd_extra/Cargo.toml
++++ b/vstd_extra/Cargo.toml
+@@ -8,5 +8,4 @@ edition = "2021"
+ [dependencies]
+ vstd = { path = "../tools/verus/source/vstd" }
+ builtin = { path = "../tools/verus/source/builtin" }
+-builtin_macros = { path = "../tools/verus/source/builtin_macros" }
+-
++builtin_macros = { path = "../tools/verus/source/builtin_macros" }
+\ No newline at end of file
+diff --git a/vstd_extra/src/array_ptr.rs b/vstd_extra/src/array_ptr.rs
+index 40d6b15c0c9155063d5c912bb4a65447e3aa97e0..68d32dd55edafac8d5110dada0370bfd7160b367 100644
+--- a/vstd_extra/src/array_ptr.rs
++++ b/vstd_extra/src/array_ptr.rs
+@@ -40,14 +40,16 @@ pub open spec fn is_mem_contents_all_uninit<V, const N: usize>(
+     forall|index: int| 0 <= index < N ==> #[trigger] arr[index].is_uninit()
+ }
+ 
+-pub open spec fn mem_contents_unwrap<V, const N: usize>(arr: [raw_ptr::MemContents<V>; N]) -> (res:
+-    raw_ptr::MemContents<[V; N]>)
++pub uninterp spec fn mem_contents_unwrap<V, const N: usize>(
++    arr: [raw_ptr::MemContents<V>; N],
++) -> (res: raw_ptr::MemContents<[V; N]>)
+     recommends
+         is_mem_contents_all_init(arr) || is_mem_contents_all_uninit(arr),
+ ;
+ 
+-pub open spec fn mem_contents_wrap<V, const N: usize>(data: raw_ptr::MemContents<[V; N]>) -> (res:
+-    [raw_ptr::MemContents<V>; N]);
++pub uninterp spec fn mem_contents_wrap<V, const N: usize>(
++    data: raw_ptr::MemContents<[V; N]>,
++) -> (res: [raw_ptr::MemContents<V>; N]);
+ 
+ #[verifier::external_body]
+ pub proof fn axiom_mem_contents_unwrap_init_correctness<V, const N: usize>(
+@@ -117,18 +119,18 @@ impl<V, const N: usize> PointsToArrayData<V, N> {
+ impl<T, const N: usize> View for PointsToArray<T, N> {
+     type V = PointsToArrayData<T, N>;
+ 
+-    spec fn view(&self) -> Self::V;
++    uninterp spec fn view(&self) -> Self::V;
+ }
+ 
+ impl<V, const N: usize> PointsToArray<V, N> {
+     #[verifier::inline]
+     pub open spec fn ptr(&self) -> *mut [V; N] {
+-        self.view().ptr
++        self@.ptr
+     }
+ 
+     #[verifier::inline]
+     pub open spec fn opt_value(&self) -> [raw_ptr::MemContents<V>; N] {
+-        self.view().value
++        self@.value
+     }
+ 
+     #[verifier::inline]
+@@ -336,11 +338,11 @@ pub tracked struct PointsTo<V, const N: usize> {
+     dealloc: Option<raw_ptr::Dealloc>,
+ }
+ 
+-#[verusfmt::skip]
+-broadcast use
++broadcast use {
+     raw_ptr::group_raw_ptr_axioms,
+     set_lib::group_set_lib_default,
+-    set::group_set_axioms;
++    set::group_set_axioms,
++};
+ 
+ impl<V, const N: usize> ArrayPtr<V, N> {
+     /// Spec: cast the pointer to an integer
+@@ -484,8 +486,8 @@ impl<V, const N: usize> PointsToArray<V, N> {
+         N,
+     >)
+         ensures
+-            res.view().ptr == pt.view().ptr,
+-            res.view().value == mem_contents_wrap(pt.view().opt_value),
++            res@.ptr == pt@.ptr,
++            res@.value == mem_contents_wrap(pt@.opt_value),
+     {
+         Tracked::<PointsToArray<V, N>>::assume_new().get()
+     }
+@@ -493,8 +495,8 @@ impl<V, const N: usize> PointsToArray<V, N> {
+     #[verifier::external_body]
+     pub proof fn into_ptr(tracked self) -> (tracked res: raw_ptr::PointsTo<[V; N]>)
+         ensures
+-            res.view().ptr == self.view().ptr,
+-            res.view().opt_value == mem_contents_unwrap(self.view().value),
++            res@.ptr == self@.ptr,
++            res@.opt_value == mem_contents_unwrap(self@.value),
+     {
+         Tracked::<raw_ptr::PointsTo<[V; N]>>::assume_new().get()
+     }
+@@ -515,13 +517,12 @@ impl<V, const N: usize> Copy for ArrayPtr<V, N> {
+ 
+ #[verifier::external_body]
+ #[inline(always)]
+-pub exec fn layout_for_array_is_valid<V, const N: usize>()
++pub exec fn layout_for_array_is_valid<V: Sized, const N: usize>()
+     ensures
+         layout::valid_layout(
+             layout::size_of::<[V; N]>() as usize,
+             layout::align_of::<[V; N]>() as usize,
+         ),
+-        layout::is_sized::<[V; N]>(),
+         layout::size_of::<[V; N]>() as usize as nat == layout::size_of::<[V; N]>(),
+         layout::align_of::<[V; N]>() as usize as nat == layout::align_of::<[V; N]>(),
+     opens_invariants none
+@@ -553,7 +554,7 @@ impl<V, const N: usize> ArrayPtr<V, N> {
+         let tracked arr_perm = PointsToArray::into_array(ptr_perm);
+         proof {
+             arr_perm.is_nonnull();
+-            axiom_mem_contents_wrap_correctness(ptr_perm.opt_value(), arr_perm.view().value);
++            axiom_mem_contents_wrap_correctness(ptr_perm.opt_value(), arr_perm@.value);
+             assert(arr_perm.is_uninit_all());
+         }
+         let tracked pt = PointsTo { points_to: arr_perm, exposed, dealloc: Some(dealloc) };
+@@ -620,10 +621,7 @@ impl<V, const N: usize> ArrayPtr<V, N> {
+         }
+         let tracked perm_ptr: raw_ptr::PointsTo<[V; N]> = points_to.into_ptr();
+         proof {
+-            axiom_mem_contents_unwrap_uninit_correctness(
+-                points_to.view().value,
+-                perm_ptr.opt_value(),
+-            );
++            axiom_mem_contents_unwrap_uninit_correctness(points_to@.value, perm_ptr.opt_value());
+             assert(perm_ptr.is_uninit());
+         }
+         let tracked perm_raw = perm_ptr.into_raw();
+diff --git a/vstd_extra/src/ghost_tree.rs b/vstd_extra/src/ghost_tree.rs
+index 80df90d7e956d2d394a47371b48b6fdaabd8f0fc..b55120b0307f39ede7f2ee514659ca0ecc78f6e3 100644
+--- a/vstd_extra/src/ghost_tree.rs
++++ b/vstd_extra/src/ghost_tree.rs
+@@ -5,7 +5,7 @@ use super::seq_extra::*;
+ 
+ verus! {
+ 
+-broadcast use group_seq_axioms, group_seq_lib_default, group_seq_extra_lemmas;
++broadcast use {group_seq_axioms, group_seq_lib_default, group_seq_extra_lemmas};
+ 
+ /// Path from the current node to the leaf of the tree
+ /// `N` is the maximum number of children of a tree node
+@@ -1291,7 +1291,7 @@ impl<T: TreeNodeValue, const N: usize, const L: usize> Node<T, N, L> {
+ } // verus!
+ verus! {
+ 
+-pub open spec fn path_between<T: TreeNodeValue, const N: usize, const L: usize>(
++pub uninterp spec fn path_between<T: TreeNodeValue, const N: usize, const L: usize>(
+     src: Node<T, N, L>,
+     dst: Node<T, N, L>,
+ ) -> TreePath<N>
+diff --git a/vstd_extra/src/lib.rs b/vstd_extra/src/lib.rs
+index d23317d4cbaa3adbdb8781f86d497c9234e599eb..e100614741d91678b2e9a220c8bd0457bc05a867 100644
+--- a/vstd_extra/src/lib.rs
++++ b/vstd_extra/src/lib.rs
+@@ -4,6 +4,6 @@ pub mod extern_const;
+ pub mod extra_num;
+ pub mod ghost_tree;
+ pub mod manually_drop;
+-pub mod seq_extra;
+-
+ pub mod prelude;
++pub mod seq_extra;
++pub mod set_extra;
+diff --git a/vstd_extra/src/manually_drop.rs b/vstd_extra/src/manually_drop.rs
+index 9e702ac48871a35b0b9deb165c61942f33dc8e82..b9c909774cc99e7e0dcf15529eb1860a4d7ceaf6 100644
+--- a/vstd_extra/src/manually_drop.rs
++++ b/vstd_extra/src/manually_drop.rs
+@@ -4,11 +4,11 @@ use core::ops::Deref;
+ 
+ verus! {
+ 
+-pub closed spec fn ex_manually_drop_new_spec<V>(value: V) -> ManuallyDrop<V>;
++pub uninterp spec fn ex_manually_drop_new_spec<V>(value: V) -> ManuallyDrop<V>;
+ 
+-pub closed spec fn ex_manually_drop_into_inner_spec<V>(slot: ManuallyDrop<V>) -> V;
++pub uninterp spec fn ex_manually_drop_into_inner_spec<V>(slot: ManuallyDrop<V>) -> V;
+ 
+-pub closed spec fn ex_manually_drop_deref_spec<V: ?Sized>(slot: &ManuallyDrop<V>) -> &V;
++pub uninterp spec fn ex_manually_drop_deref_spec<V: ?Sized>(slot: &ManuallyDrop<V>) -> &V;
+ 
+ #[verifier::external_fn_specification]
+ #[verifier::when_used_as_spec(ex_manually_drop_new_spec)]
+diff --git a/vstd_extra/src/prelude.rs b/vstd_extra/src/prelude.rs
+index b74f16aae6412a6c690629ce326fa101182790cd..0490d318bbd8cb7fc351a0644990aaf470548f99 100644
+--- a/vstd_extra/src/prelude.rs
++++ b/vstd_extra/src/prelude.rs
+@@ -8,6 +8,8 @@ pub use super::extern_const::*;
+ 
+ pub use super::seq_extra::*;
+ 
++pub use super::set_extra::*;
++
+ pub use super::ghost_tree::*;
+ 
+ pub use super::extra_num::*;
+diff --git a/vstd_extra/src/seq_extra.rs b/vstd_extra/src/seq_extra.rs
+index 7c1be14c1592851f211a3665da8cf57b00486eff..e6aa5b6937563d657020351191141df75790b6d6 100644
+--- a/vstd_extra/src/seq_extra.rs
++++ b/vstd_extra/src/seq_extra.rs
+@@ -4,7 +4,7 @@ use vstd::seq_lib::*;
+ 
+ verus! {
+ 
+-broadcast use group_seq_axioms, group_seq_lib_default;
++broadcast use {group_seq_axioms, group_seq_lib_default};
+ 
+ #[verifier::external_body]
+ pub proof fn seq_tracked_empty<T>() -> (tracked res: Seq<T>)
+diff --git a/vstd_extra/src/set_extra.rs b/vstd_extra/src/set_extra.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..017560f181e1a46db09e0fdda3d0effae0414c21
+--- /dev/null
++++ b/vstd_extra/src/set_extra.rs
+@@ -0,0 +1,29 @@
++use vstd::prelude::*;
++
++verus! {
++
++pub proof fn lemma_filter_false<T>(s: Set<T>, f: spec_fn(T) -> bool)
++    requires
++        forall|x: T| s.contains(x) ==> !#[trigger] f(x),
++    ensures
++        s.filter(f).is_empty(),
++{
++}
++
++pub proof fn lemma_nat_range_finite(l: nat, r: nat)
++    requires
++        l <= r,
++    ensures
++        Set::new(|p: nat| l <= p < r).finite(),
++        Set::new(|p: nat| l <= p < r).len() == (r - l) as nat,
++    decreases r - l,
++{
++    if l == r {
++        assert(Set::new(|p: nat| l <= p < r) =~= Set::empty());
++    } else {
++        lemma_nat_range_finite(l, (r - 1) as nat);
++        assert(Set::new(|p| l <= p < r - 1).insert((r - 1) as nat) =~= Set::new(|p| l <= p < r));
++    }
++}
++
++} // verus!
+diff --git a/xtask/src/main.rs b/xtask/src/main.rs
+index cf2c39405ba5a79cd32ef62322b84ba279e1e2f5..6d8ac853ad363a0e3dcedf4060f121c2fc8afe10 100644
+--- a/xtask/src/main.rs
++++ b/xtask/src/main.rs
+@@ -798,7 +798,7 @@ fn build_vscode_extension(args: &BootstrapArgs) -> Result<(), DynError> {
+     println!("Prepare the Verus Analyzer binary");
+     #[cfg(target_os = "windows")]
+     {
+-        Command::new("powershell")
++        Command::new("pwsh")
+     .current_dir(&verus_analyzer_dir)
+     .arg("-Command")
+     .arg(format!(
+@@ -844,11 +844,11 @@ fn install_verusfmt() -> Result<(), DynError> {
+     let status = {
+         #[cfg(target_os = "windows")]
+         {
+-            // powershell.exe -ExecutionPolicy RemoteSigned -c "irm https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.ps1 | iex"
+-            let mut cmd = Command::new("powershell");
++            // pwsh -ExecutionPolicy Bypass -c "irm https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.ps1 | iex"
++            let mut cmd = Command::new("pwsh");
+             cmd
+             .arg("-ExecutionPolicy")
+-            .arg("RemoteSigned")
++            .arg("Bypass")
+             .arg("-c")
+             .arg("irm https://github.com/verus-lang/verusfmt/releases/latest/download/verusfmt-installer.ps1 | iex");
+             println!("{:?}", cmd);
+@@ -876,7 +876,7 @@ fn compile_verus() -> Result<(), DynError> {
+     println!("Start to build the Verus compiler");
+     #[cfg(target_os = "windows")]
+     {
+-        let cmd = &mut Command::new("powershell");
++        let cmd = &mut Command::new("pwsh");
+         cmd.current_dir(Path::new("tools").join("verus").join("source"))
+             .arg("/c")
+             .arg("& '..\\tools\\activate.ps1' ; vargo build --release --features singular");
+@@ -934,7 +934,7 @@ fn exec_bootstrap(args: &BootstrapArgs) -> Result<(), DynError> {
+             .join("z3.exe");
+         if !z3_path.exists() {
+             println!("Start to download the Z3 solver");
+-            Command::new("powershell")
++            Command::new("pwsh")
+                 .current_dir(Path::new("tools").join("verus").join("source"))
+                 .arg("/c")
+                 .arg(".\\tools\\get-z3.ps1")
+@@ -1006,6 +1006,8 @@ fn exec_update(args: &UpdateArgs) -> Result<(), DynError> {
+         repo.reset(&obj, ResetType::Hard, Some(&mut checkout_builder))?;
+ 
+         compile_verus()?;
++
++        install_verusfmt()?;
+     }
+     Ok(())
+ }

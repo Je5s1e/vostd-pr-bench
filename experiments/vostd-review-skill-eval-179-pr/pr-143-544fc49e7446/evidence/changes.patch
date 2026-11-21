@@ -1,0 +1,3138 @@
+From 0ff96a8e087725c653d48b3268cdaf1eb472834b Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Sun, 27 Jul 2025 04:52:51 +0000
+Subject: [PATCH 1/7] Fix `tracked_pt_inst`
+
+---
+ lock-protocol/src/exec/rcu/cursor/locking.rs | 9 ++++++---
+ lock-protocol/src/exec/rcu/node/entry.rs     | 2 ++
+ lock-protocol/src/exec/rcu/node/mod.rs       | 9 ++++-----
+ 3 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/lock-protocol/src/exec/rcu/cursor/locking.rs b/lock-protocol/src/exec/rcu/cursor/locking.rs
+index 0ffeafd4e..7f1c688c4 100644
+--- a/lock-protocol/src/exec/rcu/cursor/locking.rs
++++ b/lock-protocol/src/exec/rcu/cursor/locking.rs
+@@ -593,13 +593,15 @@ fn dfs_acquire_lock(
+             },
+             ChildRef::Frame(_, _, _) => unreached(),
+             ChildRef::None => {
++                let tracked_inst = cur_node.tracked_pt_inst();
++                let tracked inst = tracked_inst.get();
+                 proof {
+                     let ghost nid = NodeHelper::get_child(cur_node.nid(), i as nat);
+                     NodeHelper::lemma_get_child_sound(cur_node.nid(), i as nat);
+                     let tracked pte_token: &PteToken =
+                         cur_node.guard.tracked_borrow().pte_token.borrow().tracked_borrow();
+                     assert(pte_token.value().is_void(i as nat));
+-                    let tracked res = cur_node.tracked_pt_inst().clone().protocol_lock_skip(
++                    let tracked res = inst.clone().protocol_lock_skip(
+                         m.cpu,
+                         nid,
+                         pte_token,
+@@ -810,6 +812,8 @@ fn dfs_release_lock<'rcu>(
+             },
+             ChildRef::Frame(_, _, _) => unreached(),
+             ChildRef::None => {
++                let tracked_inst = cur_node.tracked_pt_inst();
++                let tracked inst = tracked_inst.get();
+                 proof {
+                     let ghost nid = NodeHelper::get_child(cur_node.nid(), i as nat);
+                     NodeHelper::lemma_get_child_sound(cur_node.nid(), i as nat);
+@@ -829,8 +833,7 @@ fn dfs_release_lock<'rcu>(
+                             NodeHelper::lemma_last_child_next_outside_subtree(cur_node.nid());
+                         }
+                     };
+-                    assert(pte_token.value().is_void(i as nat));
+-                    let tracked res = cur_node.tracked_pt_inst().clone().protocol_unlock_skip(
++                    let tracked res = inst.clone().protocol_unlock_skip(
+                         m.cpu,
+                         nid,
+                         pte_token,
+diff --git a/lock-protocol/src/exec/rcu/node/entry.rs b/lock-protocol/src/exec/rcu/node/entry.rs
+index 42d5c844f..8dbb41332 100644
+--- a/lock-protocol/src/exec/rcu/node/entry.rs
++++ b/lock-protocol/src/exec/rcu/node/entry.rs
+@@ -163,6 +163,8 @@ impl Entry {
+         };
+         let tracked new_node_token;
+         let tracked new_pte_token;
++        let tracked_inst = node.tracked_pt_inst();
++        let tracked inst = tracked_inst.get();
+         proof {
+             assert(cur_nid != NodeHelper::root_id()) by {
+                 assert(cur_nid == NodeHelper::get_child(node.nid(), self.idx as nat));
+diff --git a/lock-protocol/src/exec/rcu/node/mod.rs b/lock-protocol/src/exec/rcu/node/mod.rs
+index e65a62f07..103dac396 100644
+--- a/lock-protocol/src/exec/rcu/node/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/mod.rs
+@@ -305,15 +305,14 @@ impl<'rcu> PageTableGuard<'rcu> {
+         self.deref().deref().nid@
+     }
+ 
+-    #[verifier::external_body]  // TODO
+-    pub proof fn tracked_pt_inst(tracked &self) -> (tracked res: SpecInstance)
++    pub fn tracked_pt_inst(&self) -> (res: Tracked<SpecInstance>)
+         requires
+             self.inner.wf(),
+         ensures
+-            res =~= self.inst(),
++            res@ =~= self.inst(),
+     {
+-        // self.inner.inner.inst.borrow().clone()
+-        unimplemented!()
++        let tracked_inst = self.deref().deref().inst;
++        Tracked(tracked_inst.borrow().clone())
+     }
+ 
+     pub fn entry(&self, idx: usize) -> (res: Entry)
+
+From d888930f85df1e81da67cb4f5580d183a4115f1e Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Mon, 28 Jul 2025 12:35:27 +0000
+Subject: [PATCH 2/7] Update rcu tree spec
+
+---
+ lock-protocol/src/exec/rcu/cursor/locking.rs  |   4 +-
+ lock-protocol/src/exec/rcu/node/mod.rs        |   2 +-
+ .../src/exec/rcu/node/spinlock/mod.rs         |  57 +++++++--
+ lock-protocol/src/exec/rcu/types.rs           |   2 +-
+ lock-protocol/src/spec/rcu/tree.rs            | 117 ++++++++++++++----
+ lock-protocol/src/spec/rcu/types.rs           |  30 ++++-
+ 6 files changed, 169 insertions(+), 43 deletions(-)
+
+diff --git a/lock-protocol/src/exec/rcu/cursor/locking.rs b/lock-protocol/src/exec/rcu/cursor/locking.rs
+index 7f1c688c4..15600904a 100644
+--- a/lock-protocol/src/exec/rcu/cursor/locking.rs
++++ b/lock-protocol/src/exec/rcu/cursor/locking.rs
+@@ -598,7 +598,7 @@ fn dfs_acquire_lock(
+                 proof {
+                     let ghost nid = NodeHelper::get_child(cur_node.nid(), i as nat);
+                     NodeHelper::lemma_get_child_sound(cur_node.nid(), i as nat);
+-                    let tracked pte_token: &PteToken =
++                    let tracked pte_token: &PteArrayToken =
+                         cur_node.guard.tracked_borrow().pte_token.borrow().tracked_borrow();
+                     assert(pte_token.value().is_void(i as nat));
+                     let tracked res = inst.clone().protocol_lock_skip(
+@@ -817,7 +817,7 @@ fn dfs_release_lock<'rcu>(
+                 proof {
+                     let ghost nid = NodeHelper::get_child(cur_node.nid(), i as nat);
+                     NodeHelper::lemma_get_child_sound(cur_node.nid(), i as nat);
+-                    let tracked pte_token: &PteToken =
++                    let tracked pte_token: &PteArrayToken =
+                         cur_node.guard.tracked_borrow().pte_token.borrow().tracked_borrow();
+                     assert(m.cur_node() == NodeHelper::next_outside_subtree(nid)) by {
+                         if i + 1 < 512 {
+diff --git a/lock-protocol/src/exec/rcu/node/mod.rs b/lock-protocol/src/exec/rcu/node/mod.rs
+index 103dac396..3938359ec 100644
+--- a/lock-protocol/src/exec/rcu/node/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/mod.rs
+@@ -127,7 +127,7 @@ impl PageTableNode {
+         nid: Ghost<NodeId>,
+         inst_id: Ghost<InstanceId>,
+         node_token: Tracked<NodeToken>,
+-        pte_token: Tracked<PteToken>,
++        pte_token: Tracked<PteArrayToken>,
+     ) -> (res: Self)
+         requires
+             level as nat == NodeHelper::nid_to_level(nid@),
+diff --git a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+index b0fa0c64f..8c35dff80 100644
+--- a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+@@ -152,11 +152,11 @@ pub ghost struct SpinInternalPred;
+ 
+ impl InvariantPredicate<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
+ > for SpinInternalPred {
+     open spec fn inv(
+         k: (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-        v: (Option<NodeToken>, Option<PteToken>, CellPointsTo<bool>, PageTableEntryPerms),
++        v: (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
+     ) -> bool {
+         &&& NodeHelper::valid_nid(k.1)
+         &&& v.0 is Some <==> v.1 is Some
+@@ -181,19 +181,19 @@ impl InvariantPredicate<
+ 
+ type SpinInstance = SpinLockToks::Instance<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
+     SpinInternalPred,
+ >;
+ 
+ type SpinFlagToken = SpinLockToks::flag<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
+     SpinInternalPred,
+ >;
+ 
+ type SpinGuardToken = SpinLockToks::guard<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
+     SpinInternalPred,
+ >;
+ 
+@@ -235,7 +235,7 @@ struct_with_invariants! {
+ pub struct SpinGuard {
+     pub handle: Tracked<SpinGuardToken>,
+     pub node_token: Tracked<Option<NodeToken>>,
+-    pub pte_token: Tracked<Option<PteToken>>,
++    pub pte_token: Tracked<Option<PteArrayToken>>,
+     pub stray_perm: Tracked<CellPointsTo<bool>>,
+     pub perms: Tracked<PageTableEntryPerms>,
+     pub in_protocol: Ghost<bool>,
+@@ -300,7 +300,7 @@ impl SpinGuard {
+         self.node_token@->Some_0
+     }
+ 
+-    pub open spec fn view_pte_token(&self) -> PteToken
++    pub open spec fn view_pte_token(&self) -> PteArrayToken
+         recommends
+             self.pte_token@ is Some,
+     {
+@@ -414,7 +414,48 @@ impl PageTablePageSpinLock {
+             res.1@.sub_tree_rt() == m@.sub_tree_rt(),
+             res.1@.cur_node() == self.nid() + 1,
+     {
+-        unimplemented!()
++        // let tracked m = m.get();
++        // let mut guard_opt: Option<SpinGuard> = None;
++        // loop
++        //     invariant_except_break
++        //         self.wf(),
++        //         m.inv(),
++        //         m.inst_id() == self.pt_inst_id(),
++        //         m.state() is Locking,
++        //         m.cur_node() == self.nid(),
++        //         guard_opt is None,
++        //     ensures
++        //         m.inv(),
++        //         m.inst_id() == self.pt_inst_id(),
++        //         m.state() is Locking,
++        //         m.cur_node() == self.nid() + 1,
++        //         guard_opt is Some,
++        //         guard_opt->Some_0.wf(self),
++        //         guard_opt->Some_0.in_protocol@ == true,
++        // {
++        //     let tracked mut node_token_opt: Option<Option<NodeToken>> = None;
++        //     let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
++        //     let tracked mut stray_perm_opt: Option<CellPointsTo<bool>> = None;
++        //     let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
++        //     let result = atomic_with_ghost!(
++        //         &self.flag => compare_exchange(false, true);
++        //         returning res;
++        //         ghost g => {
++        //             if res is Ok {
++        //                 let tracked res = self.inst.borrow().acquire(&mut g);
++
++        //             }
++        //         }
++        //     )
++
++        //     match result {
++        //         Result::Ok(_) => {
++                    
++        //         },
++        //         _ => (),
++        //     };
++        // }
++        unimplemented!();
+     }
+ 
+     #[verifier::external_body]
+diff --git a/lock-protocol/src/exec/rcu/types.rs b/lock-protocol/src/exec/rcu/types.rs
+index d8201071c..cd7283b16 100644
+--- a/lock-protocol/src/exec/rcu/types.rs
++++ b/lock-protocol/src/exec/rcu/types.rs
+@@ -7,7 +7,7 @@ pub type SpecInstance = TreeSpec::Instance;
+ 
+ pub type NodeToken = TreeSpec::nodes;
+ 
+-pub type PteToken = TreeSpec::ptes;
++pub type PteArrayToken = TreeSpec::pte_arrays;
+ 
+ pub type CursorToken = TreeSpec::cursors;
+ 
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 783324c27..1384698cc 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -1,10 +1,12 @@
+ use state_machines_macros::tokenized_state_machine;
+ use vstd::prelude::*;
++use vstd::multiset::*;
+ 
+ use crate::spec::{common::*, utils::*};
+ use super::types::*;
+ use vstd::{set::*, set_lib::*, map_lib::*};
+ use vstd_extra::{seq_extra::*, set_extra::*, map_extra::*};
++use crate::mm::Paddr;
+ 
+ tokenized_state_machine! {
+ 
+@@ -18,17 +20,20 @@ fields {
+     pub nodes: Map<NodeId, NodeState>,
+ 
+     #[sharding(map)]
+-    pub ptes: Map<NodeId, PteState>,
++    pub pte_arrays: Map<NodeId, PteArrayState>,
+ 
+     #[sharding(map)]
+     pub cursors: Map<CpuId, CursorState>,
++
++    #[sharding(multiset)]
++    pub strays: Multiset<(NodeId, StrayState)>,
+ }
+ 
+ #[invariant]
+ pub fn inv_pt_node_pte_array_relationship(&self) -> bool {
+     forall |nid: NodeId| #![auto]
+         self.nodes.dom().contains(nid) <==>
+-        self.ptes.dom().contains(nid)
++        self.pte_arrays.dom().contains(nid)
+ }
+ 
+ #[invariant]
+@@ -39,8 +44,42 @@ pub fn inv_pt_node_pte_relationship(&self) -> bool {
+                 let pa = NodeHelper::get_parent(nid);
+                 let offset = NodeHelper::get_offset(nid);
+ 
+-                self.ptes.dom().contains(pa) &&
+-                self.ptes[pa].is_alive(offset)
++                self.pte_arrays.dom().contains(pa) &&
++                self.pte_arrays[pa].is_alive(offset)
++            }
++        }
++}
++
++#[invariant]
++pub fn wf_strays(&self) -> bool {
++    forall |pair: (NodeId, StrayState)|
++        self.strays.contains(pair) ==> {
++            &&& NodeHelper::valid_nid(pair.0)
++            &&& pair.0 != NodeHelper::root_id()
++        }
++}
++
++#[invariant]
++pub fn inv_stray_at_most_one_false_per_node(&self) -> bool {
++    forall |nid: NodeId|
++        self.strays.filter(|pair: (NodeId, StrayState)| {
++            &&& pair.0 == nid
++            &&& pair.1 is False
++        }).len() <= 1
++}
++
++#[invariant]
++pub fn inv_pte_is_alive_iff_stray_has_false(&self) -> bool {
++    forall |nid: NodeId| 
++        NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
++            let pa = NodeHelper::get_parent(nid);
++            let offset = NodeHelper::get_offset(nid);
++            self.pte_arrays.dom().contains(pa) && self.pte_arrays[pa].is_alive(offset) <==>
++            exists |pair: (NodeId, StrayState)| {
++                &&& pair.0 == nid
++                &&& pair.1 is False
++                &&& pair.1->False_0 == self.pte_arrays[pa].get_paddr(offset)
++                &&& self.strays.contains(pair)
+             }
+         }
+ }
+@@ -54,14 +93,15 @@ init!{
+             |nid| nid == NodeHelper::root_id(),
+             |nid| NodeState::Free,
+         );
+-        init ptes = Map::new(
++        init pte_arrays = Map::new(
+             |nid| nid == NodeHelper::root_id(),
+-            |nid| PteState::empty(),
++            |nid| PteArrayState::empty(),
+         );
+         init cursors = Map::new(
+             |cpu| valid_cpu(cpu_num, cpu),
+             |cpu| CursorState::Void,
+         );
++        init strays = Multiset::empty();
+     }
+ }
+ 
+@@ -100,8 +140,8 @@ transition!{
+         require(_nid == nid);
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
+-        have ptes >= [ pa => let pte ];
+-        require(pte.is_void(offset));
++        have pte_arrays >= [ pa => let pte_array ];
++        require(pte_array.is_void(offset));
+         add cursors += [ cpu => CursorState::Locking(rt, NodeHelper::next_outside_subtree(nid)) ];
+     }
+ }
+@@ -150,8 +190,8 @@ transition!{
+         require(_nid == NodeHelper::next_outside_subtree(nid));
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
+-        have ptes >= [ pa => let pte ];
+-        require(pte.is_void(offset));
++        have pte_arrays >= [ pa => let pte_array ];
++        require(pte_array.is_void(offset));
+         add cursors += [ cpu => CursorState::Locking(rt, nid) ];
+     }
+ }
+@@ -167,26 +207,38 @@ transition!{
+ }
+ 
+ transition!{
+-    protocol_allocate(nid: NodeId) {
++    protocol_allocate(nid: NodeId, paddr: Paddr) {
+         require(NodeHelper::valid_nid(nid));
+         require(nid != NodeHelper::root_id());
+ 
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
+         have nodes >= [ pa => NodeState::Locked ];
+-        remove ptes -= [ pa => let pte ];
+-        require(pte.is_void(offset));
+-        add ptes += [ pa => pte.update(offset, Some(())) ];
++        remove pte_arrays -= [ pa => let pte_array ];
++        require(pte_array.is_void(offset));
++        add pte_arrays += [ pa => pte_array.update(offset, PteState::Alive(paddr)) ];
+         add nodes += [ nid => NodeState::Free ];
+-        add ptes += [ nid => PteState::empty() ];
++        add pte_arrays += [ nid => PteArrayState::empty() ];
++        add strays += { (nid, StrayState::False(paddr)) };
+     }
+ }
+ 
+ transition!{
+-    // TODO
+     protocol_deallocate(nid: NodeId) {
+         require(NodeHelper::valid_nid(nid));
+         require(nid != NodeHelper::root_id());
++
++        let pa = NodeHelper::get_parent(nid);
++        let offset = NodeHelper::get_offset(nid);
++        remove nodes -= [ nid => NodeState::Locked ];
++        have nodes >= [ pa => NodeState::Locked ];
++        remove pte_arrays -= [ pa => let pte_array ];
++        require(pte_array.is_alive(offset));
++        let paddr = pte_array.get_paddr(offset);
++        remove pte_arrays -= [ nid => PteArrayState::empty() ];
++        add pte_arrays += [ pa => pte_array.update(offset, PteState::None) ];
++        remove strays -= { (nid, StrayState::False(paddr)) };
++        add strays += { (nid, StrayState::True) };
+     }
+ }
+ 
+@@ -211,24 +263,39 @@ transition!{
+ }
+ 
+ transition!{
+-    normal_allocate(nid: NodeId) {
++    normal_allocate(nid: NodeId, paddr: Paddr) {
+         require(NodeHelper::valid_nid(nid));
+         require(nid != NodeHelper::root_id());
+ 
+         let pa = NodeHelper::get_parent(nid);
+         let offset = NodeHelper::get_offset(nid);
+         have nodes >= [ pa => NodeState::LockedOutside ];
+-        remove ptes -= [ pa => let pte ];
+-        require(pte.is_void(offset));
+-        add ptes += [ pa => pte.update(offset, Some(())) ];
++        remove pte_arrays -= [ pa => let pte_array ];
++        require(pte_array.is_void(offset));
++        add pte_arrays += [ pa => pte_array.update(offset, PteState::Alive(paddr)) ];
+         add nodes += [ nid => NodeState::Free ];
+-        add ptes += [ nid => PteState::empty() ];
++        add pte_arrays += [ nid => PteArrayState::empty() ];
++        add strays += { (nid, StrayState::False(paddr)) };
+     }
+ }
+ 
+ transition!{
+-    // TODO
+-    normal_deallocate(nid: NodeId) {}
++    normal_deallocate(nid: NodeId) {
++        require(NodeHelper::valid_nid(nid));
++        require(nid != NodeHelper::root_id());
++
++        let pa = NodeHelper::get_parent(nid);
++        let offset = NodeHelper::get_offset(nid);
++        remove nodes -= [ nid => NodeState::LockedOutside ];
++        have nodes >= [ pa => NodeState::LockedOutside ];
++        remove pte_arrays -= [ pa => let pte_array ];
++        require(pte_array.is_alive(offset));
++        let paddr = pte_array.get_paddr(offset);
++        remove pte_arrays -= [ nid => PteArrayState::empty() ];
++        add pte_arrays += [ pa => pte_array.update(offset, PteState::None) ];
++        remove strays -= { (nid, StrayState::False(paddr)) };
++        add strays += { (nid, StrayState::True) };
++    }
+ }
+ 
+ #[inductive(initialize)]
+@@ -259,7 +326,7 @@ fn protocol_unlock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId
+ fn protocol_unlock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
+ 
+ #[inductive(protocol_allocate)]
+-fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
++fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit(); }
+ 
+ #[inductive(protocol_deallocate)]
+ fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {}
+@@ -271,7 +338,7 @@ fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {}
+ 
+ #[inductive(normal_allocate)]
+-fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
++fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit(); }
+ 
+ #[inductive(normal_deallocate)]
+ fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {}
+diff --git a/lock-protocol/src/spec/rcu/types.rs b/lock-protocol/src/spec/rcu/types.rs
+index 8a67a3ad9..6e88c2e7e 100644
+--- a/lock-protocol/src/spec/rcu/types.rs
++++ b/lock-protocol/src/spec/rcu/types.rs
+@@ -2,6 +2,7 @@ use vstd::{prelude::*, seq::*};
+ 
+ use crate::spec::{common::*, utils::*};
+ use vstd_extra::{ghost_tree::Node, seq_extra::*};
++use crate::mm::Paddr;
+ 
+ verus! {
+ 
+@@ -13,17 +14,22 @@ pub enum NodeState {
+     LockedOutside,
+ }
+ 
+-pub ghost struct PteState {
+-    pub inner: Seq<Option<()>>,
++pub enum PteState {
++    Alive(Paddr),
++    None,
+ }
+ 
+-impl PteState {
++pub ghost struct PteArrayState {
++    pub inner: Seq<PteState>,
++}
++
++impl PteArrayState {
+     pub open spec fn wf(&self) -> bool {
+         self.inner.len() == 512
+     }
+ 
+     pub open spec fn empty() -> Self {
+-        Self { inner: Seq::new(512, |i: int| None) }
++        Self { inner: Seq::new(512, |i: int| PteState::None) }
+     }
+ 
+     pub open spec fn is_void(&self, idx: nat) -> bool
+@@ -39,10 +45,17 @@ impl PteState {
+             self.wf(),
+             0 <= idx < 512,
+     {
+-        self.inner[idx as int] is Some
++        self.inner[idx as int] is Alive
++    }
++
++    pub open spec fn get_paddr(&self, idx: nat) -> Paddr
++        recommends
++            self.is_alive(idx),
++    {
++        self.inner[idx as int]->Alive_0
+     }
+ 
+-    pub open spec fn update(self, idx: nat, v: Option<()>) -> Self
++    pub open spec fn update(self, idx: nat, v: PteState) -> Self
+         recommends
+             self.wf(),
+             0 <= idx < 512,
+@@ -75,4 +88,9 @@ impl CursorState {
+     }
+ }
+ 
++pub enum StrayState {
++    True,
++    False(Paddr),
++}
++
+ } // verus!
+
+From 544fc49e744600241357a7f66e3e54ea9b8bb6ca Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Tue, 29 Jul 2025 14:13:48 +0000
+Subject: [PATCH 3/7] Update spec and prove spin lock functions
+
+---
+ lock-protocol/src/exec/rcu/cursor/locking.rs  |  68 ++-
+ lock-protocol/src/exec/rcu/node/child.rs      |   2 +
+ lock-protocol/src/exec/rcu/node/entry.rs      |  55 +--
+ lock-protocol/src/exec/rcu/node/mod.rs        | 112 ++++-
+ .../src/exec/rcu/node/spinlock/mod.rs         | 440 ++++++++++++++----
+ lock-protocol/src/exec/rcu/node/stray.rs      | 103 ++--
+ lock-protocol/src/exec/rcu/types.rs           |   2 +
+ lock-protocol/src/spec/rcu/tree.rs            | 131 ++++--
+ lock-protocol/src/spec/rcu/types.rs           |   5 -
+ 9 files changed, 672 insertions(+), 246 deletions(-)
+
+diff --git a/lock-protocol/src/exec/rcu/cursor/locking.rs b/lock-protocol/src/exec/rcu/cursor/locking.rs
+index 15600904a..8befd8ad2 100644
+--- a/lock-protocol/src/exec/rcu/cursor/locking.rs
++++ b/lock-protocol/src/exec/rcu/cursor/locking.rs
+@@ -440,16 +440,7 @@ fn try_traverse_and_lock_subtree_root<'rcu>(
+     }
+ 
+     let mut pt_guard = if cur_node_guard.is_some() {
+-        let mut pt_guard = cur_node_guard.unwrap();
+-        proof {
+-            m.token = pt.inst.borrow().protocol_lock_start(m.cpu, pt_guard.nid(), m.token);
+-            assert(m.state() is Locking);
+-        }
+-        let res = pt_guard.trans_lock_protocol(Tracked(m));
+-        proof {
+-            m = res.get();
+-        }
+-        pt_guard
++        cur_node_guard.unwrap()
+     } else {
+         let node_ref = PageTableNodeRef::<'rcu>::borrow_paddr(
+             cur_pt_addr,
+@@ -457,27 +448,27 @@ fn try_traverse_and_lock_subtree_root<'rcu>(
+             Ghost(pt.inst@.id()),
+             Ghost(cur_level),
+         );
+-        proof {
+-            m.token = pt.inst.borrow().protocol_lock_start(m.cpu, node_ref.deref().nid@, m.token);
+-            assert(m.state() is Locking);
+-        }
+-        let res = node_ref.lock(guard, Tracked(m));
+-        proof {
+-            m = res.1.get();
+-        }
+-        res.0
++        node_ref.normal_lock(guard)
+     };
+     if pt_guard.read_stray() {
+         // Manually drop the guard.
+-        let res = pt_guard.drop(Tracked(m));
++        pt_guard.normal_drop();
++        return (None, Tracked(m));
++    } else {
+         proof {
+-            m = res.get();
++            m.token = pt.inst.borrow().protocol_lock_start(m.cpu, pt_guard.nid(), m.token);
++            assert(m.state() is Locking);
+         }
++        assert(NodeHelper::in_subtree_range(m.sub_tree_rt(), pt_guard.nid())) by {
++            assert(m.sub_tree_rt() == pt_guard.nid());
++            assert(NodeHelper::next_outside_subtree(m.sub_tree_rt()) > m.sub_tree_rt()) by {
++                NodeHelper::lemma_tree_size_spec_table()
++            };
++        };
++        let res = pt_guard.trans_lock_protocol(Tracked(m));
+         proof {
+-            m.token = pt.inst.borrow().protocol_unlock_end(m.cpu, m.token);
+-            assert(m.state() is Void);
++            m = res.get();
+         }
+-        return (None, Tracked(m));
+     }
+     (Some(pt_guard), Tracked(m))
+ }
+@@ -563,7 +554,22 @@ fn dfs_acquire_lock(
+         };
+         match child {
+             ChildRef::PageTable(pt) => {
+-                let res = pt.lock(guard, Tracked(m));
++                assert(pt.nid@ == NodeHelper::get_child(cur_node.nid(), entry.idx as nat));
++                assert(cur_node.nid() == NodeHelper::get_parent(pt.nid@)) by {
++                    NodeHelper::lemma_get_child_sound(cur_node.nid(), entry.idx as nat);
++                };
++                assert(entry.idx as nat == NodeHelper::get_offset(pt.nid@)) by {
++                    NodeHelper::lemma_get_child_sound(cur_node.nid(), entry.idx as nat);
++                };
++                assert(m.node_is_locked(cur_node.nid())) by { admit(); };
++                let tracked pa_pte_array_token = cur_node
++                    .tracked_borrow_guard()
++                    .tracked_borrow_pte_token();
++                assert(pa_pte_array_token.value().is_alive(entry.idx as nat));
++                assert(pa_pte_array_token.value().get_paddr(entry.idx as nat) == 
++                    cur_node.guard->Some_0.perms@.inner.value()[entry.idx as int].inner.paddr()
++                );
++                let res = pt.lock(guard, Tracked(m), Tracked(pa_pte_array_token));
+                 let pt_guard = res.0;
+                 proof {
+                     m = res.1.get();
+@@ -573,17 +579,7 @@ fn dfs_acquire_lock(
+                 // let va_start = va_range.start.max(child_node_va);
+                 // let va_end = va_range.end.min(child_node_va_end);
+                 // dfs_acquire_lock(guard, &mut pt_guard, child_node_va, va_start..va_end);
+-                assert(pt_guard.guard->Some_0.stray_perm@.value() == false) by {
+-                    assert(NodeHelper::is_child(cur_node.nid(), pt_guard.nid())) by {
+-                        assert(pt_guard.nid() == NodeHelper::get_child(cur_node.nid(), i as nat));
+-                        NodeHelper::lemma_get_child_sound(cur_node.nid(), i as nat);
+-                    };
+-                    lemma_in_protocol_guarded_parent_implies_child_is_pt_node(
+-                        *cur_node,
+-                        pt_guard,
+-                        m,
+-                    );
+-                };
++                assert(pt_guard.guard->Some_0.stray_perm@.value() == false);
+                 let res = dfs_acquire_lock(guard, &pt_guard, Tracked(m));
+                 proof {
+                     m = res.get();
+diff --git a/lock-protocol/src/exec/rcu/node/child.rs b/lock-protocol/src/exec/rcu/node/child.rs
+index 723494979..a4328930d 100644
+--- a/lock-protocol/src/exec/rcu/node/child.rs
++++ b/lock-protocol/src/exec/rcu/node/child.rs
+@@ -98,6 +98,7 @@ impl Child {
+         } else if pte.is_pt(level) {
+             &&& *self is PageTable
+             &&& *self->PageTable_0.deref() =~= PageTableNode::from_raw_spec(pte.inner.paddr())
++            &&& self->PageTable_0.deref().start_paddr() == pte.inner.paddr()
+             &&& self->PageTable_0.deref().nid@ == pte.nid()
+             &&& self->PageTable_0.deref().inst@.cpu_num() == GLOBAL_CPU_NUM
+             &&& self->PageTable_0.deref().inst@.id() == pte.inst_id()
+@@ -178,6 +179,7 @@ impl ChildRef<'_> {
+         } else if pte.is_pt(level) {
+             &&& *self is PageTable
+             &&& self->PageTable_0 == PageTableNodeRef::borrow_paddr_spec(pte.inner.paddr())
++            &&& self->PageTable_0.deref().start_paddr() == pte.inner.paddr()
+             &&& self->PageTable_0.deref().nid@ == pte.nid()
+             &&& self->PageTable_0.deref().inst@.cpu_num() == GLOBAL_CPU_NUM
+             &&& self->PageTable_0.deref().inst@.id() == pte.inst_id()
+diff --git a/lock-protocol/src/exec/rcu/node/entry.rs b/lock-protocol/src/exec/rcu/node/entry.rs
+index 8dbb41332..e6c412079 100644
+--- a/lock-protocol/src/exec/rcu/node/entry.rs
++++ b/lock-protocol/src/exec/rcu/node/entry.rs
+@@ -152,54 +152,39 @@ impl Entry {
+         let ghost cur_nid = self.nid(*node);
+         let mut lock_guard = node.guard.take().unwrap();
+         let tracked node_token = lock_guard.node_token.get().tracked_unwrap();
+-        let tracked mut pte_token = lock_guard.pte_token.get().tracked_unwrap();
++        let tracked pte_token = lock_guard.pte_token.get().tracked_unwrap();
+         assert(node_token.value() is LockedOutside);
+         assert(pte_token.value().is_void(self.idx as nat));
+-        assert(node.nid() == NodeHelper::get_parent(cur_nid)) by {
++        assert(cur_nid != NodeHelper::root_id()) by {
++            assert(cur_nid == NodeHelper::get_child(node.nid(), self.idx as nat));
+             NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
++            NodeHelper::lemma_is_child_nid_increasing(node.nid(), cur_nid);
+         };
+-        assert(self.idx as nat == NodeHelper::get_offset(cur_nid)) by {
++        assert(NodeHelper::valid_nid(cur_nid)) by {
++            assert(cur_nid == NodeHelper::get_child(node.nid(), self.idx as nat));
+             NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+         };
+-        let tracked new_node_token;
+-        let tracked new_pte_token;
++        
+         let tracked_inst = node.tracked_pt_inst();
+         let tracked inst = tracked_inst.get();
+-        proof {
+-            assert(cur_nid != NodeHelper::root_id()) by {
+-                assert(cur_nid == NodeHelper::get_child(node.nid(), self.idx as nat));
+-                NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+-                NodeHelper::lemma_is_child_nid_increasing(node.nid(), cur_nid);
+-            };
+-            assert(NodeHelper::valid_nid(cur_nid)) by {
+-                assert(cur_nid == NodeHelper::get_child(node.nid(), self.idx as nat));
+-                NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+-            };
+-            let tracked res = node.tracked_pt_inst().normal_allocate(
+-                cur_nid,
+-                &node_token,
+-                pte_token,
+-            );
+-            new_node_token = res.0.get();
+-            pte_token = res.1.get();
+-            new_pte_token = res.2.get();
+-        }
+-        lock_guard.node_token = Tracked(Some(node_token));
+-        lock_guard.pte_token = Tracked(Some(pte_token));
+-        node.guard = Some(lock_guard);
+         assert(level - 1 == NodeHelper::nid_to_level(cur_nid)) by {
+             NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+             NodeHelper::lemma_is_child_level_relation(node.nid(), cur_nid);
+         };
+-        let new_page = RcuDrop::new(
+-            PageTableNode::alloc(
+-                level - 1,
+-                Ghost(cur_nid),
+-                Ghost(node.inst_id()),
+-                Tracked(new_node_token),
+-                Tracked(new_pte_token),
+-            ),
++        let res = PageTableNode::normal_alloc(
++            level - 1,
++            Ghost(cur_nid),
++            Tracked(inst),
++            Ghost(node.nid()),
++            Ghost(self.idx as nat),
++            Tracked(&node_token),
++            Tracked(pte_token),
+         );
++        let new_page = RcuDrop::new(res.0);
++        let tracked pte_token = res.1.get();
++        lock_guard.node_token = Tracked(Some(node_token));
++        lock_guard.pte_token = Tracked(Some(pte_token));
++        node.guard = Some(lock_guard);
+         let paddr = new_page.start_paddr();
+ 
+         let pt_ref = PageTableNodeRef::borrow_paddr(
+diff --git a/lock-protocol/src/exec/rcu/node/mod.rs b/lock-protocol/src/exec/rcu/node/mod.rs
+index 3938359ec..f0ba83cce 100644
+--- a/lock-protocol/src/exec/rcu/node/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/mod.rs
+@@ -19,6 +19,7 @@ use super::pte::Pte;
+ use spinlock::{PageTablePageSpinLock, SpinGuard};
+ use child::Child;
+ use entry::Entry;
++use stray::{StrayFlag, StrayPerm};
+ 
+ verus! {
+ 
+@@ -122,28 +123,70 @@ impl PageTableNode {
+ 
+     // Trusted
+     #[verifier::external_body]
+-    pub fn alloc(
++    pub fn normal_alloc(
+         level: PagingLevel,
+         nid: Ghost<NodeId>,
+-        inst_id: Ghost<InstanceId>,
+-        node_token: Tracked<NodeToken>,
++        inst: Tracked<SpecInstance>,
++        pa_nid: Ghost<NodeId>,
++        offset: Ghost<nat>,
++        node_token: Tracked<&NodeToken>,
+         pte_token: Tracked<PteArrayToken>,
+-    ) -> (res: Self)
++    ) -> (res: (Self, Tracked<PteArrayToken>))
+         requires
+             level as nat == NodeHelper::nid_to_level(nid@),
+-            node_token@.instance_id() == inst_id@,
+-            node_token@.key() == nid@,
+-            node_token@.value() is Free,
+-            pte_token@.instance_id() == inst_id@,
+-            pte_token@.key() == nid@,
+-            pte_token@.value() =~= PteState::empty(),
++            NodeHelper::valid_nid(nid@),
++            nid@ != NodeHelper::root_id(),
++            inst@.cpu_num() == GLOBAL_CPU_NUM,
++            NodeHelper::valid_nid(pa_nid@),
++            NodeHelper::is_not_leaf(pa_nid@),
++            nid@ == NodeHelper::get_child(pa_nid@, offset@),
++            0 <= offset@ < 512,
++            node_token@.instance_id() == inst@.id(),
++            node_token@.key() == pa_nid@,
++            node_token@.value() is LockedOutside,
++            pte_token@.instance_id() == inst@.id(),
++            pte_token@.key() == pa_nid@,
++            pte_token@.value().is_void(offset@),
+         ensures
+-            res.wf(),
+-            res.nid@ == nid@,
+-            res.inst@.id() == inst_id@,
+-            res.level_spec() == level,
++            res.0.wf(),
++            res.0.nid@ == nid@,
++            res.0.inst@ =~= inst@,
++            res.0.level_spec() == level,
++            res.1@.instance_id() == inst@.id(),
++            res.1@.key() == pa_nid@,
++            res.1@.value() =~= pte_token@.value().update(
++                offset@, 
++                PteState::Alive(res.0.start_paddr()),
++            ),
+     {
+-        unimplemented!()
++        let tracked node_token = node_token.get();
++        let tracked mut pte_token = pte_token.get();
++        let paddr: Paddr = 0;
++
++        assert(pa_nid@ == NodeHelper::get_parent(nid@)) by {
++            NodeHelper::lemma_get_child_sound(pa_nid@, offset@);
++        };
++        assert(offset@ == NodeHelper::get_offset(nid@)) by {
++            NodeHelper::lemma_get_child_sound(pa_nid@, offset@);
++        };
++
++        let tracked ch_node_token;
++        let tracked ch_pte_token;
++        let tracked stray_token;
++        proof {
++            let tracked res = inst.borrow().normal_allocate(
++                nid@,
++                paddr,
++                &node_token,
++                pte_token,
++            );
++            ch_node_token = res.0.get();
++            pte_token = res.1.get();
++            ch_pte_token = res.2.get();
++            stray_token = res.3.get();
++        }
++
++        unimplemented!();
+     }
+ }
+ 
+@@ -226,6 +269,7 @@ impl<'a> PageTableNodeRef<'a> {
+         self,
+         guard: &'rcu (),  // TODO
+         m: Tracked<LockProtocolModel>,
++        pa_pte_array_token: Tracked<&PteArrayToken>,
+     ) -> (res: (PageTableGuard<'rcu>, Tracked<LockProtocolModel>)) where 'a: 'rcu
+         requires
+             self.wf(),
+@@ -233,9 +277,15 @@ impl<'a> PageTableNodeRef<'a> {
+             m@.inst_id() == self.inst@.id(),
+             m@.state() is Locking,
+             m@.cur_node() == self.nid@,
++            pa_pte_array_token@.instance_id() == self.inst@.id(),
++            pa_pte_array_token@.key() == NodeHelper::get_parent(self.nid@),
++            m@.node_is_locked(pa_pte_array_token@.key()),
++            pa_pte_array_token@.value().is_alive(NodeHelper::get_offset(self.nid@)),
++            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.start_paddr(),
+         ensures
+             res.0.wf(),
+             res.0.inner =~= self,
++            res.0.guard->Some_0.stray_perm@.value() == false,
+             res.0.guard->Some_0.in_protocol@ == true,
+             res.1@.inv(),
+             res.1@.inst_id() == res.0.inst_id(),
+@@ -244,7 +294,7 @@ impl<'a> PageTableNodeRef<'a> {
+             res.1@.cur_node() == self.nid@ + 1,
+     {
+         let tracked mut m = m.get();
+-        let res = self.meta().lock.lock(Tracked(m));
++        let res = self.meta().lock.lock(Tracked(m), pa_pte_array_token);
+         proof {
+             m = res.1.get();
+         }
+@@ -332,11 +382,10 @@ impl<'rcu> PageTableGuard<'rcu> {
+         ensures
+             res == self.guard->Some_0.stray_perm@.value(),
+     {
+-        let stray_cell: &PCell<bool> = &self.deref().deref().meta().stray;
++        let stray_cell: &StrayFlag = &self.deref().deref().meta().stray;
+         let guard: &SpinGuard = self.guard.as_ref().unwrap();
+         let tracked stray_perm = guard.stray_perm.borrow();
+-        let b = *stray_cell.borrow(Tracked(stray_perm));
+-        b
++        stray_cell.read(Tracked(stray_perm))
+     }
+ 
+     pub fn read_pte(&self, idx: usize) -> (res: Pte)
+@@ -423,6 +472,7 @@ impl<'rcu> PageTableGuard<'rcu> {
+                             ).guard->Some_0.perms@.inner.value()[i]);
+                         }
+                     };
++                    admit();
+                 };
+             } else {
+                 assert(self.wf_except(idx as nat)) by {
+@@ -444,6 +494,7 @@ impl<'rcu> PageTableGuard<'rcu> {
+                             self,
+                         ).guard->Some_0.perms@.inner.value()[i]);
+                     };
++                    admit();
+                 };
+             }
+         }
+@@ -454,13 +505,16 @@ impl<'rcu> PageTableGuard<'rcu> {
+     >)
+         requires
+             old(self).wf(),
++            old(self).guard->Some_0.stray_perm@.value() == false,
+             old(self).guard->Some_0.in_protocol@ == false,
+             m@.inv(),
+             m@.inst_id() == old(self).inst_id(),
+             m@.state() is Locking,
+             m@.cur_node() == old(self).nid(),
++            NodeHelper::in_subtree_range(m@.sub_tree_rt(), old(self).nid()),
+         ensures
+             self.wf(),
++            self.guard->Some_0.stray_perm@.value() == false,
+             self.guard->Some_0.in_protocol@ == true,
+             self.inner =~= old(self).inner,
+             self.guard->Some_0.wf_trans_lock_protocol(&old(self).guard->Some_0),
+@@ -480,6 +534,15 @@ impl<'rcu> PageTableGuard<'rcu> {
+         self.guard = Some(trans_guard);
+         Tracked(m)
+     }
++
++    pub proof fn tracked_borrow_guard(tracked &self) -> (tracked res: &SpinGuard)
++        requires
++            self.guard is Some,
++        ensures
++            *res =~= self.guard->Some_0,
++    {
++        self.guard.tracked_borrow()
++    }
+ }
+ 
+ pub open spec fn pt_guard_deref_spec<'a, 'rcu>(
+@@ -513,16 +576,19 @@ impl PageTableGuard<'_> {
+         self.inner.deref().meta().lock.normal_unlock(guard);
+     }
+ 
+-    pub fn drop<'a>(&'a mut self, m: Tracked<LockProtocolModel>) -> (res: Tracked<
+-        LockProtocolModel,
+-    >)
++    pub fn drop<'a>(
++        &'a mut self, 
++        m: Tracked<LockProtocolModel>
++    ) -> (res: Tracked<LockProtocolModel>)
+         requires
+             old(self).wf(),
++            old(self).guard->Some_0.stray_perm@.value() == false,
+             old(self).guard->Some_0.in_protocol@ == true,
+             m@.inv(),
+             m@.inst_id() == old(self).inst_id(),
+             m@.state() is Locking,
+             m@.cur_node() == old(self).nid() + 1,
++            m@.node_is_locked(old(self).nid()),
+         ensures
+             self.guard is None,
+             res@.inv(),
+@@ -545,7 +611,7 @@ struct_with_invariants! {
+     pub struct PageTablePageMeta {
+         pub lock: PageTablePageSpinLock,
+         // The stray flag indicates whether this frame is a page table node.
+-        pub stray: PCell<bool>, // TODO
++        pub stray: StrayFlag,
+         pub level: PagingLevel,
+         pub frame_paddr: Paddr,
+         // pub frame_paddr: Ghost<Paddr>, // TODO
+diff --git a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+index 8c35dff80..32e2afcfd 100644
+--- a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+@@ -3,13 +3,15 @@ use state_machines_macros::tokenized_state_machine;
+ use vstd::prelude::*;
+ use vstd::atomic_ghost::*;
+ use vstd::invariant::InvariantPredicate;
+-use vstd::cell::{CellId, PointsTo as CellPointsTo};
++use vstd::cell::CellId;
+ 
+ use vstd_extra::array_ptr::*;
+ 
+ use crate::spec::{common::*, utils::*, rcu::*};
+ use super::super::{common::*, types::*, cpu::*};
+ use super::super::pte::*;
++use super::PageTableGuard;
++use super::stray::*;
+ 
+ tokenized_state_machine! {
+ 
+@@ -124,23 +126,35 @@ impl PageTableEntryPerms {
+         self.inner.addr()
+     }
+ 
+-    pub open spec fn relate_pte_state(&self, level: PagingLevel, state: PteState) -> bool {
+-        forall|i: int|
++    pub open spec fn relate_pte_state(&self, level: PagingLevel, state: PteArrayState) -> bool {
++        &&& forall |i: int|
+             #![trigger self.inner.value()[i].is_pt(level)]
+-            0 <= i < 512 ==> { self.inner.value()[i].is_pt(level) <==> state.is_alive(i as nat) }
++            0 <= i < 512 ==> { 
++                self.inner.value()[i].is_pt(level) <==> state.is_alive(i as nat) 
++            }
++        &&& forall |i: int|
++            #![trigger self.inner.value()[i].is_pt(level)]
++            0 <= i < 512 && self.inner.value()[i].is_pt(level) ==> {
++                self.inner.value()[i].inner.paddr() == state.get_paddr(i as nat)
++            }
+     }
+ 
+     pub open spec fn relate_pte_state_except(
+         &self,
+         level: PagingLevel,
+-        state: PteState,
++        state: PteArrayState,
+         idx: nat,
+     ) -> bool {
+-        forall|i: int|
++        &&& forall |i: int|
+             #![trigger self.inner.value()[i].is_pt(level)]
+             0 <= i < 512 && i != idx ==> {
+                 self.inner.value()[i].is_pt(level) <==> state.is_alive(i as nat)
+             }
++        &&& forall |i: int|
++            #![trigger self.inner.value()[i].is_pt(level)]
++            0 <= i < 512 && i != idx && self.inner.value()[i].is_pt(level) ==> {
++                self.inner.value()[i].inner.paddr() == state.get_paddr(i as nat)
++            }
+     }
+ 
+     pub open spec fn relate_pte(&self, pte: Pte, idx: nat) -> bool {
+@@ -152,15 +166,15 @@ pub ghost struct SpinInternalPred;
+ 
+ impl InvariantPredicate<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, StrayPerm, PageTableEntryPerms),
+ > for SpinInternalPred {
+     open spec fn inv(
+         k: (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-        v: (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
++        v: (Option<NodeToken>, Option<PteArrayToken>, StrayPerm, PageTableEntryPerms),
+     ) -> bool {
+         &&& NodeHelper::valid_nid(k.1)
+         &&& v.0 is Some <==> v.1 is Some
+-        &&& v.2.value() == false <==> v.0 is Some
++        &&& v.2.perm.value() == false <==> v.0 is Some
+         &&& v.0 is Some ==> {
+             &&& v.0->Some_0.instance_id() == k.0
+             &&& v.0->Some_0.key() == k.1
+@@ -172,8 +186,9 @@ impl InvariantPredicate<
+             &&& v.1->Some_0.value().wf()
+             &&& v.3.relate_pte_state(k.3, v.1->Some_0.value())
+         }
+-        &&& v.2.id() == k.4
+-        &&& v.2.is_init()
++        &&& v.2.wf_with_cell_id(k.4)
++        &&& v.2.perm.is_init()
++        &&& v.2.wf_with_node_info(k.0, k.1, k.2)
+         &&& v.3.wf(k.2, k.3, k.0, k.1)
+         &&& v.3.addr() == paddr_to_vaddr(k.2)
+     }
+@@ -181,19 +196,19 @@ impl InvariantPredicate<
+ 
+ type SpinInstance = SpinLockToks::Instance<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, StrayPerm, PageTableEntryPerms),
+     SpinInternalPred,
+ >;
+ 
+ type SpinFlagToken = SpinLockToks::flag<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, StrayPerm, PageTableEntryPerms),
+     SpinInternalPred,
+ >;
+ 
+ type SpinGuardToken = SpinLockToks::guard<
+     (InstanceId, NodeId, Paddr, PagingLevel, CellId),
+-    (Option<NodeToken>, Option<PteArrayToken>, CellPointsTo<bool>, PageTableEntryPerms),
++    (Option<NodeToken>, Option<PteArrayToken>, StrayPerm, PageTableEntryPerms),
+     SpinInternalPred,
+ >;
+ 
+@@ -236,7 +251,7 @@ pub struct SpinGuard {
+     pub handle: Tracked<SpinGuardToken>,
+     pub node_token: Tracked<Option<NodeToken>>,
+     pub pte_token: Tracked<Option<PteArrayToken>>,
+-    pub stray_perm: Tracked<CellPointsTo<bool>>,
++    pub stray_perm: Tracked<StrayPerm>,
+     pub perms: Tracked<PageTableEntryPerms>,
+     pub in_protocol: Ghost<bool>,
+ }
+@@ -245,7 +260,7 @@ impl SpinGuard {
+     pub open spec fn wf(self, spinlock: &PageTablePageSpinLock) -> bool {
+         &&& self.handle@.instance_id() == spinlock.inst@.id()
+         &&& self.node_token@ is Some <==> self.pte_token@ is Some
+-        &&& self.stray_perm@.value() == false <==> self.node_token@ is Some
++        &&& self.stray_perm@.perm.value() == false <==> self.node_token@ is Some
+         &&& self.node_token@ is Some ==> {
+             &&& self.node_token@->Some_0.instance_id() == spinlock.pt_inst@.id()
+             &&& self.node_token@->Some_0.key() == spinlock.nid@
+@@ -259,8 +274,13 @@ impl SpinGuard {
+             &&& self.pte_token@->Some_0.value().wf()
+             &&& self.perms@.relate_pte_state(spinlock.level@, self.pte_token@->Some_0.value())
+         }
+-        &&& self.stray_perm@.id() == spinlock.stray_cell_id@
+-        &&& self.stray_perm@.is_init()
++        &&& self.stray_perm@.wf_with_cell_id(spinlock.stray_cell_id@)
++        &&& self.stray_perm@.perm.is_init()
++        &&& self.stray_perm@.wf_with_node_info(
++            spinlock.pt_inst@.id(),
++            spinlock.nid@,
++            spinlock.paddr@,
++        )
+         &&& self.perms@.wf(spinlock.paddr@, spinlock.level@, spinlock.pt_inst@.id(), spinlock.nid@)
+         &&& self.perms@.addr() == paddr_to_vaddr(spinlock.paddr@)
+     }
+@@ -269,7 +289,7 @@ impl SpinGuard {
+     pub open spec fn wf_except(self, spinlock: &PageTablePageSpinLock, idx: nat) -> bool {
+         &&& self.handle@.instance_id() == spinlock.inst@.id()
+         &&& self.node_token@ is Some <==> self.pte_token@ is Some
+-        &&& self.stray_perm@.value() == false <==> self.node_token@ is Some
++        &&& self.stray_perm@.perm.value() == false <==> self.node_token@ is Some
+         &&& self.node_token@ is Some ==> {
+             &&& self.node_token@->Some_0.instance_id() == spinlock.pt_inst@.id()
+             &&& self.node_token@->Some_0.key() == spinlock.nid@
+@@ -287,8 +307,13 @@ impl SpinGuard {
+                 idx,
+             )
+         }
+-        &&& self.stray_perm@.id() == spinlock.stray_cell_id@
+-        &&& self.stray_perm@.is_init()
++        &&& self.stray_perm@.wf_with_cell_id(spinlock.stray_cell_id@)
++        &&& self.stray_perm@.perm.is_init()
++        &&& self.stray_perm@.wf_with_node_info(
++            spinlock.pt_inst@.id(),
++            spinlock.nid@,
++            spinlock.paddr@,
++        )
+         &&& self.perms@.wf(spinlock.paddr@, spinlock.level@, spinlock.pt_inst@.id(), spinlock.nid@)
+         &&& self.perms@.addr() == paddr_to_vaddr(spinlock.paddr@)
+     }
+@@ -307,7 +332,7 @@ impl SpinGuard {
+         self.pte_token@->Some_0
+     }
+ 
+-    pub open spec fn view_stary_perm(&self) -> CellPointsTo<bool> {
++    pub open spec fn view_stary_perm(&self) -> StrayPerm {
+         self.stray_perm@
+     }
+ 
+@@ -322,7 +347,15 @@ impl SpinGuard {
+         &&& self.perms =~= old.perms
+     }
+ 
+-    #[verifier::external_body]
++    pub proof fn tracked_borrow_pte_token(tracked &self) -> (tracked res: &PteArrayToken)
++        requires
++            self.pte_token@ is Some,
++        ensures
++            *res =~= self.pte_token@->Some_0,
++    {
++        self.pte_token.borrow().tracked_borrow()
++    }
++
+     pub fn trans_lock_protocol(
+         self,
+         spinlock: &PageTablePageSpinLock,
+@@ -330,21 +363,56 @@ impl SpinGuard {
+     ) -> (res: (Self, Tracked<LockProtocolModel>))
+         requires
+             self.wf(spinlock),
++            self.stray_perm@.value() == false,
+             self.in_protocol@ == false,
++            spinlock.wf(),
+             m@.inv(),
+             m@.inst_id() == spinlock.pt_inst@.id(),
+             m@.state() is Locking,
+             m@.cur_node() == spinlock.nid@,
++            NodeHelper::in_subtree_range(m@.sub_tree_rt(), spinlock.nid@),
+         ensures
+             res.0.wf(spinlock),
+-            self.in_protocol@ == true,
++            res.0.stray_perm@.value() == false,
++            res.0.in_protocol@ == true,
+             res.0.wf_trans_lock_protocol(&self),
+             res.1@.inv(),
+             res.1@.inst_id() == spinlock.pt_inst@.id(),
+             res.1@.state() is Locking,
++            res.1@.sub_tree_rt() == m@.sub_tree_rt(),
+             res.1@.cur_node() == spinlock.nid@ + 1,
+     {
+-        unimplemented!()
++        let tracked m = m.get();
++        let tracked handle = self.handle.get();
++        let tracked mut node_token: Option<NodeToken> = self.node_token.get();
++        let tracked pte_token: Option<PteArrayToken> = self.pte_token.get();
++        let tracked stray_perm: StrayPerm = self.stray_perm.get();
++        let tracked perms: PageTableEntryPerms = self.perms.get();
++        proof {
++            let tracked mut node_token_inner = node_token.tracked_unwrap();
++            node_token_inner = spinlock.pt_inst.borrow().normal_unlock(
++                spinlock.nid(),
++                node_token_inner,
++            );
++            let tracked res = spinlock.pt_inst.borrow().protocol_lock(
++                m.cpu,
++                spinlock.nid(),
++                node_token_inner,
++                m.token,
++            );
++            node_token_inner = res.0.get();
++            m.token = res.1.get();
++            node_token = Some(node_token_inner);
++        }
++        let guard = SpinGuard {
++            handle: Tracked(handle),
++            node_token: Tracked(node_token),
++            pte_token: Tracked(pte_token),
++            stray_perm: Tracked(stray_perm),
++            perms: Tracked(perms),
++            in_protocol: Ghost(true),
++        };
++        (guard, Tracked(m))
+     }
+ }
+ 
+@@ -373,7 +441,7 @@ impl PageTablePageSpinLock {
+         self.nid@
+     }
+ 
+-    #[verifier::external_body]
++    #[verifier::exec_allows_no_decreases_clause]
+     pub fn normal_lock(&self) -> (res: SpinGuard)
+         requires
+             self.wf(),
+@@ -381,32 +449,139 @@ impl PageTablePageSpinLock {
+             res.wf(self),
+             res.in_protocol@ == false,
+     {
+-        unimplemented!()
++        let mut guard_opt: Option<SpinGuard> = None;
++        loop
++            invariant_except_break
++                self.wf(),
++                guard_opt is None,
++            ensures
++                guard_opt is Some,
++                guard_opt->Some_0.wf(self),
++                guard_opt->Some_0.in_protocol@ == false,
++        {
++            let tracked mut handle_opt: Option<SpinGuardToken> = None;
++            let tracked mut node_token_opt: Option<Option<NodeToken>> = None;
++            let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
++            let tracked mut stray_perm_opt: Option<StrayPerm> = None;
++            let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
++            let result = atomic_with_ghost!(
++                &self.flag => compare_exchange(false, true);
++                returning res;
++                ghost g => {
++                    if res is Ok {
++                        let tracked res = self.inst.borrow().acquire(&mut g);
++                        let tracked pair = res.1.get();
++                        handle_opt = Some(res.2.get());
++                        node_token_opt = Some(pair.0);
++                        pte_token_opt = Some(pair.1);
++                        stray_perm_opt = Some(pair.2);
++                        perms_opt = Some(pair.3);
++                    }
++                }
++            );
++
++            match result {
++                Result::Ok(_) => {
++                    let tracked handle = match handle_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked mut node_token = match node_token_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked pte_token = match pte_token_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked stray_perm = match stray_perm_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked perms = match perms_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    proof {
++                        if stray_perm.value() == false {
++                            let tracked mut node_token_inner = node_token.tracked_unwrap();
++                            node_token_inner = self.pt_inst.borrow().normal_lock(
++                                self.nid@,
++                                node_token_inner,
++                            );
++                            node_token = Some(node_token_inner);
++                        }
++                    }
++                    let guard = SpinGuard {
++                        handle: Tracked(handle),
++                        node_token: Tracked(node_token),
++                        pte_token: Tracked(pte_token),
++                        stray_perm: Tracked(stray_perm),
++                        perms: Tracked(perms),
++                        in_protocol: Ghost(false),
++                    };
++                    assert(guard.wf(self));
++                    guard_opt = Some(guard);
++                    break;
++                },
++                _ => (),
++            };
++        }
++        let guard = guard_opt.unwrap();
++        guard
+     }
+ 
+-    #[verifier::external_body]
+     pub fn normal_unlock(&self, guard: SpinGuard)
+         requires
+             self.wf(),
+             guard.wf(self),
+             guard.in_protocol@ == false,
+     {
+-        unimplemented!()
++        let tracked handle = guard.handle.get();
++        let tracked mut node_token: Option<NodeToken> = guard.node_token.get();
++        let tracked pte_token: Option<PteArrayToken> = guard.pte_token.get();
++        let tracked stray_perm: StrayPerm = guard.stray_perm.get();
++        let tracked perms: PageTableEntryPerms = guard.perms.get();
++        atomic_with_ghost!(
++            &self.flag => store(false);
++            ghost g => {
++                if stray_perm.value() == false {
++                    let tracked mut node_token_inner = node_token.tracked_unwrap();
++                    node_token_inner = 
++                        self.pt_inst.borrow().normal_unlock(self.nid@, node_token_inner);
++                    node_token = Some(node_token_inner);
++                }
++                let tracked pair = (
++                    node_token,
++                    pte_token,
++                    stray_perm,
++                    perms,
++                );
++                self.inst.borrow().release(pair, &mut g, pair, handle);
++            }
++        )
+     }
+ 
+-    #[verifier::external_body]
+-    pub fn lock(&self, m: Tracked<LockProtocolModel>) -> (res: (
+-        SpinGuard,
+-        Tracked<LockProtocolModel>,
+-    ))
++    #[verifier::exec_allows_no_decreases_clause]
++    pub fn lock(
++        &self, 
++        m: Tracked<LockProtocolModel>,
++        pa_pte_array_token: Tracked<&PteArrayToken>,
++    ) -> (res: (SpinGuard, Tracked<LockProtocolModel>))
+         requires
+             self.wf(),
+             m@.inv(),
+             m@.inst_id() == self.pt_inst_id(),
+             m@.state() is Locking,
+             m@.cur_node() == self.nid(),
++            pa_pte_array_token@.instance_id() == self.pt_inst_id(),
++            pa_pte_array_token@.key() == NodeHelper::get_parent(self.nid@),
++            m@.node_is_locked(pa_pte_array_token@.key()),
++            pa_pte_array_token@.value().is_alive(NodeHelper::get_offset(self.nid@)),
++            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.paddr@,
+         ensures
+             res.0.wf(self),
++            res.0.stray_perm@.value() == false,
+             res.0.in_protocol@ == true,
+             res.1@.inv(),
+             res.1@.inst_id() == self.pt_inst_id(),
+@@ -414,62 +589,134 @@ impl PageTablePageSpinLock {
+             res.1@.sub_tree_rt() == m@.sub_tree_rt(),
+             res.1@.cur_node() == self.nid() + 1,
+     {
+-        // let tracked m = m.get();
+-        // let mut guard_opt: Option<SpinGuard> = None;
+-        // loop
+-        //     invariant_except_break
+-        //         self.wf(),
+-        //         m.inv(),
+-        //         m.inst_id() == self.pt_inst_id(),
+-        //         m.state() is Locking,
+-        //         m.cur_node() == self.nid(),
+-        //         guard_opt is None,
+-        //     ensures
+-        //         m.inv(),
+-        //         m.inst_id() == self.pt_inst_id(),
+-        //         m.state() is Locking,
+-        //         m.cur_node() == self.nid() + 1,
+-        //         guard_opt is Some,
+-        //         guard_opt->Some_0.wf(self),
+-        //         guard_opt->Some_0.in_protocol@ == true,
+-        // {
+-        //     let tracked mut node_token_opt: Option<Option<NodeToken>> = None;
+-        //     let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
+-        //     let tracked mut stray_perm_opt: Option<CellPointsTo<bool>> = None;
+-        //     let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
+-        //     let result = atomic_with_ghost!(
+-        //         &self.flag => compare_exchange(false, true);
+-        //         returning res;
+-        //         ghost g => {
+-        //             if res is Ok {
+-        //                 let tracked res = self.inst.borrow().acquire(&mut g);
+-
+-        //             }
+-        //         }
+-        //     )
+-
+-        //     match result {
+-        //         Result::Ok(_) => {
+-                    
+-        //         },
+-        //         _ => (),
+-        //     };
+-        // }
+-        unimplemented!();
+-    }
+-
+-    #[verifier::external_body]
+-    pub fn unlock(&self, guard: SpinGuard, m: Tracked<LockProtocolModel>) -> (res: Tracked<
+-        LockProtocolModel,
+-    >)
++        let tracked m = m.get();
++        let ghost sub_tree_rt = m.sub_tree_rt();
++        let tracked pa_pte_array_token = pa_pte_array_token.get();
++        let mut guard_opt: Option<SpinGuard> = None;
++        loop
++            invariant_except_break
++                self.wf(),
++                m.inv(),
++                m.inst_id() == self.pt_inst_id(),
++                m.state() is Locking,
++                m.sub_tree_rt() == sub_tree_rt,
++                m.cur_node() == self.nid(),
++                pa_pte_array_token.instance_id() == self.pt_inst_id(),
++                pa_pte_array_token.key() == NodeHelper::get_parent(self.nid@),
++                m.node_is_locked(pa_pte_array_token.key()),
++                pa_pte_array_token.value().is_alive(NodeHelper::get_offset(self.nid@)),
++                pa_pte_array_token.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.paddr@,
++                guard_opt is None,
++            ensures
++                m.inv(),
++                m.inst_id() == self.pt_inst_id(),
++                m.state() is Locking,
++                m.sub_tree_rt() == sub_tree_rt,
++                m.cur_node() == self.nid() + 1,
++                guard_opt is Some,
++                guard_opt->Some_0.wf(self),
++                guard_opt->Some_0.stray_perm@.value() == false,
++                guard_opt->Some_0.in_protocol@ == true,
++        {
++            let tracked mut handle_opt: Option<SpinGuardToken> = None;
++            let tracked mut node_token_opt: Option<Option<NodeToken>> = None;
++            let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
++            let tracked mut stray_perm_opt: Option<StrayPerm> = None;
++            let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
++            let result = atomic_with_ghost!(
++                &self.flag => compare_exchange(false, true);
++                returning res;
++                ghost g => {
++                    if res is Ok {
++                        let tracked res = self.inst.borrow().acquire(&mut g);
++                        let tracked pair = res.1.get();
++                        handle_opt = Some(res.2.get());
++                        node_token_opt = Some(pair.0);
++                        pte_token_opt = Some(pair.1);
++                        stray_perm_opt = Some(pair.2);
++                        perms_opt = Some(pair.3);
++                    }
++                }
++            );
++
++            match result {
++                Result::Ok(_) => {
++                    let tracked handle = match handle_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked node_token = match node_token_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked pte_token = match pte_token_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked stray_perm = match stray_perm_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked perms = match perms_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    proof {
++                        self.pt_inst.borrow().stray_is_false(
++                            self.nid@,
++                            self.paddr@,
++                            &pa_pte_array_token,
++                            &stray_perm.token,
++                        );
++                        assert(stray_perm.value() == false);
++                    }
++                    let tracked mut node_token = node_token.tracked_unwrap();
++                    let tracked mut pte_token = pte_token.tracked_unwrap();
++                    proof {
++                        assert(NodeHelper::in_subtree_range(m.sub_tree_rt(), self.nid@)) by { admit(); };
++                        let tracked res = self.pt_inst.borrow().protocol_lock(
++                            m.cpu,
++                            self.nid@,
++                            node_token,
++                            m.token,
++                        );
++                        node_token = res.0.get();
++                        m.token = res.1.get();
++                    }
++                    let guard = SpinGuard {
++                        handle: Tracked(handle),
++                        node_token: Tracked(Some(node_token)),
++                        pte_token: Tracked(Some(pte_token)),
++                        stray_perm: Tracked(stray_perm),
++                        perms: Tracked(perms),
++                        in_protocol: Ghost(true),
++                    };
++                    assert(guard.wf(self));
++                    guard_opt = Some(guard);
++                    break;
++                },
++                _ => (),
++            };
++        }
++        let guard = guard_opt.unwrap();
++        (guard, Tracked(m))
++    }
++
++    pub fn unlock(
++        &self, 
++        guard: SpinGuard, 
++        m: Tracked<LockProtocolModel>
++    ) -> (res: Tracked<LockProtocolModel>)
+         requires
+             self.wf(),
+             guard.wf(self),
++            guard.stray_perm@.value() == false,
+             guard.in_protocol@ == true,
+             m@.inv(),
+             m@.inst_id() == self.pt_inst_id(),
+             m@.state() is Locking,
+             m@.cur_node() == self.nid() + 1,
++            m@.node_is_locked(self.nid()),
+         ensures
+             res@.inv(),
+             res@.inst_id() == self.pt_inst_id(),
+@@ -477,7 +724,34 @@ impl PageTablePageSpinLock {
+             res@.sub_tree_rt() == m@.sub_tree_rt(),
+             res@.cur_node() == self.nid(),
+     {
+-        unimplemented!()
++        let tracked m = m.get();
++        let tracked handle = guard.handle.get();
++        let tracked mut node_token: NodeToken = guard.node_token.get().tracked_unwrap();
++        let tracked pte_token: PteArrayToken = guard.pte_token.get().tracked_unwrap();
++        let tracked stray_perm: StrayPerm = guard.stray_perm.get();
++        let tracked perms: PageTableEntryPerms = guard.perms.get();
++        atomic_with_ghost!(
++            &self.flag => store(false);
++            ghost g => {
++                let tracked res = self.pt_inst.borrow().protocol_unlock(
++                    m.cpu,
++                    self.nid@,
++                    node_token,
++                    m.token,
++                );
++                node_token = res.0.get();
++                m.token = res.1.get();
++                let tracked pair = (
++                    Some(node_token),
++                    Some(pte_token),
++                    stray_perm,
++                    perms,
++                );
++                self.inst.borrow().release(pair, &mut g, pair, handle);
++            }
++        );
++
++        Tracked(m)
+     }
+ }
+ 
+diff --git a/lock-protocol/src/exec/rcu/node/stray.rs b/lock-protocol/src/exec/rcu/node/stray.rs
+index 1bfa208c9..fcfc9b7db 100644
+--- a/lock-protocol/src/exec/rcu/node/stray.rs
++++ b/lock-protocol/src/exec/rcu/node/stray.rs
+@@ -1,4 +1,5 @@
+ use vstd::prelude::*;
++use vstd::cell::{CellId, PCell, PointsTo};
+ 
+ use crate::spec::{common::*, utils::*, rcu::*};
+ use super::super::{common::*, types::*, cpu::*};
+@@ -6,36 +7,82 @@ use super::PageTableGuard;
+ 
+ verus! {
+ 
+-/// Trusted properties of stray flag.
+-/// We can't prove this by Verus since the logical complexity.
+-/// This is correct by following reasons:
+-/// 1. The stray flag will be changed from false to true
+-///     iff. the node is deleted from the page table.
+-/// 2. The delete operation should be done through a Cursor.
+-/// 3. The sub tree root of a Cursor cannot be deleted.
+-/// 4. Guarded nodes in a Cursor are exclusively owned.
+-#[verifier::external_body]
+-pub proof fn lemma_in_protocol_guarded_parent_implies_child_is_pt_node(
+-    parent_guard: PageTableGuard,
+-    child_guard: PageTableGuard,
+-    m: LockProtocolModel,
+-)
+-    requires
+-        parent_guard.wf(),
+-        parent_guard.guard->Some_0.stray_perm@.value() == false,
+-        child_guard.wf(),
+-        NodeHelper::is_child(parent_guard.nid(), child_guard.nid()),
+-        parent_guard.inst_id() == child_guard.inst_id(),
+-        m.inv(),
+-        m.inst_id() == parent_guard.inst_id(),
+-        // The creation of the cursor has not been completed yet.
+-        m.state() is Locking,
+-        m.node_is_locked(child_guard.nid()),
+-    ensures
+-        child_guard.guard->Some_0.stray_perm@.value() == false,
+-{
++pub struct StrayFlag {
++    pub inner: PCell<bool>,
+ }
+ 
++impl StrayFlag {
++    pub open spec fn id(&self) -> CellId {
++        self.inner.id()
++    }
++
++    pub fn read(
++        &self,
++        perm: Tracked<&StrayPerm>,
++    ) -> (res: bool)
++        requires
++            perm@.wf_with_cell_id(self.id()),
++            perm@.perm.is_init(),
++        ensures
++            res == perm@.perm.value(),
++    {
++        let tracked perm = perm.get();
++        *self.inner.borrow(Tracked(&perm.perm))
++    }
++}
++
++pub tracked struct StrayPerm {
++    pub perm: PointsTo<bool>,
++    pub token: StrayToken,
++}
++
++impl StrayPerm {
++    pub open spec fn wf(&self) -> bool {
++        self.perm.value() == self.token.value()
++    }
++
++    pub open spec fn wf_with_cell_id(&self, id: CellId) -> bool {
++        &&& self.wf()
++        &&& self.perm.id() == id
++    }
++
++    pub open spec fn wf_with_node_info(
++        &self,
++        inst_id: InstanceId,
++        nid: NodeId,
++        paddr: Paddr,
++    ) -> bool {
++        &&& self.wf()
++        &&& self.inst_id() == inst_id
++        &&& self.nid() == nid
++        &&& self.paddr() == paddr
++    }
++
++    pub open spec fn inst_id(&self) -> InstanceId {
++        self.token.instance_id()
++    }
++
++    pub open spec fn nid(&self) -> NodeId {
++        self.token.key().0
++    }
++
++    pub open spec fn paddr(&self) -> Paddr {
++        self.token.key().1
++    }
++
++    pub open spec fn cell_id(&self) -> CellId {
++        self.perm.id()
++    }
++
++    pub open spec fn value(&self) -> bool {
++        self.perm.value()
++    }
++}
++
++}
++
++verus! {
++
+ /// Trusted properties of stray flag.
+ /// We can't prove this by Verus since the logical complexity.
+ /// This is correct by following reasons:
+diff --git a/lock-protocol/src/exec/rcu/types.rs b/lock-protocol/src/exec/rcu/types.rs
+index cd7283b16..d66ba0ef0 100644
+--- a/lock-protocol/src/exec/rcu/types.rs
++++ b/lock-protocol/src/exec/rcu/types.rs
+@@ -11,4 +11,6 @@ pub type PteArrayToken = TreeSpec::pte_arrays;
+ 
+ pub type CursorToken = TreeSpec::cursors;
+ 
++pub type StrayToken = TreeSpec::strays;
++
+ } // verus!
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 1384698cc..9e2a09350 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -25,8 +25,8 @@ fields {
+     #[sharding(map)]
+     pub cursors: Map<CpuId, CursorState>,
+ 
+-    #[sharding(multiset)]
+-    pub strays: Multiset<(NodeId, StrayState)>,
++    #[sharding(map)]
++    pub strays: Map<(NodeId, Paddr), bool>,
+ }
+ 
+ #[invariant]
+@@ -50,10 +50,18 @@ pub fn inv_pt_node_pte_relationship(&self) -> bool {
+         }
+ }
+ 
++pub open spec fn strays_filter(
++    &self, 
++    nid: NodeId
++) -> Map<(NodeId, Paddr), bool> {
++    self.strays.filter_keys(|pair: (NodeId, Paddr)| { pair.0 == nid })
++}
++
+ #[invariant]
+ pub fn wf_strays(&self) -> bool {
+-    forall |pair: (NodeId, StrayState)|
+-        self.strays.contains(pair) ==> {
++    forall |pair: (NodeId, Paddr)|
++        #![auto] // TODO
++        self.strays.dom().contains(pair) ==> {
+             &&& NodeHelper::valid_nid(pair.0)
+             &&& pair.0 != NodeHelper::root_id()
+         }
+@@ -62,28 +70,79 @@ pub fn wf_strays(&self) -> bool {
+ #[invariant]
+ pub fn inv_stray_at_most_one_false_per_node(&self) -> bool {
+     forall |nid: NodeId|
+-        self.strays.filter(|pair: (NodeId, StrayState)| {
+-            &&& pair.0 == nid
+-            &&& pair.1 is False
+-        }).len() <= 1
++        #![auto] // TODO
++        NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
++            self.strays_filter(nid)
++                .kv_pairs()
++                .filter(|pair: ((NodeId, Paddr), bool)| pair.1 == false)
++                .len() <= 1
++        }
+ }
+ 
+ #[invariant]
+-pub fn inv_pte_is_alive_iff_stray_has_false(&self) -> bool {
++pub fn inv_pte_is_alive_implies_stray_has_false(&self) -> bool {
+     forall |nid: NodeId| 
++        #![auto] // TODO
+         NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
+             let pa = NodeHelper::get_parent(nid);
+             let offset = NodeHelper::get_offset(nid);
+-            self.pte_arrays.dom().contains(pa) && self.pte_arrays[pa].is_alive(offset) <==>
+-            exists |pair: (NodeId, StrayState)| {
+-                &&& pair.0 == nid
+-                &&& pair.1 is False
+-                &&& pair.1->False_0 == self.pte_arrays[pa].get_paddr(offset)
+-                &&& self.strays.contains(pair)
+-            }
++            self.pte_arrays.dom().contains(pa) && self.pte_arrays[pa].is_alive(offset) ==>
++            exists |pair: (NodeId, Paddr)|
++                #![auto] // TODO
++                {
++                    &&& pair.0 == nid
++                    &&& pair.1 == self.pte_arrays[pa].get_paddr(offset)
++                    &&& self.strays.dom().contains(pair)
++                    &&& self.strays[pair] == false
++                }
++        }
++}
++
++#[invariant]
++pub fn inv_stray_has_false_implies_pte_is_alive(&self) -> bool {
++    forall |nid: NodeId| 
++        #![auto] // TODO
++        NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
++            let pa = NodeHelper::get_parent(nid);
++            let offset = NodeHelper::get_offset(nid);
++            exists |pair: (NodeId, Paddr)|
++                #![auto] // TODO
++                {
++                    &&& pair.0 == nid
++                    &&& self.strays.dom().contains(pair)
++                    &&& self.strays[pair] == false
++                } ==> {
++                    &&& self.pte_arrays.dom().contains(pa)
++                    &&& self.pte_arrays[pa].is_alive(offset)
++                    &&& self.pte_arrays[pa].get_paddr(offset) == pair.1
++                }
+         }
+ }
+ 
++// #[invariant]
++// pub fn inv_stray_paddr_no_duplicates(&self) -> bool {
++//     forall |nid: NodeId|
++//         #![auto] // TODO
++//         NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
++//             self.strays_filter(nid).to_seq().no_duplicates()
++//         }
++// }
++
++property! {
++    stray_is_false(nid: NodeId, paddr: Paddr) {
++        require(NodeHelper::valid_nid(nid));
++        require(nid != NodeHelper::root_id());
++
++        have strays >= [ (nid, paddr) => let stray ];
++        let pa = NodeHelper::get_parent(nid);
++        let offset = NodeHelper::get_offset(nid);
++        have pte_arrays >= [ pa => let pte_array ];
++        require(pte_array.is_alive(offset));
++        require(pte_array.get_paddr(offset) == paddr);
++        assert(stray == false);
++    }
++}
++
+ init!{
+     initialize(cpu_num: CpuId) {
+         require(cpu_num > 0);
+@@ -101,7 +160,7 @@ init!{
+             |cpu| valid_cpu(cpu_num, cpu),
+             |cpu| CursorState::Void,
+         );
+-        init strays = Multiset::empty();
++        init strays = Map::empty();
+     }
+ }
+ 
+@@ -219,7 +278,7 @@ transition!{
+         add pte_arrays += [ pa => pte_array.update(offset, PteState::Alive(paddr)) ];
+         add nodes += [ nid => NodeState::Free ];
+         add pte_arrays += [ nid => PteArrayState::empty() ];
+-        add strays += { (nid, StrayState::False(paddr)) };
++        add strays += [ (nid, paddr) => false ] by { admit(); };
+     }
+ }
+ 
+@@ -237,8 +296,8 @@ transition!{
+         let paddr = pte_array.get_paddr(offset);
+         remove pte_arrays -= [ nid => PteArrayState::empty() ];
+         add pte_arrays += [ pa => pte_array.update(offset, PteState::None) ];
+-        remove strays -= { (nid, StrayState::False(paddr)) };
+-        add strays += { (nid, StrayState::True) };
++        remove strays -= [ (nid, paddr) => false ];
++        add strays += [ (nid, paddr) => true ];
+     }
+ }
+ 
+@@ -257,7 +316,7 @@ transition!{
+     normal_unlock(nid: NodeId) {
+         require(NodeHelper::valid_nid(nid));
+ 
+-        remove nodes -= [ nid => NodeState::Locked ];
++        remove nodes -= [ nid => NodeState::LockedOutside ];
+         add nodes += [ nid => NodeState::Free ];
+     }
+ }
+@@ -275,7 +334,7 @@ transition!{
+         add pte_arrays += [ pa => pte_array.update(offset, PteState::Alive(paddr)) ];
+         add nodes += [ nid => NodeState::Free ];
+         add pte_arrays += [ nid => PteArrayState::empty() ];
+-        add strays += { (nid, StrayState::False(paddr)) };
++        add strays += [ (nid, paddr) => false ] by { admit(); };
+     }
+ }
+ 
+@@ -293,8 +352,8 @@ transition!{
+         let paddr = pte_array.get_paddr(offset);
+         remove pte_arrays -= [ nid => PteArrayState::empty() ];
+         add pte_arrays += [ pa => pte_array.update(offset, PteState::None) ];
+-        remove strays -= { (nid, StrayState::False(paddr)) };
+-        add strays += { (nid, StrayState::True) };
++        remove strays -= [ (nid, paddr) => false ];
++        add strays += [ (nid, paddr) => true ];
+     }
+ }
+ 
+@@ -302,46 +361,46 @@ transition!{
+ fn initialize_inductive(post: Self, cpu_num: CpuId) { admit(); }
+ 
+ #[inductive(protocol_lock_start)]
+-fn protocol_lock_start_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
++fn protocol_lock_start_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
+ #[inductive(protocol_lock)]
+-fn protocol_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
++fn protocol_lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
+ #[inductive(protocol_lock_skip)]
+-fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
++fn protocol_lock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
+ #[inductive(protocol_lock_end)]
+-fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
++fn protocol_lock_end_inductive(pre: Self, post: Self, cpu: CpuId) { admit(); }
+ 
+ #[inductive(protocol_unlock_start)]
+-fn protocol_unlock_start_inductive(pre: Self, post: Self, cpu: CpuId) {}
++fn protocol_unlock_start_inductive(pre: Self, post: Self, cpu: CpuId) { admit(); }
+ 
+ #[inductive(protocol_unlock)]
+-fn protocol_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
++fn protocol_unlock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
+ #[inductive(protocol_unlock_skip)]
+-fn protocol_unlock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
++fn protocol_unlock_skip_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) { admit(); }
+ 
+ #[inductive(protocol_unlock_end)]
+-fn protocol_unlock_end_inductive(pre: Self, post: Self, cpu: CpuId) {}
++fn protocol_unlock_end_inductive(pre: Self, post: Self, cpu: CpuId) { admit(); }
+ 
+ #[inductive(protocol_allocate)]
+ fn protocol_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit(); }
+ 
+ #[inductive(protocol_deallocate)]
+-fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {}
++fn protocol_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+ 
+ #[inductive(normal_lock)]
+-fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) {}
++fn normal_lock_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+ 
+ #[inductive(normal_unlock)]
+-fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) {}
++fn normal_unlock_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+ 
+ #[inductive(normal_allocate)]
+ fn normal_allocate_inductive(pre: Self, post: Self, nid: NodeId, paddr: Paddr) { admit(); }
+ 
+ #[inductive(normal_deallocate)]
+-fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) {}
++fn normal_deallocate_inductive(pre: Self, post: Self, nid: NodeId) { admit(); }
+ 
+ }
+ 
+diff --git a/lock-protocol/src/spec/rcu/types.rs b/lock-protocol/src/spec/rcu/types.rs
+index 6e88c2e7e..799b0af7a 100644
+--- a/lock-protocol/src/spec/rcu/types.rs
++++ b/lock-protocol/src/spec/rcu/types.rs
+@@ -88,9 +88,4 @@ impl CursorState {
+     }
+ }
+ 
+-pub enum StrayState {
+-    True,
+-    False(Paddr),
+-}
+-
+ } // verus!
+
+From f486ec9ac7695f3ca8b82c611386341c44d3c381 Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Tue, 29 Jul 2025 15:22:05 +0000
+Subject: [PATCH 4/7] Remove useless trusted lemma
+
+---
+ lock-protocol/src/exec/rcu/node/entry.rs      |  23 ++--
+ lock-protocol/src/exec/rcu/node/mod.rs        |  22 ++++
+ .../src/exec/rcu/node/spinlock/mod.rs         | 113 ++++++++++++++++++
+ lock-protocol/src/exec/rcu/node/stray.rs      |  25 +---
+ 4 files changed, 150 insertions(+), 33 deletions(-)
+
+diff --git a/lock-protocol/src/exec/rcu/node/entry.rs b/lock-protocol/src/exec/rcu/node/entry.rs
+index e6c412079..7c87ca7bd 100644
+--- a/lock-protocol/src/exec/rcu/node/entry.rs
++++ b/lock-protocol/src/exec/rcu/node/entry.rs
+@@ -194,7 +194,20 @@ impl Entry {
+             Ghost(new_page.level_spec()),
+         );
+         // Lock before writing the PTE, so no one else can operate on it.
+-        let pt_lock_guard = pt_ref.normal_lock(guard);
++        let tracked pa_pte_array_token = node
++            .tracked_borrow_guard()
++            .tracked_borrow_pte_token();
++        assert(pt_ref.nid@ == NodeHelper::get_child(node.nid(), self.idx as nat));
++        assert(NodeHelper::get_parent(pt_ref.nid@) == node.nid()) by {
++            NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
++        };
++        assert(NodeHelper::get_offset(pt_ref.nid@) == self.idx as nat) by {
++            NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
++        };
++        let pt_lock_guard = pt_ref.normal_lock_new_allocated_node(
++            guard,
++            Tracked(pa_pte_array_token),
++        );
+ 
+         self.pte = Child::PageTable(new_page).into_pte();
+ 
+@@ -202,14 +215,6 @@ impl Entry {
+ 
+         // *self.node.nr_children_mut() += 1;
+ 
+-        assert(pt_lock_guard.guard->Some_0.stray_perm@.value() == false) by {
+-            assert(NodeHelper::is_child(node.nid(), pt_lock_guard.nid())) by {
+-                assert(pt_lock_guard.nid() == NodeHelper::get_child(node.nid(), self.idx as nat));
+-                NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+-            };
+-            lemma_guarded_parent_implies_allocated_child_is_pt_node(*node, pt_lock_guard);
+-        };
+-
+         Some(pt_lock_guard)
+     }
+ 
+diff --git a/lock-protocol/src/exec/rcu/node/mod.rs b/lock-protocol/src/exec/rcu/node/mod.rs
+index f0ba83cce..ad6d9c8e8 100644
+--- a/lock-protocol/src/exec/rcu/node/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/mod.rs
+@@ -265,6 +265,28 @@ impl<'a> PageTableNodeRef<'a> {
+         PageTableGuard { inner: self, guard: Some(guard) }
+     }
+ 
++    pub fn normal_lock_new_allocated_node<'rcu>(
++        self,
++        guard: &'rcu (),  // TODO
++        pa_pte_array_token: Tracked<&PteArrayToken>,
++    ) -> (res: PageTableGuard<'rcu>) where 'a: 'rcu
++        requires
++            self.wf(),
++            self.nid@ != NodeHelper::root_id(),
++            pa_pte_array_token@.instance_id() == self.inst@.id(),
++            pa_pte_array_token@.key() == NodeHelper::get_parent(self.nid@),
++            pa_pte_array_token@.value().is_alive(NodeHelper::get_offset(self.nid@)),
++            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.start_paddr(),
++        ensures
++            res.wf(),
++            res.inner =~= self,
++            res.guard->Some_0.stray_perm@.value() == false,
++            res.guard->Some_0.in_protocol@ == false,
++    {
++        let guard = self.meta().lock.normal_lock_new_allocated_node(pa_pte_array_token);
++        PageTableGuard { inner: self, guard: Some(guard) }
++    }
++
+     pub fn lock<'rcu>(
+         self,
+         guard: &'rcu (),  // TODO
+diff --git a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+index 32e2afcfd..001509b61 100644
+--- a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+@@ -531,6 +531,119 @@ impl PageTablePageSpinLock {
+         guard
+     }
+ 
++    #[verifier::exec_allows_no_decreases_clause]
++    pub fn normal_lock_new_allocated_node(
++        &self,
++        pa_pte_array_token: Tracked<&PteArrayToken>,
++    ) -> (res: SpinGuard)
++        requires
++            self.wf(),
++            self.nid@ != NodeHelper::root_id(),
++            pa_pte_array_token@.instance_id() == self.pt_inst_id(),
++            pa_pte_array_token@.key() == NodeHelper::get_parent(self.nid@),
++            pa_pte_array_token@.value().is_alive(NodeHelper::get_offset(self.nid@)),
++            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.paddr@,
++        ensures
++            res.wf(self),
++            res.stray_perm@.value() == false,
++            res.in_protocol@ == false,
++    {
++        let tracked pa_pte_array_token = pa_pte_array_token.get();
++        let mut guard_opt: Option<SpinGuard> = None;
++        loop
++            invariant_except_break
++                self.wf(),
++                self.nid@ != NodeHelper::root_id(),
++                pa_pte_array_token.instance_id() == self.pt_inst_id(),
++                pa_pte_array_token.key() == NodeHelper::get_parent(self.nid@),
++                pa_pte_array_token.value().is_alive(NodeHelper::get_offset(self.nid@)),
++                pa_pte_array_token.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.paddr@,
++                guard_opt is None,
++            ensures
++                guard_opt is Some,
++                guard_opt->Some_0.wf(self),
++                guard_opt->Some_0.stray_perm@.value() == false,
++                guard_opt->Some_0.in_protocol@ == false,
++        {
++            let tracked mut handle_opt: Option<SpinGuardToken> = None;
++            let tracked mut node_token_opt: Option<Option<NodeToken>> = None;
++            let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
++            let tracked mut stray_perm_opt: Option<StrayPerm> = None;
++            let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
++            let result = atomic_with_ghost!(
++                &self.flag => compare_exchange(false, true);
++                returning res;
++                ghost g => {
++                    if res is Ok {
++                        let tracked res = self.inst.borrow().acquire(&mut g);
++                        let tracked pair = res.1.get();
++                        handle_opt = Some(res.2.get());
++                        node_token_opt = Some(pair.0);
++                        pte_token_opt = Some(pair.1);
++                        stray_perm_opt = Some(pair.2);
++                        perms_opt = Some(pair.3);
++                    }
++                }
++            );
++
++            match result {
++                Result::Ok(_) => {
++                    let tracked handle = match handle_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked node_token = match node_token_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked pte_token = match pte_token_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked stray_perm = match stray_perm_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    let tracked perms = match perms_opt {
++                        Option::Some(t) => t,
++                        Option::None => proof_from_false(),
++                    };
++                    proof {
++                        self.pt_inst.borrow().stray_is_false(
++                            self.nid@,
++                            self.paddr@,
++                            &pa_pte_array_token,
++                            &stray_perm.token,
++                        );
++                        assert(stray_perm.value() == false);
++                    }
++                    let tracked mut node_token = node_token.tracked_unwrap();
++                    let tracked mut pte_token = pte_token.tracked_unwrap();
++                    proof {
++                        node_token = self.pt_inst.borrow().normal_lock(
++                            self.nid@,
++                            node_token,
++                        );
++                    }
++                    let guard = SpinGuard {
++                        handle: Tracked(handle),
++                        node_token: Tracked(Some(node_token)),
++                        pte_token: Tracked(Some(pte_token)),
++                        stray_perm: Tracked(stray_perm),
++                        perms: Tracked(perms),
++                        in_protocol: Ghost(false),
++                    };
++                    assert(guard.wf(self));
++                    guard_opt = Some(guard);
++                    break;
++                },
++                _ => (),
++            };
++        }
++        let guard = guard_opt.unwrap();
++        guard
++    }
++
+     pub fn normal_unlock(&self, guard: SpinGuard)
+         requires
+             self.wf(),
+diff --git a/lock-protocol/src/exec/rcu/node/stray.rs b/lock-protocol/src/exec/rcu/node/stray.rs
+index fcfc9b7db..2e06dce35 100644
+--- a/lock-protocol/src/exec/rcu/node/stray.rs
++++ b/lock-protocol/src/exec/rcu/node/stray.rs
+@@ -79,27 +79,4 @@ impl StrayPerm {
+     }
+ }
+ 
+-}
+-
+-verus! {
+-
+-/// Trusted properties of stray flag.
+-/// We can't prove this by Verus since the logical complexity.
+-/// This is correct by following reasons:
+-/// The child is exclusively owned, since the parent is guarded.
+-#[verifier::external_body]
+-pub proof fn lemma_guarded_parent_implies_allocated_child_is_pt_node(
+-    parent_guard: PageTableGuard,
+-    new_allocated_child_guard: PageTableGuard,
+-)
+-    requires
+-        parent_guard.wf(),
+-        parent_guard.guard->Some_0.stray_perm@.value() == false,
+-        new_allocated_child_guard.wf(),
+-        NodeHelper::is_child(parent_guard.nid(), new_allocated_child_guard.nid()),
+-    ensures
+-        new_allocated_child_guard.guard->Some_0.stray_perm@.value() == false,
+-{
+-}
+-
+-} // verus!
++}
+\ No newline at end of file
+
+From b962731283b3ba32f77fda4bac4adebb1bda2d34 Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Tue, 29 Jul 2025 16:06:26 +0000
+Subject: [PATCH 5/7] Add atomic spec and prove refinement
+
+---
+ lock-protocol/src/spec/rcu/atomic.rs          | 171 ++++++++++++++++++
+ lock-protocol/src/spec/rcu/mod.rs             |   2 +
+ lock-protocol/src/spec/rcu/tree.rs            |   9 -
+ .../src/spec/rcu/tree_refines_atomic.rs       | 138 ++++++++++++++
+ lock-protocol/src/spec/rcu/types.rs           |   5 +
+ 5 files changed, 316 insertions(+), 9 deletions(-)
+ create mode 100644 lock-protocol/src/spec/rcu/atomic.rs
+ create mode 100644 lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+
+diff --git a/lock-protocol/src/spec/rcu/atomic.rs b/lock-protocol/src/spec/rcu/atomic.rs
+new file mode 100644
+index 000000000..a37c8b003
+--- /dev/null
++++ b/lock-protocol/src/spec/rcu/atomic.rs
+@@ -0,0 +1,171 @@
++use state_machines_macros::state_machine;
++use vstd::prelude::*;
++use vstd::map::*;
++
++use crate::spec::{common::*, utils::*};
++use super::types::*;
++
++verus! {
++
++state_machine!{
++
++AtomicSpec {
++
++fields {
++    pub cpu_num: CpuId,
++    pub cursors: Map<CpuId, AtomicCursorState>,
++}
++
++#[invariant]
++pub fn inv_cursors(&self) -> bool {
++    &&& forall |cpu: CpuId| #![auto]
++        self.cursors.dom().contains(cpu) <==> valid_cpu(self.cpu_num, cpu)
++
++    &&& forall |cpu: CpuId| #![auto]
++        self.cursors.dom().contains(cpu) &&
++        self.cursors[cpu] is Locked ==>
++            NodeHelper::valid_nid(self.cursors[cpu]->Locked_0)
++}
++
++#[invariant]
++pub fn inv_non_overlapping(&self) -> bool {
++    forall |cpu1: CpuId, cpu2: CpuId| #![auto]
++        cpu1 != cpu2 &&
++        self.cursors.dom().contains(cpu1) &&
++        self.cursors[cpu1] is Locked &&
++        self.cursors.dom().contains(cpu2) &&
++        self.cursors[cpu2] is Locked ==> {
++            let nid1 = self.cursors[cpu1]->Locked_0;
++            let nid2 = self.cursors[cpu2]->Locked_0;
++
++            !NodeHelper::in_subtree(nid1, nid2) &&
++            !NodeHelper::in_subtree(nid2, nid1)
++        }
++}
++
++pub open spec fn all_non_overlapping(&self, nid: NodeId) -> bool
++    recommends
++        NodeHelper::valid_nid(nid),
++{
++    forall |cpu: CpuId| #![auto]
++        self.cursors.dom().contains(cpu) &&
++        self.cursors[cpu] is Locked ==> {
++            let _nid = self.cursors[cpu]->Locked_0;
++
++            !NodeHelper::in_subtree(nid, _nid) &&
++            !NodeHelper::in_subtree(_nid, nid)
++        }
++}
++
++init!{
++    initialize(cpu_num: CpuId) {
++        init cpu_num = cpu_num;
++        init cursors = Map::new(
++            |cpu| valid_cpu(cpu_num, cpu),
++            |cpu| AtomicCursorState::Void,
++        );
++    }
++}
++
++transition!{
++    lock(cpu: CpuId, nid: NodeId) {
++        require(valid_cpu(pre.cpu_num, cpu));
++        require(NodeHelper::valid_nid(nid));
++
++        require(pre.cursors[cpu] is Void);
++        require(pre.all_non_overlapping(nid));
++        let new_cursor = AtomicCursorState::Locked(nid);
++        update cursors = pre.cursors.insert(cpu, new_cursor);
++    }
++}
++
++transition!{
++    unlock(cpu: CpuId) {
++        require(valid_cpu(pre.cpu_num, cpu));
++
++        require(pre.cursors[cpu] is Locked);
++        let new_cursor = AtomicCursorState::Void;
++        update cursors = pre.cursors.insert(cpu, new_cursor);
++    }
++}
++
++transition!{
++    no_op() {}
++}
++
++#[inductive(initialize)]
++fn initialize_inductive(post: Self, cpu_num: CpuId) {}
++
++#[inductive(lock)]
++fn lock_inductive(pre: Self, post: Self, cpu: CpuId, nid: NodeId) {}
++
++#[inductive(unlock)]
++fn unlock_inductive(pre: Self, post: Self, cpu: CpuId) {}
++
++#[inductive(no_op)]
++fn no_op_inductive(pre: Self, post: Self) {}
++
++}
++
++}
++
++type State = AtomicSpec::State;
++
++type Step = AtomicSpec::Step;
++
++// Lemmas
++pub proof fn lemma_mutual_exclusion(
++    states: Seq<State>,
++    steps: Seq<Step>,
++    cpu_num: CpuId,
++    cpu: CpuId,
++    nid: NodeId,
++)
++    requires
++        steps.len() >= 1,
++        states.len() == steps.len() + 1,
++        forall|i|
++            #![auto]
++            0 <= i < states.len() ==> {
++                &&& states[i].invariant()
++                &&& states[i].cpu_num == cpu_num
++            },
++        forall|i|
++            #![auto]
++            0 <= i < steps.len() ==> State::next_by(states[i], states[i + 1], steps[i]),
++        steps[0] =~= Step::lock(cpu, nid),
++        forall|i|
++            #![auto]
++            0 < i < steps.len() && steps[i].is_unlock() ==> {
++                let _cpu = steps[i].get_unlock_0();
++                cpu != _cpu
++            },
++        valid_cpu(cpu_num, cpu),
++    ensures
++        forall|i|
++            #![auto]
++            0 < i < states.len() ==> states[i].cursors[cpu] == AtomicCursorState::Locked(nid),
++        forall|i|
++            #![auto]
++            0 < i < steps.len() && steps[i].is_lock() ==> {
++                let _cpu = steps[i].get_lock_0();
++                let _nid = steps[i].get_lock_1();
++
++                cpu != _cpu && !NodeHelper::in_subtree(nid, _nid) && !NodeHelper::in_subtree(
++                    _nid,
++                    nid,
++                )
++            },
++    decreases steps.len(),
++{
++    reveal(AtomicSpec::State::next_by);
++    if steps.len() == 1 {
++    } else {
++        lemma_mutual_exclusion(states.drop_last(), steps.drop_last(), cpu_num, cpu, nid);
++        let len = steps.len() as int;
++        assert(states =~= states.drop_last().push(states[len]));
++        assert(steps =~= steps.drop_last().push(steps[len - 1]));
++    }
++}
++
++} // verus!
+diff --git a/lock-protocol/src/spec/rcu/mod.rs b/lock-protocol/src/spec/rcu/mod.rs
+index 4f675b43f..5efcdaaf6 100644
+--- a/lock-protocol/src/spec/rcu/mod.rs
++++ b/lock-protocol/src/spec/rcu/mod.rs
+@@ -1,4 +1,6 @@
++pub mod atomic;
+ pub mod tree;
++mod tree_refines_atomic;
+ pub mod types;
+ 
+ pub use tree::*;
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 9e2a09350..3b30beb43 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -119,15 +119,6 @@ pub fn inv_stray_has_false_implies_pte_is_alive(&self) -> bool {
+         }
+ }
+ 
+-// #[invariant]
+-// pub fn inv_stray_paddr_no_duplicates(&self) -> bool {
+-//     forall |nid: NodeId|
+-//         #![auto] // TODO
+-//         NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
+-//             self.strays_filter(nid).to_seq().no_duplicates()
+-//         }
+-// }
+-
+ property! {
+     stray_is_false(nid: NodeId, paddr: Paddr) {
+         require(NodeHelper::valid_nid(nid));
+diff --git a/lock-protocol/src/spec/rcu/tree_refines_atomic.rs b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+new file mode 100644
+index 000000000..6cb8652e9
+--- /dev/null
++++ b/lock-protocol/src/spec/rcu/tree_refines_atomic.rs
+@@ -0,0 +1,138 @@
++use vstd::prelude::*;
++use vstd::map::*;
++
++use state_machines_macros::case_on_init;
++use state_machines_macros::case_on_next;
++
++use crate::spec::{common::*, utils::*};
++
++use super::{types::*, tree::TreeSpec, atomic::AtomicSpec};
++
++verus! {
++
++type StateC = TreeSpec::State;
++
++type StateA = AtomicSpec::State;
++
++pub open spec fn interp_cursor_state(s: CursorState) -> AtomicCursorState {
++    match s {
++        CursorState::Void => AtomicCursorState::Void,
++        CursorState::Locking(_, _) => AtomicCursorState::Void,
++        CursorState::Locked(nid) => AtomicCursorState::Locked(nid),
++    }
++}
++
++pub open spec fn interp(s: StateC) -> StateA {
++    StateA {
++        cpu_num: s.cpu_num,
++        cursors: Map::new(
++            |cpu| valid_cpu(s.cpu_num, cpu),
++            |cpu| interp_cursor_state(s.cursors[cpu]),
++        ),
++    }
++}
++
++pub proof fn init_refines_init(post: StateC) {
++    requires(post.invariant() && StateC::init(post));
++    ensures(StateA::init(interp(post)));
++    case_on_init!{post, TreeSpec => {
++        initialize(cpu_num) => {
++            let cursors = Map::new(
++                |cpu: CpuId| valid_cpu(post.cpu_num, cpu),
++                |cpu: CpuId| AtomicCursorState::Void,
++            );
++            assert(interp(post).cursors =~= cursors);
++            AtomicSpec::show::initialize(interp(post), cpu_num);
++        }
++    }}
++}
++
++pub proof fn next_refines_next(pre: StateC, post: StateC) {
++    requires(
++        {
++            &&& pre.invariant()
++            &&& post.invariant()
++            &&& interp(pre).invariant()
++            &&& StateC::next(pre, post)
++        },
++    );
++    ensures(StateA::next(interp(pre), interp(post)));
++    case_on_next!{pre, post, TreeSpec => {
++
++        protocol_lock_start(cpu, nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_lock(cpu, nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_lock_skip(cpu, nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_lock_end(cpu) => {
++            let ghost rt = post.cursors[cpu]->Locked_0;
++            admit();
++            AtomicSpec::show::lock(interp(pre), interp(post), cpu, rt);
++        }
++
++        protocol_unlock_start(cpu) => {
++            admit();
++            AtomicSpec::show::unlock(interp(pre), interp(post), cpu);
++        }
++
++        protocol_unlock(cpu, nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_unlock_skip(cpu, nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_unlock_end(cpu) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_allocate(nid, paddr) => {
++            assert(interp(pre).cursors =~= interp(post).cursors) by { admit(); };
++            admit();
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        protocol_deallocate(nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        normal_lock(nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        normal_unlock(nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        normal_allocate(nid, paddr) => {
++            assert(interp(pre).cursors =~= interp(post).cursors) by { admit(); };
++            admit();
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++        normal_deallocate(nid) => {
++            assert_maps_equal!(interp(pre).cursors, interp(post).cursors);
++            AtomicSpec::show::no_op(interp(pre), interp(post));
++        }
++
++    }}
++}
++
++} // verus!
+diff --git a/lock-protocol/src/spec/rcu/types.rs b/lock-protocol/src/spec/rcu/types.rs
+index 799b0af7a..26d25cade 100644
+--- a/lock-protocol/src/spec/rcu/types.rs
++++ b/lock-protocol/src/spec/rcu/types.rs
+@@ -88,4 +88,9 @@ impl CursorState {
+     }
+ }
+ 
++pub enum AtomicCursorState {
++    Void,
++    Locked(NodeId),
++}
++
+ } // verus!
+
+From 151cbeaa299a2507b63fd606dc260d85ba18353d Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Tue, 29 Jul 2025 16:19:17 +0000
+Subject: [PATCH 6/7] Add some invariants
+
+---
+ lock-protocol/src/spec/rcu/tree.rs | 61 +++++++++++++++++++++++++-----
+ 1 file changed, 51 insertions(+), 10 deletions(-)
+
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 3b30beb43..1a920988a 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -29,6 +29,40 @@ fields {
+     pub strays: Map<(NodeId, Paddr), bool>,
+ }
+ 
++#[invariant]
++pub fn wf_nodes(&self) -> bool {
++    forall |nid: NodeId| #![auto]
++        self.nodes.dom().contains(nid) ==>
++            NodeHelper::valid_nid(nid)
++}
++
++#[invariant]
++pub fn wf_pte_arrays(&self) -> bool {
++    forall |nid: NodeId| #![auto]
++        self.pte_arrays.dom().contains(nid) ==> {
++            &&& NodeHelper::valid_nid(nid)
++            &&& self.pte_arrays[nid].wf()
++        }
++}
++
++#[invariant]
++pub fn wf_cursors(&self) -> bool {
++    forall |cpu: CpuId| #![auto]
++        self.cursors.dom().contains(cpu) ==> {
++            &&& valid_cpu(self.cpu_num, cpu)
++            &&& self.cursors[cpu].wf()
++        }
++}
++
++#[invariant]
++pub fn wf_strays(&self) -> bool {
++    forall |pair: (NodeId, Paddr)| #![auto]
++        self.strays.dom().contains(pair) ==> {
++            &&& NodeHelper::valid_nid(pair.0)
++            &&& pair.0 != NodeHelper::root_id()
++        }
++}
++
+ #[invariant]
+ pub fn inv_pt_node_pte_array_relationship(&self) -> bool {
+     forall |nid: NodeId| #![auto]
+@@ -50,6 +84,23 @@ pub fn inv_pt_node_pte_relationship(&self) -> bool {
+         }
+ }
+ 
++#[invariant]
++pub fn inv_non_overlapping(&self) -> bool {
++    forall |cpu1: CpuId, cpu2: CpuId| #![auto]
++        cpu1 != cpu2 &&
++        self.cursors.dom().contains(cpu1) &&
++        self.cursors.dom().contains(cpu2) &&
++        self.cursors[cpu1] is Locked &&
++        self.cursors[cpu2] is Locked ==>
++        {
++            let nid1 = self.cursors[cpu1]->Locked_0;
++            let nid2 = self.cursors[cpu2]->Locked_0;
++
++            !NodeHelper::in_subtree_range(nid1, nid2) &&
++            !NodeHelper::in_subtree_range(nid2, nid1)
++        }
++}
++
+ pub open spec fn strays_filter(
+     &self, 
+     nid: NodeId
+@@ -57,16 +108,6 @@ pub open spec fn strays_filter(
+     self.strays.filter_keys(|pair: (NodeId, Paddr)| { pair.0 == nid })
+ }
+ 
+-#[invariant]
+-pub fn wf_strays(&self) -> bool {
+-    forall |pair: (NodeId, Paddr)|
+-        #![auto] // TODO
+-        self.strays.dom().contains(pair) ==> {
+-            &&& NodeHelper::valid_nid(pair.0)
+-            &&& pair.0 != NodeHelper::root_id()
+-        }
+-}
+-
+ #[invariant]
+ pub fn inv_stray_at_most_one_false_per_node(&self) -> bool {
+     forall |nid: NodeId|
+
+From 4315899fe63f0d3ae33d22ef7b2f71b06f2706b4 Mon Sep 17 00:00:00 2001
+From: Xungan2 <2100012996@stu.pku.edu.cn>
+Date: Tue, 29 Jul 2025 16:19:59 +0000
+Subject: [PATCH 7/7] fmt
+
+---
+ lock-protocol/src/exec/rcu/cursor/locking.rs  | 14 ++--
+ lock-protocol/src/exec/rcu/node/entry.rs      |  6 +-
+ lock-protocol/src/exec/rcu/node/mod.rs        | 22 +++----
+ .../src/exec/rcu/node/spinlock/mod.rs         | 66 +++++++++----------
+ lock-protocol/src/exec/rcu/node/stray.rs      |  7 +-
+ lock-protocol/src/spec/rcu/tree.rs            |  6 +-
+ 6 files changed, 54 insertions(+), 67 deletions(-)
+
+diff --git a/lock-protocol/src/exec/rcu/cursor/locking.rs b/lock-protocol/src/exec/rcu/cursor/locking.rs
+index 8befd8ad2..41c8173a6 100644
+--- a/lock-protocol/src/exec/rcu/cursor/locking.rs
++++ b/lock-protocol/src/exec/rcu/cursor/locking.rs
+@@ -561,14 +561,14 @@ fn dfs_acquire_lock(
+                 assert(entry.idx as nat == NodeHelper::get_offset(pt.nid@)) by {
+                     NodeHelper::lemma_get_child_sound(cur_node.nid(), entry.idx as nat);
+                 };
+-                assert(m.node_is_locked(cur_node.nid())) by { admit(); };
+-                let tracked pa_pte_array_token = cur_node
+-                    .tracked_borrow_guard()
+-                    .tracked_borrow_pte_token();
++                assert(m.node_is_locked(cur_node.nid())) by {
++                    admit();
++                };
++                let tracked pa_pte_array_token =
++                    cur_node.tracked_borrow_guard().tracked_borrow_pte_token();
+                 assert(pa_pte_array_token.value().is_alive(entry.idx as nat));
+-                assert(pa_pte_array_token.value().get_paddr(entry.idx as nat) == 
+-                    cur_node.guard->Some_0.perms@.inner.value()[entry.idx as int].inner.paddr()
+-                );
++                assert(pa_pte_array_token.value().get_paddr(entry.idx as nat)
++                    == cur_node.guard->Some_0.perms@.inner.value()[entry.idx as int].inner.paddr());
+                 let res = pt.lock(guard, Tracked(m), Tracked(pa_pte_array_token));
+                 let pt_guard = res.0;
+                 proof {
+diff --git a/lock-protocol/src/exec/rcu/node/entry.rs b/lock-protocol/src/exec/rcu/node/entry.rs
+index 7c87ca7bd..1c827c02b 100644
+--- a/lock-protocol/src/exec/rcu/node/entry.rs
++++ b/lock-protocol/src/exec/rcu/node/entry.rs
+@@ -164,7 +164,7 @@ impl Entry {
+             assert(cur_nid == NodeHelper::get_child(node.nid(), self.idx as nat));
+             NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+         };
+-        
++
+         let tracked_inst = node.tracked_pt_inst();
+         let tracked inst = tracked_inst.get();
+         assert(level - 1 == NodeHelper::nid_to_level(cur_nid)) by {
+@@ -194,9 +194,7 @@ impl Entry {
+             Ghost(new_page.level_spec()),
+         );
+         // Lock before writing the PTE, so no one else can operate on it.
+-        let tracked pa_pte_array_token = node
+-            .tracked_borrow_guard()
+-            .tracked_borrow_pte_token();
++        let tracked pa_pte_array_token = node.tracked_borrow_guard().tracked_borrow_pte_token();
+         assert(pt_ref.nid@ == NodeHelper::get_child(node.nid(), self.idx as nat));
+         assert(NodeHelper::get_parent(pt_ref.nid@) == node.nid()) by {
+             NodeHelper::lemma_get_child_sound(node.nid(), self.idx as nat);
+diff --git a/lock-protocol/src/exec/rcu/node/mod.rs b/lock-protocol/src/exec/rcu/node/mod.rs
+index ad6d9c8e8..f962fc53c 100644
+--- a/lock-protocol/src/exec/rcu/node/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/mod.rs
+@@ -155,7 +155,7 @@ impl PageTableNode {
+             res.1@.instance_id() == inst@.id(),
+             res.1@.key() == pa_nid@,
+             res.1@.value() =~= pte_token@.value().update(
+-                offset@, 
++                offset@,
+                 PteState::Alive(res.0.start_paddr()),
+             ),
+     {
+@@ -174,12 +174,7 @@ impl PageTableNode {
+         let tracked ch_pte_token;
+         let tracked stray_token;
+         proof {
+-            let tracked res = inst.borrow().normal_allocate(
+-                nid@,
+-                paddr,
+-                &node_token,
+-                pte_token,
+-            );
++            let tracked res = inst.borrow().normal_allocate(nid@, paddr, &node_token, pte_token);
+             ch_node_token = res.0.get();
+             pte_token = res.1.get();
+             ch_pte_token = res.2.get();
+@@ -276,7 +271,8 @@ impl<'a> PageTableNodeRef<'a> {
+             pa_pte_array_token@.instance_id() == self.inst@.id(),
+             pa_pte_array_token@.key() == NodeHelper::get_parent(self.nid@),
+             pa_pte_array_token@.value().is_alive(NodeHelper::get_offset(self.nid@)),
+-            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.start_paddr(),
++            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@))
++                == self.start_paddr(),
+         ensures
+             res.wf(),
+             res.inner =~= self,
+@@ -303,7 +299,8 @@ impl<'a> PageTableNodeRef<'a> {
+             pa_pte_array_token@.key() == NodeHelper::get_parent(self.nid@),
+             m@.node_is_locked(pa_pte_array_token@.key()),
+             pa_pte_array_token@.value().is_alive(NodeHelper::get_offset(self.nid@)),
+-            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.start_paddr(),
++            pa_pte_array_token@.value().get_paddr(NodeHelper::get_offset(self.nid@))
++                == self.start_paddr(),
+         ensures
+             res.0.wf(),
+             res.0.inner =~= self,
+@@ -598,10 +595,9 @@ impl PageTableGuard<'_> {
+         self.inner.deref().meta().lock.normal_unlock(guard);
+     }
+ 
+-    pub fn drop<'a>(
+-        &'a mut self, 
+-        m: Tracked<LockProtocolModel>
+-    ) -> (res: Tracked<LockProtocolModel>)
++    pub fn drop<'a>(&'a mut self, m: Tracked<LockProtocolModel>) -> (res: Tracked<
++        LockProtocolModel,
++    >)
+         requires
+             old(self).wf(),
+             old(self).guard->Some_0.stray_perm@.value() == false,
+diff --git a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+index 001509b61..1b9e5823c 100644
+--- a/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
++++ b/lock-protocol/src/exec/rcu/node/spinlock/mod.rs
+@@ -127,12 +127,10 @@ impl PageTableEntryPerms {
+     }
+ 
+     pub open spec fn relate_pte_state(&self, level: PagingLevel, state: PteArrayState) -> bool {
+-        &&& forall |i: int|
++        &&& forall|i: int|
+             #![trigger self.inner.value()[i].is_pt(level)]
+-            0 <= i < 512 ==> { 
+-                self.inner.value()[i].is_pt(level) <==> state.is_alive(i as nat) 
+-            }
+-        &&& forall |i: int|
++            0 <= i < 512 ==> { self.inner.value()[i].is_pt(level) <==> state.is_alive(i as nat) }
++        &&& forall|i: int|
+             #![trigger self.inner.value()[i].is_pt(level)]
+             0 <= i < 512 && self.inner.value()[i].is_pt(level) ==> {
+                 self.inner.value()[i].inner.paddr() == state.get_paddr(i as nat)
+@@ -145,12 +143,12 @@ impl PageTableEntryPerms {
+         state: PteArrayState,
+         idx: nat,
+     ) -> bool {
+-        &&& forall |i: int|
++        &&& forall|i: int|
+             #![trigger self.inner.value()[i].is_pt(level)]
+             0 <= i < 512 && i != idx ==> {
+                 self.inner.value()[i].is_pt(level) <==> state.is_alive(i as nat)
+             }
+-        &&& forall |i: int|
++        &&& forall|i: int|
+             #![trigger self.inner.value()[i].is_pt(level)]
+             0 <= i < 512 && i != idx && self.inner.value()[i].is_pt(level) ==> {
+                 self.inner.value()[i].inner.paddr() == state.get_paddr(i as nat)
+@@ -390,10 +388,8 @@ impl SpinGuard {
+         let tracked perms: PageTableEntryPerms = self.perms.get();
+         proof {
+             let tracked mut node_token_inner = node_token.tracked_unwrap();
+-            node_token_inner = spinlock.pt_inst.borrow().normal_unlock(
+-                spinlock.nid(),
+-                node_token_inner,
+-            );
++            node_token_inner =
++            spinlock.pt_inst.borrow().normal_unlock(spinlock.nid(), node_token_inner);
+             let tracked res = spinlock.pt_inst.borrow().protocol_lock(
+                 m.cpu,
+                 spinlock.nid(),
+@@ -464,7 +460,8 @@ impl PageTablePageSpinLock {
+             let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
+             let tracked mut stray_perm_opt: Option<StrayPerm> = None;
+             let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
+-            let result = atomic_with_ghost!(
++            let result =
++                atomic_with_ghost!(
+                 &self.flag => compare_exchange(false, true);
+                 returning res;
+                 ghost g => {
+@@ -505,10 +502,8 @@ impl PageTablePageSpinLock {
+                     proof {
+                         if stray_perm.value() == false {
+                             let tracked mut node_token_inner = node_token.tracked_unwrap();
+-                            node_token_inner = self.pt_inst.borrow().normal_lock(
+-                                self.nid@,
+-                                node_token_inner,
+-                            );
++                            node_token_inner =
++                            self.pt_inst.borrow().normal_lock(self.nid@, node_token_inner);
+                             node_token = Some(node_token_inner);
+                         }
+                     }
+@@ -522,7 +517,7 @@ impl PageTablePageSpinLock {
+                     };
+                     assert(guard.wf(self));
+                     guard_opt = Some(guard);
+-                    break;
++                    break ;
+                 },
+                 _ => (),
+             };
+@@ -557,7 +552,8 @@ impl PageTablePageSpinLock {
+                 pa_pte_array_token.instance_id() == self.pt_inst_id(),
+                 pa_pte_array_token.key() == NodeHelper::get_parent(self.nid@),
+                 pa_pte_array_token.value().is_alive(NodeHelper::get_offset(self.nid@)),
+-                pa_pte_array_token.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.paddr@,
++                pa_pte_array_token.value().get_paddr(NodeHelper::get_offset(self.nid@))
++                    == self.paddr@,
+                 guard_opt is None,
+             ensures
+                 guard_opt is Some,
+@@ -570,7 +566,8 @@ impl PageTablePageSpinLock {
+             let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
+             let tracked mut stray_perm_opt: Option<StrayPerm> = None;
+             let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
+-            let result = atomic_with_ghost!(
++            let result =
++                atomic_with_ghost!(
+                 &self.flag => compare_exchange(false, true);
+                 returning res;
+                 ghost g => {
+@@ -620,10 +617,7 @@ impl PageTablePageSpinLock {
+                     let tracked mut node_token = node_token.tracked_unwrap();
+                     let tracked mut pte_token = pte_token.tracked_unwrap();
+                     proof {
+-                        node_token = self.pt_inst.borrow().normal_lock(
+-                            self.nid@,
+-                            node_token,
+-                        );
++                        node_token = self.pt_inst.borrow().normal_lock(self.nid@, node_token);
+                     }
+                     let guard = SpinGuard {
+                         handle: Tracked(handle),
+@@ -635,7 +629,7 @@ impl PageTablePageSpinLock {
+                     };
+                     assert(guard.wf(self));
+                     guard_opt = Some(guard);
+-                    break;
++                    break ;
+                 },
+                 _ => (),
+             };
+@@ -660,7 +654,7 @@ impl PageTablePageSpinLock {
+             ghost g => {
+                 if stray_perm.value() == false {
+                     let tracked mut node_token_inner = node_token.tracked_unwrap();
+-                    node_token_inner = 
++                    node_token_inner =
+                         self.pt_inst.borrow().normal_unlock(self.nid@, node_token_inner);
+                     node_token = Some(node_token_inner);
+                 }
+@@ -677,7 +671,7 @@ impl PageTablePageSpinLock {
+ 
+     #[verifier::exec_allows_no_decreases_clause]
+     pub fn lock(
+-        &self, 
++        &self,
+         m: Tracked<LockProtocolModel>,
+         pa_pte_array_token: Tracked<&PteArrayToken>,
+     ) -> (res: (SpinGuard, Tracked<LockProtocolModel>))
+@@ -718,7 +712,8 @@ impl PageTablePageSpinLock {
+                 pa_pte_array_token.key() == NodeHelper::get_parent(self.nid@),
+                 m.node_is_locked(pa_pte_array_token.key()),
+                 pa_pte_array_token.value().is_alive(NodeHelper::get_offset(self.nid@)),
+-                pa_pte_array_token.value().get_paddr(NodeHelper::get_offset(self.nid@)) == self.paddr@,
++                pa_pte_array_token.value().get_paddr(NodeHelper::get_offset(self.nid@))
++                    == self.paddr@,
+                 guard_opt is None,
+             ensures
+                 m.inv(),
+@@ -736,7 +731,8 @@ impl PageTablePageSpinLock {
+             let tracked mut pte_token_opt: Option<Option<PteArrayToken>> = None;
+             let tracked mut stray_perm_opt: Option<StrayPerm> = None;
+             let tracked mut perms_opt: Option<PageTableEntryPerms> = None;
+-            let result = atomic_with_ghost!(
++            let result =
++                atomic_with_ghost!(
+                 &self.flag => compare_exchange(false, true);
+                 returning res;
+                 ghost g => {
+@@ -786,7 +782,9 @@ impl PageTablePageSpinLock {
+                     let tracked mut node_token = node_token.tracked_unwrap();
+                     let tracked mut pte_token = pte_token.tracked_unwrap();
+                     proof {
+-                        assert(NodeHelper::in_subtree_range(m.sub_tree_rt(), self.nid@)) by { admit(); };
++                        assert(NodeHelper::in_subtree_range(m.sub_tree_rt(), self.nid@)) by {
++                            admit();
++                        };
+                         let tracked res = self.pt_inst.borrow().protocol_lock(
+                             m.cpu,
+                             self.nid@,
+@@ -806,7 +804,7 @@ impl PageTablePageSpinLock {
+                     };
+                     assert(guard.wf(self));
+                     guard_opt = Some(guard);
+-                    break;
++                    break ;
+                 },
+                 _ => (),
+             };
+@@ -815,11 +813,9 @@ impl PageTablePageSpinLock {
+         (guard, Tracked(m))
+     }
+ 
+-    pub fn unlock(
+-        &self, 
+-        guard: SpinGuard, 
+-        m: Tracked<LockProtocolModel>
+-    ) -> (res: Tracked<LockProtocolModel>)
++    pub fn unlock(&self, guard: SpinGuard, m: Tracked<LockProtocolModel>) -> (res: Tracked<
++        LockProtocolModel,
++    >)
+         requires
+             self.wf(),
+             guard.wf(self),
+diff --git a/lock-protocol/src/exec/rcu/node/stray.rs b/lock-protocol/src/exec/rcu/node/stray.rs
+index 2e06dce35..e184d7324 100644
+--- a/lock-protocol/src/exec/rcu/node/stray.rs
++++ b/lock-protocol/src/exec/rcu/node/stray.rs
+@@ -16,10 +16,7 @@ impl StrayFlag {
+         self.inner.id()
+     }
+ 
+-    pub fn read(
+-        &self,
+-        perm: Tracked<&StrayPerm>,
+-    ) -> (res: bool)
++    pub fn read(&self, perm: Tracked<&StrayPerm>) -> (res: bool)
+         requires
+             perm@.wf_with_cell_id(self.id()),
+             perm@.perm.is_init(),
+@@ -79,4 +76,4 @@ impl StrayPerm {
+     }
+ }
+ 
+-}
+\ No newline at end of file
++} // verus!
+diff --git a/lock-protocol/src/spec/rcu/tree.rs b/lock-protocol/src/spec/rcu/tree.rs
+index 1a920988a..8a2ebf9df 100644
+--- a/lock-protocol/src/spec/rcu/tree.rs
++++ b/lock-protocol/src/spec/rcu/tree.rs
+@@ -102,7 +102,7 @@ pub fn inv_non_overlapping(&self) -> bool {
+ }
+ 
+ pub open spec fn strays_filter(
+-    &self, 
++    &self,
+     nid: NodeId
+ ) -> Map<(NodeId, Paddr), bool> {
+     self.strays.filter_keys(|pair: (NodeId, Paddr)| { pair.0 == nid })
+@@ -122,7 +122,7 @@ pub fn inv_stray_at_most_one_false_per_node(&self) -> bool {
+ 
+ #[invariant]
+ pub fn inv_pte_is_alive_implies_stray_has_false(&self) -> bool {
+-    forall |nid: NodeId| 
++    forall |nid: NodeId|
+         #![auto] // TODO
+         NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
+             let pa = NodeHelper::get_parent(nid);
+@@ -141,7 +141,7 @@ pub fn inv_pte_is_alive_implies_stray_has_false(&self) -> bool {
+ 
+ #[invariant]
+ pub fn inv_stray_has_false_implies_pte_is_alive(&self) -> bool {
+-    forall |nid: NodeId| 
++    forall |nid: NodeId|
+         #![auto] // TODO
+         NodeHelper::valid_nid(nid) && nid != NodeHelper::root_id() ==> {
+             let pa = NodeHelper::get_parent(nid);

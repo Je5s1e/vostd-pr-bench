@@ -1,0 +1,158 @@
+{
+  "source": "https://github.com/asterinas/vostd/pull/146",
+  "archived_at": "2026-11-13T21:03:41.165953+00:00",
+  "pull_request": {
+    "number": 146,
+    "title": "Alloc if none",
+    "body": "",
+    "bodyHTML": "",
+    "url": "https://github.com/asterinas/vostd/pull/146",
+    "state": "MERGED",
+    "createdAt": "2025-07-30T06:41:16Z",
+    "updatedAt": "2025-07-30T08:45:24Z",
+    "closedAt": "2025-07-30T08:45:21Z",
+    "mergedAt": "2025-07-30T08:45:21Z",
+    "author": {
+      "login": "zouyonghao"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "481c455c8d890c55fd8c9fe4f6460acbb23e4b6d",
+    "headRefName": "alloc_if_none",
+    "headRefOid": "6747158e33ae6c85efbe0f7485cb3e614d9a9e51",
+    "changedFiles": 8,
+    "additions": 130,
+    "deletions": 31,
+    "labels": {
+      "nodes": []
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "users": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "users": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reviews": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "reviewThreads": {
+      "totalCount": 0,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": null
+      },
+      "nodes": []
+    },
+    "files": {
+      "totalCount": 8,
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "OA"
+      },
+      "nodes": [
+        {
+          "path": "lock-protocol/src/exec/mod.rs",
+          "additions": 16,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/helpers/conversion.rs",
+          "additions": 12,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "lock-protocol/src/helpers/mod.rs",
+          "additions": 1,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/mm/page_table/cursor/spec_helpers.rs",
+          "additions": 1,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/mm/page_table/node/entry.rs",
+          "additions": 66,
+          "deletions": 9,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/mm/page_table/node/mod.rs",
+          "additions": 16,
+          "deletions": 2,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/sub_pt/mod.rs",
+          "additions": 14,
+          "deletions": 14,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "lock-protocol/src/spec/sub_pt/state_machine.rs",
+          "additions": 4,
+          "deletions": 4,
+          "changeType": "MODIFIED"
+        }
+      ]
+    }
+  },
+  "issue_comments": [],
+  "review_comments": [],
+  "review_dismissals": []
+}

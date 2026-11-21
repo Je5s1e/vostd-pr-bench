@@ -1,0 +1,70 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 074be229ac17d45b8366b371ad16f36f5534beac..fa29ce613349e4add4fbb5db38558881d9d90ad5 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -31,5 +31,3 @@ codegen-units = 1
+ [workspace.dependencies]
+ # Verus
+ vstd = { path = "tools/verus/source/vstd" }
+-verus_builtin = { package = "verus_builtin", path = "tools/verus/source/builtin" }
+-verus_builtin_macros = { package = "verus_builtin_macros", path = "tools/verus/source/builtin_macros" }
+diff --git a/aster_common/Cargo.toml b/aster_common/Cargo.toml
+index d9c4ed301e6a8f0ae8fe39276959190dea371a9f..a2f8528df443982baf4942ee73fa379663ca3d64 100644
+--- a/aster_common/Cargo.toml
++++ b/aster_common/Cargo.toml
+@@ -24,6 +24,4 @@ verify = true
+ 
+ [dependencies]
+ vstd = { workspace = true }
+-verus_builtin = { workspace = true }
+-verus_builtin_macros = { workspace = true }
+ vstd_extra = { path = "../vstd_extra" }
+diff --git a/ostd/Cargo.toml b/ostd/Cargo.toml
+index f2b071cfb272a88b762bdabc7c1de65912ef1456..86ab47e3b342dac7260deea9ac454eb90bbc2aba 100644
+--- a/ostd/Cargo.toml
++++ b/ostd/Cargo.toml
+@@ -35,9 +35,6 @@ targets = ["x86_64-unknown-none"]
+ 
+ [dependencies]
+ vstd = { workspace = true }
+-verus_builtin = { workspace = true }
+-verus_builtin_macros = { workspace = true }
+-
+ vstd_extra = { path = "../vstd_extra" }
+ aster_common = { path = "../aster_common" }
+ ostd_specs = { path = "../specs/ostd" }
+diff --git a/specs/ostd/Cargo.toml b/specs/ostd/Cargo.toml
+index 96d738ca846dc3664a8e56b90f9108a3fa2b3f44..b64b937c12130852b3909bf35c862527421af7b3 100644
+--- a/specs/ostd/Cargo.toml
++++ b/specs/ostd/Cargo.toml
+@@ -24,7 +24,5 @@ check_lifetime = true
+ 
+ [dependencies]
+ vstd = { workspace = true, optional = true }
+-verus_builtin = { workspace = true, optional = true }
+-verus_builtin_macros = { workspace = true, optional = true }
+ vstd_extra = { path = "../../vstd_extra" }
+ aster_common = { path = "../../aster_common" }
+diff --git a/vstd_extra/Cargo.toml b/vstd_extra/Cargo.toml
+index 1b726b4badd7847b8394c4aa04aaf5a2f1e61316..442aa0d5aa49b389a5bb62b92f291db385926ef7 100644
+--- a/vstd_extra/Cargo.toml
++++ b/vstd_extra/Cargo.toml
+@@ -24,5 +24,3 @@ verify = true
+ 
+ [dependencies]
+ vstd = { workspace = true }
+-verus_builtin = { workspace = true }
+-verus_builtin_macros = { workspace = true }
+diff --git a/vstd_extra/src/ptr_extra.rs b/vstd_extra/src/ptr_extra.rs
+index b8082ba05eb9c444c8e0e4b5512cddc68ad1fb86..7bfd201cb39c79c6f1c95919a2fd03b301c8ac63 100644
+--- a/vstd_extra/src/ptr_extra.rs
++++ b/vstd_extra/src/ptr_extra.rs
+@@ -2,8 +2,6 @@ use vstd::prelude::*;
+ 
+ use vstd::simple_pptr::*;
+ 
+-use verus_builtin_macros::*;
+-
+ verus! {
+ 
+ #[macro_export]

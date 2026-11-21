@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "pr_number": 236,
+  "selected_head_sha": "72a385b929f527e0014e13b3e93950d5ec4fde20",
+  "comparison_base_sha": "0e826a358beea7bf892e63b9a50290300aa0437c",
+  "repair_shas": [
+    "bdec3fc53c10ca4ffd05b514c93d56de16acc83e"
+  ],
+  "official_commits": [
+    {
+      "sha": "72a385b929f527e0014e13b3e93950d5ec4fde20",
+      "parents": [
+        "0e826a358beea7bf892e63b9a50290300aa0437c"
+      ]
+    },
+    {
+      "sha": "bdec3fc53c10ca4ffd05b514c93d56de16acc83e",
+      "parents": [
+        "72a385b929f527e0014e13b3e93950d5ec4fde20"
+      ]
+    },
+    {
+      "sha": "ebbe2e805ad41070330415aef6417182883ce1f4",
+      "parents": [
+        "bdec3fc53c10ca4ffd05b514c93d56de16acc83e"
+      ]
+    }
+  ],
+  "review_scope": {
+    "changed_paths_reviewed": [
+      "Cargo.toml",
+      "aster_common/Cargo.toml",
+      "ostd/Cargo.toml",
+      "specs/ostd/Cargo.toml",
+      "vstd_extra/Cargo.toml",
+      "vstd_extra/src/ptr_extra.rs"
+    ],
+    "additional_context_paths": [
+      "demo/Cargo.toml"
+    ],
+    "checks": [
+      "Confirmed the linear direct-parent problem-to-repair chain and excluded the final dv-only update.",
+      "Regenerated the base-to-problem full-index diff and all six mechanical changed paths; Cargo.lock is not changed on this edge.",
+      "Searched every Cargo.toml at the problem snapshot and confirmed demo is the only remaining inherited use of either deleted workspace dependency.",
+      "Reproduced the problem with isolated cargo metadata, which exited 101 before dependency resolution or verification."
+    ]
+  },
+  "cargo_metadata_reproduction": {
+    "command": "cargo metadata --no-deps --format-version 1 --manifest-path <isolated-problem-tree>/Cargo.toml",
+    "problem_exit_code": 101,
+    "result": "failed to load demo/Cargo.toml: dependency.verus_builtin was not found in workspace.dependencies"
+  },
+  "primary_review": {
+    "reviewer": "/root/audit_pr_117_122",
+    "reviewed_at": "2026-11-20",
+    "conclusion": "one_semantic_issue",
+    "evidence": [
+      "resource/work/commit-labels/236/candidate.json",
+      "resource/archive-extraction/verification-results/pr-236.md"
+    ]
+  },
+  "second_review": {
+    "reviewer": "/root/audit_pr_143_147",
+    "reviewed_at": "2026-11-20T12:14:10Z",
+    "conclusion": "approve_one_semantic_issue",
+    "evidence": [
+      "resource/work/commit-labels/236/second-review.json"
+    ]
+  },
+  "historical_verus_executed": false,
+  "publication_state": "staged_only_not_published"
+}

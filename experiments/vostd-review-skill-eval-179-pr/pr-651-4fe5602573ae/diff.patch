@@ -1,0 +1,123 @@
+diff --git a/ostd/specs/mm/embedding/segment.rs b/ostd/specs/mm/embedding/segment.rs
+index 2684da430532da39c6df720054d980a0bd9dcf04..2b18de9373afae97f100addbaceb1d2f32bad8fe 100644
+--- a/ostd/specs/mm/embedding/segment.rs
++++ b/ostd/specs/mm/embedding/segment.rs
+@@ -1,6 +1,6 @@
+ //! Embedding of `Segment` lifecycle operations: contiguous-range
+ //! allocate ([`segment_from_unused_embedded`]) and drop
+-//! ([`segment_drop_embedded`]).
++//! ([`lemma_segment_drop_embedded`]).
+ //!
+ //! A segment "handle" in the embedding is a `range`-bearing
+ //! [`super::SegmentEntry`] in [`super::VmStore::segments`]. Each
+@@ -49,7 +49,7 @@ use crate::mm::{
+     Paddr,
+ };
+ 
+-use super::{tracked_segment_entry_new, SegmentEntry};
++use super::{frame::frame_drop_embedded, tracked_segment_entry_new, SegmentEntry};
+ 
+ verus! {
+ 
+@@ -148,9 +148,10 @@ pub axiom fn segment_from_unused_embedded(
+ /// In the embedding, the per-segment `raw_count == 1` form is
+ /// generalized to `raw_count == segment_cover_count`, so after drop
+ /// each covered slot's `raw_count` is `pre_cover_count - 1`. This
+-/// axiom asserts the slot-level decrement; the embedding's
++/// proof derives the range-wide transition by recursively applying the
++/// single-frame [`frame_drop_embedded`] boundary; the embedding's
+ /// [`super::structural_inv`] re-chains via segment removal.
+-pub axiom fn segment_drop_embedded(
++pub proof fn lemma_segment_drop_embedded(
+     tracked regions: &mut MetaRegionOwners,
+     range: Range<Paddr>,
+ )
+@@ -218,7 +219,19 @@ pub axiom fn segment_drop_embedded(
+             ).slot_owners[i],
+         forall|c: CursorOwner<'_, UserPtConfig>| #![auto]
+             c.metaregion_sound(*old(regions)) ==> c.metaregion_sound(*final(regions)),
+-;
++    decreases range.end - range.start,
++{
++    assert(regions.slot_owners.contains_key(frame_to_index(range.start)));
++    frame_drop_embedded(regions, range.start);
++
++    if range.start + PAGE_SIZE < range.end {
++        let ghost tail: Range<Paddr> = Range {
++            start: (range.start + PAGE_SIZE) as Paddr,
++            end: range.end,
++        };
++        lemma_segment_drop_embedded(regions, tail);
++    }
++}
+ 
+ /// Mirror of [`crate::mm::frame::Segment::next`]'s "pop one frame"
+ /// effect. At the popped paddr (= `range.start` pre):
+@@ -399,7 +412,7 @@ pub(super) proof fn drop_step(
+         forall|c: CursorOwner<'_, UserPtConfig>| #![auto]
+             c.metaregion_sound(*old(regions)) ==> c.metaregion_sound(*final(regions)),
+ {
+-    segment_drop_embedded(regions, entry.range);
++    lemma_segment_drop_embedded(regions, entry.range);
+ }
+ 
+ pub axiom fn segment_clone_embedded(
+diff --git a/ostd/specs/mm/page_table/cursor/cursor_steps.rs b/ostd/specs/mm/page_table/cursor/cursor_steps.rs
+index c2cf15d1397df86397130feec69126b582bd7e66..31d3977fd7804c5940b671be718081a2b344bb3e 100644
+--- a/ostd/specs/mm/page_table/cursor/cursor_steps.rs
++++ b/ostd/specs/mm/page_table/cursor/cursor_steps.rs
+@@ -707,10 +707,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+ 
+     }
+ 
+-    pub proof fn tracked_pop_level_owner(tracked &mut self) -> (tracked guard: PageTableGuard<
+-        'rcu,
+-        C,
+-    >)
++    pub proof fn tracked_pop_level_owner(tracked &mut self) -> (guard: PageTableGuard<'rcu, C>)
+         requires
+             old(self).inv(),
+             old(self).level < NR_LEVELS,
+@@ -722,7 +719,7 @@ impl<'rcu, C: PageTableConfig> CursorOwner<'rcu, C> {
+         let tracked mut parent = self.continuations.tracked_remove(self.level as int);
+         let tracked child = self.continuations.tracked_remove(self.level - 1);
+ 
+-        let tracked guard = parent.tracked_restore(child);
++        let ghost guard = parent.tracked_restore(child);
+ 
+         self.continuations.tracked_insert(self.level as int, parent);
+ 
+diff --git a/ostd/src/mm/page_table/cursor/locking.rs b/ostd/src/mm/page_table/cursor/locking.rs
+index 0de8469575047299e884e66a3a27997e3440087e..a76798d580ee724ccf4c297ede7dd530fcb2f4bc 100644
+--- a/ostd/src/mm/page_table/cursor/locking.rs
++++ b/ostd/src/mm/page_table/cursor/locking.rs
+@@ -195,7 +195,7 @@ pub fn lock_range<'rcu, C: PageTableConfig, A: InAtomicMode>(
+     }
+     let cur_node_va = va.start.align_down(page_size(guard_level + 1));
+ 
+-    #[verus_spec(with Tracked(cont.entry_own), Tracked(&cont.guard), Tracked(guards), Tracked(regions))]
++    #[verus_spec(with Tracked(cont.entry_own), Tracked(guards), Tracked(regions))]
+     dfs_acquire_lock(guard, &mut subtree_root, cur_node_va, va.clone());
+ 
+     let mut path = [None, None, None, None];
+@@ -517,7 +517,6 @@ fn try_traverse_and_lock_subtree_root<'rcu, C: PageTableConfig, A: InAtomicMode>
+ /// The function will forget all the [`PageTableGuard`] objects in the sub-tree.
+ #[verus_spec(
+     with Tracked(entry_own): Tracked<EntryOwner<C>>,
+-        Tracked(guard_ref): Tracked<&PageTableGuard<'rcu, C>>,
+         Tracked(guards): Tracked<&mut Guards<'rcu>>,
+         Tracked(regions): Tracked<&mut MetaRegionOwners>
+     requires
+diff --git a/ostd/src/mm/page_table/cursor/mod.rs b/ostd/src/mm/page_table/cursor/mod.rs
+index ae310c2f71cf484e4175c04195eb77eda190233c..c88f9cb78c605fdbbfa435adeab578a1ca4175e0 100644
+--- a/ostd/src/mm/page_table/cursor/mod.rs
++++ b/ostd/src/mm/page_table/cursor/mod.rs
+@@ -1850,7 +1850,7 @@ impl<'rcu, C: PageTableConfig, A: InAtomicMode> Cursor<'rcu, C, A> {
+             ));
+             owner.pop_level_owner_preserves_invs(*guards, *regions);
+         }
+-        let tracked guard = owner.tracked_pop_level_owner();
++        let ghost guard = owner.tracked_pop_level_owner();
+ 
+         let ghost owner0 = *owner;
+         let ghost guards0 = *guards;

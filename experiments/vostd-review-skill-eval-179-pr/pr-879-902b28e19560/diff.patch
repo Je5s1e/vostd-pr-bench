@@ -1,0 +1,356 @@
+diff --git a/ostd/specs/task/irq.rs b/ostd/specs/task/irq.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..1f29354e856bcd8b508d0c8c4dcba8885e984685
+--- /dev/null
++++ b/ostd/specs/task/irq.rs
+@@ -0,0 +1,181 @@
++// SPDX-License-Identifier: MPL-2.0
++//! Logical protocol for nested local IRQ guards.
++//!
++//! Models `DisabledLocalIrqGuard`: disabling saves the previous state, and
++//! restoring consumes a permission in reverse acquisition order. Nothing here
++//! touches hardware, and the guard constructor and Drop are not yet connected.
++//! IF does not exclude NMIs or exceptions.
++use vstd::{prelude::*, resource::Loc};
++use vstd_extra::ownership::Inv;
++
++use crate::specs::task::{
++    cpu_core::CpuCoreLocalState,
++    cpu_local::{CpuLocalAuth, CpuLocalPointsTo},
++};
++
++use crate::cpu::CpuId;
++
++verus! {
++
++/// Observable logical state of one CPU's nested IRQ guards.
++pub ghost struct LocalIrqView {
++    pub cpu: CpuId,
++    pub enabled: bool,
++    pub depth: nat,
++}
++
++/// Exclusive IRQ state, suitable for inclusion in a `CpuCoreOwner`.
++pub tracked struct LocalIrqState {
++    points_to: CpuLocalPointsTo<bool>,
++    ghost depth: nat,
++}
++
++/// Linear permission to restore the state saved by one logical guard.
++///
++/// Private fields prevent forging it. Identity and depth prevent restoring
++/// another resource or releasing an outer guard while an inner one is live.
++pub tracked struct IrqRestorePermission {
++    ghost id: Loc,
++    ghost previous: LocalIrqView,
++}
++
++impl View for LocalIrqState {
++    type V = LocalIrqView;
++
++    closed spec fn view(&self) -> LocalIrqView {
++        LocalIrqView {
++            cpu: self.points_to.cpu(),
++            enabled: self.points_to.value(),
++            depth: self.depth,
++        }
++    }
++}
++
++impl CpuCoreLocalState for LocalIrqState {
++    open spec fn belongs_to_cpu(self, cpu: CpuId) -> bool {
++        self@.cpu == cpu
++    }
++
++    open spec fn local_key(self) -> Seq<Loc> {
++        seq![self.id()]
++    }
++}
++
++impl Inv for LocalIrqState {
++    /// Any outstanding logical guard keeps this CPU's IRQ state disabled.
++    open spec fn inv(self) -> bool {
++        self@.depth > 0 ==> !self@.enabled
++    }
++}
++
++impl Inv for IrqRestorePermission {
++    open spec fn inv(self) -> bool {
++        self.previous().depth > 0 ==> !self.previous().enabled
++    }
++}
++
++impl IrqRestorePermission {
++    /// Identity of the authority whose state this permission restores.
++    pub closed spec fn id(&self) -> Loc {
++        self.id
++    }
++
++    /// State saved when this permission was issued.
++    pub closed spec fn previous(&self) -> LocalIrqView {
++        self.previous
++    }
++}
++
++impl LocalIrqState {
++    /// Wraps existing CPU-local ownership without asserting hardware state.
++    pub proof fn new(tracked points_to: CpuLocalPointsTo<bool>) -> (tracked res: Self)
++        ensures
++            res.inv(),
++            res.id() == points_to.id(),
++            res@ == (LocalIrqView { cpu: points_to.cpu(), enabled: points_to.value(), depth: 0 }),
++    {
++        Self { points_to, depth: 0 }
++    }
++
++    /// Identity inherited from the CPU-local authority.
++    pub closed spec fn id(&self) -> Loc {
++        self.points_to.id()
++    }
++
++    /// Disables logical IRQs and issues a permission to restore the prior state.
++    pub proof fn tracked_disable(
++        tracked &mut self,
++        tracked auth: &mut CpuLocalAuth<bool>,
++    ) -> (tracked permission: IrqRestorePermission)
++        requires
++            old(self).inv(),
++            old(self).id() == old(auth).id(),
++        ensures
++            final(self).inv(),
++            permission.inv(),
++            final(self).id() == old(self).id(),
++            final(self)@ == (LocalIrqView {
++                cpu: old(self)@.cpu,
++                enabled: false,
++                depth: old(self)@.depth + 1,
++            }),
++            permission.id() == old(self).id(),
++            permission.previous() == old(self)@,
++            final(auth).id() == old(auth).id(),
++            final(auth)@ == old(auth)@.insert(old(self)@.cpu, false),
++            final(auth).cpus() == old(auth).cpus(),
++    {
++        let ghost previous = self@;
++        let ghost id = self.id();
++        self.points_to.tracked_update(auth, false);
++        self.depth = self.depth + 1;
++        IrqRestorePermission { id, previous }
++    }
++
++    /// Consumes the innermost permission and restores its saved logical state.
++    pub proof fn tracked_restore(
++        tracked &mut self,
++        tracked auth: &mut CpuLocalAuth<bool>,
++        tracked permission: IrqRestorePermission,
++    )
++        requires
++            permission.inv(),
++            old(self).id() == old(auth).id(),
++            permission.id() == old(self).id(),
++            permission.previous().cpu == old(self)@.cpu,
++            permission.previous().depth + 1 == old(self)@.depth,
++        ensures
++            final(self).inv(),
++            final(self).id() == old(self).id(),
++            final(self)@ == permission.previous(),
++            final(auth).id() == old(auth).id(),
++            final(auth)@ == old(auth)@.insert(old(self)@.cpu, permission.previous().enabled),
++            final(auth).cpus() == old(auth).cpus(),
++    {
++        self.points_to.tracked_update(auth, permission.previous.enabled);
++        self.depth = permission.previous.depth;
++    }
++}
++
++/// Nested restoration keeps IRQs disabled until the outer permission is consumed.
++proof fn lemma_nested_restore(
++    tracked state: &mut LocalIrqState,
++    tracked auth: &mut CpuLocalAuth<bool>,
++)
++    requires
++        old(state).inv(),
++        old(state).id() == old(auth).id(),
++    ensures
++        final(state).id() == old(state).id(),
++        final(state)@ == old(state)@,
++        final(auth).id() == old(auth).id(),
++        final(auth)@ == old(auth)@,
++{
++    state.points_to.lemma_agree(auth);
++    let tracked outer = state.tracked_disable(auth);
++    let tracked inner = state.tracked_disable(auth);
++    state.tracked_restore(auth, inner);
++    state.tracked_restore(auth, outer);
++}
++
++} // verus!
+diff --git a/ostd/specs/task/mod.rs b/ostd/specs/task/mod.rs
+index 8a4c96235591d3c050eeb456252fc3cd09aa4ad4..7f104c21a260d4795b26779a045c548a0a0bcd19 100644
+--- a/ostd/specs/task/mod.rs
++++ b/ostd/specs/task/mod.rs
+@@ -17,3 +17,4 @@ impl InAtomicMode for AnyAtomicGuard {
+ } // verus!
+ pub mod cpu_core;
+ pub mod cpu_local;
++pub mod irq;
+diff --git a/ostd/src/arch/x86/irq.rs b/ostd/src/arch/x86/irq.rs
+index 3279a988ed79727df12f0ccdd13f64ca568110bc..309e3f4bdad1dd6f7f6323e428dbcf3984dadc65 100644
+--- a/ostd/src/arch/x86/irq.rs
++++ b/ostd/src/arch/x86/irq.rs
+@@ -1,7 +1,15 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Interrupts.
++//!
++//! IRQ read and disable are unimplemented stubs whose trusted contracts assume
++//! normal return. `enable_local` keeps its hardware implementation under a
++//! trusted contract. None of these are connected to guard construction or drop.
+ use vstd::prelude::*;
+ 
++use crate::specs::task::irq::LocalIrqState;
++
++use crate::cpu::CpuId;
++
+ /* use spin::Once;
+ use x86_64::registers::rflags::{self, RFlags};
+ 
+@@ -49,9 +57,25 @@ impl IrqRemapping {
+         Some(self.entry.get()?.index())
+     }
+ }
++*/
+ 
++/// Sets IF. Trusted contract: preserves the CPU and records IF=true.
++/// The STI/NOP instructions are not verified.
+ // FIXME: Mark this as unsafe. See
+ // <https://github.com/asterinas/asterinas/issues/1120#issuecomment-2748696592>.
++#[verus_verify(external_body)]
++#[verus_spec(
++    with Tracked(hw): Tracked<&mut LocalIrqHardware>
++    requires
++        old(hw).state()@.depth == 0,
++        old(hw).state()@.enabled,
++    ensures
++        final(hw).cpu() == old(hw).cpu(),
++        final(hw).enabled(),
++        final(hw).state() == old(hw).state(),
++    opens_invariants none
++    no_unwind
++)]
+ pub(crate) fn enable_local() {
+     x86_64::instructions::interrupts::enable();
+     // When emulated with QEMU, interrupts may not be delivered if a STI instruction is immediately
+@@ -60,6 +84,7 @@ pub(crate) fn enable_local() {
+     x86_64::instructions::nop();
+ }
+ 
++/*
+ /// Enables local IRQs and halts the CPU to wait for interrupts.
+ ///
+ /// This method guarantees that no interrupts can occur in the middle. In other words, IRQs must
+@@ -83,11 +108,72 @@ pub(crate) fn enable_local_and_halt() {
+     };
+ } */
+ 
++verus! {
++
++/// Exclusive access to IF in an externally pinned kernel execution context.
++///
++/// Has no allocator or public constructor. Provisioning must establish
++/// supervisor privilege, the executing CPU, and agreement with IF. The context
++/// must stay pinned across IF changes, and returning handlers must restore IF.
++/// Legacy IRQ entry points must not run while this is live, since their
++/// unmodeled IF writes invalidate it. A logical CPU-local allocation is not
++/// enough to obtain it; initialization and scheduler wiring are pending.
++pub(crate) tracked struct LocalIrqHardware {
++    ghost cpu: CpuId,
++    ghost enabled: bool,
++    state: LocalIrqState,
++}
++
++impl !Send for LocalIrqHardware {
++
++}
++
++impl !Sync for LocalIrqHardware {
++
++}
++
++impl LocalIrqHardware {
++    /// CPU fixed by the execution context that provided this resource.
++    pub(crate) closed spec fn cpu(&self) -> CpuId {
++        self.cpu
++    }
++
++    /// IF at the current observation point in that execution context.
++    pub(crate) closed spec fn enabled(&self) -> bool {
++        self.enabled
++    }
++
++    /// Logical IRQ state permanently owned by this hardware permission.
++    pub(crate) closed spec fn state(&self) -> LocalIrqState {
++        self.state
++    }
++}
++
++} // verus!
++/// Clears IF. Trusted contract: preserves the CPU and records IF=false.
++/// Runtime implementation is pending; calling this stub panics.
++#[verus_verify(external_body)]
++#[verus_spec(
++    with Tracked(hw): Tracked<&mut LocalIrqHardware>
++    ensures
++        final(hw).cpu() == old(hw).cpu(),
++        !final(hw).enabled(),
++        final(hw).state() == old(hw).state(),
++    opens_invariants none
++)]
+ pub(crate) fn disable_local() {
+     // x86_64::instructions::interrupts::disable();
+     unimplemented!()
+ }
+ 
++/// Reads IF. Trusted contract: the result equals the current IF state.
++/// Runtime implementation is pending; calling this stub panics.
++#[verus_verify(external_body)]
++#[verus_spec(
++    with Tracked(hw): Tracked<&LocalIrqHardware>
++    returns hw.enabled()
++    opens_invariants none
++)]
+ pub(crate) fn is_local_enabled() -> bool {
+     // (rflags::read_raw() & RFlags::INTERRUPT_FLAG.bits()) != 0
+     unimplemented!()
+diff --git a/ostd/src/trap/irq.rs b/ostd/src/trap/irq.rs
+index dea4535dcac88d0b9b0cc8f82fa650a949c1b8a0..2af0cd0169a07a34eb94db6137fee074d34050fa 100644
+--- a/ostd/src/trap/irq.rs
++++ b/ostd/src/trap/irq.rs
+@@ -243,6 +243,13 @@ impl !Sync for DisabledLocalIrqGuard {
+ /* unsafe impl InAtomicMode for DisabledLocalIrqGuard {} */
+ 
+ impl DisabledLocalIrqGuard {
++    /// Saved IF state, restored by the currently disabled destructor.
++    pub closed spec fn was_enabled(&self) -> bool {
++        self.was_enabled
++    }
++
++    /// Legacy constructor: exports no hardware-state guarantee, as callers do
++    /// not yet provide a hardware context.
+     #[verifier::external_body]
+     fn new() -> Self {
+         let was_enabled = irq::is_local_enabled();
+@@ -254,8 +261,12 @@ impl DisabledLocalIrqGuard {
+ }
+ 
+ impl GuardTransfer for DisabledLocalIrqGuard {
+-    #[verifier::external_body]
+-    fn transfer_to(&mut self) -> Self {
++    /// Transfers the saved flag and clears it in the old instance.
++    fn transfer_to(&mut self) -> (ret: Self)
++        ensures
++            !final(self).was_enabled(),
++            ret.was_enabled() == old(self).was_enabled(),
++    {
+         let was_enabled = self.was_enabled;
+         self.was_enabled = false;
+         Self { was_enabled }

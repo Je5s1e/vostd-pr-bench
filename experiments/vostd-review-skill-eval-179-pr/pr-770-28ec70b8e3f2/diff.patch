@@ -1,0 +1,1610 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 3dc567b7e5c891130ea90ab67db19f62359dac17..368ebb1e95ae48e6afe7ea5585782b99f7575173 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -605,7 +605,7 @@ dependencies = [
+ 
+ [[package]]
+ name = "verus_builtin"
+-version = "0.0.0-2026-09-06-0133"
++version = "0.0.0-2026-09-16-0054"
+ 
+ [[package]]
+ name = "verus_builtin_macros"
+@@ -661,7 +661,7 @@ checksum = "af8ca9a5d4debca0633e697c88269395493cebf2e10db21ca2dbde37c1356452"
+ 
+ [[package]]
+ name = "vstd"
+-version = "0.0.0-2026-09-06-0133"
++version = "0.0.0-2026-09-16-0054"
+ dependencies = [
+  "verus_builtin",
+  "verus_builtin_macros",
+@@ -673,6 +673,7 @@ name = "vstd_extra"
+ version = "0.1.0"
+ dependencies = [
+  "bitvec",
++ "smallvec",
+  "vstd",
+ ]
+ 
+diff --git a/ostd/src/cpu/mod.rs b/ostd/src/cpu/mod.rs
+index 2dd9f15f6816fb7e9a4e14f30b2d6f890f1d2d6f..604e330ba2099c9bae89632da861cf51f9d2fd82 100644
+--- a/ostd/src/cpu/mod.rs
++++ b/ostd/src/cpu/mod.rs
+@@ -1,18 +1,22 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! CPU-related definitions.
+-pub mod local;
++use vstd::prelude::*;
++
++// pub mod local;
+ pub mod set;
+ 
+ pub use set::{AtomicCpuSet, CpuSet};
+ 
+-pub use crate::arch::cpu::*;
+-use crate::{cpu_local_cell, task::atomic_mode::InAtomicMode};
++// pub use crate::arch::cpu::*;
++// use crate::{cpu_local_cell, task::atomic_mode::InAtomicMode};
+ 
+ /// The ID of a CPU in the system.
+ ///
+ /// If converting from/to an integer, the integer must start from 0 and be less
+ /// than the number of CPUs.
+ #[derive(Debug, Clone, Copy, PartialEq, Eq)]
++#[verifier::allow(autoderive_clone_without_spec)]
++#[verus_verify]
+ pub struct CpuId(u32);
+ 
+ impl CpuId {
+@@ -22,11 +26,13 @@ impl CpuId {
+     }
+ 
+     /// Converts the CPU ID to an `usize`.
++    #[verus_verify]
++    #[verus_spec(returns self@ as usize)]
+     pub const fn as_usize(self) -> usize {
+         self.0 as usize
+     }
+ 
+-    /// Returns the ID of the current CPU.
++    /* /// Returns the ID of the current CPU.
+     ///
+     /// This function is safe to call, but is vulnerable to races. The returned CPU
+     /// ID may be outdated if the task migrates to another CPU.
+@@ -38,7 +44,7 @@ impl CpuId {
+         assert!(IS_CURRENT_CPU_INITED.load());
+ 
+         Self(CURRENT_CPU.load())
+-    }
++    } */
+ }
+ 
+ /// The error type returned when converting an out-of-range integer to [`CpuId`].
+@@ -86,6 +92,10 @@ unsafe fn init_num_cpus(num_cpus: u32) {
+ }
+ 
+ /// Returns the number of CPUs.
++#[verus_verify(external_body)]
++#[verus_spec(
++    returns cpu_count() as usize,
++)]
+ pub fn num_cpus() -> usize {
+     // SAFETY: As far as the safe APIs are concerned, `NUM_CPUS` is
+     // read-only, so it is always valid to read.
+@@ -97,7 +107,42 @@ pub fn all_cpus() -> impl Iterator<Item = CpuId> {
+     (0..num_cpus()).map(|id| CpuId(id as u32))
+ }
+ 
+-cpu_local_cell! {
++verus! {
++
++/// The underlying numeric CPU id.
++impl View for CpuId {
++    type V = int;
++
++    closed spec fn view(&self) -> int {
++        self.0 as int
++    }
++}
++
++/// The trusted value of the system CPU count. The exec reads `NUM_CPUS`, a `u32`
++/// initialized to 1 and set once at boot (never decreased, no hot-plug), so it is a
++/// stable constant; Verus cannot mention an `exec static` in a spec, so this uninterp
++/// is the explicit specification boundary (mirrors io_port's num_cpus-style pattern).
++pub uninterp spec fn cpu_count() -> int;
++
++/// The count is a positive value that fits a `u32` (the exec reads `static NUM_CPUS: u32`),
++/// hence also a `usize`; the `u32` bound is what lets a `CpuSet` bitset fit in its backing
++/// `SmallVec` without overflowing `isize::MAX`.
++pub broadcast axiom fn axiom_cpu_count_bounds()
++    ensures
++        #![trigger cpu_count()]
++        1 <= cpu_count() <= u32::MAX,
++;
++
++impl CpuId {
++    /// A CPU id is always in the range of CPUs present in the system.
++    #[verifier::type_invariant]
++    closed spec fn type_inv(self) -> bool {
++        0 <= self@ < cpu_count()
++    }
++}
++
++} // verus!
++/* cpu_local_cell! {
+     /// The current CPU ID.
+     static CURRENT_CPU: u32 = 0;
+     /// The initialization state of the current CPU ID.
+@@ -182,4 +227,4 @@ pub(crate) unsafe fn init_on_bsp() {
+ pub(crate) unsafe fn init_on_ap(cpu_id: u32) {
+     // SAFETY: The safety is upheld by the caller.
+     unsafe { set_this_cpu_id(cpu_id) };
+-}
++} */
+diff --git a/ostd/src/cpu/set.rs b/ostd/src/cpu/set.rs
+index a01a3b34d61f0f5a106fedfeb61a99e0961c255d..fcbbaafdf0669676267c1116f61c57ebbac2e924 100644
+--- a/ostd/src/cpu/set.rs
++++ b/ostd/src/cpu/set.rs
+@@ -1,5 +1,21 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! This module contains the implementation of the CPU set and atomic CPU set.
++use super::cpu_count;
++use vstd::{
++    arithmetic::div_mod::lemma_fundamental_div_mod, layout::size_of, prelude::*, set::Set,
++    std_specs::iter::IteratorSpec,
++};
++use vstd_extra::{
++    bits::{
++        group_u64_bit_algebra, lemma_u64_allones_bit, lemma_u64_and_zero, lemma_u64_masked_bit_keep,
++    },
++    external::{
++        bits::{lemma_u64_set_bits_nonzero, u64_set_bits},
++        smallvec::{group_smallvec_models, smallvec_view},
++    },
++    ownership::Inv,
++};
++
+ use core::sync::atomic::{AtomicU64, Ordering};
+ 
+ use smallvec::SmallVec;
+@@ -9,6 +25,8 @@ use crate::const_assert;
+ 
+ /// A subset of all CPUs in the system.
+ #[derive(Clone, Debug, Default)]
++#[verifier::allow(autoderive_clone_without_spec)]
++#[verus_verify]
+ pub struct CpuSet {
+     // A bitset representing the CPUs in the system.
+     bits: SmallVec<[InnerPart; NR_PARTS_NO_ALLOC]>,
+@@ -16,113 +34,761 @@ pub struct CpuSet {
+ 
+ type InnerPart = u64;
+ 
+-const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;
++verus! {
++
++// Original exec: `const BITS_PER_PART: usize = core::mem::size_of::<InnerPart>() * 8;`
++// literalized to `64` inside `verus!` so Verus sees a known value (exec `% BITS_PER_PART` ↔ spec `% 64`).
++const BITS_PER_PART: usize = 64;
++
+ const NR_PARTS_NO_ALLOC: usize = 2;
+ 
++} // verus!
++#[verus_verify]
++#[verus_spec(
++    returns part_idx_spec(cpu_id@),
++)]
+ const fn part_idx(cpu_id: CpuId) -> usize {
++    proof! {
++        reveal(part_idx_spec);
++    }
+     cpu_id.as_usize() / BITS_PER_PART
+ }
+ 
++#[verus_verify]
++#[verus_spec(
++    returns bit_idx_spec(cpu_id@),
++)]
+ const fn bit_idx(cpu_id: CpuId) -> usize {
++    proof! {
++        reveal(bit_idx_spec);
++    }
+     cpu_id.as_usize() % BITS_PER_PART
+ }
+ 
++#[verus_verify]
++#[verifier::when_used_as_spec(parts_for_cpus_spec)]
++#[verus_spec(
++    returns parts_for_cpus_spec(num_cpus),
++)]
+ const fn parts_for_cpus(num_cpus: usize) -> usize {
++    proof! {
++        reveal(parts_for_cpus_spec);
++        if num_cpus == 0 {
++            assert(parts_for_cpus_spec(0) == 0);
++        } else {
++            assert(num_cpus as int > 0);
++            assert(parts_for_cpus_spec(num_cpus) as int == ((num_cpus as int) + 63) / 64);
++        }
++    }
+     num_cpus.div_ceil(BITS_PER_PART)
+ }
+ 
++verus! {
++
++broadcast use {
++    group_smallvec_models,
++    lemma_u64_set_bits_nonzero,
++    group_u64_bit_algebra,
++    crate::cpu::axiom_cpu_count_bounds,
++    vstd::layout::layout_of_primitives,
++    vstd::set::group_set_lemmas,
++    vstd::set_lib::range_set_properties,
++};
++
++/// `div_ceil(n, BITS_PER_PART)`: the number of 64-bit words needed to hold `n` bits.
++pub closed spec fn parts_for_cpus_spec(n: usize) -> usize {
++    if n == 0 {
++        0
++    } else {
++        (((n as int) + 63) / 64) as usize
++    }
++}
++
++/// The 64-bit word holding bit `i`.
++pub closed spec fn part_idx_spec(i: int) -> usize {
++    (i / 64) as usize
++}
++
++/// The position of bit `i` within its 64-bit word.
++pub closed spec fn bit_idx_spec(i: int) -> usize {
++    (i % 64) as usize
++}
++
++/// Number of set bits in the prefix `seq[..end]`.
++pub open spec fn count_set_bits_prefix(seq: Seq<u64>, end: int) -> int
++    recommends
++        0 <= end <= seq.len(),
++    decreases end,
++{
++    if end <= 0 {
++        0
++    } else {
++        count_set_bits_prefix(seq, end - 1) + u64_set_bits(seq[end - 1])
++    }
++}
++
++/// Number of set bits in all words of `seq`.
++pub open spec fn count_set_bits(seq: Seq<u64>) -> int {
++    count_set_bits_prefix(seq, seq.len() as int)
++}
++
++/// Expected value of word `idx` in a full CPU set.
++pub open spec fn full_set_word(num_cpus: int, len: int, idx: int) -> u64 {
++    if idx == len - 1 && bit_idx_spec(num_cpus) != 0 {
++        ((1u64 << bit_idx_spec(num_cpus)) - 1) as u64
++    } else {
++        !0u64
++    }
++}
++
++/// Bit `i` is set in the bit sequence `seq`.
++pub open spec fn bit_at(seq: Seq<u64>, i: int) -> bool {
++    if 0 <= i < 64 * seq.len() as int {
++        (seq[part_idx_spec(i) as int] & (1u64 << bit_idx_spec(i))) != 0
++    } else {
++        false
++    }
++}
++
++/// If every word of `seq` equals `val`, `bit_at(seq, j)` is just `val & (1<<b) != 0`.
++proof fn lemma_bit_at_uniform(seq: Seq<u64>, val: u64, j: int)
++    requires
++        forall|k: int| 0 <= k < seq.len() ==> seq[k] == val,
++        0 <= j < 64 * seq.len() as int,
++    ensures
++        bit_at(seq, j) == ((val & (1u64 << bit_idx_spec(j))) != 0),
++{
++    reveal(bit_at);
++    assert(seq[part_idx_spec(j) as int] == val);
++}
++
++proof fn lemma_u64_nonzero_has_set_bit_aux(word: u64, n: u32)
++    requires
++        word != 0,
++        n <= 64,
++        word >> n == 0,
++    ensures
++        exists|b: u32| b < n && #[trigger] (word & (1u64 << b)) != 0,
++    decreases n,
++{
++    if n == 0 {
++        assert(word >> n == word) by (bit_vector)
++            requires
++                n == 0,
++        ;
++    } else if word & 1u64 != 0 {
++        assert((word & (1u64 << 0u32)) != 0) by (bit_vector)
++            requires
++                word & 1u64 != 0,
++        ;
++        assert(exists|b: u32| b < n && #[trigger] (word & (1u64 << b)) != 0);
++    } else {
++        let shifted = word >> 1u32;
++        assert(shifted != 0) by (bit_vector)
++            requires
++                shifted == word >> 1u32,
++                word != 0,
++                word & 1u64 == 0,
++        ;
++        let prev: u32 = (n - 1) as u32;
++        assert(prev + 1 == n);
++        assert(shifted >> prev == word >> n) by (bit_vector)
++            requires
++                shifted == word >> 1u32,
++                n == prev + 1,
++                n <= 64,
++        ;
++        assert(shifted >> prev == 0);
++        lemma_u64_nonzero_has_set_bit_aux(shifted, prev);
++        let b = choose|b: u32| b < n - 1 && #[trigger] (shifted & (1u64 << b)) != 0;
++        assert(b < 63);
++        let next: u32 = (b + 1) as u32;
++        assert(next < n);
++        assert((word & (1u64 << next)) != 0) by (bit_vector)
++            requires
++                shifted == word >> 1u32,
++                (shifted & (1u64 << b)) != 0,
++                next == b + 1,
++                b < 63,
++        ;
++        assert(exists|b: u32| b < n && #[trigger] (word & (1u64 << b)) != 0);
++    }
++}
++
++proof fn lemma_u64_nonzero_has_set_bit(word: u64)
++    requires
++        word != 0,
++    ensures
++        exists|b: u32| b < 64 && #[trigger] (word & (1u64 << b)) != 0,
++{
++    assert(word >> 64u32 == 0) by (bit_vector);
++    lemma_u64_nonzero_has_set_bit_aux(word, 64);
++}
++
++impl View for CpuSet {
++    type V = Set<int>;
++
++    /// The set of CPU ids whose bit is set in `bits` (and below `cpu_count()`).
++    closed spec fn view(&self) -> Set<int> {
++        Set::range(0, cpu_count()).filter(|i: int| bit_at(smallvec_view(&self.bits), i))
++    }
++}
++
++impl CpuSet {
++    /// Number of set bits in the backing words.
++    pub closed spec fn count_spec(&self) -> int {
++        count_set_bits(smallvec_view(&self.bits))
++    }
++}
++
++proof fn lemma_cpucount_fits()
++    ensures
++        2 * (parts_for_cpus_spec(cpu_count() as usize) as int) * (size_of::<u64>() as int)
++            <= isize::MAX as int,
++{
++    if cpu_count() > 0 {
++        assert(parts_for_cpus_spec(cpu_count() as usize) as int == (cpu_count() + 63) / 64) by {
++            reveal(parts_for_cpus_spec)
++        };
++    }
++}
++
++proof fn lemma_count_fits()
++    ensures
++        64 * parts_for_cpus_spec(cpu_count() as usize) <= usize::MAX,
++{
++    if cpu_count() > 0 {
++        assert(parts_for_cpus_spec(cpu_count() as usize) as int == (cpu_count() + 63) / 64) by {
++            reveal(parts_for_cpus_spec)
++        };
++    }
++}
++
++impl Inv for CpuSet {
++    /// The backing vector holds exactly `parts_for_cpus(cpu_count)` words, the view
++    /// is bounded by `cpu_count`, and the unused tail bits (>= `cpu_count`) are clear.
++    closed spec fn inv(self) -> bool {
++        &&& smallvec_view(&self.bits).len() == parts_for_cpus_spec(cpu_count() as usize)
++        &&& forall|j: int|
++            #![trigger bit_at(smallvec_view(&self.bits), j)]
++            cpu_count() <= j < 64 * smallvec_view(&self.bits).len() as int ==> !bit_at(
++                smallvec_view(&self.bits),
++                j,
++            )
++    }
++}
++
++/// A CPU set whose backing words are all zero has an empty abstract view.
++proof fn lemma_empty_bits_imply_empty_set(set: &CpuSet)
++    requires
++        forall|i: int|
++            0 <= i < smallvec_view(&set.bits).len() ==> smallvec_view(&set.bits)[i] == 0u64,
++    ensures
++        set@ == Set::empty(),
++{
++    let seq = smallvec_view(&set.bits);
++    assert forall|j: int| !set@.contains(j) by {
++        if 0 <= j < cpu_count() && j < 64 * seq.len() {
++            lemma_bit_at_uniform(seq, 0u64, j);
++            lemma_u64_and_zero(1u64 << bit_idx_spec(j));
++        }
++    }
++    assert(set@ =~= Set::empty());
++}
++
++/// If every backing word has the full-set value, every existing CPU bit is set.
++proof fn lemma_full_bits_imply_full_set(set: &CpuSet)
++    requires
++        set.inv(),
++        forall|i: int|
++            #![trigger smallvec_view(&set.bits)[i]]
++            0 <= i < smallvec_view(&set.bits).len() ==> smallvec_view(&set.bits)[i]
++                == full_set_word(cpu_count(), smallvec_view(&set.bits).len() as int, i),
++    ensures
++        set@ == Set::range(0, cpu_count()),
++{
++    let seq = smallvec_view(&set.bits);
++    let n = cpu_count();
++    let len = seq.len() as int;
++    assert(n > 0);
++    reveal(parts_for_cpus_spec);
++    assert(parts_for_cpus_spec(n as usize) as int == (n + 63) / 64);
++    assert(len == (n + 63) / 64);
++    assert forall|a: int|
++        #![trigger set@.contains(a)]
++        set@.contains(a) == Set::range(0, n).contains(a) by {
++        if 0 <= a < n {
++            lemma_fundamental_div_mod(a, 64);
++            lemma_fundamental_div_mod(n, 64);
++            assert(0 <= a / 64 < len);
++            assert(seq[a / 64] == full_set_word(n, len, a / 64));
++            let p = a / 64;
++            let b = a % 64;
++            if a / 64 == len - 1 && n % 64 != 0 {
++                assert(a % 64 < n % 64);
++                let k = n % 64;
++                let mask = seq[p];
++                assert(0 < k < 64);
++                assert(mask == ((1u64 << (k as usize)) - 1) as u64);
++                lemma_u64_masked_bit_keep(!0u64, mask, k, b);
++                lemma_u64_allones_bit(b);
++                assert(!0u64 & mask == mask) by (bit_vector);
++                assert((mask & (1u64 << (b as usize))) != 0);
++            } else {
++                assert(seq[p] == !0u64);
++                lemma_u64_allones_bit(b);
++            }
++            assert(bit_at(seq, a));
++        }
++    }
++    assert(set@ == Set::range(0, n));
++}
++
++} // verus!
++#[verus_verify]
+ impl CpuSet {
+     /// Creates a new `CpuSet` with all CPUs in the system.
++    #[verus_spec(ret =>
++        ensures
++            ret@ == Set::range(0, cpu_count()),
++            ret.inv(),
++    )]
+     pub fn new_full() -> Self {
++        proof! { lemma_cpucount_fits(); }
+         let mut ret = Self::with_capacity_val(num_cpus(), !0);
++        proof! {
++            let seq0 = smallvec_view(&ret.bits);
++            assert(forall|k: int|
++                #![trigger smallvec_view(&ret.bits)[k]]
++                0 <= k < smallvec_view(&ret.bits).len() as int ==> smallvec_view(&ret.bits)[k]
++                    == !0u64);
++            assert forall|j: int| 0 <= j < cpu_count() implies bit_at(seq0, j) by {
++                lemma_bit_at_uniform(seq0, !0, j);
++            }
++        }
+         ret.clear_nonexistent_cpu_bits();
++        proof! {
++            let seq = smallvec_view(&ret.bits);
++            let n = cpu_count();
++            assert forall|a: int|
++                #![trigger ret@.contains(a)]
++                ret@.contains(a) == Set::range(0, n).contains(a) by {
++                assert(ret@.contains(a) == (0 <= a < n && bit_at(seq, a)));
++            }
++            assert(ret@ == Set::range(0, n));
++        }
+         ret
+     }
+ 
+     /// Creates a new `CpuSet` with no CPUs in the system.
++    #[verus_spec(ret =>
++        ensures
++            ret@ == Set::empty(),
++            ret.inv(),
++    )]
+     pub fn new_empty() -> Self {
+-        Self::with_capacity_val(num_cpus(), 0)
++        proof! { lemma_cpucount_fits(); }
++        let ret = Self::with_capacity_val(num_cpus(), 0);
++        proof! {
++            lemma_empty_bits_imply_empty_set(&ret);
++            assert forall|j: int|
++                cpu_count() <= j < 64 * smallvec_view(&ret.bits).len() as int implies !bit_at(
++                    smallvec_view(&ret.bits),
++                    j,
++                ) by {
++                lemma_u64_and_zero(1u64 << bit_idx_spec(j));
++            }
++        }
++        ret
+     }
+ 
+     /// Adds a CPU to the set.
++    #[verus_spec(
++        requires
++            self.inv(),
++        ensures
++            final(self)@ == old(self)@.insert(cpu_id@),
++            final(self).inv(),
++    )]
+     pub fn add(&mut self, cpu_id: CpuId) {
++        proof! {
++            use_type_invariant(&cpu_id);
++        }
+         let part_idx = part_idx(cpu_id);
+         let bit_idx = bit_idx(cpu_id);
++        proof! {
++            // The growth branch is dead under `self.inv()` and the `CpuId` type invariant
++            // (kept for the original out-of-contract behavior).
++            let id = cpu_id@;
++            let n = cpu_count();
++            let p = part_idx as int;
++            let b = bit_idx as int;
++            assert(id < n);
++            assert(p == id / 64);
++            lemma_fundamental_div_mod(id, 64);
++            lemma_fundamental_div_mod(n - 1, 64);
++            assert(id / 64 <= (n - 1) / 64);
++            assert((n + 63) / 64 >= (n - 1) / 64 + 1);
++            reveal(parts_for_cpus_spec);
++            assert(smallvec_view(&self.bits).len() == (n + 63) / 64);
++            assert(p < smallvec_view(&self.bits).len());
++            assert(0 <= b < 64);
++        }
+         if part_idx >= self.bits.len() {
+             self.bits.resize(part_idx + 1, 0);
+         }
+-        self.bits[part_idx] |= 1 << bit_idx;
++        // Original exec: `self.bits[part_idx] |= 1 << bit_idx;`
++        // routed via `as_mut_slice()` — SmallVec's own `IndexMut` impl has no Verus model.
++        self.bits.as_mut_slice()[part_idx] |= 1 << bit_idx;
++        proof! {
++            let id = cpu_id@;
++            let n = cpu_count();
++            let p = (part_idx as int) - 0;
++            let b = bit_idx as int;
++            let old_seq = smallvec_view(&old(self).bits);
++            let new_seq = smallvec_view(&self.bits);
++            let len = old_seq.len() as int;
++            assert(new_seq.len() == old_seq.len());
++            assert(new_seq == old_seq.update(p, old_seq[p] | (1u64 << (b as usize))));
++            assert forall|a: int|
++                #![trigger self@.contains(a)]
++                self@.contains(a) == old(self)@.insert(id).contains(a) by {
++                assert(self@.contains(a) == (0 <= a < n && bit_at(new_seq, a)));
++                assert(old(self)@.contains(a) == (0 <= a < n && bit_at(old_seq, a)));
++                if a == id {
++                    assert(a / 64 == p);
++                }
++            }
++            assert(self@ == old(self)@.insert(id));
++            assert forall|j: int| n <= j < 64 * len implies !bit_at(new_seq, j) by {
++                assert(bit_at(new_seq, j) == bit_at(old_seq, j));
++            }
++        }
+     }
+ 
+     /// Removes a CPU from the set.
++    #[verus_spec(
++        requires
++            self.inv(),
++        ensures
++            final(self)@ == old(self)@.remove(cpu_id@),
++            final(self).inv(),
++    )]
+     pub fn remove(&mut self, cpu_id: CpuId) {
++        proof! {
++            use_type_invariant(&cpu_id);
++        }
+         let part_idx = part_idx(cpu_id);
+         let bit_idx = bit_idx(cpu_id);
+         if part_idx < self.bits.len() {
+-            self.bits[part_idx] &= !(1 << bit_idx);
++            // Original exec: `self.bits[part_idx] &= !(1 << bit_idx);`
++            // routed via `as_mut_slice()` — SmallVec's own `IndexMut` impl has no Verus model.
++            self.bits.as_mut_slice()[part_idx] &= !(1 << bit_idx);
++            proof! {
++                let id = cpu_id@;
++                let n = cpu_count();
++                let p = part_idx as int;
++                let b = bit_idx as int;
++                let old_seq = smallvec_view(&old(self).bits);
++                let new_seq = smallvec_view(&self.bits);
++                assert(new_seq.len() == old_seq.len());
++                assert(new_seq == old_seq.update(p, old_seq[p] & (!(1u64 << (b as usize)))));
++                assert forall|a: int|
++                    #![trigger self@.contains(a)]
++                    self@.contains(a) == old(self)@.remove(id).contains(a) by {
++                    assert(self@.contains(a) == (0 <= a < n && bit_at(new_seq, a)));
++                    if a == id {
++                        assert(a / 64 == p);
++                    }
++                }
++                assert forall|j: int| n <= j < 64 * old_seq.len() as int implies !bit_at(
++                    new_seq,
++                    j,
++                ) by {
++                    assert(bit_at(new_seq, j) == bit_at(old_seq, j));
++                }
++            }
+         }
+     }
+ 
+     /// Returns true if the set contains the specified CPU.
++    #[verus_spec(ret =>
++        requires
++            self.inv(),
++        returns self@.contains(cpu_id@),
++    )]
+     pub fn contains(&self, cpu_id: CpuId) -> bool {
++        proof! {
++            use_type_invariant(&cpu_id);
++        }
+         let part_idx = part_idx(cpu_id);
+         let bit_idx = bit_idx(cpu_id);
+-        part_idx < self.bits.len() && (self.bits[part_idx] & (1 << bit_idx)) != 0
++        // Original exec: `self.bits[part_idx]`
++        // routed via `as_slice()` — SmallVec's own `Index` impl has no Verus model.
++        part_idx < self.bits.len() && (self.bits.as_slice()[part_idx] & (1 << bit_idx)) != 0
+     }
+ 
+     /// Returns the number of CPUs in the set.
++    #[verus_spec(
++        requires
++            self.inv(),
++        returns self.count_spec() as usize,
++    )]
+     pub fn count(&self) -> usize {
+-        self.bits
+-            .iter()
+-            .map(|part| part.count_ones() as usize)
+-            .sum()
++        /* `Iterator::sum` has no model in the active vstd, so use an indexed loop with a
++         * prefix-sum invariant while preserving the same word order and arithmetic.
++         * Origin Rust: self.bits
++         *     .iter()
++         *     .map(|part| part.count_ones() as usize)
++         *     .sum()
++         */
++        let mut count = 0usize;
++        let mut idx = 0usize;
++        proof! {
++            lemma_count_fits();
++            reveal(CpuSet::count_spec);
++        }
++        #[verus_spec(
++            invariant
++                self.inv(),
++                idx <= smallvec_view(&self.bits).len(),
++                count == count_set_bits_prefix(smallvec_view(&self.bits), idx as int),
++                count <= 64 * idx,
++            decreases
++                smallvec_view(&self.bits).len() - idx,
++        )]
++        while idx < self.bits.len() {
++            let part = self.bits.as_slice()[idx];
++            let part_count = part.count_ones() as usize;
++            proof! {
++                assert(0 <= u64_set_bits(part) <= 64);
++                assert(count + part_count <= usize::MAX);
++                reveal_with_fuel(count_set_bits_prefix, 1);
++            }
++            count += part_count;
++            idx += 1;
++        }
++        count
+     }
+ 
+     /// Returns true if the set is empty.
++    #[verus_spec(ret =>
++        requires
++            self.inv(),
++        returns self@ == Set::empty(),
++    )]
+     pub fn is_empty(&self) -> bool {
+-        self.bits.iter().all(|part| *part == 0)
++        /* `Iterator::all` on a temporary receiver does not expose its initial `remaining()`
++         * sequence to the caller's proof, so name the iterator and retain a ghost snapshot.
++         * Origin Rust: self.bits.iter().all(|part| *part == 0)
++         */
++        let mut iter = self.bits.iter();
++        proof_decl! {
++            let ghost initial_iter = iter;
++        }
++        let ret = iter.all(
++            #[verus_spec(ret: bool => ensures ret == (*part == 0u64))]
++            |part| *part == 0,
++        );
++        proof! {
++            if ret {
++                assert(IteratorSpec::remaining(&initial_iter)
++                    == smallvec_view(&self.bits).as_ref());
++                assert forall|i: int|
++                    0 <= i < smallvec_view(&self.bits).len() implies
++                        smallvec_view(&self.bits)[i] == 0u64 by {
++                    assert(*IteratorSpec::remaining(&initial_iter)[i] == 0u64);
++                }
++                lemma_empty_bits_imply_empty_set(self);
++            } else {
++                let seq = smallvec_view(&self.bits);
++                let initial = IteratorSpec::remaining(&initial_iter);
++                let idx = initial.len() - IteratorSpec::remaining(&iter).len() - 1;
++                assert(initial == seq.as_ref());
++                assert(initial[idx] != 0u64);
++                lemma_u64_nonzero_has_set_bit(*initial[idx]);
++                let b = choose|b: u32| b < 64 && #[trigger] (*initial[idx]
++                    & (1u64 << b)) != 0;
++                let j = 64 * idx + b as int;
++                assert(0 <= idx < seq.len());
++                assert(j / 64 == idx);
++                assert(j % 64 == b as int);
++                assert((j % 64) as usize == b as usize);
++                assert(bit_at(seq, j));
++                assert(j < cpu_count());
++                assert(self@.contains(j));
++            }
++        }
++        ret
+     }
+ 
+     /// Returns true if the set is full.
++    #[verus_spec(ret =>
++        requires
++            self.inv(),
++        ensures
++            ret ==> self@ == Set::range(0, cpu_count()),
++    )]
+     pub fn is_full(&self) -> bool {
++        /* `Enumerate` has no `IteratorSpecImpl` in the active vstd, so use an indexed loop
++         * with the same ascending word order and the same first-mismatch short circuit.
++         * Origin Rust: let num_cpus = num_cpus();
++         * self.bits.iter().enumerate().all(|(idx, part)| {
++         *     if idx == self.bits.len() - 1 && num_cpus % BITS_PER_PART != 0 {
++         *         *part == (1 << (num_cpus % BITS_PER_PART)) - 1
++         *     } else {
++         *         *part == !0
++         *     }
++         * })
++         */
+         let num_cpus = num_cpus();
+-        self.bits.iter().enumerate().all(|(idx, part)| {
+-            if idx == self.bits.len() - 1 && num_cpus % BITS_PER_PART != 0 {
+-                *part == (1 << (num_cpus % BITS_PER_PART)) - 1
++        let mut idx = 0usize;
++        #[verus_spec(
++            invariant
++                self.inv(),
++                num_cpus == cpu_count(),
++                idx <= smallvec_view(&self.bits).len(),
++                forall|i: int|
++                    #![trigger smallvec_view(&self.bits)[i]]
++                    0 <= i < idx ==> smallvec_view(&self.bits)[i]
++                        == full_set_word(
++                            cpu_count(),
++                            smallvec_view(&self.bits).len() as int,
++                            i,
++                        ),
++            decreases
++                smallvec_view(&self.bits).len() - idx,
++        )]
++        while idx < self.bits.len() {
++            let expected = if idx == self.bits.len() - 1 && num_cpus % BITS_PER_PART != 0 {
++                (1 << (num_cpus % BITS_PER_PART)) - 1
+             } else {
+-                *part == !0
++                !0
++            };
++            if self.bits.as_slice()[idx] != expected {
++                return false;
+             }
+-        })
++            idx += 1;
++        }
++        proof! {
++            lemma_full_bits_imply_full_set(self);
++        }
++        true
+     }
+ 
+     /// Adds all CPUs to the set.
++    #[verus_spec(
++        requires
++            self.inv(),
++        ensures
++            final(self)@ == Set::range(0, cpu_count()),
++            final(self).inv(),
++    )]
+     pub fn add_all(&mut self) {
+         self.bits.fill(!0);
+         self.clear_nonexistent_cpu_bits();
+     }
+ 
+     /// Removes all CPUs from the set.
++    #[verus_spec(
++        requires
++            self.inv(),
++        ensures
++            final(self)@ == Set::empty(),
++            final(self).inv(),
++    )]
+     pub fn clear(&mut self) {
+         self.bits.fill(0);
++        proof! {
++            let seq = smallvec_view(&self.bits);
++            assert(forall|k: int| 0 <= k < seq.len() ==> seq[k] == 0u64);
++            lemma_empty_bits_imply_empty_set(self);
++            assert forall|j: int|
++                cpu_count() <= j < 64 * smallvec_view(&self.bits).len() as int implies !bit_at(
++                    smallvec_view(&self.bits),
++                    j,
++                ) by {
++                lemma_u64_and_zero(1u64 << bit_idx_spec(j));
++            }
++        }
+     }
+ 
+     /// Iterates over the CPUs in the set.
+     ///
+     /// The order of the iteration is guaranteed to be in ascending order.
++    #[verus_spec(ret =>
++        requires
++            self.inv(),
++        ensures
++            IteratorSpec::obeys_prophetic_iter_laws(&ret),
++            IteratorSpec::decrease(&ret) is Some,
++    )]
+     pub fn iter(&self) -> impl Iterator<Item = CpuId> + '_ {
+-        self.bits.iter().enumerate().flat_map(|(part_idx, &part)| {
+-            (0..BITS_PER_PART).filter_map(move |bit_idx| {
+-                if (part & (1 << bit_idx)) != 0 {
+-                    let id = part_idx * BITS_PER_PART + bit_idx;
+-                    Some(CpuId(id as u32))
+-                } else {
+-                    None
+-                }
+-            })
+-        })
++        /* `Enumerate`, `FlatMap`, and `FilterMap` are not modeled by the active vstd, so scan
++         * the same bit positions with modeled `Filter` and `Map` adapters. The position order
++         * and selected CPU IDs are unchanged.
++         * Origin Rust: self.bits.iter().enumerate().flat_map(|(part_idx, &part)| {
++         *     (0..BITS_PER_PART).filter_map(move |bit_idx| {
++         *         if (part & (1 << bit_idx)) != 0 {
++         *             let id = part_idx * BITS_PER_PART + bit_idx;
++         *             Some(CpuId(id as u32))
++         *         } else {
++         *             None
++         *         }
++         *     })
++         * })
++         */
++        proof! {
++            lemma_count_fits();
++        }
++        let end = self.bits.len() * BITS_PER_PART;
++        (0..end)
++            .filter(
++                #[verus_spec(ret: bool =>
++                    requires
++                        *id < end,
++                    ensures
++                        ret == bit_at(smallvec_view(&self.bits), *id as int),
++                )]
++                move |id| {
++                    let part_idx = *id / BITS_PER_PART;
++                    let bit_idx = *id % BITS_PER_PART;
++                    proof! {
++                        assert((*id as int) / 64 == part_idx as int);
++                        assert((*id as int) % 64 == bit_idx as int);
++                    }
++                    (self.bits.as_slice()[part_idx] & (1 << bit_idx)) != 0
++                },
++            )
++            .map(
++                #[verus_spec(ret: CpuId =>
++                    requires
++                        bit_at(smallvec_view(&self.bits), id as int),
++                    ensures
++                        ret == CpuId(id as u32),
++                )]
++                move |id| {
++                    proof! {
++                        assert(id < cpu_count());
++                    }
++                    CpuId(id as u32)
++                },
++            )
+     }
+ 
+-    /// Only for internal use. The set cannot contain non-existent CPUs.
++    /// Only for internal use. Build a vector of `num_cpus`-covering words, all equal to `val`.
++    #[verus_spec(ret =>
++        requires
++            (num_cpus as int) == cpu_count(),
++            2 * (parts_for_cpus_spec(num_cpus) as int) * (size_of::<u64>() as int)
++                <= isize::MAX as int,
++        ensures
++            smallvec_view(&ret.bits).len() == parts_for_cpus_spec(num_cpus),
++        forall|i: int|
++            #![trigger smallvec_view(&ret.bits)[i]]
++            0 <= i < smallvec_view(&ret.bits).len() as int ==> smallvec_view(&ret.bits)[i]
++                == val,
++    )]
+     fn with_capacity_val(num_cpus: usize, val: InnerPart) -> Self {
+         let num_parts = parts_for_cpus(num_cpus);
+         let mut bits = SmallVec::with_capacity(num_parts);
+@@ -130,22 +796,83 @@ impl CpuSet {
+         Self { bits }
+     }
+ 
++    #[verus_spec(
++        requires
++            smallvec_view(&self.bits).len() == parts_for_cpus_spec(cpu_count() as usize),
++            forall|j: int|
++                #![trigger bit_at(smallvec_view(&self.bits), j)]
++                0 <= j < cpu_count() ==> bit_at(smallvec_view(&self.bits), j),
++        ensures
++            final(self).inv(),
++            forall|j: int|
++                #![trigger bit_at(smallvec_view(&final(self).bits), j)]
++                0 <= j < cpu_count() ==> bit_at(smallvec_view(&final(self).bits), j),
++    )]
+     fn clear_nonexistent_cpu_bits(&mut self) {
+         let num_cpus = num_cpus();
+         if num_cpus % BITS_PER_PART != 0 {
+             let num_parts = parts_for_cpus(num_cpus);
+-            self.bits[num_parts - 1] &= (1 << (num_cpus % BITS_PER_PART)) - 1;
++            proof! {
++                let n = cpu_count();
++                assert((num_cpus as int) == n);
++                assert(1 <= n);
++                assert((num_parts as int) == (n + 63) / 64);
++                lemma_fundamental_div_mod(n + 63, 64);
++                assert(n + 63 >= 64);
++                assert(0 <= (n + 63) % 64 < 64);
++                assert((num_parts as int) >= 1);
++                reveal(parts_for_cpus_spec);
++                assert(parts_for_cpus_spec(n as usize) as int == (n + 63) / 64);
++                assert(((num_parts as int) - 1) < smallvec_view(&self.bits).len());
++                lemma_fundamental_div_mod(n - 1, 64);
++                assert(64 * ((n - 1) / 64) < n);
++            }
++            // Original exec: `self.bits[num_parts - 1] &= (1 << (num_cpus % BITS_PER_PART)) - 1;`
++            // routed via `as_mut_slice()` — SmallVec's own `IndexMut` impl has no Verus model.
++            self.bits.as_mut_slice()[num_parts - 1] &= (1 << (num_cpus % BITS_PER_PART)) - 1;
++            proof! {
++                let n = cpu_count();
++                let old_seq = smallvec_view(&old(self).bits);
++                let new_seq = smallvec_view(&self.bits);
++                let len = old_seq.len() as int;
++                let idx = (num_parts as int) - 1;
++                let k = n % 64;
++                let mask: u64 = ((1u64 << (k as usize)) - 1) as u64;
++                assert((num_cpus as int) == n);
++                assert((num_cpus % BITS_PER_PART) as int == k);
++                assert((num_parts as int) == (n + 63) / 64);
++                assert(len == (n + 63) / 64);
++                assert(idx == len - 1);
++                assert(64 * (len - 1) < n);
++                assert(0 <= k < 64);
++                assert(new_seq.len() == old_seq.len());
++                assert(new_seq == old_seq.update(idx, old_seq[idx] & mask));
++                assert(mask == (1u64 << (k as usize)) - 1);
++                assert forall|j: int| n <= j < 64 * len implies !bit_at(new_seq, j) by {
++                    assert(j / 64 == len - 1);
++                    assert(j % 64 >= k);
++                }
++                assert forall|j: int| 0 <= j < n implies
++                    bit_at(new_seq, j) == bit_at(old_seq, j) by {
++                    if j / 64 < len - 1 {
++                        assert(new_seq[j / 64] == old_seq[j / 64]);
++                    } else {
++                        assert(j / 64 == len - 1);
++                        assert(j % 64 < k);
++                    }
++                }
++            }
+         }
+     }
+ }
+ 
+-impl From<CpuId> for CpuSet {
++/* impl From<CpuId> for CpuSet {
+     fn from(cpu_id: CpuId) -> Self {
+         let mut set = Self::new_empty();
+         set.add(cpu_id);
+         set
+     }
+-}
++} */
+ 
+ /// A subset of all CPUs in the system with atomic operations.
+ ///
+@@ -157,7 +884,9 @@ pub struct AtomicCpuSet {
+ }
+ 
+ type AtomicInnerPart = AtomicU64;
+-const_assert!(core::mem::size_of::<AtomicInnerPart>() * 8 == BITS_PER_PART);
++// Original exec: `const_assert!(core::mem::size_of::<AtomicInnerPart>() * 8 == BITS_PER_PART);`
++// (`const_assert!` expands to exactly this `const _: () = assert!(..)` item.)
++const _: () = assert!(core::mem::size_of::<AtomicInnerPart>() * 8 == BITS_PER_PART);
+ 
+ impl AtomicCpuSet {
+     /// Creates a new `AtomicCpuSet` with an initial value.
+diff --git a/ostd/src/lib.rs b/ostd/src/lib.rs
+index 8a90a38768d0a1763374bd1faf0a2299108472f9..8840e1ca6b477dae8438d8c3bbdcf29ec4bbed87 100644
+--- a/ostd/src/lib.rs
++++ b/ostd/src/lib.rs
+@@ -39,8 +39,8 @@ pub mod arch;
+ //pub mod arch;
+ pub mod boot;
+ /*pub mod bus;
+-pub mod console;
+-pub mod cpu;*/
++pub mod console;*/
++pub mod cpu;
+ pub mod error;
+ /*pub mod io;
+ pub mod logger;*/
+diff --git a/ostd/src/util/mod.rs b/ostd/src/util/mod.rs
+index 2c6cadffe15c3c3ca45849593b76659c0d2f94df..56fddbae5c6664d7c39555715e5642df46000ed3 100644
+--- a/ostd/src/util/mod.rs
++++ b/ostd/src/util/mod.rs
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: MPL-2.0
+ //! Utility types and methods.
+ mod either;
+-//mod macros;
++mod macros;
+ pub(crate) mod ops;
+ pub(crate) mod range_alloc;
+ 
+diff --git a/verified_libs/vstd_extra/Cargo.toml b/verified_libs/vstd_extra/Cargo.toml
+index a4dd253d478952c7e097e02a241c1b03c352ce99..70ba85ca6ec7da7cdaf610e92654898151b91c67 100644
+--- a/verified_libs/vstd_extra/Cargo.toml
++++ b/verified_libs/vstd_extra/Cargo.toml
+@@ -16,3 +16,4 @@ std = ["vstd/std"]
+ [dependencies]
+ vstd = { workspace = true }
+ bitvec.workspace = true
++smallvec = "1.13.2"
+diff --git a/verified_libs/vstd_extra/src/bits.rs b/verified_libs/vstd_extra/src/bits.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..47947273385110cba1616ededd443f2259b102f2
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/bits.rs
+@@ -0,0 +1,150 @@
++//! Bit-arithmetic lemmas for `u64` shifts and masks.
++use vstd::prelude::*;
++
++verus! {
++
++/// Every bit of the all-ones word is set.
++pub broadcast proof fn lemma_u64_allones_bit(k: int)
++    requires
++        0 <= k < 64,
++    ensures
++        #![trigger (1u64 << (k as usize))]
++        (!0u64 & (1u64 << (k as usize))) != 0,
++{
++    let ku: u32 = k as u32;
++    assert((!0u64 & (1u64 << ku)) == (1u64 << ku)) by (bit_vector);
++    assert((ku < 64u32) ==> ((1u64 << ku) != 0u64)) by (bit_vector);
++}
++
++/// An in-range unit shift is at least `1`, so `(1u64 << k) - 1` cannot underflow.
++pub broadcast proof fn lemma_u64_unit_shift_pos(k: int)
++    requires
++        0 <= k < 64,
++    ensures
++        #![trigger (1u64 << (k as usize))]
++        1u64 <= (1u64 << (k as usize)),
++{
++    let ku: u32 = k as u32;
++    assert((ku < 64u32) ==> (1u64 <= (1u64 << ku))) by (bit_vector);
++}
++
++/// Masking with the low-`k`-bits mask `(1u64 << k) - 1` clears bit `b >= k` of any
++/// word (AND associativity folded into the statement).
++pub broadcast proof fn lemma_u64_masked_bit_clear(word: u64, mask: u64, k: int, b: int)
++    requires
++        0 <= k <= 64,
++        k <= b < 64,
++        mask == (1u64 << (k as usize)) - 1,
++    ensures
++        #![trigger ((word & mask) & (1u64 << (b as usize))), (1u64 << (k as usize))]
++        ((word & mask) & (1u64 << (b as usize))) == 0,
++{
++    let ku: u32 = k as u32;
++    let bu: u32 = b as u32;
++    assert(((word & mask) & (1u64 << bu)) == 0u64) by (bit_vector)
++        requires
++            ku <= bu,
++            bu < 64,
++            mask == (1u64 << ku) - 1u64,
++    ;
++}
++
++/// Masking with the low-`k`-bits mask keeps bit `b < k` of any word unchanged.
++pub broadcast proof fn lemma_u64_masked_bit_keep(word: u64, mask: u64, k: int, b: int)
++    requires
++        0 < k <= 64,
++        0 <= b < k,
++        mask == (1u64 << (k as usize)) - 1,
++    ensures
++        #![trigger ((word & mask) & (1u64 << (b as usize))), (1u64 << (k as usize))]
++        ((word & mask) & (1u64 << (b as usize))) == word & (1u64 << (b as usize)),
++{
++    let ku: u32 = k as u32;
++    let bu: u32 = b as u32;
++    assert(((word & mask) & (1u64 << bu)) == (word & (1u64 << bu))) by (bit_vector)
++        requires
++            bu < ku,
++            ku <= 64,
++            mask == (1u64 << ku) - 1u64,
++    ;
++}
++
++/// Setting bit `b` (OR-ing the unit bit at `b`) makes that bit nonzero.
++pub broadcast proof fn lemma_u64_setbit_bit_set(word: u64, b: int)
++    requires
++        0 <= b < 64,
++    ensures
++        #![trigger ((word | (1u64 << (b as usize))) & (1u64 << (b as usize)))]
++        ((word | (1u64 << (b as usize))) & (1u64 << (b as usize))) != 0,
++{
++    let bu: u32 = b as u32;
++    assert(((word | (1u64 << bu)) & (1u64 << bu)) == (1u64 << bu)) by (bit_vector);
++    assert((bu < 64u32) ==> ((1u64 << bu) != 0u64)) by (bit_vector);
++}
++
++/// Setting bit `b` leaves a different in-range bit `b2` unchanged.
++pub broadcast proof fn lemma_u64_setbit_bit_keep(word: u64, b: int, b2: int)
++    requires
++        0 <= b < 64,
++        0 <= b2 < 64,
++        b != b2,
++    ensures
++        #![trigger ((word | (1u64 << (b as usize))) & (1u64 << (b2 as usize))), (1u64 << (b as usize))]
++        ((word | (1u64 << (b as usize))) & (1u64 << (b2 as usize))) == (word & (1u64 << (
++        b2 as usize))),
++{
++    let bu: u32 = b as u32;
++    let b2u: u32 = b2 as u32;
++    assert((bu != b2u) ==> (((word | (1u64 << bu)) & (1u64 << b2u)) == (word & (1u64 << b2u))))
++        by (bit_vector);
++}
++
++/// Clearing bit `b` (AND-ing the complement of the unit bit at `b`) clears that bit.
++pub broadcast proof fn lemma_u64_clearbit_bit_clear(word: u64, b: int)
++    requires
++        0 <= b < 64,
++    ensures
++        #![trigger ((word & (!(1u64 << (b as usize)))) & (1u64 << (b as usize)))]
++        ((word & (!(1u64 << (b as usize)))) & (1u64 << (b as usize))) == 0,
++{
++    let bu: u32 = b as u32;
++    assert((word & (!(1u64 << bu))) & (1u64 << bu) == 0u64) by (bit_vector);
++}
++
++/// Clearing bit `b` leaves a different in-range bit `b2` unchanged.
++pub broadcast proof fn lemma_u64_clearbit_bit_keep(word: u64, b: int, b2: int)
++    requires
++        0 <= b < 64,
++        0 <= b2 < 64,
++        b != b2,
++    ensures
++        #![trigger ((word & (!(1u64 << (b as usize)))) & (1u64 << (b2 as usize))), (1u64 << (b as usize))]
++        ((word & (!(1u64 << (b as usize)))) & (1u64 << (b2 as usize))) == (word & (1u64 << (
++        b2 as usize))),
++{
++    let bu: u32 = b as u32;
++    let b2u: u32 = b2 as u32;
++    assert((bu != b2u) ==> (((word & (!(1u64 << bu))) & (1u64 << b2u)) == (word & (1u64 << b2u))))
++        by (bit_vector);
++}
++
++/// AND-ing the zero word with any word is zero.
++pub proof fn lemma_u64_and_zero(x: u64)
++    ensures
++        0u64 & x == 0u64,
++{
++    assert(0u64 & x == 0u64) by (bit_vector);
++}
++
++pub broadcast group group_u64_bit_algebra {
++    lemma_u64_allones_bit,
++    lemma_u64_unit_shift_pos,
++    lemma_u64_masked_bit_clear,
++    lemma_u64_masked_bit_keep,
++    lemma_u64_setbit_bit_set,
++    lemma_u64_setbit_bit_keep,
++    lemma_u64_clearbit_bit_clear,
++    lemma_u64_clearbit_bit_keep,
++}
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/bits.rs b/verified_libs/vstd_extra/src/external/bits.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..07b97d16703d3140cfbdcbb918729a5083390108
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/bits.rs
+@@ -0,0 +1,86 @@
++//! Specifications for bit-related standard-library functions.
++use vstd::prelude::*;
++
++verus! {
++
++/// The number of set bits among the lowest `n` bits of `w`.
++spec fn u64_set_bits_rec(w: u64, n: u64) -> int
++    decreases n,
++{
++    if n == 0 {
++        0
++    } else {
++        (w & 1u64) + u64_set_bits_rec(w >> 1u64, (n - 1) as u64)
++    }
++}
++
++/// The number of set bits in a `u64` word.
++pub closed spec fn u64_set_bits(w: u64) -> int {
++    u64_set_bits_rec(w, 64)
++}
++
++/// `u64::count_ones`: "Returns the number of ones in the binary representation
++/// of `self`" (core/src/num/uint_macros.rs, `intrinsics::ctpop`).
++pub assume_specification[ u64::count_ones ](v: u64) -> (r: u32)
++    ensures
++        (r as int) == u64_set_bits(v),
++;
++
++proof fn lemma_u64_set_bits_rec_bounds(w: u64, n: u64)
++    requires
++        n <= 64,
++    ensures
++        0 <= u64_set_bits_rec(w, n) <= n,
++        w >> n == 0 ==> ((w != 0) == (1 <= u64_set_bits_rec(w, n))),
++    decreases n,
++{
++    reveal_with_fuel(u64_set_bits_rec, 1);
++    if n != 0 {
++        lemma_u64_set_bits_rec_bounds(w >> 1u64, (n - 1) as u64);
++        assert((w & 1u64) <= 1) by (bit_vector);
++        assert((w >> 1u64) >> ((n - 1) as u64) == w >> n) by (bit_vector)
++            requires
++                0 < n <= 64,
++        ;
++        if w >> n == 0 {
++            if w == 0 {
++                assert(w & 1u64 == 0 && w >> 1u64 == 0) by (bit_vector)
++                    requires
++                        w == 0,
++                ;
++            } else {
++                if w & 1u64 == 0 {
++                    assert(w >> 1u64 != 0) by (bit_vector)
++                        requires
++                            w != 0,
++                            w & 1u64 == 0,
++                    ;
++                } else {
++                    assert(w & 1u64 == 1) by (bit_vector)
++                        requires
++                            w & 1u64 != 0,
++                    ;
++                }
++            }
++        }
++    } else {
++        assert(w >> n == w) by (bit_vector)
++            requires
++                n == 0,
++        ;
++    }
++}
++
++/// A nonzero word has at least one set bit (and zero has none).
++pub broadcast proof fn lemma_u64_set_bits_nonzero(w: u64)
++    ensures
++        #![trigger u64_set_bits(w)]
++        (w != 0u64) == (1 <= u64_set_bits(w)),
++        0 <= u64_set_bits(w) <= 64,
++{
++    reveal(u64_set_bits);
++    lemma_u64_set_bits_rec_bounds(w, 64);
++    assert(w >> 64u64 == 0) by (bit_vector);
++}
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/external/int_specs.rs b/verified_libs/vstd_extra/src/external/int_specs.rs
+index 1998925a51f33052ba1961371adb224f7f10023f..a73b3c24d5988d24f223b165e99e1e5cda4db6a0 100644
+--- a/verified_libs/vstd_extra/src/external/int_specs.rs
++++ b/verified_libs/vstd_extra/src/external/int_specs.rs
+@@ -41,4 +41,14 @@ pub assume_specification[ usize::is_power_of_two ](self_: usize) -> (r: bool)
+     no_unwind
+ ;
+ 
++/// `usize::div_ceil` panics if `rhs` is zero; the precondition excludes that case.
++pub assume_specification[ usize::div_ceil ](self_: usize, rhs: usize) -> usize
++    requires
++        rhs > 0,
++    returns
++        ((self_ + rhs - 1) / (rhs as int)) as usize,
++    opens_invariants none
++    no_unwind when rhs > 0
++;
++
+ } // verus!
+diff --git a/verified_libs/vstd_extra/src/external/mod.rs b/verified_libs/vstd_extra/src/external/mod.rs
+index 868f67cd47f9da91c0ad727111f9aec95323eb97..6fbe9b5b630b497fd560023636f375af10b14f21 100644
+--- a/verified_libs/vstd_extra/src/external/mod.rs
++++ b/verified_libs/vstd_extra/src/external/mod.rs
+@@ -2,6 +2,7 @@
+ //!
+ //! These specifications are determined with careful inspection of the std library source code and documentation, and trusted as TCB.
+ //! They are subject to change if `vstd` covers more cases in the future.
++pub mod bits;
+ mod bitvec;
+ pub mod cmp;
+ pub mod convert;
+@@ -13,6 +14,7 @@ pub mod nonnull;
+ pub mod ptr;
+ pub mod range;
+ pub mod slice;
++pub mod smallvec;
+ pub mod smart_ptr;
+ pub mod time;
+ 
+@@ -25,6 +27,7 @@ pub use nonnull::*;
+ pub use ptr::*;
+ pub use range::*;
+ pub use slice::*;
++pub use smallvec::*;
+ pub use smart_ptr::*;
+ pub use time::*;
+ 
+diff --git a/verified_libs/vstd_extra/src/external/slice.rs b/verified_libs/vstd_extra/src/external/slice.rs
+index 4663cd1e6ca15365a174347ef1638f0dcf6e6b30..c57086546aaeb8b6e304197827b3d08756c8f2c0 100644
+--- a/verified_libs/vstd_extra/src/external/slice.rs
++++ b/verified_libs/vstd_extra/src/external/slice.rs
+@@ -50,4 +50,16 @@ pub assume_specification<'a, T>[ core::slice::from_raw_parts_mut::<'a, T> ](
+         ret.len() == len,
+ ;
+ 
++/// Fills every element with a clone of `value`; the length is unchanged.
++///
++/// Fills in place with no allocation, so there is no input-dependent panic; a panicking
++/// `T::clone` is assumed away by `cloned`.
++pub assume_specification<T: Clone>[ <[T]>::fill ](s: &mut [T], value: T)
++    ensures
++        final(s)@.len() == old(s)@.len(),
++        forall|i: int|
++            #![trigger final(s)@[i]]
++            0 <= i < final(s)@.len() ==> cloned::<T>(value, final(s)@[i]),
++;
++
+ } // verus!
+diff --git a/verified_libs/vstd_extra/src/external/smallvec.rs b/verified_libs/vstd_extra/src/external/smallvec.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..19cc20335b78e14d4ecf92902d2383a2a8cf8ad3
+--- /dev/null
++++ b/verified_libs/vstd_extra/src/external/smallvec.rs
+@@ -0,0 +1,173 @@
++//! Verus specifications for the third-party `smallvec` crate, trusted as TCB from
++//! inspection of the `smallvec-1.15.0` source (`src/lib.rs`) and centralized here
++//! rather than beside an OSTD caller. `cpu/set.rs` is currently the only consumer
++//! (`SmallVec<[u64; 2]>`).
++//!
++//! The model is a `Seq<A::Item>`: the views below equate every executed `SmallVec`
++//! operation to a `Seq` operation, and `Deref`/`DerefMut` bridge to the std
++//! `[A::Item]` slice so that indexing, `len`, and `iter` reuse `vstd`'s slice
++//! specifications rather than being re-axiomatized.
++//!
++//! `SmallVec::new` asserts at construction that `A` is a well-formed `Array` impl
++//! (its reported size matches the real layout); a custom `unsafe impl Array` could
++//! trip this. So every operation below is guarded by `obeys_smallvec_array::<A>`
++//! and only the trusted instances in `group_smallvec_models` (currently `[u64; 2]`)
++//! are admitted by broadcast axioms. Any other `A: Array` cannot satisfy the guard
++//! without an added axiom, so the model never assumes invokability for an arbitrary
++//! `A`.
++//!
++//! Allocation-growth panics (capacity overflow past `isize::MAX`) are noted on each
++//! spec and excluded by an additional `requires`; `SmallVec::reserve` rounds the
++//! capacity up to the next power of two, so those bounds use a factor of 2.
++use core::ops::{Deref, DerefMut};
++use smallvec::{Array, SmallVec};
++use vstd::{layout::size_of, prelude::*};
++
++verus! {
++
++/// Verus declaration for `smallvec::Array`; only the element type `Item` is surfaced.
++#[verifier::external_trait_specification]
++pub trait ExArray {
++    type ExternalTraitSpecificationFor: Array;
++
++    type Item;
++}
++
++/// Opaque external wrapper for the owned small-vector type `SmallVec<A>`.
++#[verifier::external_type_specification]
++#[verifier::external_body]
++#[verifier::reject_recursive_types(A)]
++pub struct ExSmallVec<A: Array>(SmallVec<A>);
++
++/// The contents of a `SmallVec`, modelled as a sequence of its elements.
++pub uninterp spec fn smallvec_view<A: Array>(v: &SmallVec<A>) -> Seq<A::Item>;
++
++/// Whether `A` is a well-formed standard `Array` impl, i.e. `SmallVec::new`'s
++/// construction-time validity assert holds. Only the instances in
++/// `group_smallvec_models` are trusted (add an axiom there to admit new `A`s).
++pub uninterp spec fn obeys_smallvec_array<A: Array>() -> bool;
++
++/// The standard `[u64; 2]` array (the `CpuSet` backing store) is a well-formed `Array`.
++pub broadcast axiom fn axiom_smallvec_array_u64_2()
++    ensures
++        #[trigger] obeys_smallvec_array::<[u64; 2]>(),
++;
++
++pub broadcast group group_smallvec_models {
++    axiom_smallvec_array_u64_2,
++}
++
++/// Constructs a new, empty `SmallVec`.
++///
++/// Asserts at construction that `A` is a well-formed `Array` impl; the guard admits
++/// only the trusted instances in `group_smallvec_models`.
++pub assume_specification<A: Array>[ SmallVec::<A>::new ]() -> (ret: SmallVec<A>)
++    requires
++        obeys_smallvec_array::<A>(),
++    ensures
++        smallvec_view(&ret) == Seq::<A::Item>::empty(),
++;
++
++/// Constructs a new, empty `SmallVec` with the given heap capacity, which is not modelled.
++///
++/// Panics on capacity overflow if `n * size_of::<A::Item>()` exceeds `isize::MAX`; the bound
++/// is enforced by `Layout::from_size_align` in the private `layout_array` (called from `try_grow`).
++pub assume_specification<A: Array>[ SmallVec::<A>::with_capacity ](n: usize) -> (ret: SmallVec<A>)
++    requires
++        obeys_smallvec_array::<A>(),
++        n * size_of::<A::Item>() <= isize::MAX,
++    ensures
++        smallvec_view(&ret) == Seq::<A::Item>::empty(),
++;
++
++/// The number of elements.
++pub assume_specification<A: Array>[ SmallVec::<A>::len ](v: &SmallVec<A>) -> usize
++    requires
++        obeys_smallvec_array::<A>(),
++    returns
++        smallvec_view(v).len() as usize,
++;
++
++/// Appends `value` to the end.
++///
++/// Panics on capacity overflow when full, if growing to the next power of two of
++/// `len + 1` would exceed `isize::MAX / size_of::<A::Item>()`; the bound uses a
++/// factor of 2 for the power-of-two rounding.
++pub assume_specification<A: Array>[ SmallVec::<A>::push ](v: &mut SmallVec<A>, value: A::Item)
++    requires
++        obeys_smallvec_array::<A>(),
++        2 * (smallvec_view(v).len() + 1) * size_of::<A::Item>() <= isize::MAX,
++    ensures
++        smallvec_view(final(v)) == smallvec_view(old(v)).push(value),
++;
++
++/// Resizes so the length is `new_len`, cloning `value` into new positions. Mirrors `Vec::resize`.
++///
++/// Panics on capacity overflow when growing, if the allocation rounded up to the
++/// next power of two of `new_len` would exceed `isize::MAX / size_of::<A::Item>()`.
++pub assume_specification<A: Array>[ SmallVec::<A>::resize ](
++    v: &mut SmallVec<A>,
++    new_len: usize,
++    value: A::Item,
++) where A::Item: Clone
++    requires
++        obeys_smallvec_array::<A>(),
++        2 * new_len * size_of::<A::Item>() <= isize::MAX,
++    ensures
++        new_len <= smallvec_view(old(v)).len() ==> smallvec_view(final(v)) == smallvec_view(
++            old(v),
++        ).subrange(0, new_len as int),
++        new_len > smallvec_view(old(v)).len() ==> {
++            &&& smallvec_view(final(v)).len() == new_len
++            &&& smallvec_view(final(v)).subrange(0, smallvec_view(old(v)).len() as int)
++                == smallvec_view(old(v))
++            &&& forall|i: int|
++                #![trigger smallvec_view(final(v))[i]]
++                smallvec_view(old(v)).len() <= i < new_len ==> cloned::<A::Item>(
++                    value,
++                    smallvec_view(final(v))[i],
++                )
++        },
++;
++
++/// Views the elements as a borrowed slice.
++pub assume_specification<A: Array>[ SmallVec::<A>::as_slice ](v: &SmallVec<A>) -> (ret: &[A::Item])
++    requires
++        obeys_smallvec_array::<A>(),
++    ensures
++        ret@ == smallvec_view(v),
++;
++
++/// Views the elements as a mutably borrowed slice; writes through the returned borrow are
++/// reflected in the `SmallVec`'s final view.
++pub assume_specification<A: Array>[ SmallVec::<A>::as_mut_slice ](v: &mut SmallVec<A>) -> (ret:
++    &mut [A::Item])
++    requires
++        obeys_smallvec_array::<A>(),
++    ensures
++        ret@ == smallvec_view(old(v)),
++        final(ret)@ == smallvec_view(final(v)),
++;
++
++/// `SmallVec` derefs to a slice over exactly its own elements; the guard is an
++/// ensures-implication since `requires` is disallowed on trait-method specs.
++pub assume_specification<A: Array>[ <SmallVec<A> as Deref>::deref ](v: &SmallVec<A>) -> (ret:
++    &[A::Item])
++    ensures
++        obeys_smallvec_array::<A>() ==> ret@ == smallvec_view(v),
++;
++
++/// `SmallVec` derefs mutably to a slice over exactly its own elements; a mutation performed
++/// through the returned borrow is reflected in the `SmallVec`'s final view (guard as an
++/// ensures-implication for the same reason as [`Deref`]).
++pub assume_specification<A: Array>[ <SmallVec<A> as DerefMut>::deref_mut ](
++    v: &mut SmallVec<A>,
++) -> (ret: &mut [A::Item])
++    ensures
++        obeys_smallvec_array::<A>() ==> {
++            &&& ret@ == smallvec_view(old(v))
++            &&& final(ret)@ == smallvec_view(final(v))
++        },
++;
++
++} // verus!
+diff --git a/verified_libs/vstd_extra/src/lib.rs b/verified_libs/vstd_extra/src/lib.rs
+index 285c3446de438ed7d72fcff6fdeb6a199b31a500..6effb51374ef8ca73d56b23282d87b82a1841012 100644
+--- a/verified_libs/vstd_extra/src/lib.rs
++++ b/verified_libs/vstd_extra/src/lib.rs
+@@ -22,6 +22,7 @@ pub mod atomic_data;
+ #[cfg(feature = "irc11")]
+ pub mod atomic_irc11;
+ pub mod auxiliary;
++pub mod bits;
+ pub mod cast_ptr;
+ pub mod drop_tracking;
+ pub mod external;
